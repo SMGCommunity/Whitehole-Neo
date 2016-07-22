@@ -16,11 +16,13 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.rendering;
+package whitehole.rendering.objRenderer;
 
-public class ObjRenderer_Kinopio extends BmdRenderer
+import whitehole.rendering.BmdRenderer;
+
+public class Kinopio extends BmdRenderer
 {
-    public ObjRenderer_Kinopio(RenderInfo info, int color)
+    public Kinopio(RenderInfo info, int color)
     {
         ctor_loadModel(info, "Kinopio");
         

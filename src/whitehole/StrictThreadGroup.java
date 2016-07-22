@@ -37,7 +37,7 @@ public class StrictThreadGroup extends ThreadGroup
             JOptionPane.showMessageDialog(null, 
                     e.getMessage() + "\n\n"
                     + "This error is likely caused by an outdated video driver. Update it if possible.",
-                    Whitehole.name, JOptionPane.ERROR_MESSAGE);
+                    Whitehole.fullName, JOptionPane.ERROR_MESSAGE);
             
             return;
         }
@@ -45,8 +45,8 @@ public class StrictThreadGroup extends ThreadGroup
         JOptionPane.showMessageDialog(null, 
                 "An unhandled exception has occured: " + e.getMessage() + "\n"
                 + "Whitehole may be unstable. It is recommended that you close it now. You can try to save your unsaved work before doing so, but at your own risks.\n\n"
-                + "You should report this crash at Kuribo64 ("+Whitehole.crashReportURL+"), providing the detailed report found in whiteholeCrash.txt.",
-                Whitehole.name, JOptionPane.ERROR_MESSAGE);
+                + "You should report this crash at EggStarGalaxy ("+Whitehole.crashReportURL+"), providing the detailed report found in \"whiteholeCrash.txt\".",
+                Whitehole.fullName, JOptionPane.ERROR_MESSAGE);
 
         try
         {
@@ -55,7 +55,7 @@ public class StrictThreadGroup extends ThreadGroup
             report.createNewFile();
             PrintStream ps = new PrintStream(report);
             ps.append(Whitehole.fullName + " crash report\r\n");
-            ps.append("Please report this at Kuribo64 ("+Whitehole.websiteURL+") with all the details below\r\n");
+            ps.append("Please report this at EggStarGalaxy ("+Whitehole.websiteURL+") with all the details below\r\n");
             ps.append("--------------------------------------------------------------------------------\r\n\r\n");
             e.printStackTrace(ps);
             ps.close();

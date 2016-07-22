@@ -16,14 +16,17 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.smg;
+package whitehole.smg.object;
 
 import whitehole.PropertyGrid;
+import whitehole.smg.Bcsv;
+import whitehole.smg.LevelObject;
+import whitehole.smg.ZoneArchive;
 import whitehole.vectors.Vector3;
 
-public class GravityObject extends LevelObject
+public class PlanetObj extends LevelObject
 {
-    public GravityObject(ZoneArchive zone, String filepath, Bcsv.Entry entry)
+    public PlanetObj(ZoneArchive zone, String filepath, Bcsv.Entry entry)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -44,7 +47,7 @@ public class GravityObject extends LevelObject
         scale = new Vector3((float)data.get("scale_x"), (float)data.get("scale_y"), (float)data.get("scale_z"));
     }
     
-    public GravityObject(ZoneArchive zone, String filepath, int game, String objname, Vector3 pos)
+    public PlanetObj(ZoneArchive zone, String filepath, int game, String objname, Vector3 pos)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -85,7 +88,7 @@ public class GravityObject extends LevelObject
         data.put("SW_DEAD", -1);
         data.put("SW_A",  -1);
         data.put("SW_B", -1);
-        if (game == 2)
+        if (ZoneArchive.gameMask == 2)
             data.put("SW_AWAKE", -1);
         else
             data.put("SW_SLEEP", -1);
@@ -100,7 +103,7 @@ public class GravityObject extends LevelObject
         
         data.put("MapParts_ID", (short)-1);
         data.put("Obj_ID", (short)-1);
-        if (game == 1) 
+        if (ZoneArchive.gameMask == 1) 
             data.put("ChildObjId", (short)-1);
     }
     
@@ -118,62 +121,52 @@ public class GravityObject extends LevelObject
     public void getProperties(PropertyGrid panel)
     {
         panel.addCategory("obj_position", "Position");
-        panel.addField("pos_x", "X position", "float", null, position.x);
-        panel.addField("pos_y", "Y position", "float", null, position.y);
-        panel.addField("pos_z", "Z position", "float", null, position.z);
-        panel.addField("dir_x", "X rotation", "float", null, rotation.x);
-        panel.addField("dir_y", "Y rotation", "float", null, rotation.y);
-        panel.addField("dir_z", "Z rotation", "float", null, rotation.z);
-        panel.addField("scale_x", "X scale", "float", null, scale.x);
-        panel.addField("scale_y", "Y scale", "float", null, scale.y);
-        panel.addField("scale_z", "Z scale", "float", null, scale.z);
+        panel.addField("pos_x", "X position", "float", null, position.x, "Default");
+        panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
+        panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
+        panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
+        panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
+        panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
+        panel.addField("scale_x", "X scale", "float", null, scale.x, "Default");
+        panel.addField("scale_y", "Y scale", "float", null, scale.y, "Default");
+        panel.addField("scale_z", "Z scale", "float", null, scale.z, "Default");
         
-        panel.addCategory("obj_grav", "Gravity parameters");
-        panel.addField("Range", "Range", "float", null, data.get("Range"));
-        panel.addField("Distant", "Distance", "float", null, data.get("Distant"));
-        panel.addField("Priority", "Priority", "int", null, data.get("Priority"));
-        panel.addField("Inverse", "Inverse", "int", null, data.get("Inverse"));
-        panel.addField("Power", "Power", "text", null, data.get("Power"));
-        panel.addField("Gravity_type", "Type", "text", null, data.get("Gravity_type"));
-
-        // TODO nice object args (ObjectDB integration)
+        panel.addCategory("obj_grav", "Gravity");
+        panel.addField("Range", "Range", "float", null, data.get("Range"), "Default");
+        panel.addField("Distant", "Distance", "float", null, data.get("Distant"), "Default");
+        panel.addField("Priority", "Priority", "int", null, data.get("Priority"), "Default");
+        panel.addField("Inverse", "Inverse", "int", null, data.get("Inverse"), "Default");
+        panel.addField("Power", "Power", "text", null, data.get("Power"), "Default");
+        panel.addField("Gravity_type", "Type", "text", null, data.get("Gravity_type"), "Default");
 
         panel.addCategory("obj_args", "Object arguments");
-        panel.addField("Obj_arg0", "Obj_arg0", "int", null, data.get("Obj_arg0"));
-        panel.addField("Obj_arg1", "Obj_arg1", "int", null, data.get("Obj_arg1"));
-        panel.addField("Obj_arg2", "Obj_arg2", "int", null, data.get("Obj_arg2"));
-        panel.addField("Obj_arg3", "Obj_arg3", "int", null, data.get("Obj_arg3"));
+        panel.addField("Obj_arg0", "Obj_arg0", "int", null, data.get("Obj_arg0"), "Default");
+        panel.addField("Obj_arg1", "Obj_arg1", "int", null, data.get("Obj_arg1"), "Default");
+        panel.addField("Obj_arg2", "Obj_arg2", "int", null, data.get("Obj_arg2"), "Default");
+        panel.addField("Obj_arg3", "Obj_arg3", "int", null, data.get("Obj_arg3"), "Default");
         
-        panel.addCategory("obj_eventinfo", "Event IDs");
-        panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"));
-        panel.addField("SW_DEAD", "SW_DEAD", "int", null, data.get("SW_DEAD"));
-        panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"));
-        panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"));
-        if (zone.gameMask == 2)
-            panel.addField("SW_AWAKE", "SW_AWAKE", "int", null, data.get("SW_AWAKE"));
+        panel.addCategory("obj_eventinfo", "Switches");
+        panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"), "Default");
+        panel.addField("SW_DEAD", "SW_DEAD", "int", null, data.get("SW_DEAD"), "Default");
+        panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"), "Default");
+        panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"), "Default");
+        if (ZoneArchive.gameMask == 2)
+            panel.addField("SW_AWAKE", "SW_AWAKE", "int", null, data.get("SW_AWAKE"), "Default");
         else
-            panel.addField("SW_SLEEP", "SW_SLEEP", "int", null, data.get("SW_SLEEP"));
+            panel.addField("SW_SLEEP", "SW_SLEEP", "int", null, data.get("SW_SLEEP"), "Default");
 
-        panel.addCategory("obj_objinfo", "Object settings");
-        panel.addField("l_id", "Object ID", "int", null, data.get("l_id"));
-        panel.addField("FollowId", "Follow ID", "int", null, data.get("FollowId"));
-        panel.addField("CommonPath_ID", "Path ID", "int", null, data.get("CommonPath_ID"));
-        panel.addField("ClippingGroupId", "Clipping group ID", "int", null, data.get("ClippingGroupId"));
-        panel.addField("GroupId", "Group ID", "int", null, data.get("GroupId"));
-        panel.addField("DemoGroupId", "Demo group ID", "int", null, data.get("DemoGroupId"));
-
-        panel.addCategory("obj_misc", "Misc. settings");
-        panel.addField("MapParts_ID", "MapParts_ID", "int", null, data.get("MapParts_ID"));
-        panel.addField("Obj_ID", "Obj_ID", "int", null, data.get("Obj_ID"));
-        if (zone.gameMask == 1)
-            panel.addField("ChildObjId", "ChildObjId", "int", null, data.get("ChildObjId"));
+        panel.addCategory("obj_objinfo", "Other");
+        panel.addField("l_id", "l_id", "int", null, data.get("l_id"), "Default");
+        panel.addField("FollowId", "FollowId", "int", null, data.get("FollowId"), "Default");
+        panel.addField("CommonPath_ID", "CommonPath_ID", "int", null, data.get("CommonPath_ID"), "Default");
+        panel.addField("ClippingGroupId", "ClippingGroupId", "int", null, data.get("ClippingGroupId"), "Default");
+        panel.addField("GroupId", "GroupId", "int", null, data.get("GroupId"), "Default");
+        panel.addField("DemoGroupId", "DemoGroupId", "int", null, data.get("DemoGroupId"), "Default");
+        panel.addField("MapParts_ID", "MapParts_ID", "int", null, data.get("MapParts_ID"), "Default");
+        panel.addField("Obj_ID", "Obj_ID", "int", null, data.get("Obj_ID"), "Default");
+        if (ZoneArchive.gameMask == 1)
+            panel.addField("ChildObjId", "ChildObjId", "int", null, data.get("ChildObjId"), "Default");
     }
-    
-    /*@Override
-    public void render(GLRenderer.RenderInfo info)
-    {
-        // TODO some good rendering?
-    }*/
     
     @Override
     public String toString()

@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.tree.*;
+import whitehole.smg.ZoneArchive;
 
 public class ObjectSelectForm extends javax.swing.JDialog
 {
@@ -158,7 +159,8 @@ public class ObjectSelectForm extends javax.swing.JDialog
 
         jPanel2.setLayout(new java.awt.BorderLayout());
 
-        epObjDescription.setContentType("text/html");
+        epObjDescription.setEditable(false);
+        epObjDescription.setContentType("text/html"); // NOI18N
         jScrollPane3.setViewportView(epObjDescription);
 
         jPanel2.add(jScrollPane3, java.awt.BorderLayout.CENTER);
@@ -210,7 +212,7 @@ public class ObjectSelectForm extends javax.swing.JDialog
     private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
     {//GEN-HEADEREND:event_formWindowOpened
         DefaultTreeModel thelist = (DefaultTreeModel)tvObjectList.getModel();
-        objList = new DefaultMutableTreeNode((game == 2) ? "SMG2 objects" : "SMG1 objects");
+        objList = new DefaultMutableTreeNode((ZoneArchive.gameMask == 2) ? "SMG2 objects" : "SMG1 objects");
         thelist.setRoot(objList);
         
         LinkedHashMap<Integer, DefaultMutableTreeNode> catlist = new LinkedHashMap<>(ObjectDB.categories.size());

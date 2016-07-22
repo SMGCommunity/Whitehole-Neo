@@ -100,7 +100,7 @@ public class ExternalFilesystem implements FilesystemBase
     @Override
     public FileBase openFile(String filename) throws FileNotFoundException
     {
-        if (!fileExists(filename)) throw new FileNotFoundException("File " + filename + "doesn't exist");
+        if (!fileExists(filename)) throw new FileNotFoundException("File '" + filename + "' doesn't exist");
         return new ExternalFile(baseDirectory.getPath() + filename);
     }
     

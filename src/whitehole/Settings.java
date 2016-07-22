@@ -26,6 +26,9 @@ public class Settings
     {
         Preferences prefs = Preferences.userRoot();
         objectDBUpdate = prefs.getBoolean("ObjectDBUpdate", true);
+        dbKuribo64 = prefs.getBoolean("DbKuribo64", true);
+        dbEggStarGalaxy = prefs.getBoolean("DbEggStarGalaxy", false);
+        
         useShaders = prefs.getBoolean("UseShaders", true);
         fastDrag = prefs.getBoolean("FastDrag", false);
         reverseRot = prefs.getBoolean("ReverseRot", false);
@@ -35,6 +38,9 @@ public class Settings
     {
         Preferences prefs = Preferences.userRoot();
         prefs.putBoolean("ObjectDBUpdate", objectDBUpdate);
+        prefs.putBoolean("DbKuribo64", dbKuribo64);
+        prefs.putBoolean("DbEggStarGalaxy", dbEggStarGalaxy);
+        
         prefs.putBoolean("UseShaders", useShaders);
         prefs.putBoolean("FastDrag", fastDrag);
         prefs.putBoolean("ReverseRot", reverseRot);
@@ -42,6 +48,9 @@ public class Settings
     
     
     public static boolean objectDBUpdate;
+    public static boolean dbKuribo64;
+    public static boolean dbEggStarGalaxy;
+    
     public static boolean useShaders;
     public static boolean fastDrag;
     public static boolean reverseRot;

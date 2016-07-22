@@ -158,7 +158,6 @@ public class Yaz0
         return Arrays.copyOf(output, outpos);
     }
     
-    // inspired from http://www.amnoid.de/gc/yaz0.txt
     public static byte[] decompress(byte[] data)
     {
         if (data[0] != 'Y' || data[1] != 'a' || data[2] != 'z' || data[3] != '0')

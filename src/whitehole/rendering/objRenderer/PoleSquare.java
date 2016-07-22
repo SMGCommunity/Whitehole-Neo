@@ -16,33 +16,47 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.rendering;
+package whitehole.rendering.objRenderer;
 
 import java.io.IOException;
 import javax.media.opengl.*;
+import whitehole.rendering.BmdRenderer;
+import whitehole.rendering.GLRenderer;
+import whitehole.vectors.Vector3;
 
-// TODO turn this into general ScaledBmdRenderer/TransformedBmdRenderer?
-public class ObjRenderer_OceanBowl extends BmdRenderer
+public class PoleSquare extends BmdRenderer
 {
-    public ObjRenderer_OceanBowl(RenderInfo info) throws IOException
+    public PoleSquare(GLRenderer.RenderInfo info, Vector3 scale) throws IOException
     {
-        super(info, "WaterBowlObject");
-    }
-    
-    @Override
-    public void close(RenderInfo info) throws GLException
-    {
-        super.close(info);
-    }
-    
-    
-    @Override
-    public void render(RenderInfo info) throws GLException
-    {
-        float factor = 15f;
+        super(info, "PoleSquare");
+        myscale = scale;
         
+        // really ugly hack
+        // the game's renderer must be making use of the weighted vertices and all
+        // but for now this does the trick
+        model.joints[1].finalMatrix.m[13] = 100f * scale.y / scale.x;
+    }
+    
+    @Override
+    public boolean isScaled()
+    {
+        return false;
+    }
+    
+    @Override
+    public boolean hasSpecialScaling()
+    {
+        return true;
+    }
+    
+    @Override
+    public void render(GLRenderer.RenderInfo info) throws GLException
+    {
         GL2 gl = info.drawable.getGL().getGL2();
-        gl.glScalef(1f/factor, 1f/factor, 1f/factor);
+        gl.glScalef(myscale.x, myscale.x, myscale.x);
         super.render(info);
     }
+    
+    
+    private Vector3 myscale;
 }

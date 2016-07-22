@@ -96,7 +96,7 @@ public class PropertyGrid extends JTable
         field.label.setHorizontalAlignment(SwingConstants.CENTER);
     }
     
-    public void addField(String name, String caption, String type, java.util.List choices, Object val)
+    public void addField(String name, String caption, String type, java.util.List choices, Object val, String info)
     {
         if (fields.containsKey(name))
         {
@@ -116,6 +116,9 @@ public class PropertyGrid extends JTable
         
         field.label = new JLabel(caption);
         field.renderer = null;
+        
+        field.tip = new JToolTip();
+        field.tip.setToolTipText(info);
         
         switch (type)
         {
@@ -679,6 +682,7 @@ public class PropertyGrid extends JTable
         Object value;
         
         JLabel label;
+        JToolTip tip;
         TableCellRenderer renderer;
         TableCellEditor editor;
     }

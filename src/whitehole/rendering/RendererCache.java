@@ -105,7 +105,7 @@ public class RendererCache
         
         // if everything else failed, load the failsafe colorcube renderer
         if (entry.renderer == null)
-            entry.renderer = new ColorCubeRenderer(100f, new Color4(0.5f, 0.5f, 1f, 1f), new Color4(0f, 0f, 0.8f, 1f), true);
+            entry.renderer = new ColorCubeRenderer(100F, new Color4(0.5F, 0.5F, 1F, 1F), new Color4(0F, 0F, 0.8F, 1F), true);
         
         cache.put(key, entry);
         return entry.renderer;

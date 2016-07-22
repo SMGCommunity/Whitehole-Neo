@@ -22,8 +22,8 @@ import java.nio.charset.Charset;
 import java.util.prefs.Preferences;
 import javax.media.opengl.GLProfile;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import whitehole.rendering.RendererCache;
 import whitehole.rendering.ShaderCache;
 import whitehole.rendering.TextureCache;
@@ -34,14 +34,13 @@ public class Whitehole
 {
     
     public static final String name = "Whitehole";
-    public static final String version = "v1.2";
+    public static final String version = "v1.4.2";
     public static String fullName = name + " " + version;
-    //public static boolean isBeta = version.contains("beta");
-    
-    public static final String websiteURL = "http://kuribo64.net/";
-    public static final String crashReportURL = "http://kuribo64.net/?page=thread&id=901";    
+    public static final String websiteURL = "http://eggstargalaxy.bplaced.net/";
+    public static final String crashReportURL = "http://eggstargalaxy.bplaced.net/?page=thread&id=148";
     
     public static GameArchive game;
+    public static int getGameType;
     
     
     public class UncaughtExceptionHandler
@@ -52,18 +51,14 @@ public class Whitehole
         }
     }
     
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void dorun()
+    public static void doRun()
     {
         if (!Charset.isSupported("SJIS"))
         {
             if (!Preferences.userRoot().getBoolean("charset-alreadyWarned", false))
             {
                 JOptionPane.showMessageDialog(null, "Shift-JIS encoding isn't supported.\nWhitehole will default to ASCII, which may cause certain strings to look corrupted.\n\nThis message appears only once.", 
-                        Whitehole.name, JOptionPane.WARNING_MESSAGE);
+                        Whitehole.fullName, JOptionPane.WARNING_MESSAGE);
                 Preferences.userRoot().putBoolean("charset-alreadyWarned", true);
             }
         }
@@ -79,40 +74,16 @@ public class Whitehole
         {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         }
-        catch (Exception ex)
+        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex)
         {
         }
 
-        /*SwingUtilities.invokeLater(new Runnable()
-        {
-            public void run()
-            {*/
-                GLProfile.initSingleton();
-                new MainFrame().setVisible(true);
-            /*}
-        });*/
+        GLProfile.initSingleton();
+        new MainFrame().setVisible(true);
     }
     
     public static void main(String[] args) 
     {
-        // attempt at catching uncaught exceptions
-        // only half of them will go through the thing
-        // the other half just causing the whole program to freeze forever
-        // this shit sucks
-        boolean catchemall = false;
-        
-        if (catchemall)
-        {
-            ThreadGroup strictgroup = new StrictThreadGroup();
-            new Thread(strictgroup, "CATCH 'EM ALL")
-            {
-                public void run() 
-                {
-                    dorun();
-                }
-            }.start();
-        }
-        else
-            dorun();
+        doRun();
     }
 }

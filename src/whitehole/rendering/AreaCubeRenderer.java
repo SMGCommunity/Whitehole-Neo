@@ -53,7 +53,7 @@ public class AreaCubeRenderer extends GLRenderer
     {
         if (info.renderMode == GLRenderer.RenderMode.TRANSLUCENT) return;
 
-        float s = cubeSize / 2.5f;
+        float s = cubeSize / 0.2f;
         GL2 gl = info.drawable.getGL().getGL2();
 
         if (info.renderMode != GLRenderer.RenderMode.PICKING)

@@ -18,14 +18,9 @@
 
 package whitehole.smg;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.util.*;
-import javax.imageio.ImageIO;
 import whitehole.rendering.Helper;
-import whitehole.smg.DataHelper;
 import whitehole.fileio.*;
 import whitehole.vectors.*;
 

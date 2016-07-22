@@ -39,7 +39,9 @@ public class ObjectDBUpdater extends Thread
         try
         {
             String ts = String.format("&ts=%1$d", ObjectDB.timestamp);
-            URL url = new URL(Whitehole.websiteURL + "whitehole/objectdb.php?whitehole&gzip" + ts);
+            URL url = new URL ("http://kuribo64.net/whitehole/objectdb.php?whitehole&gzip" + ts);
+            if (Settings.dbEggStarGalaxy)
+                url = new URL ("http://eggstargalaxy.bplaced.net/whitehole/objectdb.php?whitehole&gzip" + ts);
             URLConnection conn = url.openConnection();
             DataInputStream dis = new DataInputStream(conn.getInputStream());
             

@@ -16,14 +16,17 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.smg;
+package whitehole.smg.object;
 
 import whitehole.PropertyGrid;
+import whitehole.smg.Bcsv;
+import whitehole.smg.LevelObject;
+import whitehole.smg.ZoneArchive;
 import whitehole.vectors.Vector3;
 
-public class DemoObject extends LevelObject
+public class DebugObj extends LevelObject
 {
-    public DemoObject(ZoneArchive zone, String filepath, Bcsv.Entry entry)
+    public DebugObj(ZoneArchive zone, String filepath, Bcsv.Entry entry)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -33,7 +36,7 @@ public class DemoObject extends LevelObject
         
         data = entry;
         
-        name = (String)data.get("TimeSheetName");
+        name = (String)data.get("name");
         loadDBInfo();
         renderer = null;
         
@@ -44,7 +47,7 @@ public class DemoObject extends LevelObject
         scale = new Vector3((float)data.get("scale_x"), (float)data.get("scale_y"), (float)data.get("scale_z"));
     }
     
-    public DemoObject(ZoneArchive zone, String filepath, int game, String objname, Vector3 pos)
+    public DebugObj(ZoneArchive zone, String filepath, int game, String objname, Vector3 pos)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -54,7 +57,7 @@ public class DemoObject extends LevelObject
         
         data = new Bcsv.Entry();
         
-        name = objname;
+        name = "DebugMovePos";
         loadDBInfo();
         renderer = null;
         
@@ -68,22 +71,8 @@ public class DemoObject extends LevelObject
         data.put("pos_x", position.x); data.put("pos_y", position.y); data.put("pos_z", position.z);
         data.put("dir_x", rotation.x); data.put("dir_y", rotation.y); data.put("dir_z", rotation.z);
         data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
-                          
-        data.put("SW_APPEAR", -1);
-        data.put("SW_DEAD", -1);
-        data.put("SW_A",  -1);
-        data.put("SW_B", -1);
-        if (game == 2)
-            data.put("SW_AWAKE", -1);
-        else
-            data.put("SW_SLEEP", -1);
         
         data.put("l_id", 0);
-        data.put("name", 0);
-        data.put("DemoName", 0);
-        data.put("TimeSheetName", 0);  
-        data.put("DemoSkip", 0); 
-        
     }
     
     @Override
@@ -100,44 +89,24 @@ public class DemoObject extends LevelObject
     public void getProperties(PropertyGrid panel)
     {
         panel.addCategory("obj_position", "Position");
-        panel.addField("pos_x", "X position", "float", null, position.x);
-        panel.addField("pos_y", "Y position", "float", null, position.y);
-        panel.addField("pos_z", "Z position", "float", null, position.z);
-        panel.addField("dir_x", "X rotation", "float", null, rotation.x);
-        panel.addField("dir_y", "Y rotation", "float", null, rotation.y);
-        panel.addField("dir_z", "Z rotation", "float", null, rotation.z);
-        panel.addField("scale_x", "X scale", "float", null, scale.x);
-        panel.addField("scale_y", "Y scale", "float", null, scale.y);
-        panel.addField("scale_z", "Z scale", "float", null, scale.z);
-   
-        panel.addCategory("obj_eventinfo", "Event IDs");
-        panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"));
-        panel.addField("SW_DEAD", "SW_DEAD", "int", null, data.get("SW_DEAD"));
-        panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"));
-        panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"));
-        if (zone.gameMask == 2)
-            panel.addField("SW_AWAKE", "SW_AWAKE", "int", null, data.get("SW_AWAKE"));
-        else
-            panel.addField("SW_SLEEP", "SW_SLEEP", "int", null, data.get("SW_SLEEP"));
+        panel.addField("pos_x", "X position", "float", null, position.x, "Default");
+        panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
+        panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
+        panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
+        panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
+        panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
+        panel.addField("scale_x", "X scale", "float", null, scale.x, "Default");
+        panel.addField("scale_y", "Y scale", "float", null, scale.y, "Default");
+        panel.addField("scale_z", "Z scale", "float", null, scale.z, "Default");
 
-        panel.addCategory("obj_objinfo", "Object settings");
-        panel.addField("l_id", "Object ID", "int", null, data.get("l_id"));
-        panel.addField("name", "Name", "int", null, data.get("Name"));        
-        panel.addField("DemoName", "DemoName", "int", null, data.get("DemoName"));
-        panel.addField("TimeSheetName", "TimeSheetName", "int", null, data.get("TimeSheetName"));
-        panel.addField("DemoSkip", "DemoSkip", "int", null, data.get("DemoSkip"));         
+        panel.addCategory("obj_objinfo", "Other");
+        panel.addField("l_id", "l_id", "int", null, data.get("l_id"), "Default");
     }
-    
-    /*@Override
-    public void render(GLRenderer.RenderInfo info)
-    {
-        // TODO some good rendering?
-    }*/
     
     @Override
     public String toString()
     {
         String l = layer.equals("common") ? "Common" : "Layer"+layer.substring(5).toUpperCase();
-        return dbInfo.name + " [" + l + "]";
+        return name + " [" + l + "]";
     }
 }

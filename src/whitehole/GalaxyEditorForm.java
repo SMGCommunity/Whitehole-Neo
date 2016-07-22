@@ -18,9 +18,21 @@
 
 package whitehole;
 
+import whitehole.smg.object.PlanetObj;
+import whitehole.smg.object.MapPartObj;
+import whitehole.smg.object.GeneralObject;
+import whitehole.smg.object.PathPointObject;
+import whitehole.smg.object.CameraCubeObj;
+import whitehole.smg.object.DebugObj;
+import whitehole.smg.object.AreaObj;
+import whitehole.smg.object.PathObject;
+import whitehole.smg.object.ChangeObj;
+import whitehole.smg.object.GeneralPosObj;
+import whitehole.smg.object.DemoObj;
+import whitehole.smg.object.SoundObj;
+import whitehole.smg.object.StartObj;
 import java.io.*;
 import java.nio.*;
-import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -31,28 +43,14 @@ import javax.media.opengl.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.tree.*;
-import whitehole.fileio.RarcFilesystem;
 import whitehole.vectors.*;
 import whitehole.rendering.*;
 import whitehole.smg.*;
-import whitehole.SettingsForm.*;
 import whitehole.fileio.*;
 import whitehole.smg.Bcsv;
-import java.awt.*;
-import javax.swing.*;
-import java.awt.event.*;
-import javax.swing.undo.*;
-import javax.swing.text.*;
-import javax.swing.event.*;
-import javax.swing.table.TableModel;
 
-/**
- *
- * @author lolol
- */
 public class GalaxyEditorForm extends javax.swing.JFrame
   {    
-
 
     private void initVariables()
     {
@@ -66,10 +64,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         keyMask = 0;
         keyDelta = 0;
     }
-
-    /**
-     * Creates new form GalaxyEditorForm
-     */
+    
     public GalaxyEditorForm(String galaxy)
     {
         initComponents();
@@ -129,7 +124,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         catch (IOException ex)
         {
-            JOptionPane.showMessageDialog(null, "Failed to open the galaxy: "+ex.getMessage(), Whitehole.name, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Failed to open the galaxy: "+ex.getMessage(), Whitehole.fullName, JOptionPane.ERROR_MESSAGE);
             dispose();
             return;
         }
@@ -167,7 +162,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         catch (IOException ex)
         {
-            JOptionPane.showMessageDialog(null, "Failed to open the zone: "+ex.getMessage(), Whitehole.name, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Failed to open the zone: "+ex.getMessage(), Whitehole.fullName, JOptionPane.ERROR_MESSAGE);
             dispose();
             return;
         }
@@ -230,33 +225,69 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         pmnAddObjects = new JPopupMenu();
         
-        String[] menuitems = new String[] {"General object", "Map part", "Gravity", "Starting point","Path", "Path point"/*, "Area", "Camera Area"*/};
-        for (String item : menuitems)
-        {
-            JMenuItem mnuitem = new JMenuItem(item);
-            mnuitem.addActionListener(new ActionListener()
+        if (ZoneArchive.gameMask == 2) {
+            String[] menuitems = new String[] {"Normal", "MapPart", "Gravity", "Starting point", "Area", "Camera Area", "Cutscene", "GeneralPos", "ChangeObj (Unused)", "Debug (Unused)"};
+            for (String item : menuitems)
             {
-                @Override
-                public void actionPerformed(ActionEvent e)
+                JMenuItem mnuitem = new JMenuItem(item);
+                mnuitem.addActionListener(new ActionListener()
                 {
-                    int i = 0;
-                    while (!pmnAddObjects.getComponent(i).equals(e.getSource())) i++;
-                    switch (i)
+                    @Override
+                    public void actionPerformed(ActionEvent e)
                     {
-                        case 0: doAddObject("general"); break;
-                        case 1: doAddObject("mappart"); break;
-                        case 2: doAddObject("gravity"); break;
-                        case 3: doAddObject("start"); break;
-                        case 4: doAddObject("path"); break;
-                        case 5: doAddObject("pathpoint"); break;  
-                        case 6: doAddObject("area"); break;    
-                        case 7: doAddObject("camera area"); break;                            
+                        int i = 0;
+                        while (!pmnAddObjects.getComponent(i).equals(e.getSource())) i++;
+                        switch (i)
+                        {
+                            case 0: doAddObject("general"); break;
+                            case 1: doAddObject("mappart"); break;
+                            case 2: doAddObject("gravity"); break;
+                            case 3: doAddObject("start"); break;
+                            case 4: doAddObject("area"); break;
+                            case 5: doAddObject("camera"); break;
+                            case 6: doAddObject("demo"); break;  
+                            case 7: doAddObject("generalpos"); break;
+                            case 8: doAddObject("change"); break;
+                            case 9: doAddObject("debug"); break;  
                         
+                        }
                     }
-                }
-            });
-            pmnAddObjects.add(mnuitem);
+                });
+                pmnAddObjects.add(mnuitem);
+            }
         }
+        else {
+            String[] menuitems = new String[] {"Normal", "MapPart", "Gravity", "Starting point", "Area", "Camera Area", "Sound", "Cutscene", "GeneralPos", "Debug (Unused)"};
+            for (String item : menuitems)
+            {
+                JMenuItem mnuitem = new JMenuItem(item);
+                mnuitem.addActionListener(new ActionListener()
+                {
+                    @Override
+                    public void actionPerformed(ActionEvent e)
+                    {
+                        int i = 0;
+                        while (!pmnAddObjects.getComponent(i).equals(e.getSource())) i++;
+                        switch (i)
+                        {
+                            case 0: doAddObject("general"); break;
+                            case 1: doAddObject("mappart"); break;
+                            case 2: doAddObject("gravity"); break;
+                            case 3: doAddObject("start"); break;
+                            case 4: doAddObject("area"); break;
+                            case 5: doAddObject("camera"); break;
+                            case 6: doAddObject("sound"); break;
+                            case 7: doAddObject("demo"); break;  
+                            case 8: doAddObject("generalpos"); break;
+                            case 9: doAddObject("debug"); break;  
+                        
+                        }
+                    }
+                });
+                pmnAddObjects.add(mnuitem);
+            }
+        }
+
         pmnAddObjects.addPopupMenuListener(new PopupMenuListener()
         {
             @Override
@@ -362,19 +393,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private void initComponents() {
 
         jToolBar1 = new javax.swing.JToolBar();
+        btnSave = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
+        btnClose = new javax.swing.JButton();
         jSplitPane1 = new javax.swing.JSplitPane();
         pnlGLPanel = new javax.swing.JPanel();
         jToolBar2 = new javax.swing.JToolBar();
-        jLabel2 = new javax.swing.JLabel();
-        lbSelected = new javax.swing.JLabel();
-        jSeparator4 = new javax.swing.JToolBar.Separator();
         btnDeselect = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
         btnShowAllPaths = new javax.swing.JToggleButton();
         jSeparator3 = new javax.swing.JToolBar.Separator();
-        tgbReverseRot = new javax.swing.JToggleButton();
+        tgbShowFake = new javax.swing.JToggleButton();
         jSeparator5 = new javax.swing.JToolBar.Separator();
+        tgbReverseRot = new javax.swing.JToggleButton();
         lbStatusLabel = new javax.swing.JLabel();
         tpLeftPanel = new javax.swing.JTabbedPane();
         pnlScenarioZonePanel = new javax.swing.JSplitPane();
@@ -402,30 +433,49 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jPanel3 = new javax.swing.JPanel();
         tbObjToolbar = new javax.swing.JToolBar();
         tgbAddObject = new javax.swing.JToggleButton();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
         tgbDeleteObject = new javax.swing.JToggleButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         tvObjectList = new javax.swing.JTree();
         scpObjSettingsContainer = new javax.swing.JScrollPane();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        jMenuItemSave1 = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
-        ShowFakeColorMenuItem1 = new javax.swing.JCheckBoxMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(800, 600));
+        setPreferredSize(new java.awt.Dimension(900, 700));
         addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowOpened(java.awt.event.WindowEvent evt) {
-                formWindowOpened(evt);
-            }
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
             }
         });
 
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
+
+        btnSave.setText("Save");
+        btnSave.setToolTipText("");
+        btnSave.setFocusable(false);
+        btnSave.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnSave.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnSave);
         jToolBar1.add(jSeparator1);
+
+        btnClose.setText("Close");
+        btnClose.setFocusable(false);
+        btnClose.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnClose.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnClose.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCloseActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnClose);
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.PAGE_START);
 
@@ -438,13 +488,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         jToolBar2.setFloatable(false);
         jToolBar2.setRollover(true);
-
-        jLabel2.setText("Selected: ");
-        jToolBar2.add(jLabel2);
-
-        lbSelected.setText("none");
-        jToolBar2.add(lbSelected);
-        jToolBar2.add(jSeparator4);
 
         btnDeselect.setText("Deselect");
         btnDeselect.setEnabled(false);
@@ -471,6 +514,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jToolBar2.add(btnShowAllPaths);
         jToolBar2.add(jSeparator3);
 
+        tgbShowFake.setText("Show 'fake color'");
+        tgbShowFake.setActionCommand("Show 'Fake Color'");
+        tgbShowFake.setFocusable(false);
+        tgbShowFake.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowFake.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowFake.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbShowFakeActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(tgbShowFake);
+        jToolBar2.add(jSeparator5);
+
         tgbReverseRot.setText("Reverse rotation");
         tgbReverseRot.setFocusable(false);
         tgbReverseRot.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -481,7 +537,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
         });
         jToolBar2.add(tgbReverseRot);
-        jToolBar2.add(jSeparator5);
 
         pnlGLPanel.add(jToolBar2, java.awt.BorderLayout.NORTH);
 
@@ -614,7 +669,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         tbObjToolbar.setFloatable(false);
         tbObjToolbar.setRollover(true);
 
-        tgbAddObject.setText("Add object...");
+        tgbAddObject.setText("Add");
         tgbAddObject.setFocusable(false);
         tgbAddObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         tgbAddObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -624,8 +679,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
         });
         tbObjToolbar.add(tgbAddObject);
+        tbObjToolbar.add(jSeparator4);
 
-        tgbDeleteObject.setText("Delete...");
+        tgbDeleteObject.setText("Delete");
         tgbDeleteObject.setFocusable(false);
         tgbDeleteObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         tgbDeleteObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -659,28 +715,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
-        jMenu1.setText("File");
-
-        jMenuItemSave1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItemSave1.setText("Save");
-        jMenuItemSave1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItemSave1ActionPerformed(evt);
-            }
-        });
-        jMenu1.add(jMenuItemSave1);
-
-        jMenuBar1.add(jMenu1);
-
-        jMenu2.setText("Edit");
-
-        ShowFakeColorMenuItem1.setText("Show FakeColor");
-        jMenu2.add(ShowFakeColorMenuItem1);
-
-        jMenuBar1.add(jMenu2);
-
-        setJMenuBar(jMenuBar1);
-
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -708,9 +742,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         if (selectedObjs.isEmpty())
         {
-            lbSelected.setText("none");
+            lbStatusLabel.setText("Deselect object.");
             btnDeselect.setEnabled(false);
-            tgbDeleteObject.setText("Delete...");
+            tgbDeleteObject.setText("Delete");
             
             pnlObjectSettings.doLayout();
             pnlObjectSettings.validate();
@@ -767,53 +801,53 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     usagelist.add("General");
                     usagelist.add("Camera");
 
-                    lbSelected.setText(String.format("[%3$d] %1$s (%2$s), point %4$d", path.data.get("name"), path.zone.zoneName, path.pathID, selectedPathPoint.index));
+                    lbStatusLabel.setText(String.format("Selected [%3$d] %1$s (%2$s), point %4$d", path.data.get("name"), path.zone.zoneName, path.pathID, selectedPathPoint.index));
                     btnDeselect.setEnabled(true);
                     tgbDeleteObject.setText("Delete");
 
                     pnlObjectSettings.addCategory("path_settings", "Path settings");
                     if (galaxyMode)
-                        pnlObjectSettings.addField("[P]zone", "Zone", "list", galaxyArc.zoneList, selectedPathPoint.path.zone.zoneName);
-                    pnlObjectSettings.addField("[P]l_id", "Path ID", "int", null, path.pathID);
-                    pnlObjectSettings.addField("[P]closed", "Closed", "bool", null, ((String)path.data.get("closed")).equals("CLOSE"));
-                    pnlObjectSettings.addField("[P]usage", "Usage", "list", usagelist, path.data.get("usage"));
-                    pnlObjectSettings.addField("[P]name", "Name", "text", null, path.data.get("name"));
+                       pnlObjectSettings.addField("[P]zone", "Zone", "list", galaxyArc.zoneList, selectedPathPoint.path.zone.zoneName, "Default");
+                    pnlObjectSettings.addField("[P]l_id", "Path ID", "int", null, path.pathID, "Default");
+                    pnlObjectSettings.addField("[P]closed", "Closed", "bool", null, ((String)path.data.get("closed")).equals("CLOSE"), "Default");
+                    pnlObjectSettings.addField("[P]usage", "Usage", "list", usagelist, path.data.get("usage"), "Default");
+                    pnlObjectSettings.addField("[P]name", "Name", "text", null, path.data.get("name"), "Default");
 
                     pnlObjectSettings.addCategory("path_args", "Path arguments");
-                    pnlObjectSettings.addField("[P]path_arg0", "path_arg0", "int", null, path.data.get("path_arg0"));
-                    pnlObjectSettings.addField("[P]path_arg1", "path_arg1", "int", null, path.data.get("path_arg1"));
-                    pnlObjectSettings.addField("[P]path_arg2", "path_arg2", "int", null, path.data.get("path_arg2"));
-                    pnlObjectSettings.addField("[P]path_arg3", "path_arg3", "int", null, path.data.get("path_arg3"));
-                    pnlObjectSettings.addField("[P]path_arg4", "path_arg4", "int", null, path.data.get("path_arg4"));
-                    pnlObjectSettings.addField("[P]path_arg5", "path_arg5", "int", null, path.data.get("path_arg5"));
-                    pnlObjectSettings.addField("[P]path_arg6", "path_arg6", "int", null, path.data.get("path_arg6"));
-                    pnlObjectSettings.addField("[P]path_arg7", "path_arg7", "int", null, path.data.get("path_arg7"));
+                    pnlObjectSettings.addField("[P]path_arg0", "path_arg0", "int", null, path.data.get("path_arg0"), "Default");
+                    pnlObjectSettings.addField("[P]path_arg1", "path_arg1", "int", null, path.data.get("path_arg1"), "Default");
+                    pnlObjectSettings.addField("[P]path_arg2", "path_arg2", "int", null, path.data.get("path_arg2"), "Default");
+                    pnlObjectSettings.addField("[P]path_arg3", "path_arg3", "int", null, path.data.get("path_arg3"), "Default");
+                    pnlObjectSettings.addField("[P]path_arg4", "path_arg4", "int", null, path.data.get("path_arg4"), "Default");
+                    pnlObjectSettings.addField("[P]path_arg5", "path_arg5", "int", null, path.data.get("path_arg5"), "Default");
+                    pnlObjectSettings.addField("[P]path_arg6", "path_arg6", "int", null, path.data.get("path_arg6"), "Default");
+                    pnlObjectSettings.addField("[P]path_arg7", "path_arg7", "int", null, path.data.get("path_arg7"), "Default");
 
                     pnlObjectSettings.addCategory("point_coords", "Point coordinates");
-                    pnlObjectSettings.addField("pnt0_x", "X", "float", null, selectedPathPoint.position.x);
-                    pnlObjectSettings.addField("pnt0_y", "Y", "float", null, selectedPathPoint.position.y);
-                    pnlObjectSettings.addField("pnt0_z", "Z", "float", null, selectedPathPoint.position.z);
-                    pnlObjectSettings.addField("pnt1_x", "Control 1 X", "float", null, selectedPathPoint.point1.x);
-                    pnlObjectSettings.addField("pnt1_y", "Control 1 Y", "float", null, selectedPathPoint.point1.y);
-                    pnlObjectSettings.addField("pnt1_z", "Control 1 Z", "float", null, selectedPathPoint.point1.z);
-                    pnlObjectSettings.addField("pnt2_x", "Control 2 X", "float", null, selectedPathPoint.point2.x);
-                    pnlObjectSettings.addField("pnt2_y", "Control 2 Y", "float", null, selectedPathPoint.point2.y);
-                    pnlObjectSettings.addField("pnt2_z", "Control 2 Z", "float", null, selectedPathPoint.point2.z);
+                    pnlObjectSettings.addField("pnt0_x", "X", "float", null, selectedPathPoint.position.x, "Default");
+                    pnlObjectSettings.addField("pnt0_y", "Y", "float", null, selectedPathPoint.position.y, "Default");
+                    pnlObjectSettings.addField("pnt0_z", "Z", "float", null, selectedPathPoint.position.z, "Default");
+                    pnlObjectSettings.addField("pnt1_x", "Control 1 X", "float", null, selectedPathPoint.point1.x, "Default");
+                    pnlObjectSettings.addField("pnt1_y", "Control 1 Y", "float", null, selectedPathPoint.point1.y, "Default");
+                    pnlObjectSettings.addField("pnt1_z", "Control 1 Z", "float", null, selectedPathPoint.point1.z, "Default");
+                    pnlObjectSettings.addField("pnt2_x", "Control 2 X", "float", null, selectedPathPoint.point2.x, "Default");
+                    pnlObjectSettings.addField("pnt2_y", "Control 2 Y", "float", null, selectedPathPoint.point2.y, "Default");
+                    pnlObjectSettings.addField("pnt2_z", "Control 2 Z", "float", null, selectedPathPoint.point2.z, "Default");
 
                     pnlObjectSettings.addCategory("point_args", "Point arguments");
-                    pnlObjectSettings.addField("point_arg0", "point_arg0", "int", null, selectedPathPoint.data.get("point_arg0"));
-                    pnlObjectSettings.addField("point_arg1", "point_arg1", "int", null, selectedPathPoint.data.get("point_arg1"));
-                    pnlObjectSettings.addField("point_arg2", "point_arg2", "int", null, selectedPathPoint.data.get("point_arg2"));
-                    pnlObjectSettings.addField("point_arg3", "point_arg3", "int", null, selectedPathPoint.data.get("point_arg3"));
-                    pnlObjectSettings.addField("point_arg4", "point_arg4", "int", null, selectedPathPoint.data.get("point_arg4"));
-                    pnlObjectSettings.addField("point_arg5", "point_arg5", "int", null, selectedPathPoint.data.get("point_arg5"));
-                    pnlObjectSettings.addField("point_arg6", "point_arg6", "int", null, selectedPathPoint.data.get("point_arg6"));
-                    pnlObjectSettings.addField("point_arg7", "point_arg7", "int", null, selectedPathPoint.data.get("point_arg7"));
+                    pnlObjectSettings.addField("point_arg0", "point_arg0", "int", null, selectedPathPoint.data.get("point_arg0"), "Default");
+                    pnlObjectSettings.addField("point_arg1", "point_arg1", "int", null, selectedPathPoint.data.get("point_arg1"), "Default");
+                    pnlObjectSettings.addField("point_arg2", "point_arg2", "int", null, selectedPathPoint.data.get("point_arg2"), "Default");
+                    pnlObjectSettings.addField("point_arg3", "point_arg3", "int", null, selectedPathPoint.data.get("point_arg3"), "Default");
+                    pnlObjectSettings.addField("point_arg4", "point_arg4", "int", null, selectedPathPoint.data.get("point_arg4"), "Default");
+                    pnlObjectSettings.addField("point_arg5", "point_arg5", "int", null, selectedPathPoint.data.get("point_arg5"), "Default");
+                    pnlObjectSettings.addField("point_arg6", "point_arg6", "int", null, selectedPathPoint.data.get("point_arg6"), "Default");
+                    pnlObjectSettings.addField("point_arg7", "point_arg7", "int", null, selectedPathPoint.data.get("point_arg7"), "Default");
                 }
                 else
                 {
                     String layer = selectedObj.layer.equals("common") ? "Common" : "Layer"+selectedObj.layer.substring(5).toUpperCase();
-                    lbSelected.setText(String.format("%1$s (%2$s, %3$s)", selectedObj.dbInfo.name, selectedObj.zone.zoneName, layer));
+                    lbStatusLabel.setText(String.format("Selected %1$s (%2$s, %3$s)", selectedObj.name, selectedObj.zone.zoneName, layer));
                     btnDeselect.setEnabled(true);
                     tgbDeleteObject.setText("Delete");
 
@@ -826,12 +860,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                             layerlist.add(ls);
                     }
 
-                    pnlObjectSettings.addCategory("obj_general", "General settings");
-                    if (selectedObj.name != null && selectedObj.getClass() != StartObject.class)
-                        pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name);
+                    pnlObjectSettings.addCategory("obj_general", "General");
+                    if (selectedObj.name != null && selectedObj.getClass() != StartObj.class && selectedObj.getClass() != DebugObj.class && selectedObj.getClass() != ChangeObj.class)
+                        pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name, "Default");
                     if (galaxyMode)
-                        pnlObjectSettings.addField("zone", "Zone", "list", galaxyArc.zoneList, selectedObj.zone.zoneName);
-                    pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer);
+                        pnlObjectSettings.addField("zone", "Zone", "list", galaxyArc.zoneList, selectedObj.zone.zoneName, "Default");
+                    pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer, "Default");
 
                     selectedObj.getProperties(pnlObjectSettings);
                 }
@@ -847,7 +881,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         
         if (selectedObjs.size() > 1)
-            lbSelected.setText("multiple objects");
+            lbStatusLabel.setText("multiple objects");
         
         pnlObjectSettings.doLayout();
         pnlObjectSettings.validate();
@@ -885,7 +919,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
         }
     }
-    
+
     private void populateObjectList(int layermask)
     {
         treeNodeList.clear();
@@ -895,52 +929,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         objlist.setRoot(root);
         
         ObjListTreeNode objnode;
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("General objects");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, GeneralObject.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Map parts");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, MapPartObject.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Gravity");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, GravityObject.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Starting points");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, StartObject.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Areas");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, AreaObject.class);  
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Camera Areas");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, CameraObject.class); 
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Demo Object");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, DemoObject.class); 
-       
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Debug");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, DebugObject.class);    
-                       
-        // Keep this at the bottom. It will screw up folders placed under it.
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Paths");
-        root.add(objnode);
+        objnode = new ObjListTreeNode(); objnode.setUserObject("General"); root.add(objnode); populateObjectSublist(layermask, objnode, GeneralObject.class);
+        objnode = new ObjListTreeNode(); objnode.setUserObject("MapParts"); root.add(objnode); populateObjectSublist(layermask, objnode, MapPartObj.class);
+        objnode = new ObjListTreeNode(); objnode.setUserObject("Gravity"); root.add(objnode); populateObjectSublist(layermask, objnode, PlanetObj.class);
+        objnode = new ObjListTreeNode(); objnode.setUserObject("Starting points"); root.add(objnode); populateObjectSublist(layermask, objnode, StartObj.class);
+        objnode = new ObjListTreeNode(); objnode.setUserObject("Areas"); root.add(objnode); populateObjectSublist(layermask, objnode, AreaObj.class);
+        objnode = new ObjListTreeNode(); objnode.setUserObject("Camera areas"); root.add(objnode); populateObjectSublist(layermask, objnode, CameraCubeObj.class);
+        if (ZoneArchive.gameMask==1) { objnode = new ObjListTreeNode(); objnode.setUserObject("Sound"); root.add(objnode); populateObjectSublist(layermask, objnode, SoundObj.class); }
+        objnode = new ObjListTreeNode(); objnode.setUserObject("Cutscenes"); root.add(objnode); populateObjectSublist(layermask, objnode, DemoObj.class);
+        objnode = new ObjListTreeNode(); objnode.setUserObject("GeneralPos"); root.add(objnode); populateObjectSublist(layermask, objnode, GeneralPosObj.class);
+        if (ZoneArchive.gameMask==2) { objnode = new ObjListTreeNode(); objnode.setUserObject("ChangeObj"); root.add(objnode); populateObjectSublist(layermask, objnode, ChangeObj.class); }
+        objnode = new ObjListTreeNode(); objnode.setUserObject("Debug"); root.add(objnode); populateObjectSublist(layermask, objnode, DebugObj.class);   
+        objnode = new ObjListTreeNode(); objnode.setUserObject("Paths"); root.add(objnode);
         
         for (PathObject obj : curZoneArc.paths)
         {
@@ -978,13 +978,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
     private void saveChanges()
     {
-        // TODO: check for errors in the level
-        /*
-         *  [16:29:18] <MrRean> SW_DEAD doesn't have a SW_AWAKE reciever
-            [16:29:32] <MrRean> So it doesn't find the switch, and crashes.
-         */
-        // event interconnection and/or whatever MrRean meant
-        // also certain objects require paths/messages/shit
         
         try
         {
@@ -1021,7 +1014,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         if (unsavedChanges)
         {
             int res = JOptionPane.showConfirmDialog(this, "Save your changes?", 
-                    Whitehole.name, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+                    Whitehole.fullName, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
             
             if (res == JOptionPane.CANCEL_OPTION)
                 setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -1210,14 +1203,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         Settings.save();
     }//GEN-LAST:event_tgbReverseRotActionPerformed
 
-    private void jMenuItemSave1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSave1ActionPerformed
-        saveChanges();
-    }//GEN-LAST:event_jMenuItemSave1ActionPerformed
-    
-    private void jCloseGalaxyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCloseGalaxyActionPerformed
-        dispose(); 
-    }//GEN-LAST:event_jCloseGalaxyActionPerformed    
+    private void tgbShowFakeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowFakeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tgbShowFakeActionPerformed
 
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+        saveChanges();
+    }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCloseActionPerformed
+        dispose(); 
+    }//GEN-LAST:event_btnCloseActionPerformed
+                                           
     
     public void addRerenderTask(String task)
     {
@@ -1356,42 +1353,102 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         String objtype = objectBeingAdded.substring(0, objectBeingAdded.indexOf('|'));
         String objname = objectBeingAdded.substring(objectBeingAdded.indexOf('|') + 1);
         
-        String filepath;
         LevelObject newobj = null;
         int pnodeid = -1;
         {
-            /*if (ObjectDB.objects.containsKey(objectBeingAdded))
-                filepath = ObjectDB.objects.get(objectBeingAdded).preferredFile.replace("<layer>", addingOnLayer);
-            else
-                filepath = "Placement/" + addingOnLayer + "/ObjInfo";*/
+
+            if (ZoneArchive.gameMask==2) {
             switch (objtype)
             {
                 case "general": 
-                    newobj = new GeneralObject(curZoneArc, "Placement/" + addingOnLayer + "/ObjInfo", curZoneArc.gameMask, objname, pos);
+                    newobj = new GeneralObject(curZoneArc, "Placement/" + addingOnLayer + "/ObjInfo", ZoneArchive.gameMask, objname, pos);
                     pnodeid = 0;
                     break;
                 case "mappart": 
-                    newobj = new MapPartObject(curZoneArc, "MapParts/" + addingOnLayer + "/MapPartsInfo", curZoneArc.gameMask, objname, pos);
+                    newobj = new MapPartObj(curZoneArc, "MapParts/" + addingOnLayer + "/MapPartsInfo", ZoneArchive.gameMask, objname, pos);
                     pnodeid = 1; 
                     break;
                 case "gravity": 
-                    newobj = new GravityObject(curZoneArc, "Placement/" + addingOnLayer + "/PlanetObjInfo", curZoneArc.gameMask, objname, pos);
+                    newobj = new PlanetObj(curZoneArc, "Placement/" + addingOnLayer + "/PlanetObjInfo", ZoneArchive.gameMask, objname, pos);
                     pnodeid = 2;
                     break;
                 case "start": 
-                    newobj = new StartObject(curZoneArc, "Start/" + addingOnLayer + "/StartInfo", curZoneArc.gameMask, pos);
+                    newobj = new StartObj(curZoneArc, "Start/" + addingOnLayer + "/StartInfo", ZoneArchive.gameMask, pos);
                     pnodeid = 3;
                     break;    
                 case "area": 
-                    newobj = new AreaObject(curZoneArc, "Placement/" + addingOnLayer + "/AreaObjInfo", curZoneArc.gameMask, objname, pos);
+                    newobj = new AreaObj(curZoneArc, "Placement/" + addingOnLayer + "/AreaObjInfo", ZoneArchive.gameMask, objname, pos);
                     pnodeid = 4;
                     break;
-                case "camera area": 
-                    newobj = new CameraObject(curZoneArc, "Placement/" + addingOnLayer + "/CameraCubeInfo", curZoneArc.gameMask, objname, pos);
+                case "camera": 
+                    newobj = new CameraCubeObj(curZoneArc, "Placement/" + addingOnLayer + "/CameraCubeInfo", ZoneArchive.gameMask, objname, pos);
                     pnodeid = 5;
-                    break;                    
-            
+                    break;
+                case "demo": 
+                    newobj = new DemoObj(curZoneArc, "Placement/" + addingOnLayer + "/DemoObjInfo", ZoneArchive.gameMask, objname, pos);
+                    pnodeid = 6;
+                    break;    
+                case "generalpos": 
+                    newobj = new GeneralPosObj(curZoneArc, "GeneralPos/" + addingOnLayer + "/GeneralPosInfo", ZoneArchive.gameMask, pos);
+                    pnodeid = 7;
+                    break;
+                case "change":
+                    newobj = new ChangeObj(curZoneArc, "Placement/" + addingOnLayer + "/ChangeObjInfo", ZoneArchive.gameMask, pos);
+                    pnodeid = 8;
+                    break;
+                case "debug":
+                    newobj = new DebugObj(curZoneArc, "Debug/" + addingOnLayer + "/DebugMoveInfo", ZoneArchive.gameMask, objname, pos);
+                    pnodeid = 9;
+                    break;
             }
+            }
+            else {
+            switch (objtype)
+            {
+                case "general": 
+                    newobj = new GeneralObject(curZoneArc, "Placement/" + addingOnLayer + "/ObjInfo", ZoneArchive.gameMask, objname, pos);
+                    pnodeid = 0;
+                    break;
+                case "mappart": 
+                    newobj = new MapPartObj(curZoneArc, "MapParts/" + addingOnLayer + "/MapPartsInfo", ZoneArchive.gameMask, objname, pos);
+                    pnodeid = 1; 
+                    break;
+                case "gravity": 
+                    newobj = new PlanetObj(curZoneArc, "Placement/" + addingOnLayer + "/PlanetObjInfo", ZoneArchive.gameMask, objname, pos);
+                    pnodeid = 2;
+                    break;
+                case "start": 
+                    newobj = new StartObj(curZoneArc, "Start/" + addingOnLayer + "/StartInfo", ZoneArchive.gameMask, pos);
+                    pnodeid = 3;
+                    break;    
+                case "area": 
+                    newobj = new AreaObj(curZoneArc, "Placement/" + addingOnLayer + "/AreaObjInfo", ZoneArchive.gameMask, objname, pos);
+                    pnodeid = 4;
+                    break;
+                case "camera": 
+                    newobj = new CameraCubeObj(curZoneArc, "Placement/" + addingOnLayer + "/CameraCubeInfo", ZoneArchive.gameMask, objname, pos);
+                    pnodeid = 5;
+                    break;
+                case "sound": 
+                    newobj = new SoundObj(curZoneArc, "Placement/" + addingOnLayer + "/SoundInfo", ZoneArchive.gameMask, objname, pos);
+                    pnodeid = 6;
+                    break;
+                case "demo": 
+                    newobj = new DemoObj(curZoneArc, "Placement/" + addingOnLayer + "/DemoObjInfo", ZoneArchive.gameMask, objname, pos);
+                    pnodeid = 7;
+                    break;    
+                case "generalpos": 
+                    newobj = new GeneralPosObj(curZoneArc, "GeneralPos/" + addingOnLayer + "/GeneralPosInfo", ZoneArchive.gameMask, pos);
+                    pnodeid = 8;
+                    break;    
+                case "debug":
+                    newobj = new DebugObj(curZoneArc, "Debug/" + addingOnLayer + "/DebugMoveInfo", ZoneArchive.gameMask, objname, pos);
+                    pnodeid = 9;
+                    break;
+                
+            }
+            }
+
         }
         
         int uid = 0;
@@ -1418,31 +1475,34 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     }
     
     private void doAddObject(String type)
-    {
-        // "General object", "Map part", "Gravity", "Starting point", "Area", "Path", "Path point",         
-        if (type.equals("start"))
-        {
-            objectBeingAdded = "start|Mario";
-            addingOnLayer = "common";
-        }
-             
-                
-        else if (type.equals("path"))
-            objectBeingAdded = "path|lol";
-        else if (type.equals("pathpoint"))
-            objectBeingAdded = "pathpoint|lol";       
-        else
-        {
-            ObjectSelectForm form = new ObjectSelectForm(this, curZoneArc.gameMask, null);
-            form.setVisible(true);
-            if (form.selectedObject.isEmpty())
-            {
-                tgbAddObject.setSelected(false);
-                return;
-            }
-            
-            objectBeingAdded = type+"|"+form.selectedObject;
-            addingOnLayer = form.selectedLayer;
+    {         
+        switch (type) {
+            case "start":
+                objectBeingAdded = "start|Mario";
+                addingOnLayer = "common";
+                break;
+            case "debug":
+                objectBeingAdded = "debug|DebugMovePos";
+                addingOnLayer = "common";
+                break;
+            case "generalpos":
+                objectBeingAdded = "generalpos|GeneralPos";
+                addingOnLayer = "common";
+                break;
+            case "change":
+                objectBeingAdded = "change|ChangeObj";
+                addingOnLayer = "common";
+                break;
+            default:
+                ObjectSelectForm form = new ObjectSelectForm(this, ZoneArchive.gameMask, null);
+                form.setVisible(true);
+                if (form.selectedObject.isEmpty())
+                {
+                    tgbAddObject.setSelected(false);
+                    return;
+                }   objectBeingAdded = type+"|"+form.selectedObject;
+                addingOnLayer = form.selectedLayer;
+                break;
         }
 
         lbStatusLabel.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
@@ -1521,7 +1581,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
                 objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
 
-                rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
+                rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
                 rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
                 glCanvas.repaint();
             }
@@ -1592,7 +1652,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 }
 
                 if (propname.startsWith("scale_") && selectedObj.renderer.hasSpecialScaling())
-                    rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
+                    rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
 
                 rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
                 glCanvas.repaint();
@@ -1616,7 +1676,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     int argnum = Integer.parseInt(propname.substring(7));
                     if (selectedObj.renderer.boundToObjArg(argnum))
                     {
-                        rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
+                        rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
                         rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
                         glCanvas.repaint();
                     }
@@ -1628,135 +1688,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 }
             }
         }
-        
-        /*else if (selectedPathPoint != null)
-        {
-            PathObject path = selectedPathPoint.path;
-            
-            if (propname.equals("[P]zone"))
-            {
-                String oldzone = path.zone.zoneName;
-                ZoneArchive oldzonearc = zoneArcs.get(oldzone);
-                String newzone = (String)value;
-                ZoneArchive newzonearc = zoneArcs.get(newzone);
-                int uid = selectedPathPoint.uniqueID;
-                
-                oldzonearc.paths.remove(path);
-                path.deleteStorage();
-                
-                int newid = 0;
-                boolean found;
-                for (;;)
-                {
-                    found = true;
-                    
-                    for (PathObject pobj : newzonearc.paths)
-                    {
-                        if (pobj.index == newid)
-                        {
-                            found = false;
-                            break;
-                        }
-                    }
-                    
-                    if (found) break;
-                    else newid++;
-                }
-
-                path.zone = newzonearc;
-                newzonearc.paths.add(path);
-                
-                path.index = newid;
-                path.createStorage();
-                
-                for (int z = 0; z < galaxyArc.zoneList.size(); z++)
-                {
-                    if (!galaxyArc.zoneList.get(z).equals(newzone))
-                        continue;
-                    lbZoneList.setSelectedIndex(z);
-                    break;
-                }
-                if (treeNodeList.containsKey(uid))
-                {
-                    TreeNode tn = treeNodeList.get(uid);
-                    TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
-                    tvObjectList.setSelectionPath(tp);
-                    tvObjectList.scrollPathToVisible(tp);
-                }
-
-                selectionChanged();
-                rerenderTasks.add("zone:"+oldzone);
-                rerenderTasks.add("zone:"+newzone);
-                glCanvas.repaint();
-            }
-            else if (propname.equals("[P]l_id"))
-            {
-                int val = -1;
-                try { val = Integer.parseInt((String)value); }
-                catch (NumberFormatException ex) {}
-                
-                if (val != -1) path.pathID = val;
-                // TODO: check the l_id assigned
-            }
-            else if (propname.equals("[P]closed"))
-            {
-                boolean closed = (boolean)value;
-                if (closed) path.data.put("closed", "CLOSE");
-                else path.data.put("closed", "OPEN");
-                
-                rerenderTasks.add(String.format("path:%1$d", path.uniqueID));
-                glCanvas.repaint();
-            }
-            else if (propname.startsWith("pnt0_") || propname.startsWith("pnt1_") || propname.startsWith("pnt2_"))
-            {
-                switch (propname)
-                {
-                    case "pnt0_x": selectedPathPoint.point0.x = (float)(double)value; break;
-                    case "pnt0_y": selectedPathPoint.point0.y = (float)(double)value; break;
-                    case "pnt0_z": selectedPathPoint.point0.z = (float)(double)value; break;
-                    case "pnt1_x": selectedPathPoint.point1.x = (float)(double)value; break;
-                    case "pnt1_y": selectedPathPoint.point1.y = (float)(double)value; break;
-                    case "pnt1_z": selectedPathPoint.point1.z = (float)(double)value; break;
-                    case "pnt2_x": selectedPathPoint.point2.x = (float)(double)value; break;
-                    case "pnt2_y": selectedPathPoint.point2.y = (float)(double)value; break;
-                    case "pnt2_z": selectedPathPoint.point2.z = (float)(double)value; break;
-                }
-                
-                rerenderTasks.add(String.format("path:%1$d", path.uniqueID));
-                rerenderTasks.add("zone:"+path.zone.zoneName);
-                glCanvas.repaint();
-            }
-            else
-            {
-                int intval = -1;
-                try { intval = Integer.parseInt((String)value); }
-                catch (NumberFormatException ex) {}
-                
-                if (propname.startsWith("[P]"))
-                {
-                    propname = propname.substring(3);
-                    Object oldval = path.data.get(propname);
-                    if (oldval.getClass() == Integer.class)
-                        path.data.put(propname, intval);
-                    else if (oldval.getClass() == Short.class)
-                        path.data.put(propname, (short)intval);
-                    else if (oldval.getClass() == String.class)
-                        path.data.put(propname, value);
-                    else
-                        throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
-                }
-                else
-                {
-                    Object oldval = selectedPathPoint.data.get(propname);
-                    if (oldval.getClass() == Integer.class)
-                        selectedPathPoint.data.put(propname, intval);
-                    else
-                        throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
-                }
-            }
-        }
-        else
-            throw new UnsupportedOperationException("oops, bug. Tell Mega-Mario.");*/
         
         unsavedChanges = true;
     }
@@ -1846,12 +1777,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             camTarget = new Vector3(0f, 0f, 0f);
             
             ZoneArchive firstzone = zoneArcs.get(galaxyName);
-            StartObject start = null;
+            StartObj start = null;
             for (LevelObject obj : firstzone.objects.get("common"))
             {
-                if (obj instanceof StartObject)
+                if (obj instanceof StartObj)
                 {
-                    start = (StartObject)obj;
+                    start = (StartObj)obj;
                     break;
                 }
             }
@@ -2274,7 +2205,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             pickingDepth = -(zFar * zNear / (pickingDepthBuffer.get(0) * (zFar - zNear) - zFar));
             //lbStatusLabel.setText(String.format("%1$f", pickingDepth));
             
-            if (ShowFakeColorMenuItem1.isSelected())
+            if (tgbShowFake.isSelected())
             {
                 glad.swapBuffers();
                 return;
@@ -2851,24 +2782,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         @Override
         public void keyReleased(KeyEvent e)
-        {
-            if (e.getKeyCode() == KeyEvent.VK_DELETE)
-            {
-                // this doesn't work for some reason
-                /*if (selectedObj != null)
-                {
-                    if (tgbDeleteObject.isSelected())
-                    {
-                        deleteObject(selectedObj.uniqueID);
-                        selectedVal = 0xFFFFFF;
-                        selectedObj = null;
-                        selectedPathPoint = null;
-                        selectionChanged();
-                    }
-                    tgbDeleteObject.setSelected(false);
-                } */
-            }
-            
+        {     
             switch (e.getKeyCode())
             {
                 case KeyEvent.VK_LEFT:
@@ -2971,23 +2885,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private PropertyGrid pnlObjectSettings;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBoxMenuItem ShowFakeColorMenuItem1;
     private javax.swing.JButton btnAddScenario;
     private javax.swing.JButton btnAddZone;
+    private javax.swing.JButton btnClose;
     private javax.swing.JButton btnDeleteScenario;
     private javax.swing.JButton btnDeleteZone;
     private javax.swing.JButton btnDeselect;
     private javax.swing.JButton btnEditScenario;
     private javax.swing.JButton btnEditZone;
+    private javax.swing.JButton btnSave;
     private javax.swing.JToggleButton btnShowAllPaths;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItemSave1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -3007,7 +2917,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JToolBar jToolBar4;
     private javax.swing.JToolBar jToolBar6;
     private javax.swing.JList lbScenarioList;
-    private javax.swing.JLabel lbSelected;
     private javax.swing.JLabel lbStatusLabel;
     private javax.swing.JList lbZoneList;
     private javax.swing.JPanel pnlGLPanel;
@@ -3019,6 +2928,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JToggleButton tgbAddObject;
     private javax.swing.JToggleButton tgbDeleteObject;
     private javax.swing.JToggleButton tgbReverseRot;
+    private javax.swing.JToggleButton tgbShowFake;
     private javax.swing.JTabbedPane tpLeftPanel;
     private javax.swing.JTree tvObjectList;
     // End of variables declaration//GEN-END:variables

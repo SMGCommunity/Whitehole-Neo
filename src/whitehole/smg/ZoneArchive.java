@@ -18,6 +18,18 @@
 
 package whitehole.smg;
 
+import whitehole.smg.object.PlanetObj;
+import whitehole.smg.object.GeneralObject;
+import whitehole.smg.object.MapPartObj;
+import whitehole.smg.object.CameraCubeObj;
+import whitehole.smg.object.DebugObj;
+import whitehole.smg.object.AreaObj;
+import whitehole.smg.object.PathObject;
+import whitehole.smg.object.ChangeObj;
+import whitehole.smg.object.GeneralPosObj;
+import whitehole.smg.object.DemoObj;
+import whitehole.smg.object.SoundObj;
+import whitehole.smg.object.StartObj;
 import java.io.*;
 import java.util.*;
 import whitehole.fileio.*;
@@ -29,80 +41,19 @@ public class ZoneArchive
         galaxy = arc;
         game = arc.game;
         filesystem = game.filesystem;
-        
         zoneName = name;
         
-        // try SMG2-style first, then SMG1
-        if (filesystem.fileExists("/StageData/" + zoneName + "/" + zoneName + "Map.arc"))
-        {
-            // SMG2-style zone
-            // * /StageData/<zoneName>/<zoneName>Design.arc -> Lighting information
-            // * /StageData/<zoneName>/<zoneName>Map.arc -> holds map objects
-            // * /StageData/<zoneName>/<zoneName>Sound.arc -> seems to hold sound-related objects
-            
+        if (filesystem.fileExists("/StageData/" + zoneName + "/" + zoneName + "Map.arc")) {
             gameMask = 2;
             zonefile = "/StageData/" + zoneName + "/" + zoneName + "Map.arc";
         }
-        else
-        {
-            // SMG1-style zone
-            // * /StageData/<zoneName>.arc -> holds all map objects
-            
+        else {
             gameMask = 1;
             zonefile = "/StageData/" + zoneName + ".arc";
         }
-        
         loadZone();
     }
-    
-    public ZoneArchive(GameArchive game, String name) throws IOException
-    {
-        galaxy = null;
-        this.game = game;
-        filesystem = game.filesystem;
-        
-        zoneName = name;
-        
-        // try SMG2-style first, then SMG1
-        if (filesystem.fileExists("/StageData/" + zoneName + "/" + zoneName + "Map.arc"))
-        {
-            
-                      
-            // SMG2-style zone
-            // * /StageData/<zoneName>/<zoneName>Design.arc -> Lighting stuff. 
-            // * /StageData/<zoneName>/<zoneName>Map.arc -> holds map objects
-            // * /StageData/<zoneName>/<zoneName>Sound.arc -> seems to hold sound-related objects
-            // * /StageData/<zonename/<zonename>Demo.arc -> Demo Cutscene stuff. Listed below. 
-            // * /StageData/<zonename/<zonename>Ghost.arc -> Ghost race stuff.            
-            
-            gameMask = 2;
-            zonefile = "/StageData/" + zoneName + "/" + zoneName + "Map.arc";
-                        
-           
-        }
-        
-        if (filesystem.fileExists("/StageData/" + zoneName + "/" + zoneName + "Demo.arc"))
-        {
-            
-            // AsdfGalaxyDemo.arc loading system. Nothing too special.
-            
-            gameMask = 2;
-            zonefile = "/StageData/" + zoneName + "/" + zoneName + "Demo.arc";
-                        
-           
-        }        
-        else
-        {
-            // SMG1-style zone
-            // * /StageData/<zoneName>.arc -> holds all map objects
-            
-            gameMask = 1;
-            zonefile = "/StageData/" + zoneName + ".arc";
-        }
-        
-        loadZone();
-    }
-    
+
     public void save() throws IOException
     {
         saveObjects("MapParts", "MapPartsInfo");
@@ -112,15 +63,13 @@ public class ZoneArchive
         saveObjects("Placement", "AreaObjInfo");
         saveObjects("Placement", "CameraCubeInfo");
         saveObjects("Placement", "DemoObjInfo");
-        //saveObjects("Placement", "soundinfo");        
-        //saveObjects("childobj", "childobjinfo");        
+        saveObjects("GeneralPos", "GeneralPosInfo");
         saveObjects("Debug", "DebugMoveInfo");
-        //saveObjects("GeneralPos", "GeneralPosInfo");        
-        //saveObjects("List", "ChangeSceneListInfo");
-        //saveObjects("List", "StageInfo");        
-        
+        if (gameMask == 2)
+            saveObjects("Placement", "ChangeObjInfo");
+        if (gameMask == 1)
+            saveObjects("Placement", "SoundInfo");
         savePaths();
-        
         archive.save();
     }
     
@@ -142,15 +91,14 @@ public class ZoneArchive
         loadObjects("Start", "StartInfo");
         loadObjects("Placement", "PlanetObjInfo");
         loadObjects("Placement", "AreaObjInfo");
-        loadObjects("Placement", "CameraCubeInfo");  
+        loadObjects("Placement", "CameraCubeInfo");
         loadObjects("Placement", "DemoObjInfo");
-        //loadObjects("Placement", "soundinfo");  // Make this, and ChildObjInfo load only for SMG1.      
+        loadObjects("GeneralPos", "GeneralPosInfo");
         loadObjects("Debug", "DebugMoveInfo");
-        //loadObjects("GeneralPos", "GeneralPosInfo"); Breaks. Shit scale.
-        
-        // SMG1 Stuff. TODO: Make it load for game 1 only.
-       
-
+        if (gameMask == 2)
+            loadObjects("Placement", "ChangeObjInfo");
+        if (gameMask == 1)
+            loadObjects("Placement", "soundinfo");
         loadPaths();
         loadSubZones();
     }
@@ -186,11 +134,12 @@ public class ZoneArchive
         {
             Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/" + filepath));
             
+            if (gameMask == 2) {
             switch (file)
             {
                 case "mappartsinfo":
                     for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new MapPartObject(this, filepath, entry));
+                objects.get(layer).add(new MapPartObj(this, filepath, entry));
             }
                     break;
                     
@@ -203,32 +152,115 @@ public class ZoneArchive
                     
                 case "startinfo":
                     for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new StartObject(this, filepath, entry));
+                objects.get(layer).add(new StartObj(this, filepath, entry));
             }
                     break;
                     
                 case "planetobjinfo":
                     for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new GravityObject(this, filepath, entry));
+                objects.get(layer).add(new PlanetObj(this, filepath, entry));
             }
                     break;
                     
                 case "areaobjinfo":
                    for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new AreaObject(this, filepath, entry));
+                objects.get(layer).add(new AreaObj(this, filepath, entry));
             }
                     break;
                     
                 case "cameracubeinfo":
                    for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new CameraObject(this, filepath, entry));
+                objects.get(layer).add(new CameraCubeObj(this, filepath, entry));
+            }
+                    break;
+                    
+                case "demoobjinfo":
+                   for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new DemoObj(this, filepath, entry));
+            }
+                    break;
+                    
+                case "generalposinfo":
+                   for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new GeneralPosObj(this, filepath, entry));
+            }
+                    break;
+                    
+                case "debugmoveinfo":
+                   for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new DebugObj(this, filepath, entry));
             }
                     break; 
                    
-                case "debugmoveinfo":
+                case "changeobjinfo":
                    for (Bcsv.Entry entry : bcsv.entries)
-                        objects.get(layer).add(new DebugObject(this, filepath, entry));
+                objects.get(layer).add(new ChangeObj(this, filepath, entry));
                     break;                    
+            }
+            }
+            else {
+            switch (file)
+            {
+                case "mappartsinfo":
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new MapPartObj(this, filepath, entry));
+            }
+                    break;
+                    
+                case "objinfo":
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new GeneralObject(this, filepath, entry));
+            }
+                    break;
+                
+                    
+                case "startinfo":
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new StartObj(this, filepath, entry));
+            }
+                    break;
+                    
+                case "planetobjinfo":
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new PlanetObj(this, filepath, entry));
+            }
+                    break;
+                    
+                case "areaobjinfo":
+                   for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new AreaObj(this, filepath, entry));
+            }
+                    break;
+                    
+                case "cameracubeinfo":
+                   for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new CameraCubeObj(this, filepath, entry));
+            }
+                    break;
+                    
+                case "soundinfo":
+                   for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new SoundObj(this, filepath, entry));
+            }
+                    break;
+                    
+                case "demoobjinfo":
+                   for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new DemoObj(this, filepath, entry));
+            }
+                    break;
+                    
+                case "generalposinfo":
+                   for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new GeneralPosObj(this, filepath, entry));
+            }
+                    break;
+                   
+                case "debugobjinfo":
+                   for (Bcsv.Entry entry : bcsv.entries)
+                objects.get(layer).add(new DebugObj(this, filepath, entry));
+                    break;                    
+            }
             }
             
             bcsv.close();
@@ -273,10 +305,6 @@ public class ZoneArchive
         }
     }
     
-
-   
-   
-    
     private void loadPaths()
     {
         try
@@ -311,7 +339,7 @@ public class ZoneArchive
         }
         catch (IOException ex)
         {
-            System.out.println(zoneName+": Failed to load paths: "+ex.getMessage());
+            System.out.println(zoneName+": Failed to save paths: "+ex.getMessage());
         }
     }
     
@@ -323,12 +351,11 @@ public class ZoneArchive
             try
             {
                 Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/Placement/" + layer + "/StageObjInfo"));
-                subZones.put(layer.toLowerCase(), bcsv.entries); // lazy lol
+                subZones.put(layer.toLowerCase(), bcsv.entries);
                 bcsv.close();
             }
             catch (IOException ex)
             {
-                // TODO better error handling, really
                 System.out.println(ex.getMessage());
                 ex.printStackTrace();
             }
@@ -344,7 +371,7 @@ public class ZoneArchive
     
     public String zoneName;
     
-    public int gameMask;
+    public static int gameMask;
     public HashMap<String, List<LevelObject>> objects;
     public List<PathObject> paths;
     public HashMap<String, List<Bcsv.Entry>> subZones;

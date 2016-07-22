@@ -18,9 +18,10 @@
 
 package whitehole.smg;
 
+import java.io.IOException;
 import java.util.*;
-import java.io.*;
-import whitehole.fileio.*;
+import whitehole.Whitehole;
+import whitehole.fileio.FilesystemBase;
 
 public class GameArchive 
 {
@@ -29,31 +30,22 @@ public class GameArchive
         filesystem = fs;
     }
     
-    public void close()
+    public void getGameType(String name)
     {
-        try { filesystem.close(); } catch (IOException ex) {}
+        if (filesystem.fileExists(String.format("/StageData/%1$s.arc", name))) {
+            Whitehole.getGameType = 1;   // SMG1
+        }
+        else if (filesystem.fileExists(String.format("/StageData/%1$s/%1$sMap.arc", name))) {
+            Whitehole.getGameType = 2;   // SMG2
+        }
+        else {
+            Whitehole.getGameType = 0;   // no game
+        }
     }
-    
     
     public boolean galaxyExists(String name)
     {
         return filesystem.fileExists(String.format("/StageData/%1$s/%1$sScenario.arc", name));
-    }
-    
-    public List<String> getGalaxies()
-    {
-        List<String> ret = new ArrayList<>();
-        
-        List<String> stages = filesystem.getDirectories("/StageData");
-        for (String stage : stages)
-        {
-            if (!galaxyExists(stage))
-                continue;
-            
-            ret.add(stage);
-        }
-        
-        return ret;
     }
     
     public GalaxyArchive openGalaxy(String name) throws IOException
@@ -62,18 +54,30 @@ public class GameArchive
         return new GalaxyArchive(this, name);
     }
     
-    /*public FileBase openGalaxyFile(String galaxy, String file)
+    public void close()
     {
-        try
-        {
-            return filesystem.openFile(String.format("/StageData/%1$s/%1$s%2$s.arc", galaxy, file));
+        try { 
+            filesystem.close();
         }
-        catch (FileNotFoundException ex)
-        {
-            return null;
+        catch (IOException ex) {
         }
-    }*/
+    }
     
-    
+    public List<String> getGalaxies()
+    {
+        List<String> ret = new ArrayList<>();
+        List<String> stages = filesystem.getDirectories("/StageData");
+        for (String stage : stages)
+        {
+            if (!galaxyExists(stage))
+                continue;
+            
+            ret.add(stage);
+            getGameType(stage);
+        }
+        
+        return ret;
+    }
+
     public FilesystemBase filesystem;
 }

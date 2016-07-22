@@ -23,8 +23,8 @@ import java.util.LinkedHashMap;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import whitehole.smg.LevelObject;
-import whitehole.smg.PathObject;
-import whitehole.smg.PathPointObject;
+import whitehole.smg.object.PathObject;
+import whitehole.smg.object.PathPointObject;
 
 public class ObjListTreeNode extends ObjTreeNode
 {

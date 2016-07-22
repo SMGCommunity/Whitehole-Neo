@@ -19,6 +19,10 @@
 package whitehole.smg;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -359,8 +363,23 @@ public class Bcsv
 
         try
         {
-            InputStream strm = Whitehole.class.getResourceAsStream("/Resources/KnownFieldNames.txt");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(strm));
+            // get hash file
+            InputStream hash = Whitehole.class.getResourceAsStream("/Resources/Hash.txt");
+            InputStream hashZone = Whitehole.class.getResourceAsStream("/Resources/ZoneHash.txt");
+            // get custom hash file
+            File hashCustom = new File("AdditionalFieldNames.txt");
+            // create custom hash file
+            if (!hashCustom.exists()) {
+                hashCustom.createNewFile();
+                FileWriter writeFile = new FileWriter(hashCustom.getAbsoluteFile());
+                BufferedWriter writeLine = new BufferedWriter(writeFile);
+                writeLine.write("# Add new lines to create new field names\n");
+                writeLine.close();
+            }
+            // read hash files
+            BufferedReader reader = new BufferedReader(new InputStreamReader(hash));
+            BufferedReader reader2 = new BufferedReader(new InputStreamReader(hashZone));
+            BufferedReader reader3 = new BufferedReader(new FileReader(hashCustom));
 
             String line;
             while ((line = reader.readLine()) != null)
@@ -373,7 +392,28 @@ public class Bcsv
                 addHash(line);
             }
             
-            strm.close();
+            while ((line = reader2.readLine()) != null)
+            {
+                line = line.trim();
+
+                if (line.length() == 0) continue;
+                if (line.charAt(0) == '#') continue;
+
+                addHash(line);
+            }
+            
+            while ((line = reader3.readLine()) != null)
+            {
+                line = line.trim();
+
+                if (line.length() == 0) continue;
+                if (line.charAt(0) == '#') continue;
+
+                addHash(line);
+            }
+            
+            hash.close();
+            hashZone.close();
         }
         catch (IOException ex) {}
     }

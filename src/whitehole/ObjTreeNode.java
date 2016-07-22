@@ -22,7 +22,7 @@ import java.util.Enumeration;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import whitehole.smg.LevelObject;
-import whitehole.smg.PathPointObject;
+import whitehole.smg.object.PathPointObject;
 
 public class ObjTreeNode implements MutableTreeNode
 {
@@ -128,7 +128,7 @@ public class ObjTreeNode implements MutableTreeNode
         else if (object != null)
             return object.toString();
         else
-            return "unknown node lol";
+            return "unknown node";
     }
     
     

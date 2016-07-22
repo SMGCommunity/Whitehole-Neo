@@ -16,14 +16,17 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.smg;
+package whitehole.smg.object;
 
 import whitehole.PropertyGrid;
+import whitehole.smg.Bcsv;
+import whitehole.smg.LevelObject;
+import whitehole.smg.ZoneArchive;
 import whitehole.vectors.Vector3;
 
-public class StartObject extends LevelObject
+public class DemoObj extends LevelObject
 {
-    public StartObject(ZoneArchive zone, String filepath, Bcsv.Entry entry)
+    public DemoObj(ZoneArchive zone, String filepath, Bcsv.Entry entry)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -34,7 +37,6 @@ public class StartObject extends LevelObject
         data = entry;
         
         name = (String)data.get("name");
-        if (!name.equals("Mario")) System.out.println("NON-MARIO START OBJECT -- WHAT THE HELL ("+name+")");
         loadDBInfo();
         renderer = null;
         
@@ -45,7 +47,7 @@ public class StartObject extends LevelObject
         scale = new Vector3((float)data.get("scale_x"), (float)data.get("scale_y"), (float)data.get("scale_z"));
     }
     
-    public StartObject(ZoneArchive zone, String filepath, int game, Vector3 pos)
+    public DemoObj(ZoneArchive zone, String filepath, int game, String objname, Vector3 pos)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -55,7 +57,7 @@ public class StartObject extends LevelObject
         
         data = new Bcsv.Entry();
         
-        name = "Mario";
+        name = objname;
         loadDBInfo();
         renderer = null;
         
@@ -69,10 +71,18 @@ public class StartObject extends LevelObject
         data.put("pos_x", position.x); data.put("pos_y", position.y); data.put("pos_z", position.z);
         data.put("dir_x", rotation.x); data.put("dir_y", rotation.y); data.put("dir_z", rotation.z);
         data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
+                          
+        data.put("SW_APPEAR", -1);
+        data.put("SW_DEAD", -1);
+        data.put("SW_A",  -1);
+        data.put("SW_B", -1);
         
-        data.put("Obj_arg0", -1);
-        data.put("MarioNo", 0);
-        data.put("Camera_id", -1);
+        data.put("l_id", -1);
+        data.put("DemoName", "null");
+        data.put("TimeSheetName", "null");  
+        if (ZoneArchive.gameMask == 2)
+            data.put("DemoSkip", -1); 
+        
     }
     
     @Override
@@ -89,30 +99,36 @@ public class StartObject extends LevelObject
     public void getProperties(PropertyGrid panel)
     {
         panel.addCategory("obj_position", "Position");
-        panel.addField("pos_x", "X position", "float", null, position.x);
-        panel.addField("pos_y", "Y position", "float", null, position.y);
-        panel.addField("pos_z", "Z position", "float", null, position.z);
-        panel.addField("dir_x", "X rotation", "float", null, rotation.x);
-        panel.addField("dir_y", "Y rotation", "float", null, rotation.y);
-        panel.addField("dir_z", "Z rotation", "float", null, rotation.z);
-        panel.addField("scale_x", "X scale", "float", null, scale.x);
-        panel.addField("scale_y", "Y scale", "float", null, scale.y);
-        panel.addField("scale_z", "Z scale", "float", null, scale.z);
+        panel.addField("pos_x", "X position", "float", null, position.x, "Default");
+        panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
+        panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
+        panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
+        panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
+        panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
+        panel.addField("scale_x", "X scale", "float", null, scale.x, "Default");
+        panel.addField("scale_y", "Y scale", "float", null, scale.y, "Default");
+        panel.addField("scale_z", "Z scale", "float", null, scale.z, "Default");
+   
+        panel.addCategory("obj_eventinfo", "Switches");
+        panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"), "Default");
+        panel.addField("SW_DEAD", "SW_DEAD", "int", null, data.get("SW_DEAD"), "Default");
+        panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"), "Default");
+        panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"), "Default");
 
-        // TODO nice object args (ObjectDB integration)
-
-        panel.addCategory("obj_args", "Object arguments");
-        panel.addField("Obj_arg0", "Obj_arg0", "int", null, data.get("Obj_arg0"));
-
-        panel.addCategory("obj_objinfo", "Object settings");
-        panel.addField("MarioNo", "Mario ID", "int", null, data.get("MarioNo"));
-        panel.addField("Camera_id", "Camera ID", "int", null, data.get("Camera_id"));
+        panel.addCategory("obj_demosettings", "Cutscene Information");
+        panel.addField("DemoName", "DemoName", "text", null, data.get("DemoName"), "Default");
+        panel.addField("TimeSheetName", "TimeSheetName", "text", null, data.get("TimeSheetName"), "Default");
+        if (ZoneArchive.gameMask == 2)
+            panel.addField("DemoSkip", "DemoSkip", "int", null, data.get("DemoSkip"), "Default");    
+        
+        panel.addCategory("obj_objinfo", "Other");
+        panel.addField("l_id", "l_id", "int", null, data.get("l_id"), "Default");       
     }
     
     @Override
     public String toString()
     {
         String l = layer.equals("common") ? "Common" : "Layer"+layer.substring(5).toUpperCase();
-        return String.format("Starting point %1$d [%2$s]", (int)data.get("MarioNo"), l);
+        return dbInfo.name + " ( " + data.get("DemoName") + " | " + data.get("TimeSheetName") + " ) " + " [" + l + "]";
     }
 }

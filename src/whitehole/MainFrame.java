@@ -36,7 +36,7 @@ public class MainFrame extends javax.swing.JFrame {
         initComponents();
         galaxyEditors = new HashMap<>();
     }
-
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -52,9 +52,13 @@ public class MainFrame extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JToolBar.Separator();
         btnOpenGalaxy = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
-        btnSettings = new javax.swing.JButton();
-        btnAbout = new javax.swing.JButton();
         btnBcsvEditor = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        btnHashGen = new javax.swing.JButton();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
+        btnSettings = new javax.swing.JButton();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
+        btnAbout = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         GalaxyList = new javax.swing.JList();
         lbStatusBar = new javax.swing.JLabel();
@@ -97,28 +101,6 @@ public class MainFrame extends javax.swing.JFrame {
         jToolBar1.add(btnOpenGalaxy);
         jToolBar1.add(jSeparator2);
 
-        btnSettings.setText("Settings");
-        btnSettings.setFocusable(false);
-        btnSettings.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnSettings.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnSettings.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSettingsActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(btnSettings);
-
-        btnAbout.setText("About...");
-        btnAbout.setFocusable(false);
-        btnAbout.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnAbout.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnAbout.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAboutActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(btnAbout);
-
         btnBcsvEditor.setText("BCSV editor");
         btnBcsvEditor.setEnabled(false);
         btnBcsvEditor.setFocusable(false);
@@ -130,6 +112,42 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(btnBcsvEditor);
+        jToolBar1.add(jSeparator3);
+
+        btnHashGen.setText("Hash generator");
+        btnHashGen.setFocusable(false);
+        btnHashGen.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnHashGen.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnHashGen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHashGenActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnHashGen);
+        jToolBar1.add(jSeparator5);
+
+        btnSettings.setText("Settings");
+        btnSettings.setFocusable(false);
+        btnSettings.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnSettings.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnSettings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSettingsActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnSettings);
+        jToolBar1.add(jSeparator4);
+
+        btnAbout.setText("About");
+        btnAbout.setFocusable(false);
+        btnAbout.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnAbout.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnAbout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAboutActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnAbout);
 
         GalaxyList.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -143,7 +161,6 @@ public class MainFrame extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(GalaxyList);
 
-        lbStatusBar.setText("jLabel1");
         lbStatusBar.setToolTipText("");
         lbStatusBar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
 
@@ -151,7 +168,7 @@ public class MainFrame extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 414, Short.MAX_VALUE)
+            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 620, Short.MAX_VALUE)
             .addComponent(lbStatusBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jScrollPane1)
         );
@@ -160,13 +177,28 @@ public class MainFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 404, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lbStatusBar, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+    
+    private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
+    {//GEN-HEADEREND:event_formWindowOpened
+
+        this.setTitle(Whitehole.fullName);
+        this.setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
+        lbStatusBar.setText("Ready");
+
+        if (Settings.objectDBUpdate)
+        {
+            lbStatusBar.setText("Checking for object database updates...");
+            ObjectDBUpdater updater = new ObjectDBUpdater(lbStatusBar);
+            updater.start();
+        }
+    }//GEN-LAST:event_formWindowOpened
 
     private void btnOpenGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenGameActionPerformed
         JFileChooser fc = new JFileChooser();
@@ -187,74 +219,70 @@ public class MainFrame extends javax.swing.JFrame {
         try
         {
             Whitehole.game = new GameArchive(new ExternalFilesystem(seldir));
-            lbStatusBar.setText("Game directory successfully opened");
         }
         catch (IOException ex)
         {
-            lbStatusBar.setText("Failed to open the directory"); // SHIT. Bug. Doesn't even appear, when the wrong directory is shown.
             return;
         }
         
         DefaultListModel galaxylist = new DefaultListModel();
         GalaxyList.setModel(galaxylist);
         java.util.List<String> galaxies = Whitehole.game.getGalaxies();
-        for (String galaxy : galaxies)
-        {
-            galaxylist.addElement(galaxy);
-        }
         
-        btnBcsvEditor.setEnabled(true);
+        if (Whitehole.getGameType == 0) {
+            for (String galaxy : galaxies)
+            {
+                galaxylist.removeElement(galaxy);
+            }
+            btnBcsvEditor.setEnabled(false);
+            lbStatusBar.setText("Failed to open the directory");
+        }
+        else {
+            for (String galaxy : galaxies)
+            {
+                galaxylist.addElement(galaxy);
+            }
+            btnBcsvEditor.setEnabled(true);
+            lbStatusBar.setText("Game directory successfully opened");
+        }
     }//GEN-LAST:event_btnOpenGameActionPerformed
 
-    private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
-    {//GEN-HEADEREND:event_formWindowOpened
-        //btnBcsvEditor.setVisible(Whitehole.isBeta);
-        
-        this.setTitle(Whitehole.fullName);
-        this.setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
-        lbStatusBar.setText("Ready");
-        
-        if (Settings.objectDBUpdate)
-        {
-            lbStatusBar.setText("Checking for object database updates...");
-            ObjectDBUpdater updater = new ObjectDBUpdater(lbStatusBar);
-            updater.start();
-        }
-    }//GEN-LAST:event_formWindowOpened
-
-    private void btnAboutActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnAboutActionPerformed
-    {//GEN-HEADEREND:event_btnAboutActionPerformed
-        String msg =
-            Whitehole.name + " " + Whitehole.version + "\n" +
-            "\n" +
-            "A level editor for Super Mario Galaxy 1 and 2\n" +
-            "\n" +
-            Whitehole.name + " is free software, and shouldn't be provided as\n" +
-            "a part of a paid software package.\n" + 
-            "\n" +
-            "If you downloaded " + Whitehole.name + " from a site other than Kuribo64,\n" +
-            "we can't guarantee anything as to the package's cleanness.\n" +
-            "\n" +
-            "Main coding: StapleButter\n" +
-            "Credits: \n" +
-            " * Phantom Wings, Treeki, yaz0r, thakis, groepaz/hitmen\n" + 
-            " * Dirbaio & MrRean for programming help\n" +
-            " * NWPlayer123 for design suggestions\n" + 
-            "\n" + 
-            "See Kuribo64 (" + Whitehole.websiteURL + ") for more details.\n";
-
-        if (Whitehole.version.toLowerCase().contains("private"))
-            msg += "\nThis is a private beta version. Leak it out and this'll be the last one you get.\n";
-        else if (Whitehole.version.toLowerCase().contains("beta"))
-            msg += "\nThis is a beta version, so don't expect full stability.\n";
-        
-        JOptionPane.showMessageDialog(this, msg, "About " + Whitehole.name + "...", JOptionPane.INFORMATION_MESSAGE);
-    }//GEN-LAST:event_btnAboutActionPerformed
+    private void btnOpenGalaxyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnOpenGalaxyActionPerformed
+    {//GEN-HEADEREND:event_btnOpenGalaxyActionPerformed
+        openGalaxy();
+    }//GEN-LAST:event_btnOpenGalaxyActionPerformed
 
     private void btnBcsvEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnBcsvEditorActionPerformed
     {//GEN-HEADEREND:event_btnBcsvEditorActionPerformed
         new BcsvEditorForm().setVisible(true);
     }//GEN-LAST:event_btnBcsvEditorActionPerformed
+
+    private void btnHashGenActionPerformed(java.awt.event.ActionEvent evt)
+    {//GEN-FIRST:event_btnHashGenActionPerformed
+        new HashForm().setVisible(true);
+    }//GEN-LAST:event_btnHashGenActionPerformed
+
+    private void btnSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnSettingsActionPerformed
+    {//GEN-HEADEREND:event_btnSettingsActionPerformed
+        new SettingsForm(this, true).setVisible(true);
+    }//GEN-LAST:event_btnSettingsActionPerformed
+
+    private void btnAboutActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnAboutActionPerformed
+    {//GEN-HEADEREND:event_btnAboutActionPerformed
+        new AboutForm().setVisible(true);
+    }//GEN-LAST:event_btnAboutActionPerformed
+
+    private void GalaxyListMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_GalaxyListMouseClicked
+    {//GEN-HEADEREND:event_GalaxyListMouseClicked
+        if (evt.getClickCount() < 2) return;
+        openGalaxy();
+    }//GEN-LAST:event_GalaxyListMouseClicked
+
+    private void GalaxyListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_GalaxyListValueChanged
+    {//GEN-HEADEREND:event_GalaxyListValueChanged
+        boolean hasSelection = GalaxyList.getSelectedIndex() >= 0;
+        btnOpenGalaxy.setEnabled(hasSelection);
+    }//GEN-LAST:event_GalaxyListValueChanged
 
     private void openGalaxy()
     {
@@ -274,28 +302,6 @@ public class MainFrame extends javax.swing.JFrame {
         form.setVisible(true);
         galaxyEditors.put(gal, form);
     }
-    
-    private void GalaxyListMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_GalaxyListMouseClicked
-    {//GEN-HEADEREND:event_GalaxyListMouseClicked
-        if (evt.getClickCount() < 2) return;
-        openGalaxy();
-    }//GEN-LAST:event_GalaxyListMouseClicked
-
-    private void btnOpenGalaxyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnOpenGalaxyActionPerformed
-    {//GEN-HEADEREND:event_btnOpenGalaxyActionPerformed
-        openGalaxy();
-    }//GEN-LAST:event_btnOpenGalaxyActionPerformed
-
-    private void GalaxyListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_GalaxyListValueChanged
-    {//GEN-HEADEREND:event_GalaxyListValueChanged
-        boolean hasSelection = GalaxyList.getSelectedIndex() >= 0;
-        btnOpenGalaxy.setEnabled(hasSelection);
-    }//GEN-LAST:event_GalaxyListValueChanged
-
-    private void btnSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnSettingsActionPerformed
-    {//GEN-HEADEREND:event_btnSettingsActionPerformed
-        new SettingsForm(this, true).setVisible(true);
-    }//GEN-LAST:event_btnSettingsActionPerformed
 
     private HashMap<String, GalaxyEditorForm> galaxyEditors;
     
@@ -303,6 +309,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JList GalaxyList;
     private javax.swing.JButton btnAbout;
     private javax.swing.JButton btnBcsvEditor;
+    private javax.swing.JButton btnHashGen;
     private javax.swing.JButton btnOpenGalaxy;
     private javax.swing.JButton btnOpenGame;
     private javax.swing.JButton btnSettings;
@@ -310,6 +317,9 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
+    private javax.swing.JToolBar.Separator jSeparator5;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JLabel lbStatusBar;
     // End of variables declaration//GEN-END:variables

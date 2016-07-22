@@ -18,8 +18,6 @@
 
 package whitehole;
 
-// inspired from http://www.azillionmonkeys.com/qed/hash.html
-
 public class SuperFastHash 
 {
     public static long calculate(byte[] data, long start, int offset, int len)

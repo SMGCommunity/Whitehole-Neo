@@ -16,22 +16,28 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.rendering;
+package whitehole.rendering.objRenderer;
 
-public class ObjRenderer_AstroPart extends BmdRenderer
+import whitehole.rendering.BmdRenderer;
+
+public class PowerStar extends BmdRenderer
 {
-    public ObjRenderer_AstroPart(RenderInfo info, String objname, int arg0)
+    public PowerStar(RenderInfo info, String starobj)
     {
-        String[] parts = {"Observatory", "Well", "Kitchen", "BedRoom", "Machine", "Tower"};
-        if (arg0 < 1 || arg0 > 6) arg0 = 1;
-        ctor_loadModel(info, objname + parts[arg0 - 1]);
+        ctor_loadModel(info, "PowerStar");
+        
+        // green
+        if (starobj == "GreenStar") { 
+            model.materials[0].colorS10[0].r = -113;
+            model.materials[0].colorS10[0].g = 211;
+            model.materials[0].colorS10[0].b = -113;
+        }
+        // yellow
+        else {
+            model.materials[0].colorS10[0].r = 211;
+            model.materials[0].colorS10[0].g = 211;
+            model.materials[0].colorS10[0].b = -103;
+        }
         ctor_uploadData(info);
-    }
-    
-    @Override
-    public boolean boundToObjArg(int arg)
-    {
-        if (arg == 0) return true;
-        return false;
     }
 }

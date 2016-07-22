@@ -20,15 +20,6 @@ package whitehole;
 
 import java.awt.*;
 
-/**
-  * A modified version of FlowLayout that allows containers using this
-  * Layout to behave in a reasonable manner when placed inside a
-  * JScrollPane
-  * @author Babu Kalakrishnan
-  * Modifications by greearb and jzd
-  * (http://stackoverflow.com/questions/3679886/how-can-i-let-jtoolbars-wrap-to-the-next-line-flowlayout-without-them-being-hi)
-  */
-
  public class ToolbarFlowLayout extends FlowLayout 
  {
     public ToolbarFlowLayout() 

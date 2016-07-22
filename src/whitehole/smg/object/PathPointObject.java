@@ -16,11 +16,13 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.smg;
+package whitehole.smg.object;
 
 import javax.media.opengl.GL2;
 import whitehole.rendering.ColorCubeRenderer;
 import whitehole.rendering.GLRenderer;
+import whitehole.smg.Bcsv;
+import whitehole.smg.LevelObject;
 import whitehole.vectors.Color4;
 import whitehole.vectors.Vector3;
 
