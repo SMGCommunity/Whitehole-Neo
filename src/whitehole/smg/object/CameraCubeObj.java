@@ -77,10 +77,6 @@ public class CameraCubeObj extends LevelObject
         data.put("Obj_arg2", -1);
         data.put("Obj_arg3", -1);      
         
-        data.put("0x50F5D5E6", -1);
-        data.put("0xCDC4FEAD", -1);
-        data.put("Validity", "Valid");
-        
         data.put("SW_APPEAR", -1);
         data.put("SW_A",  -1);
         data.put("SW_B", -1);

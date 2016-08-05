@@ -45,7 +45,7 @@ public class SettingsForm extends javax.swing.JDialog
         lblObjectDatabase = new javax.swing.JLabel();
         lblRendering = new javax.swing.JLabel();
         radKuribo64 = new javax.swing.JRadioButton();
-        radEggStarGalaxy = new javax.swing.JRadioButton();
+        radNeoMarioGalaxy = new javax.swing.JRadioButton();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -91,8 +91,8 @@ public class SettingsForm extends javax.swing.JDialog
         buttonGroup1.add(radKuribo64);
         radKuribo64.setText("Kuribo64");
 
-        buttonGroup1.add(radEggStarGalaxy);
-        radEggStarGalaxy.setText("EggStarGalaxy");
+        buttonGroup1.add(radNeoMarioGalaxy);
+        radNeoMarioGalaxy.setText("Neo Mario Galaxy");
 
         jLabel1.setText("Select a server to download the database from:");
 
@@ -126,7 +126,7 @@ public class SettingsForm extends javax.swing.JDialog
                     .addComponent(chkObjectDBUpdate)
                     .addComponent(lblRendering)
                     .addComponent(jLabel1)
-                    .addComponent(radEggStarGalaxy))
+                    .addComponent(radNeoMarioGalaxy))
                 .addGap(0, 8, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -147,7 +147,7 @@ public class SettingsForm extends javax.swing.JDialog
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(radKuribo64)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radEggStarGalaxy)
+                .addComponent(radNeoMarioGalaxy)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
@@ -164,7 +164,7 @@ public class SettingsForm extends javax.swing.JDialog
         chkUseShaders.setSelected(Settings.useShaders);
         chkFastDrag.setSelected(Settings.fastDrag);
         radKuribo64.setSelected(Settings.dbKuribo64);
-        radEggStarGalaxy.setSelected(Settings.dbEggStarGalaxy);
+        radNeoMarioGalaxy.setSelected(Settings.dbEggStarGalaxy);
     }//GEN-LAST:event_formWindowOpened
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnCancelActionPerformed
@@ -178,7 +178,7 @@ public class SettingsForm extends javax.swing.JDialog
         Settings.useShaders = chkUseShaders.isSelected();
         Settings.fastDrag = chkFastDrag.isSelected();
         Settings.dbKuribo64 = radKuribo64.isSelected();
-        Settings.dbEggStarGalaxy = radEggStarGalaxy.isSelected();
+        Settings.dbEggStarGalaxy = radNeoMarioGalaxy.isSelected();
         Settings.save();
         dispose();
     }//GEN-LAST:event_btnOkActionPerformed
@@ -198,7 +198,7 @@ public class SettingsForm extends javax.swing.JDialog
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel lblObjectDatabase;
     private javax.swing.JLabel lblRendering;
-    private javax.swing.JRadioButton radEggStarGalaxy;
     private javax.swing.JRadioButton radKuribo64;
+    private javax.swing.JRadioButton radNeoMarioGalaxy;
     // End of variables declaration//GEN-END:variables
 }

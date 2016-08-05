@@ -4,8 +4,24 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Aurum/%23Mario/Whitehole-master/src/Resources/Hash.txt</file>
-            <file>file:/C:/Users/Aurum/%23Mario/Whitehole-master/src/Resources/ZoneHash.txt</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/PlanetObj.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/rendering/ObjectModelSubstitutor.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/BcsvEditorForm.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/ObjectDBUpdater.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/ChildObj.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/PathPointObject.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/PathObject.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/ChangeObj.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/GeneralObject.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/rendering/RendererCache.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/MapPartObj.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/AreaObj.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/StartObj.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/GeneralPosObj.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/DebugObj.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/SettingsForm.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/rendering/PlanetRenderer.java</file>
+            <file>file:/C:/Users/Aurum/Documents/GitHub/Whitehole/src/whitehole/smg/object/SoundObj.java</file>
         </group>
     </open-files>
 </project-private>
