@@ -16,20 +16,14 @@
 package whitehole;
 
 import java.awt.Toolkit;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import javax.swing.JOptionPane;
-import whitehole.smg.Bcsv;
 
-public class HashForm extends javax.swing.JFrame
+public class LayerForm extends javax.swing.JFrame
 {
 
     /**
      * Creates new form BcsvEditorForm
      */
-    public HashForm()
+    public LayerForm()
     {
         initComponents();
     }
@@ -44,10 +38,10 @@ public class HashForm extends javax.swing.JFrame
     private void initComponents() {
 
         txtInput = new javax.swing.JTextField();
-        txtOutput = new javax.swing.JTextField();
         lblInput = new javax.swing.JLabel();
         lblOutput = new javax.swing.JLabel();
-        btnAddTo = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        txtOutput = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
@@ -66,19 +60,13 @@ public class HashForm extends javax.swing.JFrame
             }
         });
 
-        txtOutput.setEditable(false);
-        txtOutput.setText("00000000");
-
         lblInput.setText("Input");
 
         lblOutput.setText("Output");
 
-        btnAddTo.setText("Add to \"AdditionalFieldNames\"");
-        btnAddTo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddToActionPerformed(evt);
-            }
-        });
+        jLabel1.setText("Common +");
+
+        txtOutput.setEditable(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -87,13 +75,16 @@ public class HashForm extends javax.swing.JFrame
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtInput)
-                    .addComponent(txtOutput, javax.swing.GroupLayout.DEFAULT_SIZE, 276, Short.MAX_VALUE)
+                    .addComponent(txtOutput)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 11, Short.MAX_VALUE)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtInput, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lblInput)
-                            .addComponent(lblOutput)
-                            .addComponent(btnAddTo))
+                            .addComponent(lblOutput))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -103,13 +94,13 @@ public class HashForm extends javax.swing.JFrame
                 .addContainerGap()
                 .addComponent(lblInput)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(29, 29, 29)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
+                .addGap(18, 18, 18)
                 .addComponent(lblOutput)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtOutput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnAddTo)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -122,39 +113,19 @@ public class HashForm extends javax.swing.JFrame
     }//GEN-LAST:event_formWindowClosing
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        this.setTitle("Hash Generator");
+        this.setTitle("Layer Generator");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
     }//GEN-LAST:event_formWindowOpened
 
     private void txtInputKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtInputKeyReleased
-        if (txtInput.getText().contains(" ")) {
-            JOptionPane.showMessageDialog(null, "You can not use any spaces!", Whitehole.fullName, JOptionPane.INFORMATION_MESSAGE);
-            txtInput.setText(txtInput.getText().replaceAll(" ", ""));
-        }
-        else {
-            txtOutput.setText(String.format("%1$08X",Bcsv.fieldNameToHash(txtInput.getText())));
-        }
+        getLayerNo(txtInput.getText());
     }//GEN-LAST:event_txtInputKeyReleased
 
-    private void btnAddToActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddToActionPerformed
-        try {
-            File hashCustom = new File("AdditionalFieldNames.txt");
-            PrintWriter writeFile = new PrintWriter(new FileWriter(hashCustom, true));
-            BufferedWriter writeLine = new BufferedWriter(writeFile);
-        
-            if (!hashCustom.exists())
-                Bcsv.createCustomHashFile();
-            
-            writeLine.write("# " + txtOutput.getText() + "\r\n" + txtInput.getText() + "\r\n");
-            writeLine.close();
-        }
-        catch (Exception ex) {
-        }
-
-    }//GEN-LAST:event_btnAddToActionPerformed
-
+    private void getLayerNo(String field) {
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAddTo;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel lblInput;
     private javax.swing.JLabel lblOutput;
     private javax.swing.JTextField txtInput;

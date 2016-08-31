@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -34,13 +31,14 @@ public class Whitehole
 {
     
     public static final String name = "Whitehole";
-    public static final String version = "v1.4.2";
-    public static String fullName = name + " " + version;
-    public static final String websiteURL = "http://eggstargalaxy.bplaced.net/";
-    public static final String crashReportURL = "http://eggstargalaxy.bplaced.net/?page=thread&id=148";
+    public static final String version = "v1.4.2.2";
+    public static final String status = "";
+    public static String fullName = name + " " + version + status;
+    public static final String websiteURL = "http://neomariogalaxy.bplaced.net/";
+    public static final String crashReportURL = "http://neomariogalaxy.bplaced.net/?page=thread&id=148";
     
     public static GameArchive game;
-    public static int getGameType;
+    public static int gameType;
     
     
     public class UncaughtExceptionHandler
@@ -50,7 +48,7 @@ public class Whitehole
             System.out.println(throwable.getMessage());
         }
     }
-    
+
     public static void doRun()
     {
         if (!Charset.isSupported("SJIS"))
@@ -72,7 +70,12 @@ public class Whitehole
 
         try
         {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            if (Settings.themeMetal) {
+                UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+            }
+            else {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            }
         }
         catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex)
         {

@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -25,6 +22,9 @@ import javax.swing.*;
 import java.io.*;
 import java.util.HashMap;
 import whitehole.fileio.*;
+import whitehole.rendering.RendererCache;
+import whitehole.rendering.ShaderCache;
+import whitehole.rendering.TextureCache;
 
 public class MainFrame extends javax.swing.JFrame {
 
@@ -34,6 +34,8 @@ public class MainFrame extends javax.swing.JFrame {
     public MainFrame() 
     {
         initComponents();
+        btnLayerGen.setVisible(false);
+        jSeparator6.setVisible(false);
         galaxyEditors = new HashMap<>();
     }
     
@@ -56,12 +58,14 @@ public class MainFrame extends javax.swing.JFrame {
         jSeparator3 = new javax.swing.JToolBar.Separator();
         btnHashGen = new javax.swing.JButton();
         jSeparator5 = new javax.swing.JToolBar.Separator();
+        btnLayerGen = new javax.swing.JButton();
+        jSeparator6 = new javax.swing.JToolBar.Separator();
         btnSettings = new javax.swing.JButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
         btnAbout = new javax.swing.JButton();
+        lbStatusBar = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         GalaxyList = new javax.swing.JList();
-        lbStatusBar = new javax.swing.JLabel();
 
         jMenu1.setText("jMenu1");
 
@@ -126,6 +130,18 @@ public class MainFrame extends javax.swing.JFrame {
         jToolBar1.add(btnHashGen);
         jToolBar1.add(jSeparator5);
 
+        btnLayerGen.setText("Layer generator");
+        btnLayerGen.setFocusable(false);
+        btnLayerGen.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnLayerGen.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnLayerGen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLayerGenActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnLayerGen);
+        jToolBar1.add(jSeparator6);
+
         btnSettings.setText("Settings");
         btnSettings.setFocusable(false);
         btnSettings.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -149,6 +165,9 @@ public class MainFrame extends javax.swing.JFrame {
         });
         jToolBar1.add(btnAbout);
 
+        lbStatusBar.setToolTipText("");
+        lbStatusBar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+
         GalaxyList.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 GalaxyListMouseClicked(evt);
@@ -160,9 +179,6 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
         jScrollPane1.setViewportView(GalaxyList);
-
-        lbStatusBar.setToolTipText("");
-        lbStatusBar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -177,7 +193,7 @@ public class MainFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 404, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 449, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lbStatusBar, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -229,17 +245,15 @@ public class MainFrame extends javax.swing.JFrame {
         GalaxyList.setModel(galaxylist);
         java.util.List<String> galaxies = Whitehole.game.getGalaxies();
         
-        if (Whitehole.getGameType == 0) {
-            for (String galaxy : galaxies)
-            {
+        if (Whitehole.gameType == 0) {
+            for (String galaxy : galaxies) {
                 galaxylist.removeElement(galaxy);
             }
             btnBcsvEditor.setEnabled(false);
             lbStatusBar.setText("Failed to open the directory");
         }
         else {
-            for (String galaxy : galaxies)
-            {
+            for (String galaxy : galaxies) {
                 galaxylist.addElement(galaxy);
             }
             btnBcsvEditor.setEnabled(true);
@@ -284,8 +298,16 @@ public class MainFrame extends javax.swing.JFrame {
         btnOpenGalaxy.setEnabled(hasSelection);
     }//GEN-LAST:event_GalaxyListValueChanged
 
+    private void btnLayerGenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLayerGenActionPerformed
+        new LayerForm().setVisible(true);
+    }//GEN-LAST:event_btnLayerGenActionPerformed
+
     private void openGalaxy()
     {
+        TextureCache.initialize();
+        ShaderCache.initialize();
+        RendererCache.initialize();
+        
         String gal = (String)GalaxyList.getSelectedValue();
         if (galaxyEditors.containsKey(gal))
         {
@@ -302,7 +324,6 @@ public class MainFrame extends javax.swing.JFrame {
         form.setVisible(true);
         galaxyEditors.put(gal, form);
     }
-
     private HashMap<String, GalaxyEditorForm> galaxyEditors;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -310,6 +331,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnAbout;
     private javax.swing.JButton btnBcsvEditor;
     private javax.swing.JButton btnHashGen;
+    private javax.swing.JButton btnLayerGen;
     private javax.swing.JButton btnOpenGalaxy;
     private javax.swing.JButton btnOpenGame;
     private javax.swing.JButton btnSettings;
@@ -320,6 +342,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar.Separator jSeparator6;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JLabel lbStatusBar;
     // End of variables declaration//GEN-END:variables

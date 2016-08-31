@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -25,37 +22,32 @@ import whitehole.fileio.FilesystemBase;
 
 public class GameArchive 
 {
-    public GameArchive(FilesystemBase fs)
-    {
+    public GameArchive(FilesystemBase fs) {
         filesystem = fs;
     }
     
-    public void getGameType(String name)
-    {
+    public void getGameType(String name) {
         if (filesystem.fileExists(String.format("/StageData/%1$s.arc", name))) {
-            Whitehole.getGameType = 1;   // SMG1
+            Whitehole.gameType = 1;   // SMG1
         }
         else if (filesystem.fileExists(String.format("/StageData/%1$s/%1$sMap.arc", name))) {
-            Whitehole.getGameType = 2;   // SMG2
+            Whitehole.gameType = 2;   // SMG2
         }
         else {
-            Whitehole.getGameType = 0;   // no game
+            Whitehole.gameType = 0;   // no game
         }
     }
     
-    public boolean galaxyExists(String name)
-    {
+    public boolean galaxyExists(String name) {
         return filesystem.fileExists(String.format("/StageData/%1$s/%1$sScenario.arc", name));
     }
     
-    public GalaxyArchive openGalaxy(String name) throws IOException
-    {
+    public GalaxyArchive openGalaxy(String name) throws IOException {
         if (!galaxyExists(name)) return null;
         return new GalaxyArchive(this, name);
     }
     
-    public void close()
-    {
+    public void close() {
         try { 
             filesystem.close();
         }
@@ -63,8 +55,7 @@ public class GameArchive
         }
     }
     
-    public List<String> getGalaxies()
-    {
+    public List<String> getGalaxies() {
         List<String> ret = new ArrayList<>();
         List<String> stages = filesystem.getDirectories("/StageData");
         for (String stage : stages)

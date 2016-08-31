@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -44,9 +41,11 @@ public class SettingsForm extends javax.swing.JDialog
         btnOk = new javax.swing.JButton();
         lblObjectDatabase = new javax.swing.JLabel();
         lblRendering = new javax.swing.JLabel();
-        radKuribo64 = new javax.swing.JRadioButton();
-        radNeoMarioGalaxy = new javax.swing.JRadioButton();
+        lblObjectDatabase1 = new javax.swing.JLabel();
+        radThemeSys = new javax.swing.JRadioButton();
+        radThemeJava = new javax.swing.JRadioButton();
         jLabel1 = new javax.swing.JLabel();
+        chkYaz0 = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Settings");
@@ -60,11 +59,6 @@ public class SettingsForm extends javax.swing.JDialog
         chkObjectDBUpdate.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
 
         chkUseShaders.setText("Use shaders for 3D rendering");
-        chkUseShaders.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkUseShadersActionPerformed(evt);
-            }
-        });
 
         chkFastDrag.setText("Render objects in low-res when dragging");
 
@@ -88,25 +82,26 @@ public class SettingsForm extends javax.swing.JDialog
         lblRendering.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblRendering.setText("Rendering");
 
-        buttonGroup1.add(radKuribo64);
-        radKuribo64.setText("Kuribo64");
+        lblObjectDatabase1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        lblObjectDatabase1.setText("Theme");
 
-        buttonGroup1.add(radNeoMarioGalaxy);
-        radNeoMarioGalaxy.setText("Neo Mario Galaxy");
+        buttonGroup2.add(radThemeSys);
+        radThemeSys.setText("System");
 
-        jLabel1.setText("Select a server to download the database from:");
+        buttonGroup2.add(radThemeJava);
+        radThemeJava.setText("Java L&F");
+
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel1.setText("Saving");
+
+        chkYaz0.setText("Yaz0 encode when saving");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btnOk)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnCancel))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -117,16 +112,23 @@ public class SettingsForm extends javax.swing.JDialog
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(chkUseShaders)
                                     .addComponent(chkFastDrag))))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnOk)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnCancel)))
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(radKuribo64)
+                    .addComponent(chkYaz0)
+                    .addComponent(radThemeJava)
+                    .addComponent(radThemeSys)
                     .addComponent(chkObjectDBUpdate)
                     .addComponent(lblRendering)
-                    .addComponent(jLabel1)
-                    .addComponent(radNeoMarioGalaxy))
+                    .addComponent(lblObjectDatabase1)
+                    .addComponent(jLabel1))
                 .addGap(0, 8, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -138,16 +140,20 @@ public class SettingsForm extends javax.swing.JDialog
                 .addComponent(chkUseShaders, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(chkFastDrag)
-                .addGap(23, 23, 23)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(lblObjectDatabase)
                 .addGap(1, 1, 1)
                 .addComponent(chkObjectDBUpdate)
-                .addGap(1, 1, 1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radKuribo64)
+                .addComponent(chkYaz0)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lblObjectDatabase1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radNeoMarioGalaxy)
+                .addComponent(radThemeSys)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radThemeJava)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
@@ -163,8 +169,9 @@ public class SettingsForm extends javax.swing.JDialog
         chkObjectDBUpdate.setSelected(Settings.objectDBUpdate);
         chkUseShaders.setSelected(Settings.useShaders);
         chkFastDrag.setSelected(Settings.fastDrag);
-        radKuribo64.setSelected(Settings.dbKuribo64);
-        radNeoMarioGalaxy.setSelected(Settings.dbEggStarGalaxy);
+        chkYaz0.setSelected(Settings.yaz0enc);
+        radThemeSys.setSelected(Settings.themeSystem);
+        radThemeJava.setSelected(Settings.themeMetal);
     }//GEN-LAST:event_formWindowOpened
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnCancelActionPerformed
@@ -177,15 +184,12 @@ public class SettingsForm extends javax.swing.JDialog
         Settings.objectDBUpdate = chkObjectDBUpdate.isSelected();
         Settings.useShaders = chkUseShaders.isSelected();
         Settings.fastDrag = chkFastDrag.isSelected();
-        Settings.dbKuribo64 = radKuribo64.isSelected();
-        Settings.dbEggStarGalaxy = radNeoMarioGalaxy.isSelected();
+        Settings.yaz0enc = chkYaz0.isSelected();
+        Settings.themeSystem = radThemeSys.isSelected();
+        Settings.themeMetal = radThemeJava.isSelected();
         Settings.save();
         dispose();
     }//GEN-LAST:event_btnOkActionPerformed
-
-    private void chkUseShadersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkUseShadersActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_chkUseShadersActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;
@@ -195,10 +199,12 @@ public class SettingsForm extends javax.swing.JDialog
     private javax.swing.JCheckBox chkFastDrag;
     private javax.swing.JCheckBox chkObjectDBUpdate;
     private javax.swing.JCheckBox chkUseShaders;
+    private javax.swing.JCheckBox chkYaz0;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel lblObjectDatabase;
+    private javax.swing.JLabel lblObjectDatabase1;
     private javax.swing.JLabel lblRendering;
-    private javax.swing.JRadioButton radKuribo64;
-    private javax.swing.JRadioButton radNeoMarioGalaxy;
+    private javax.swing.JRadioButton radThemeJava;
+    private javax.swing.JRadioButton radThemeSys;
     // End of variables declaration//GEN-END:variables
 }

@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -48,6 +45,7 @@ import whitehole.rendering.*;
 import whitehole.smg.*;
 import whitehole.fileio.*;
 import whitehole.smg.Bcsv;
+import whitehole.smg.object.ChildObj;
 
 public class GalaxyEditorForm extends javax.swing.JFrame
   {    
@@ -208,8 +206,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         populateObjectList(zoneModeLayerBitmask);
     }
-   
-
+    
     private void initGUI()
     {
         setTitle(galaxyName + " - " + Whitehole.fullName);
@@ -226,7 +223,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         pmnAddObjects = new JPopupMenu();
         
         if (ZoneArchive.gameMask == 2) {
-            String[] menuitems = new String[] {"Normal", "MapPart", "Gravity", "Starting point", "Area", "Camera Area", "Cutscene", "GeneralPos", "ChangeObj (Unused)", "Debug (Unused)"};
+            String[] menuitems = new String[] {"Normal", "MapPart", "Gravity", "Starting point", "Area", "Camera Area", "Cutscene", "GeneralPos", "ChangeObj (Unused)", "Debug (Unused)", "Path", "Path point"};
             for (String item : menuitems)
             {
                 JMenuItem mnuitem = new JMenuItem(item);
@@ -245,11 +242,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                             case 3: doAddObject("start"); break;
                             case 4: doAddObject("area"); break;
                             case 5: doAddObject("camera"); break;
-                            case 6: doAddObject("demo"); break;  
+                            case 6: doAddObject("demo"); break;
                             case 7: doAddObject("generalpos"); break;
                             case 8: doAddObject("change"); break;
-                            case 9: doAddObject("debug"); break;  
-                        
+                            case 9: doAddObject("debug"); break;
+                            case 10: doAddObject("path"); break;
+                            case 11: doAddObject("pathpoint"); break;
                         }
                     }
                 });
@@ -257,7 +255,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
         }
         else {
-            String[] menuitems = new String[] {"Normal", "MapPart", "Gravity", "Starting point", "Area", "Camera Area", "Sound", "Cutscene", "GeneralPos", "Debug (Unused)"};
+            String[] menuitems = new String[] {"Normal", "ChildObj", "MapPart", "Gravity", "Starting point", "Area", "Camera Area", "Sound", "Cutscene", "GeneralPos", "Debug (Unused)", "Path", "Path point"};
             for (String item : menuitems)
             {
                 JMenuItem mnuitem = new JMenuItem(item);
@@ -271,16 +269,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         switch (i)
                         {
                             case 0: doAddObject("general"); break;
-                            case 1: doAddObject("mappart"); break;
-                            case 2: doAddObject("gravity"); break;
-                            case 3: doAddObject("start"); break;
-                            case 4: doAddObject("area"); break;
-                            case 5: doAddObject("camera"); break;
-                            case 6: doAddObject("sound"); break;
-                            case 7: doAddObject("demo"); break;  
-                            case 8: doAddObject("generalpos"); break;
-                            case 9: doAddObject("debug"); break;  
-                        
+                            case 1: doAddObject("child"); break;
+                            case 2: doAddObject("mappart"); break;
+                            case 3: doAddObject("gravity"); break;
+                            case 4: doAddObject("start"); break;
+                            case 5: doAddObject("area"); break;
+                            case 6: doAddObject("camera"); break;
+                            case 7: doAddObject("sound"); break;
+                            case 8: doAddObject("demo"); break;
+                            case 9: doAddObject("generalpos"); break;
+                            case 10: doAddObject("debug"); break;
+                            case 11: doAddObject("path"); break;
+                            case 12: doAddObject("pathpoint"); break;
                         }
                     }
                 });
@@ -540,12 +540,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         pnlGLPanel.add(jToolBar2, java.awt.BorderLayout.NORTH);
 
-        lbStatusLabel.setText("status text goes here");
+        lbStatusLabel.setText("Status text");
         pnlGLPanel.add(lbStatusLabel, java.awt.BorderLayout.PAGE_END);
 
         jSplitPane1.setRightComponent(pnlGLPanel);
 
         tpLeftPanel.setMinimumSize(new java.awt.Dimension(100, 5));
+        tpLeftPanel.setName(""); // NOI18N
         tpLeftPanel.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 tpLeftPanelStateChanged(evt);
@@ -569,6 +570,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         btnAddScenario.setFocusable(false);
         btnAddScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnAddScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnAddScenario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddScenarioActionPerformed(evt);
+            }
+        });
         jToolBar3.add(btnAddScenario);
 
         btnEditScenario.setText("Edit");
@@ -669,7 +675,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         tbObjToolbar.setFloatable(false);
         tbObjToolbar.setRollover(true);
 
-        tgbAddObject.setText("Add");
+        tgbAddObject.setText("Add object");
         tgbAddObject.setFocusable(false);
         tgbAddObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         tgbAddObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -681,7 +687,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         tbObjToolbar.add(tgbAddObject);
         tbObjToolbar.add(jSeparator4);
 
-        tgbDeleteObject.setText("Delete");
+        tgbDeleteObject.setText("Delete object");
         tgbDeleteObject.setFocusable(false);
         tgbDeleteObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         tgbDeleteObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -712,6 +718,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         tpLeftPanel.addTab("Objects", jSplitPane4);
 
         jSplitPane1.setLeftComponent(tpLeftPanel);
+        tpLeftPanel.getAccessibleContext().setAccessibleDescription("");
 
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
@@ -744,7 +751,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             lbStatusLabel.setText("Deselect object.");
             btnDeselect.setEnabled(false);
-            tgbDeleteObject.setText("Delete");
             
             pnlObjectSettings.doLayout();
             pnlObjectSettings.validate();
@@ -803,7 +809,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
                     lbStatusLabel.setText(String.format("Selected [%3$d] %1$s (%2$s), point %4$d", path.data.get("name"), path.zone.zoneName, path.pathID, selectedPathPoint.index));
                     btnDeselect.setEnabled(true);
-                    tgbDeleteObject.setText("Delete");
 
                     pnlObjectSettings.addCategory("path_settings", "Path settings");
                     if (galaxyMode)
@@ -849,7 +854,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     String layer = selectedObj.layer.equals("common") ? "Common" : "Layer"+selectedObj.layer.substring(5).toUpperCase();
                     lbStatusLabel.setText(String.format("Selected %1$s (%2$s, %3$s)", selectedObj.name, selectedObj.zone.zoneName, layer));
                     btnDeselect.setEnabled(true);
-                    tgbDeleteObject.setText("Delete");
 
                     LinkedList layerlist = new LinkedList();
                     layerlist.add("Common");
@@ -930,6 +934,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         ObjListTreeNode objnode;
         objnode = new ObjListTreeNode(); objnode.setUserObject("General"); root.add(objnode); populateObjectSublist(layermask, objnode, GeneralObject.class);
+        if (ZoneArchive.gameMask==1) { objnode = new ObjListTreeNode(); objnode.setUserObject("ChildObj"); root.add(objnode); populateObjectSublist(layermask, objnode, ChildObj.class); }
         objnode = new ObjListTreeNode(); objnode.setUserObject("MapParts"); root.add(objnode); populateObjectSublist(layermask, objnode, MapPartObj.class);
         objnode = new ObjListTreeNode(); objnode.setUserObject("Gravity"); root.add(objnode); populateObjectSublist(layermask, objnode, PlanetObj.class);
         objnode = new ObjListTreeNode(); objnode.setUserObject("Starting points"); root.add(objnode); populateObjectSublist(layermask, objnode, StartObj.class);
@@ -939,7 +944,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         objnode = new ObjListTreeNode(); objnode.setUserObject("Cutscenes"); root.add(objnode); populateObjectSublist(layermask, objnode, DemoObj.class);
         objnode = new ObjListTreeNode(); objnode.setUserObject("GeneralPos"); root.add(objnode); populateObjectSublist(layermask, objnode, GeneralPosObj.class);
         if (ZoneArchive.gameMask==2) { objnode = new ObjListTreeNode(); objnode.setUserObject("ChangeObj"); root.add(objnode); populateObjectSublist(layermask, objnode, ChangeObj.class); }
-        objnode = new ObjListTreeNode(); objnode.setUserObject("Debug"); root.add(objnode); populateObjectSublist(layermask, objnode, DebugObj.class);   
+        objnode = new ObjListTreeNode(); objnode.setUserObject("Debug"); root.add(objnode); populateObjectSublist(layermask, objnode, DebugObj.class);
         objnode = new ObjListTreeNode(); objnode.setUserObject("Paths"); root.add(objnode);
         
         for (PathObject obj : curZoneArc.paths)
@@ -1027,26 +1032,53 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
     }//GEN-LAST:event_formWindowClosing
 
-    private void tpLeftPanelStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_tpLeftPanelStateChanged
-    {//GEN-HEADEREND:event_tpLeftPanelStateChanged
+    private void btnShowAllPathsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnShowAllPathsActionPerformed
+    {//GEN-HEADEREND:event_btnShowAllPathsActionPerformed
+        for (String zone : zoneArcs.keySet())
+            rerenderTasks.add("zone:" + zone);
+        
+        glCanvas.repaint();
+    }//GEN-LAST:event_btnShowAllPathsActionPerformed
+
+    private void tgbReverseRotActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbReverseRotActionPerformed
+    {//GEN-HEADEREND:event_tgbReverseRotActionPerformed
+        Settings.reverseRot = tgbReverseRot.isSelected();
+        Settings.save();
+    }//GEN-LAST:event_tgbReverseRotActionPerformed
+
+    private void tgbShowFakeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowFakeActionPerformed
+        for (String zone : zoneArcs.keySet())
+            rerenderTasks.add("zone:" + zone);
+        
+        glCanvas.repaint();
+    }//GEN-LAST:event_tgbShowFakeActionPerformed
+
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+        saveChanges();
+    }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCloseActionPerformed
+        dispose(); 
+    }//GEN-LAST:event_btnCloseActionPerformed
+
+    private void tpLeftPanelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_tpLeftPanelStateChanged
         // useless
     }//GEN-LAST:event_tpLeftPanelStateChanged
 
-    private void tvObjectListValueChanged(javax.swing.event.TreeSelectionEvent evt)//GEN-FIRST:event_tvObjectListValueChanged
-    {//GEN-HEADEREND:event_tvObjectListValueChanged
+    private void tvObjectListValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_tvObjectListValueChanged
         TreePath[] paths = evt.getPaths();
         for (TreePath path : paths)
         {
             TreeNode node = (TreeNode)path.getLastPathComponent();
             if (!(node instanceof ObjTreeNode))
-                continue;
-            
+            continue;
+
             ObjTreeNode tnode = (ObjTreeNode)node;
             if (!(tnode.object instanceof LevelObject))
-                continue;
-            
+            continue;
+
             LevelObject obj = (LevelObject)tnode.object;
-            
+
             if (evt.isAddedPath(path))
             {
                 selectedObjs.put(obj.uniqueID, obj);
@@ -1058,14 +1090,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 addRerenderTask("zone:"+obj.zone.zoneName);
             }
         }
-        
+
         selectionArg = 0;
         selectionChanged();
         glCanvas.repaint();
     }//GEN-LAST:event_tvObjectListValueChanged
 
-    private void tgbDeleteObjectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbDeleteObjectActionPerformed
-    {//GEN-HEADEREND:event_tgbDeleteObjectActionPerformed
+    private void tgbDeleteObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeleteObjectActionPerformed
         if (!selectedObjs.isEmpty())
         {
             if (tgbDeleteObject.isSelected())
@@ -1079,14 +1110,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 selectionChanged();
             }
             tgbDeleteObject.setSelected(false);
-        } 
+        }
         else
         {
             if (!tgbDeleteObject.isSelected())
             {
                 deletingObjects = false;
                 setStatusText();
-            } 
+            }
             else
             {
                 deletingObjects = true;
@@ -1095,10 +1126,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
     }//GEN-LAST:event_tgbDeleteObjectActionPerformed
 
-    private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbAddObjectActionPerformed
-    {//GEN-HEADEREND:event_tgbAddObjectActionPerformed
+    private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbAddObjectActionPerformed
         if (tgbAddObject.isSelected())
-            pmnAddObjects.show(tgbAddObject, 0, tgbAddObject.getHeight());
+        pmnAddObjects.show(tgbAddObject, 0, tgbAddObject.getHeight());
         else
         {
             pmnAddObjects.setVisible(false);
@@ -1106,8 +1136,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
     }//GEN-LAST:event_tgbAddObjectActionPerformed
 
-    private void lbZoneListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_lbZoneListValueChanged
-    {//GEN-HEADEREND:event_lbZoneListValueChanged
+    private void lbZoneListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_lbZoneListValueChanged
         if (evt.getValueIsAdjusting())
         {
             return;
@@ -1131,8 +1160,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         glCanvas.repaint();
     }//GEN-LAST:event_lbZoneListValueChanged
 
-    private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnEditZoneActionPerformed
-    {//GEN-HEADEREND:event_btnEditZoneActionPerformed
+    private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditZoneActionPerformed
         if (childZoneEditors.containsKey(curZone))
         {
             if (!childZoneEditors.get(curZone).isVisible())
@@ -1150,8 +1178,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         childZoneEditors.put(curZone, form);
     }//GEN-LAST:event_btnEditZoneActionPerformed
 
-    private void lbScenarioListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_lbScenarioListValueChanged
-    {//GEN-HEADEREND:event_lbScenarioListValueChanged
+    private void lbScenarioListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_lbScenarioListValueChanged
         if (evt.getValueIsAdjusting())
         {
             return;
@@ -1189,31 +1216,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         lbZoneList.setSelectedIndex(0);
     }//GEN-LAST:event_lbScenarioListValueChanged
 
-    private void btnShowAllPathsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnShowAllPathsActionPerformed
-    {//GEN-HEADEREND:event_btnShowAllPathsActionPerformed
-        for (String zone : zoneArcs.keySet())
-            rerenderTasks.add("zone:" + zone);
-        
-        glCanvas.repaint();
-    }//GEN-LAST:event_btnShowAllPathsActionPerformed
+    private void btnAddScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddScenarioActionPerformed
 
-    private void tgbReverseRotActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbReverseRotActionPerformed
-    {//GEN-HEADEREND:event_tgbReverseRotActionPerformed
-        Settings.reverseRot = tgbReverseRot.isSelected();
-        Settings.save();
-    }//GEN-LAST:event_tgbReverseRotActionPerformed
-
-    private void tgbShowFakeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowFakeActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_tgbShowFakeActionPerformed
-
-    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-        saveChanges();
-    }//GEN-LAST:event_btnSaveActionPerformed
-
-    private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCloseActionPerformed
-        dispose(); 
-    }//GEN-LAST:event_btnCloseActionPerformed
+    }//GEN-LAST:event_btnAddScenarioActionPerformed
                                            
     
     public void addRerenderTask(String task)
@@ -1355,101 +1360,100 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         LevelObject newobj = null;
         int pnodeid = -1;
-        {
-
-            if (ZoneArchive.gameMask==2) {
+        if (ZoneArchive.gameMask==2) {
             switch (objtype)
             {
                 case "general": 
-                    newobj = new GeneralObject(curZoneArc, "Placement/" + addingOnLayer + "/ObjInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 0;
-                    break;
-                case "mappart": 
-                    newobj = new MapPartObj(curZoneArc, "MapParts/" + addingOnLayer + "/MapPartsInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 1; 
-                    break;
-                case "gravity": 
-                    newobj = new PlanetObj(curZoneArc, "Placement/" + addingOnLayer + "/PlanetObjInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 2;
-                    break;
-                case "start": 
-                    newobj = new StartObj(curZoneArc, "Start/" + addingOnLayer + "/StartInfo", ZoneArchive.gameMask, pos);
-                    pnodeid = 3;
-                    break;    
-                case "area": 
-                    newobj = new AreaObj(curZoneArc, "Placement/" + addingOnLayer + "/AreaObjInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 4;
-                    break;
-                case "camera": 
-                    newobj = new CameraCubeObj(curZoneArc, "Placement/" + addingOnLayer + "/CameraCubeInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 5;
-                    break;
-                case "demo": 
-                    newobj = new DemoObj(curZoneArc, "Placement/" + addingOnLayer + "/DemoObjInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 6;
-                    break;    
-                case "generalpos": 
-                    newobj = new GeneralPosObj(curZoneArc, "GeneralPos/" + addingOnLayer + "/GeneralPosInfo", ZoneArchive.gameMask, pos);
-                    pnodeid = 7;
-                    break;
-                case "change":
-                    newobj = new ChangeObj(curZoneArc, "Placement/" + addingOnLayer + "/ChangeObjInfo", ZoneArchive.gameMask, pos);
-                    pnodeid = 8;
-                    break;
-                case "debug":
-                    newobj = new DebugObj(curZoneArc, "Debug/" + addingOnLayer + "/DebugMoveInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 9;
-                    break;
-            }
+                        newobj = new GeneralObject(curZoneArc, "Placement/" + addingOnLayer + "/ObjInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 0;
+                        break;
+                    case "mappart": 
+                        newobj = new MapPartObj(curZoneArc, "MapParts/" + addingOnLayer + "/MapPartsInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 1; 
+                        break;
+                    case "gravity": 
+                        newobj = new PlanetObj(curZoneArc, "Placement/" + addingOnLayer + "/PlanetObjInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 2;
+                        break;
+                    case "start": 
+                        newobj = new StartObj(curZoneArc, "Start/" + addingOnLayer + "/StartInfo", ZoneArchive.gameMask, pos);
+                        pnodeid = 3;
+                        break;    
+                    case "area": 
+                        newobj = new AreaObj(curZoneArc, "Placement/" + addingOnLayer + "/AreaObjInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 4;
+                        break;
+                    case "camera": 
+                        newobj = new CameraCubeObj(curZoneArc, "Placement/" + addingOnLayer + "/CameraCubeInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 5;
+                        break;
+                    case "demo": 
+                        newobj = new DemoObj(curZoneArc, "Placement/" + addingOnLayer + "/DemoObjInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 6;
+                        break;    
+                    case "generalpos": 
+                        newobj = new GeneralPosObj(curZoneArc, "GeneralPos/" + addingOnLayer + "/GeneralPosInfo", ZoneArchive.gameMask, pos);
+                        pnodeid = 7;
+                        break;
+                    case "change":
+                        newobj = new ChangeObj(curZoneArc, "Placement/" + addingOnLayer + "/ChangeObjInfo", ZoneArchive.gameMask, pos);
+                        pnodeid = 8;
+                        break;
+                    case "debug":
+                        newobj = new DebugObj(curZoneArc, "Debug/" + addingOnLayer + "/DebugMoveInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 9;
+                        break;
+                }
             }
             else {
-            switch (objtype)
-            {
-                case "general": 
-                    newobj = new GeneralObject(curZoneArc, "Placement/" + addingOnLayer + "/ObjInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 0;
-                    break;
-                case "mappart": 
-                    newobj = new MapPartObj(curZoneArc, "MapParts/" + addingOnLayer + "/MapPartsInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 1; 
-                    break;
-                case "gravity": 
-                    newobj = new PlanetObj(curZoneArc, "Placement/" + addingOnLayer + "/PlanetObjInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 2;
-                    break;
-                case "start": 
-                    newobj = new StartObj(curZoneArc, "Start/" + addingOnLayer + "/StartInfo", ZoneArchive.gameMask, pos);
-                    pnodeid = 3;
-                    break;    
-                case "area": 
-                    newobj = new AreaObj(curZoneArc, "Placement/" + addingOnLayer + "/AreaObjInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 4;
-                    break;
-                case "camera": 
-                    newobj = new CameraCubeObj(curZoneArc, "Placement/" + addingOnLayer + "/CameraCubeInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 5;
-                    break;
-                case "sound": 
-                    newobj = new SoundObj(curZoneArc, "Placement/" + addingOnLayer + "/SoundInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 6;
-                    break;
-                case "demo": 
-                    newobj = new DemoObj(curZoneArc, "Placement/" + addingOnLayer + "/DemoObjInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 7;
-                    break;    
-                case "generalpos": 
-                    newobj = new GeneralPosObj(curZoneArc, "GeneralPos/" + addingOnLayer + "/GeneralPosInfo", ZoneArchive.gameMask, pos);
-                    pnodeid = 8;
-                    break;    
-                case "debug":
-                    newobj = new DebugObj(curZoneArc, "Debug/" + addingOnLayer + "/DebugMoveInfo", ZoneArchive.gameMask, objname, pos);
-                    pnodeid = 9;
-                    break;
-                
+                switch (objtype)
+                {
+                    case "general": 
+                        newobj = new GeneralObject(curZoneArc, "Placement/" + addingOnLayer + "/ObjInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 0;
+                        break;
+                    case "child": 
+                        newobj = new ChildObj(curZoneArc, "ChildObj/" + addingOnLayer + "/ChildObjInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 1; 
+                        break;
+                    case "mappart": 
+                        newobj = new MapPartObj(curZoneArc, "MapParts/" + addingOnLayer + "/MapPartsInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 2; 
+                        break;
+                    case "gravity": 
+                        newobj = new PlanetObj(curZoneArc, "Placement/" + addingOnLayer + "/PlanetObjInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 3;
+                        break;
+                    case "start": 
+                        newobj = new StartObj(curZoneArc, "Start/" + addingOnLayer + "/StartInfo", ZoneArchive.gameMask, pos);
+                        pnodeid = 4;
+                        break;    
+                    case "area": 
+                        newobj = new AreaObj(curZoneArc, "Placement/" + addingOnLayer + "/AreaObjInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 5;
+                        break;
+                    case "camera": 
+                        newobj = new CameraCubeObj(curZoneArc, "Placement/" + addingOnLayer + "/CameraCubeInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 6;
+                        break;
+                    case "sound": 
+                        newobj = new SoundObj(curZoneArc, "Placement/" + addingOnLayer + "/SoundInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 7;
+                        break;
+                    case "demo": 
+                        newobj = new DemoObj(curZoneArc, "Placement/" + addingOnLayer + "/DemoObjInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 8;
+                        break;    
+                    case "generalpos": 
+                        newobj = new GeneralPosObj(curZoneArc, "GeneralPos/" + addingOnLayer + "/GeneralPosInfo", ZoneArchive.gameMask, pos);
+                        pnodeid = 9;
+                        break;    
+                    case "debug":
+                        newobj = new DebugObj(curZoneArc, "Debug/" + addingOnLayer + "/DebugMoveInfo", ZoneArchive.gameMask, objname, pos);
+                        pnodeid = 10;
+                        break;
+                }
             }
-            }
-
-        }
         
         int uid = 0;
         while (globalObjList.containsKey(uid) 
@@ -1493,6 +1497,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 objectBeingAdded = "change|ChangeObj";
                 addingOnLayer = "common";
                 break;
+            case "path":
+                JOptionPane.showMessageDialog(this, "Path adding isn't supported yet.", Whitehole.fullName, 0);
+                return;
+            case "pathpoint":
+                JOptionPane.showMessageDialog(this, "Path point adding isn't supported yet.", Whitehole.fullName, 0);
+                return;
             default:
                 ObjectSelectForm form = new ObjectSelectForm(this, ZoneArchive.gameMask, null);
                 form.setVisible(true);
@@ -1525,7 +1535,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 treeNodeList.remove(uid);
             }
         }
-        
         
         else if (globalPathPointList.containsKey(uid))
         {
@@ -1692,13 +1701,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         unsavedChanges = true;
     }
 
-    private boolean btnAddScenarioMouseClicked() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-    
-    
-
-    
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     {
         public class AsyncPrerenderer implements Runnable
@@ -1764,6 +1766,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             objectBeingAdded = "";
             addingOnLayer = "";
             deletingObjects = false;
+            duplicatingObjects = false;
             
             renderinfo = new GLRenderer.RenderInfo();
             renderinfo.drawable = glad;
@@ -1789,7 +1792,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             if (start != null)
             {
-                camDistance = 0.1f;
+                camDistance = 0.125f;
                 
                 camTarget.x = start.position.x / scaledown;
                 camTarget.y = start.position.y / scaledown;
@@ -1818,7 +1821,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             inited = true;
         }
-        
         
         private void renderSelectHighlight(GL2 gl, String zone)
         {
@@ -2426,7 +2428,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
                 updateCamera();
             }
-            
             e.getComponent().repaint();
         }
 
@@ -2876,6 +2877,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private LinkedHashMap<Integer, PathPointObject> displayedPaths;
     private String objectBeingAdded, addingOnLayer;
     private boolean deletingObjects;
+    private boolean duplicatingObjects;
     
     private CheckBoxList lbLayersList;
     private JPopupMenu pmnAddObjects;

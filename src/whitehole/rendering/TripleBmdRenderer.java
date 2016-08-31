@@ -20,14 +20,16 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GLException;
 import whitehole.vectors.Vector3;
 
-public class DoubleBmdRenderer extends GLRenderer
+public class TripleBmdRenderer extends GLRenderer
 {
-    public DoubleBmdRenderer(RenderInfo info, String model1, Vector3 pos1, String model2, Vector3 pos2) throws IOException
+    public TripleBmdRenderer(RenderInfo info, String model1, Vector3 pos1, String model2, Vector3 pos2, String model3, Vector3 pos3) throws IOException
     {
         rend1 = new BmdRenderer(info, model1);
         position1 = pos1;
         rend2 = new BmdRenderer(info, model2);
         position2 = pos2;
+        rend3 = new BmdRenderer(info, model3);
+        position3 = pos3;
     }
     
     @Override
@@ -35,13 +37,14 @@ public class DoubleBmdRenderer extends GLRenderer
     {
         rend1.close(info);
         rend2.close(info);
+        rend3.close(info);
     }
     
     
     @Override
     public boolean gottaRender(RenderInfo info) throws GLException
     {
-        return rend1.gottaRender(info) || rend2.gottaRender(info);
+        return rend1.gottaRender(info) || rend2.gottaRender(info) || rend3.gottaRender(info);
     }
     
     @Override
@@ -59,9 +62,14 @@ public class DoubleBmdRenderer extends GLRenderer
             gl.glTranslatef(position2.x, position2.y, position2.z);
             rend2.render(info);
         }
+        if (rend3.gottaRender(info))
+        {
+            gl.glTranslatef(position3.x, position3.y, position3.z);
+            rend3.render(info);
+        }
     }
     
     
-    private BmdRenderer rend1, rend2;
-    private Vector3 position1, position2;
+    private BmdRenderer rend1, rend2, rend3;
+    private Vector3 position1, position2, position3;
 }

@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -25,14 +22,11 @@ import whitehole.vectors.Vector3;
 
 public class Pole extends BmdRenderer
 {
-    public Pole(RenderInfo info, Vector3 scale) throws IOException
+    public Pole(RenderInfo info, Vector3 scale, String type) throws IOException
     {
-        super(info, "Pole");
+        super(info, type);
         myscale = scale;
         
-        // really ugly hack
-        // the game's renderer must be making use of the weighted vertices and all
-        // but for now this does the trick
         model.joints[1].finalMatrix.m[13] = 100f * scale.y / scale.x;
     }
     

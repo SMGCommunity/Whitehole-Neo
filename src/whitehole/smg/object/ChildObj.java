@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -81,19 +78,18 @@ public class ChildObj extends LevelObject
         data.put("Obj_arg6", -1);
         data.put("Obj_arg7", -1);
         
-        data.put("l_id", 0);
-        data.put("CameraSetId", -1);
         data.put("SW_APPEAR", -1);
         data.put("SW_DEAD", -1);
         data.put("SW_A",  -1);
         data.put("SW_B", -1);
         data.put("SW_SLEEP", -1);
         
+        data.put("l_id", 0);
+        data.put("CameraSetId", -1);
         data.put("CastId", -1);
         data.put("ViewGroupId", -1);
-        data.put(0x77E19CDA, (short)-1);
-        data.put(0x49E5F365, (short)-1);
         data.put("MessageId", -1);
+        data.put("ParentID", (short)-1);
         data.put("ShapeModelNo", (short)-1);
         data.put("CommonPath_ID", (short)-1);
         data.put("ClippingGroupId", (short)-1);
@@ -148,9 +144,8 @@ public class ChildObj extends LevelObject
         panel.addField("CameraSetId", "CameraSetId", "int", null, data.get("CameraSetId"), "Default");
         panel.addField("CastId", "CastId", "int", null, data.get("CastId"), "Default");
         panel.addField("ViewGroupId", "ViewGroupId", "int", null, data.get("ViewGroupId"), "Default");
-        panel.addField("0x77E19CDA", "Unknown (77E19CDA)", "int", null, data.get(0x77E19CDA), "Default");
-        panel.addField("0x49E5F365", "Unknown (49E5F365)", "int", null, data.get(0x49E5F365), "Default");
         panel.addField("MessageId", "MessageId", "int", null, data.get("MessageId"), "Default");
+        panel.addField("ParentID", "ParentID", "int", null, data.get("ParentID"), "Default");
         panel.addField("ShapeModelNo", "ShapeModelNo", "int", null, data.get("ShapeModelNo"), "Default");
         panel.addField("CommonPath_ID", "CommonPath_ID", "int", null, data.get("CommonPath_ID"), "Default");
         panel.addField("ClippingGroupId", "ClippingGroupId", "int", null, data.get("ClippingGroupId"), "Default");

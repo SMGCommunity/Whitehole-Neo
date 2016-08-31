@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -46,7 +43,8 @@ public class ObjectSelectForm extends javax.swing.JDialog
             cbxZone.setVisible(false);
             lblLayer.setVisible(false);
             cbxLayer.setVisible(false);
-            sepSelect.setVisible(false);
+            filler1.setVisible(false);
+            filler2.setVisible(false);
             
             selectedZone = "#lolz#";
             selectedLayer = "#lolz#";
@@ -58,7 +56,7 @@ public class ObjectSelectForm extends javax.swing.JDialog
             {
                 lblZone.setVisible(false);
                 cbxZone.setVisible(false);
-                lblLayer.setText("Add to layer: ");
+                filler1.setVisible(false);
                 
                 selectedZone = "#lolz#";
             }
@@ -88,23 +86,22 @@ public class ObjectSelectForm extends javax.swing.JDialog
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jSplitPane1 = new javax.swing.JSplitPane();
-        jPanel1 = new javax.swing.JPanel();
-        jToolBar1 = new javax.swing.JToolBar();
-        jLabel1 = new javax.swing.JLabel();
         txtSearch = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tvObjectList = new javax.swing.JTree();
-        jPanel2 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         epObjDescription = new javax.swing.JEditorPane();
-        jToolBar2 = new javax.swing.JToolBar();
+        jToolBar1 = new javax.swing.JToolBar();
         lblZone = new javax.swing.JLabel();
         cbxZone = new javax.swing.JComboBox();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         lblLayer = new javax.swing.JLabel();
         cbxLayer = new javax.swing.JComboBox();
-        sepSelect = new javax.swing.JToolBar.Separator();
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(8, 0), new java.awt.Dimension(8, 0), new java.awt.Dimension(8, 32767));
         btnSelect = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        txtObject = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Select object");
@@ -114,29 +111,14 @@ public class ObjectSelectForm extends javax.swing.JDialog
             }
         });
 
-        jSplitPane1.setDividerLocation(320);
-        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        jSplitPane1.setResizeWeight(1.0);
-        jSplitPane1.setFocusable(false);
-        jSplitPane1.setLastDividerLocation(320);
-
-        jPanel1.setLayout(new java.awt.BorderLayout());
-
-        jToolBar1.setFloatable(false);
-        jToolBar1.setRollover(true);
-
-        jLabel1.setText("Search: ");
-        jLabel1.setToolTipText("");
-        jToolBar1.add(jLabel1);
-
         txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 txtSearchKeyReleased(evt);
             }
         });
-        jToolBar1.add(txtSearch);
 
-        jPanel1.add(jToolBar1, java.awt.BorderLayout.PAGE_START);
+        jLabel1.setText("Search: ");
+        jLabel1.setToolTipText("");
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         tvObjectList.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
@@ -153,31 +135,24 @@ public class ObjectSelectForm extends javax.swing.JDialog
         });
         jScrollPane1.setViewportView(tvObjectList);
 
-        jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
-
-        jSplitPane1.setTopComponent(jPanel1);
-
-        jPanel2.setLayout(new java.awt.BorderLayout());
-
         epObjDescription.setEditable(false);
         epObjDescription.setContentType("text/html"); // NOI18N
         jScrollPane3.setViewportView(epObjDescription);
 
-        jPanel2.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
 
-        jToolBar2.setFloatable(false);
-        jToolBar2.setRollover(true);
+        lblZone.setText("Zone: ");
+        jToolBar1.add(lblZone);
 
-        lblZone.setText("Add to zone: ");
-        jToolBar2.add(lblZone);
+        jToolBar1.add(cbxZone);
+        jToolBar1.add(filler1);
 
-        jToolBar2.add(cbxZone);
+        lblLayer.setText("Layer: ");
+        jToolBar1.add(lblLayer);
 
-        lblLayer.setText(" Layer: ");
-        jToolBar2.add(lblLayer);
-
-        jToolBar2.add(cbxLayer);
-        jToolBar2.add(sepSelect);
+        jToolBar1.add(cbxLayer);
+        jToolBar1.add(filler2);
 
         btnSelect.setText("Select");
         btnSelect.setEnabled(false);
@@ -189,21 +164,55 @@ public class ObjectSelectForm extends javax.swing.JDialog
                 btnSelectActionPerformed(evt);
             }
         });
-        jToolBar2.add(btnSelect);
+        jToolBar1.add(btnSelect);
 
-        jPanel2.add(jToolBar2, java.awt.BorderLayout.PAGE_END);
+        jLabel2.setText("Object: ");
 
-        jSplitPane1.setRightComponent(jPanel2);
+        txtObject.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtObjectKeyReleased(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 225, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 261, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtObject)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 537, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 342, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtObject, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 301, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -258,41 +267,58 @@ public class ObjectSelectForm extends javax.swing.JDialog
 
     private void tvObjectListValueChanged(javax.swing.event.TreeSelectionEvent evt)//GEN-FIRST:event_tvObjectListValueChanged
     {//GEN-HEADEREND:event_tvObjectListValueChanged
-        if (tvObjectList.getSelectionPath() == null)
-        {
-            epObjDescription.setText("");
-            btnSelect.setEnabled(false);
-            return;
-        }
-        
         MutableTreeNode tn = (MutableTreeNode)tvObjectList.getSelectionPath().getLastPathComponent();
-        if (tn.getClass() != MyObjTreeNode.class)
+        if (tn.getClass() != MyObjTreeNode.class || tvObjectList.getSelectionPath() == null)
         {
             epObjDescription.setText("");
             btnSelect.setEnabled(false);
             return;
         }
-        
         ObjectDB.Object dbinfo = ObjectDB.objects.get(((MyObjTreeNode)tn).objectID);
         
-        epObjDescription.setText(String.format(
-                "<b>%1$s</b> (%2$s)<br><br>%3$s", 
-                dbinfo.name, dbinfo.ID, dbinfo.notes));
+        switch (dbinfo.games) {
+            default: objGame = "<i>Unknown</i>"; break;
+            case 1: objGame = "SMG1"; break;
+            case 2: objGame = "SMG2"; break;
+            case 3: objGame = "SMG1 & SMG2"; break;
+        }
         
+        if (dbinfo.known == 0 && dbinfo.complete == 0) {
+            objStatus = "<i>(This object's purpose is not known yet!)</i>";
+        }
+        else if ((dbinfo.known == 1 && dbinfo.complete == 0) || (dbinfo.known == 0 && dbinfo.complete == 1)) {
+            objStatus = "<i>(This object is not fully known!)</i>";
+        }
+        else if (dbinfo.known == 1 && dbinfo.complete == 1) {
+            objStatus = "<i>(This object has been fully documented!)</i>";
+        }
+        else {
+            objStatus = "<i>(Unknown)</i>";
+        }
+        
+        txtObject.setText(((MyObjTreeNode)tn).objectID);
+        epObjDescription.setText(
+                "<b>" + dbinfo.name + "</b> (" + dbinfo.ID + ")<br>" +
+                objStatus + "<br>" + 
+                "<b>Games:</b> " + objGame + "<br>" + 
+                "<b>Type:</b> " + dbinfo.type + "<br>" + 
+                "<br>" + 
+                dbinfo.notes + "<br>" +
+                "<br>" + 
+                "<b>Obj_args:</b><br>" + dbinfo.dataFields + "<br>" + 
+                "<b>Files:</b><br>" + dbinfo.dataFiles + "<br>"
+        );
+        epObjDescription.setCaretPosition(0);
         btnSelect.setEnabled(true);
     }//GEN-LAST:event_tvObjectListValueChanged
 
     private void btnSelectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnSelectActionPerformed
     {//GEN-HEADEREND:event_btnSelectActionPerformed
-        MutableTreeNode tn = (MutableTreeNode)tvObjectList.getSelectionPath().getLastPathComponent();
-        if (tn.getClass() != MyObjTreeNode.class)
-        {
-            throw new NullPointerException("oops");
-        }
-        
-        selectedObject = ((MyObjTreeNode)tn).objectID;
-        if (!selectedZone.equals("#lolz#")) selectedZone = (String)cbxZone.getSelectedItem();
-        if (!selectedLayer.equals("#lolz#")) selectedLayer = (String)cbxLayer.getSelectedItem();
+        selectedObject = txtObject.getText();
+        if (!selectedZone.equals("#lolz#"))
+            selectedZone = (String)cbxZone.getSelectedItem();
+        if (!selectedLayer.equals("#lolz#"))
+            selectedLayer = (String)cbxLayer.getSelectedItem();
         dispose();
     }//GEN-LAST:event_btnSelectActionPerformed
 
@@ -338,11 +364,20 @@ public class ObjectSelectForm extends javax.swing.JDialog
         dispose();
     }//GEN-LAST:event_tvObjectListMouseClicked
 
+    private void txtObjectKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtObjectKeyReleased
+        selectedObject = txtObject.getText();
+        if (selectedObject.isEmpty()) {
+            btnSelect.setEnabled(false);
+        }
+        else {
+            btnSelect.setEnabled(true);
+        }
+    }//GEN-LAST:event_txtObjectKeyReleased
+
     
     public class MyObjTreeNode implements MutableTreeNode
     {
-        public MyObjTreeNode(String objid)
-        {
+        public MyObjTreeNode(String objid) {
             this.parent = null;
             this.objectID = objid;
         }
@@ -428,6 +463,7 @@ public class ObjectSelectForm extends javax.swing.JDialog
     
     
     private int game;
+    private String objGame, objStatus;
     public String selectedObject, selectedZone, selectedLayer;
     private DefaultMutableTreeNode objList, searchList;
 
@@ -436,18 +472,17 @@ public class ObjectSelectForm extends javax.swing.JDialog
     private javax.swing.JComboBox cbxLayer;
     private javax.swing.JComboBox cbxZone;
     private javax.swing.JEditorPane epObjDescription;
+    private javax.swing.Box.Filler filler1;
+    private javax.swing.Box.Filler filler2;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JToolBar jToolBar1;
-    private javax.swing.JToolBar jToolBar2;
     private javax.swing.JLabel lblLayer;
     private javax.swing.JLabel lblZone;
-    private javax.swing.JToolBar.Separator sepSelect;
     private javax.swing.JTree tvObjectList;
+    private javax.swing.JTextField txtObject;
     private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }

@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -19,6 +16,7 @@
 package whitehole.fileio;
 
 import java.io.IOException;
+import whitehole.Settings;
 
 public class Yaz0File extends MemoryFile
 {
@@ -35,7 +33,13 @@ public class Yaz0File extends MemoryFile
     @Override
     public void save() throws IOException
     {
-        byte[] compbuffer = buffer;//Yaz0.compress(buffer);
+        byte[] compbuffer;
+        if (Settings.yaz0enc) {
+            compbuffer = Yaz0.compress(buffer);
+        }
+        else {
+            compbuffer = buffer;
+        }
         
         if (backend != null)
         {

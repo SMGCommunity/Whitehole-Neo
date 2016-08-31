@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -26,32 +23,38 @@ public class Settings
     {
         Preferences prefs = Preferences.userRoot();
         objectDBUpdate = prefs.getBoolean("ObjectDBUpdate", true);
-        dbKuribo64 = prefs.getBoolean("DbKuribo64", true);
-        dbEggStarGalaxy = prefs.getBoolean("DbEggStarGalaxy", false);
+        yaz0enc = prefs.getBoolean("Yaz0Enc", true);
         
         useShaders = prefs.getBoolean("UseShaders", true);
         fastDrag = prefs.getBoolean("FastDrag", false);
         reverseRot = prefs.getBoolean("ReverseRot", false);
+        
+        themeMetal = prefs.getBoolean("ThemeMetal", false);
+        themeSystem = prefs.getBoolean("ThemeSystem", true);
     }
     
     public static void save()
     {
         Preferences prefs = Preferences.userRoot();
         prefs.putBoolean("ObjectDBUpdate", objectDBUpdate);
-        prefs.putBoolean("DbKuribo64", dbKuribo64);
-        prefs.putBoolean("DbEggStarGalaxy", dbEggStarGalaxy);
+        prefs.putBoolean("Yaz0enc", yaz0enc);
         
         prefs.putBoolean("UseShaders", useShaders);
         prefs.putBoolean("FastDrag", fastDrag);
         prefs.putBoolean("ReverseRot", reverseRot);
+        
+        prefs.putBoolean("ThemeMetal", themeMetal);
+        prefs.putBoolean("ThemeSystem", themeSystem);
     }
     
     
     public static boolean objectDBUpdate;
-    public static boolean dbKuribo64;
-    public static boolean dbEggStarGalaxy;
+    public static boolean yaz0enc;
     
     public static boolean useShaders;
     public static boolean fastDrag;
     public static boolean reverseRot;
+    
+    public static boolean themeMetal;
+    public static boolean themeSystem;
 }

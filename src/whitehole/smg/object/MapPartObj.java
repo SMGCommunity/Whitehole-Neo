@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -76,22 +73,13 @@ public class MapPartObj extends LevelObject
         data.put("Obj_arg1", -1);
         data.put("Obj_arg2", -1);
         data.put("Obj_arg3", -1);
-        
-        data.put("l_id", 0);
-        data.put("CameraSetId", -1);
         data.put("SW_APPEAR", -1);
         data.put("SW_DEAD", -1);
         data.put("SW_A",  -1);
         data.put("SW_B", -1);
-        if (ZoneArchive.gameMask == 2)
-        {
-            data.put("SW_AWAKE", -1);
-            data.put("SW_PARAM", -1);
-            data.put("ParamScale", 1f);
-        }
-        else
-            data.put("SW_SLEEP", -1);
         
+        data.put("l_id", 0);
+        data.put("CameraSetId", -1);
         data.put("CastId", -1);
         data.put("ViewGroupId", -1);
         data.put("ShapeModelNo", (short)-1);
@@ -99,11 +87,6 @@ public class MapPartObj extends LevelObject
         data.put("ClippingGroupId", (short)-1);
         data.put("GroupId", (short)-1);
         data.put("DemoGroupId", (short)-1);
-        if (ZoneArchive.gameMask == 2)
-        {
-            data.put("MapParts_ID", (short)-1);
-            data.put("Obj_ID", (short)-1);
-        }
 
         data.put("MoveConditionType", 0);
         data.put("RotateSpeed", 0);
@@ -116,8 +99,20 @@ public class MapPartObj extends LevelObject
         data.put("SignMotionType", 0);
         data.put("PressType", -1);
         data.put("FarClip", -1);
-        if (ZoneArchive.gameMask == 2)
-            data.put("ParentId", (short)-1);
+        
+        switch (ZoneArchive.gameMask) {
+            case 1:
+                data.put("SW_SLEEP", -1);
+                break;
+            case 2:
+                data.put("SW_AWAKE", -1);
+                data.put("SW_PARAM", -1);
+                data.put("ParamScale", 1f);
+                data.put("ParentId", (short)-1);
+                data.put("MapParts_ID", (short)-1);
+                data.put("Obj_ID", (short)-1);
+                break;
+        }
     }
     
     @Override
@@ -129,7 +124,6 @@ public class MapPartObj extends LevelObject
         data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
     }
 
-    
     @Override
     public void getProperties(PropertyGrid panel)
     {
@@ -157,13 +151,12 @@ public class MapPartObj extends LevelObject
         panel.addField("SW_DEAD", "SW_DEAD", "int", null, data.get("SW_DEAD"), "Default");
         panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"), "Default");
         panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"), "Default");
-        if (ZoneArchive.gameMask == 2)
-        {
+        if (ZoneArchive.gameMask == 1) 
+            panel.addField("SW_SLEEP", "SW_SLEEP", "int", null, data.get("SW_SLEEP"), "Default");
+        if (ZoneArchive.gameMask == 2) {
             panel.addField("SW_AWAKE", "SW_AWAKE", "int", null, data.get("SW_AWAKE"), "Default");
             panel.addField("SW_PARAM", "SW_PARAM", "int", null, data.get("SW_PARAM"), "Default");
         }
-        else
-            panel.addField("SW_SLEEP", "SW_SLEEP", "int", null, data.get("SW_SLEEP"), "Default");
         
         panel.addCategory("obj_mappartsinfo", "MapPart settings");
         panel.addField("MoveConditionType", "MoveConditionType", "int", null, data.get("MoveConditionType"), "Default");
@@ -178,9 +171,8 @@ public class MapPartObj extends LevelObject
         panel.addField("PressType", "PressType", "int", null, data.get("PressType"), "Default");
         panel.addField("FarClip", "FarClip", "int", null, data.get("FarClip"), "Default");
         
-                panel.addCategory("obj_objinfo", "Other");
+        panel.addCategory("obj_objinfo", "Other");
         panel.addField("l_id", "l_id", "int", null, data.get("l_id"), "Default");
-        
         panel.addField("CameraSetId", "CameraSetId", "int", null, data.get("CameraSetId"), "Default");
         panel.addField("CastId", "CastId", "int", null, data.get("CastId"), "Default");
         panel.addField("ViewGroupId", "ViewGroupId", "int", null, data.get("ViewGroupId"), "Default");
@@ -189,8 +181,7 @@ public class MapPartObj extends LevelObject
         panel.addField("ClippingGroupId", "ClippingGroupId", "int", null, data.get("ClippingGroupId"), "Default");
         panel.addField("GroupId", "GroupId", "int", null, data.get("GroupId"), "Default");
         panel.addField("DemoGroupId", "DemoGroupId", "int", null, data.get("DemoGroupId"), "Default");
-        if (ZoneArchive.gameMask == 2)
-        {
+        if (ZoneArchive.gameMask == 2) {
             panel.addField("MapParts_ID", "MapParts_ID", "int", null, data.get("MapParts_ID"), "Default");
             panel.addField("Obj_ID", "Obj_ID", "int", null, data.get("Obj_ID"), "Default");
             panel.addField("ParentId", "ParentId", "int", null, data.get("ParentId"), "Default");

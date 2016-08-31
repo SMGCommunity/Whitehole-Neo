@@ -17,38 +17,30 @@ package whitehole.rendering.objRenderer;
 
 import whitehole.rendering.BmdRenderer;
 
-public class Kinopio extends BmdRenderer
+public class SuperSpinDriver extends BmdRenderer
 {
-    public Kinopio(RenderInfo info, int color)
+    public SuperSpinDriver(RenderInfo info, int type)
     {
-        ctor_loadModel(info, "Kinopio");
+        ctor_loadModel(info, "SuperSpinDriver");
         
-        // mess with TEV parameters to recolor the Toad if needed (default color: red)
-        // this is a hack but knowing Nintendo I don't think the game does it much differently
-        switch (color)
+        switch (type)
         {
             case 0: // blue
-                model.materials[0].colorS10[0].r = -103;
+                model.materials[0].colorS10[0].r = 211;
                 model.materials[0].colorS10[0].g = -103;
                 model.materials[0].colorS10[0].b = 211;
+                model.materials[1].colorS10[0].r = 211;
+                model.materials[1].colorS10[0].g = -103;
+                model.materials[1].colorS10[0].b = 211;
                 break;
                 
             case 1: // green
                 model.materials[0].colorS10[0].r = -103;
                 model.materials[0].colorS10[0].g = 211;
                 model.materials[0].colorS10[0].b = -103;
-                break;
-                
-            case 2: // purple
-                model.materials[0].colorS10[0].r = 211;
-                model.materials[0].colorS10[0].g = -103;
-                model.materials[0].colorS10[0].b = 211;
-                break;
-                
-            case 4: // yellow
-                model.materials[0].colorS10[0].r = 211;
-                model.materials[0].colorS10[0].g = 211;
-                model.materials[0].colorS10[0].b = -103;
+                model.materials[1].colorS10[0].r = -103;
+                model.materials[1].colorS10[0].g = 211;
+                model.materials[1].colorS10[0].b = -103;
                 break;
         }
         

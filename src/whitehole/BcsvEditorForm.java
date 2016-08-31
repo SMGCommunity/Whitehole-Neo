@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -22,7 +19,7 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Vector;
+import java.util.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.*;
 import whitehole.fileio.*;
@@ -41,10 +38,14 @@ public class BcsvEditorForm extends javax.swing.JFrame
         
         archive = null;
         bcsv = null;
-        zoneName = "RedBlueExGalaxy";
+        zoneName = "";
         
-        if (Whitehole.getGameType == 1)
+        if (Whitehole.gameType == 1)
         {
+            tbArchiveName.setText("/StageData/CocoonExGalaxy/CocoonExGalaxyScenario.arc");
+            tbFileName.setText("/CocoonExGalaxyScenario/ScenarioData.bcsv");
+            zoneName = "CocoonEXGalaxy";
+            mnuUseResource.setVisible(false);
             mnuAudio.setVisible(false);
             mnuSystem.setVisible(false);
             subWorldMapCamera.setVisible(false);
@@ -58,8 +59,11 @@ public class BcsvEditorForm extends javax.swing.JFrame
             subTicoShopDice.setVisible(false);
         }
         
-        if (Whitehole.getGameType == 2)
+        if (Whitehole.gameType == 2)
         {
+            tbArchiveName.setText("/StageData/RedBlueExGalaxy/RedBlueExGalaxyScenario.arc");
+            tbFileName.setText("/RedBlueExGalaxyScenario/ScenarioData.bcsv");
+            zoneName = "RedBlueExGalaxy";
             subAstroNamePlateData.setVisible(false);
         }
     }
@@ -89,7 +93,8 @@ public class BcsvEditorForm extends javax.swing.JFrame
                 if (bcsv != null) bcsv.close();
                 if (archive != null) archive.close();
             }
-            catch (IOException ex2) {}
+            catch (IOException ex2) {
+            }
             bcsv = null; archive = null;
             return;
         }
@@ -165,13 +170,10 @@ public class BcsvEditorForm extends javax.swing.JFrame
                         case 6: entry.put(field.nameHash, ""); break;
                     }
                 }
-                
                 c++;
             }
-            
             bcsv.entries.add(entry);
         }
-        
         try
         { 
             bcsv.save();
@@ -185,7 +187,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     
     private void bcsvExport() {
         try {
-            File file = new File("ExportedBcsv/" + enterFileName() + "Exported.txt");
+            File file = new File("ExportedBcsv/" + fileArchive + fileBcsv + ".txt");
             file.getParentFile().mkdirs();
             file.createNewFile();
             
@@ -199,7 +201,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
             for (int h = 0 ; h < model.getColumnCount();h++)
             {
                 pwriter.write(model.getColumnName(h));
-                if (h+1 != model.getColumnCount());
+                if (h-1 != model.getColumnCount());
                     pwriter.write(",");
             }
             pwriter.write("\r\n");
@@ -213,20 +215,21 @@ public class BcsvEditorForm extends javax.swing.JFrame
                         String value = model.getValueAt(i, j).toString();
                         pwriter.write(value);
                     }
-                    if(j+1 != clmCnt);
+                    if(j-1 != clmCnt);
                         pwriter.write(",");
                 }
                 pwriter.write("\r\n");
             }
             pwriter.flush();
             pwriter.close();
+            JOptionPane.showMessageDialog(null, "The BCSV file has been exported.", Whitehole.fullName, JOptionPane.OK_CANCEL_OPTION);
         }
 	catch (IOException e)
         {
             e.printStackTrace();
         }
     }
-    
+
     private void enterZoneName() {
         String s = (String)JOptionPane.showInputDialog(this,
                     "Enter the name of the stage:",
@@ -234,13 +237,6 @@ public class BcsvEditorForm extends javax.swing.JFrame
         zoneName = s;
     }
     
-    private String enterFileName() {
-        String s = (String)JOptionPane.showInputDialog(this,
-                    "Enter the name of the file:",
-                    Whitehole.fullName,JOptionPane.PLAIN_MESSAGE,null,null,null);
-        return s;
-    }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -266,7 +262,11 @@ public class BcsvEditorForm extends javax.swing.JFrame
         spr4 = new javax.swing.JToolBar.Separator();
         btnAddRow = new javax.swing.JButton();
         spr5 = new javax.swing.JToolBar.Separator();
+        btnDuplicateRow = new javax.swing.JButton();
+        spr6 = new javax.swing.JToolBar.Separator();
         btnDeleteRow = new javax.swing.JButton();
+        spr7 = new javax.swing.JToolBar.Separator();
+        btnClear = new javax.swing.JButton();
         menubar = new javax.swing.JMenuBar();
         mnuFile = new javax.swing.JMenu();
         subOpen = new javax.swing.JMenuItem();
@@ -279,6 +279,19 @@ public class BcsvEditorForm extends javax.swing.JFrame
         subGalaxyInfo = new javax.swing.JMenuItem();
         subZoneList = new javax.swing.JMenuItem();
         subZoneInfo = new javax.swing.JMenuItem();
+        mnuUseResource = new javax.swing.JMenu();
+        subURcommon = new javax.swing.JMenuItem();
+        subUR1 = new javax.swing.JMenuItem();
+        subUR2 = new javax.swing.JMenuItem();
+        subUR3 = new javax.swing.JMenuItem();
+        subURarcCommon = new javax.swing.JMenuItem();
+        subURarc1 = new javax.swing.JMenuItem();
+        subURarc2 = new javax.swing.JMenuItem();
+        subURarc3 = new javax.swing.JMenuItem();
+        subURsoundCommon = new javax.swing.JMenuItem();
+        subURsound1 = new javax.swing.JMenuItem();
+        subURsound2 = new javax.swing.JMenuItem();
+        subURsound3 = new javax.swing.JMenuItem();
         mnuZone = new javax.swing.JMenu();
         subCameraParam = new javax.swing.JMenuItem();
         subLightDataZone = new javax.swing.JMenuItem();
@@ -344,7 +357,6 @@ public class BcsvEditorForm extends javax.swing.JFrame
         lblArchive.setText(" Archive: ");
         jToolBar1.add(lblArchive);
 
-        tbArchiveName.setText("/StageData/RedBlueExGalaxy/RedBlueExGalaxyScenario.arc");
         tbArchiveName.setToolTipText("");
         tbArchiveName.setMaximumSize(new java.awt.Dimension(375, 20));
         tbArchiveName.setMinimumSize(new java.awt.Dimension(375, 20));
@@ -354,7 +366,6 @@ public class BcsvEditorForm extends javax.swing.JFrame
         lblFile.setText("                    File: ");
         jToolBar1.add(lblFile);
 
-        tbFileName.setText("/RedBlueExGalaxy/ScenarioData.bcsv");
         tbFileName.setMaximumSize(new java.awt.Dimension(375, 20));
         tbFileName.setMinimumSize(new java.awt.Dimension(375, 20));
         tbFileName.setPreferredSize(new java.awt.Dimension(375, 20));
@@ -424,6 +435,19 @@ public class BcsvEditorForm extends javax.swing.JFrame
         jToolBar3.add(btnAddRow);
         jToolBar3.add(spr5);
 
+        btnDuplicateRow.setText("Duplicate row");
+        btnDuplicateRow.setToolTipText("");
+        btnDuplicateRow.setFocusable(false);
+        btnDuplicateRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnDuplicateRow.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnDuplicateRow.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDuplicateRowActionPerformed(evt);
+            }
+        });
+        jToolBar3.add(btnDuplicateRow);
+        jToolBar3.add(spr6);
+
         btnDeleteRow.setText("Delete row");
         btnDeleteRow.setFocusable(false);
         btnDeleteRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -434,6 +458,18 @@ public class BcsvEditorForm extends javax.swing.JFrame
             }
         });
         jToolBar3.add(btnDeleteRow);
+        jToolBar3.add(spr7);
+
+        btnClear.setText("Delete all rows");
+        btnClear.setFocusable(false);
+        btnClear.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnClear.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnClear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnClearActionPerformed(evt);
+            }
+        });
+        jToolBar3.add(btnClear);
 
         mnuFile.setText("File");
 
@@ -511,6 +547,106 @@ public class BcsvEditorForm extends javax.swing.JFrame
             }
         });
         mnuGalaxy.add(subZoneInfo);
+
+        mnuUseResource.setText("UseResource");
+
+        subURcommon.setText("common");
+        subURcommon.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subURcommonActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subURcommon);
+
+        subUR1.setText("scenario_1");
+        subUR1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subUR1ActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subUR1);
+
+        subUR2.setText("scenario_2");
+        subUR2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subUR2ActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subUR2);
+
+        subUR3.setText("scenario_3");
+        subUR3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subUR3ActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subUR3);
+
+        subURarcCommon.setText("wave_arc_common");
+        subURarcCommon.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subURarcCommonActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subURarcCommon);
+
+        subURarc1.setText("wave_arc_scenario_1");
+        subURarc1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subURarc1ActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subURarc1);
+
+        subURarc2.setText("wave_arc_scenario_2");
+        subURarc2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subURarc2ActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subURarc2);
+
+        subURarc3.setText("wave_arc_scenario_3");
+        subURarc3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subURarc3ActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subURarc3);
+
+        subURsoundCommon.setText("sound_common");
+        subURsoundCommon.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subURsoundCommonActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subURsoundCommon);
+
+        subURsound1.setText("sound_scenario_1");
+        subURsound1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subURsound1ActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subURsound1);
+
+        subURsound2.setText("sound_scenario_2");
+        subURsound2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subURsound2ActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subURsound2);
+
+        subURsound3.setText("sound_scenario_3");
+        subURsound3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subURsound3ActionPerformed(evt);
+            }
+        });
+        mnuUseResource.add(subURsound3);
+
+        mnuGalaxy.add(mnuUseResource);
 
         mnuOpen.add(mnuGalaxy);
 
@@ -893,14 +1029,37 @@ public class BcsvEditorForm extends javax.swing.JFrame
         table.addRow((Object[])null);
     }//GEN-LAST:event_btnAddRowActionPerformed
 
+    private void btnDuplicateRowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDuplicateRowActionPerformed
+        DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
+        int[] sel = tblBcsv.getSelectedRows();
+        if (sel.length < 0)
+            return;
+
+        Vector data = table.getDataVector();
+        Vector row;
+
+        for(int i=0;i<sel.length;i++) {
+            row = (Vector) data.elementAt(sel[i]);
+            table.addRow((Vector) row.clone());
+        }
+    }//GEN-LAST:event_btnDuplicateRowActionPerformed
+
     private void btnDeleteRowActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnDeleteRowActionPerformed
     {//GEN-HEADEREND:event_btnDeleteRowActionPerformed
-        int sel = tblBcsv.getSelectedRow();
-        if (sel < 0) return;
+        int[] sel = tblBcsv.getSelectedRows();
+        if (sel.length < 0)
+            return;
         
         DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
-        table.removeRow(sel);
+        for(int i=0;i<sel.length;i++){
+            table.removeRow(sel[i]-i);
+        }
     }//GEN-LAST:event_btnDeleteRowActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
+        table.setRowCount(0);
+    }//GEN-LAST:event_btnClearActionPerformed
 
     private void btnExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportActionPerformed
         if (tblBcsv.getColumnCount() == 0) {
@@ -960,7 +1119,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subProductMapObjDataActionPerformed
 
     private void subObjNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subObjNameActionPerformed
-        if (Whitehole.getGameType == 1) {
+        if (Whitehole.gameType == 1) {
             tbArchiveName.setText("/StageData/ObjNameTable.arc");
         }
         else {
@@ -1151,7 +1310,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subWorldMapHeapResourceActionPerformed
 
     private void subLightDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subLightDataActionPerformed
-        if (Whitehole.getGameType == 1) {
+        if (Whitehole.gameType == 1) {
             tbArchiveName.setText("/ObjectData/LightData.arc");
         }
         else {
@@ -1177,80 +1336,204 @@ public class BcsvEditorForm extends javax.swing.JFrame
 
     private void subScenarioDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subScenarioDataActionPerformed
         enterZoneName();
-        tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Scenario.arc");
-        tbFileName.setText("/" + zoneName + "Scenario/ScenarioData.bcsv");
-        bcsvOpen();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Scenario.arc");
+            tbFileName.setText("/" + zoneName + "Scenario/ScenarioData.bcsv");
+            bcsvOpen();
+        }
     }//GEN-LAST:event_subScenarioDataActionPerformed
 
     private void subGalaxyInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subGalaxyInfoActionPerformed
         enterZoneName();
-        tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Scenario.arc");
-        tbFileName.setText("/" + zoneName + "Scenario/GalaxyInfo.bcsv");
-        bcsvOpen();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Scenario.arc");
+            tbFileName.setText("/" + zoneName + "Scenario/GalaxyInfo.bcsv");
+            bcsvOpen();
+        }
     }//GEN-LAST:event_subGalaxyInfoActionPerformed
 
     private void subZoneListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subZoneListActionPerformed
         enterZoneName();
-        tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Scenario.arc");
-        tbFileName.setText("/" + zoneName + "Scenario/ZoneList.bcsv");
-        bcsvOpen();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Scenario.arc");
+            tbFileName.setText("/" + zoneName + "Scenario/ZoneList.bcsv");
+            bcsvOpen();
+        }
     }//GEN-LAST:event_subZoneListActionPerformed
 
     private void subZoneInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subZoneInfoActionPerformed
         enterZoneName();
-        tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "ZoneInfo.arc");
-        tbFileName.setText("/Stage/csv/InStageFlagNameTable.bcsv");
-        bcsvOpen();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "ZoneInfo.arc");
+            tbFileName.setText("/Stage/csv/InStageFlagNameTable.bcsv");
+            bcsvOpen();
+        }
     }//GEN-LAST:event_subZoneInfoActionPerformed
 
     private void subCameraParamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subCameraParamActionPerformed
         enterZoneName();
-        if (Whitehole.getGameType == 1) {
-            tbArchiveName.setText("/StageData/" + zoneName + ".arc");
+        if (!zoneName.isEmpty()) {
+            if (Whitehole.gameType == 1) {
+                tbArchiveName.setText("/StageData/" + zoneName + ".arc");
+            }
+            else {
+                tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Map.arc");
+            }
+            tbFileName.setText("/Stage/camera/CameraParam.bcam");
+            bcsvOpen();
         }
-        else {
-            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Map.arc");
-        }
-        tbFileName.setText("/Stage/camera/CameraParam.bcam");
-        bcsvOpen();
     }//GEN-LAST:event_subCameraParamActionPerformed
 
     private void subLightDataZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subLightDataZoneActionPerformed
         enterZoneName();
-        if (Whitehole.getGameType == 1) {
-            tbArchiveName.setText("/ObjectData/LightData.arc");
-            tbFileName.setText("/LightData/Light" + zoneName + ".bcsv");
+        if (!zoneName.isEmpty()) {
+            if (Whitehole.gameType == 1) {
+                tbArchiveName.setText("/ObjectData/LightData.arc");
+                tbFileName.setText("/LightData/Light" + zoneName + ".bcsv");
+            }
+            else {
+                tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Light.arc");
+                tbFileName.setText("/Stage/csv/" + zoneName + "Light.bcsv");
+            }
+            bcsvOpen();
         }
-        else {
-            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Light.arc");
-            tbFileName.setText("/Stage/csv/" + zoneName + "Light.bcsv");
-        }
-        bcsvOpen();
     }//GEN-LAST:event_subLightDataZoneActionPerformed
 
     private void subStageInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subStageInfoActionPerformed
         enterZoneName();
-        if (Whitehole.getGameType == 1) {
-            tbArchiveName.setText("/StageData/" + zoneName + ".arc");
+        if (!zoneName.isEmpty()) {
+            if (Whitehole.gameType == 1) {
+                tbArchiveName.setText("/StageData/" + zoneName + ".arc");
+            }
+            else {
+                tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Map.arc");
+            }
+            tbFileName.setText("/Stage/jmp/List/StageInfo");
+            bcsvOpen();
         }
-        else {
-            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Map.arc");
-        }
-        tbFileName.setText("/Stage/jmp/List/StageInfo");
-        bcsvOpen();
     }//GEN-LAST:event_subStageInfoActionPerformed
 
     private void subChangeSceneListInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subChangeSceneListInfoActionPerformed
         enterZoneName();
-        if (Whitehole.getGameType == 1) {
-            tbArchiveName.setText("/StageData/" + zoneName + ".arc");
+        if (!zoneName.isEmpty()) {
+            if (Whitehole.gameType == 1) {
+                tbArchiveName.setText("/StageData/" + zoneName + ".arc");
+            }
+            else {
+                tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Map.arc");
+            }
+            tbFileName.setText("/Stage/jmp/List/ChangeSceneListInfo");
+            bcsvOpen();
         }
-        else {
-            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Map.arc");
-        }
-        tbFileName.setText("/Stage/jmp/List/ChangeSceneListInfo");
-        bcsvOpen();
     }//GEN-LAST:event_subChangeSceneListInfoActionPerformed
+
+    private void subURcommonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURcommonActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/common.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subURcommonActionPerformed
+
+    private void subUR1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subUR1ActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/scenario_1.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subUR1ActionPerformed
+
+    private void subUR2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subUR2ActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/scenario_2.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subUR2ActionPerformed
+
+    private void subUR3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subUR3ActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/scenario_3.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subUR3ActionPerformed
+
+    private void subURarcCommonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURarcCommonActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/wave_arc_common.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subURarcCommonActionPerformed
+
+    private void subURarc1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURarc1ActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/wave_arc_scenario_1.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subURarc1ActionPerformed
+
+    private void subURarc2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURarc2ActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/wave_arc_scenario_2.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subURarc2ActionPerformed
+
+    private void subURarc3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURarc3ActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/wave_arc_scenario_3.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subURarc3ActionPerformed
+
+    private void subURsoundCommonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURsoundCommonActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/sound_common.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subURsoundCommonActionPerformed
+
+    private void subURsound1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURsound1ActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/sound_scenario_1.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subURsound1ActionPerformed
+
+    private void subURsound2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURsound2ActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/sound_scenario_2.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subURsound2ActionPerformed
+
+    private void subURsound3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURsound3ActionPerformed
+        enterZoneName();
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
+            tbFileName.setText("/" + zoneName + "Stage/csv/sound_scenario_3.bcsv");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subURsound3ActionPerformed
 
     private FilesystemBase archive;
     private Bcsv bcsv;
@@ -1260,7 +1543,9 @@ public class BcsvEditorForm extends javax.swing.JFrame
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddRow;
+    private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDeleteRow;
+    private javax.swing.JButton btnDuplicateRow;
     private javax.swing.JButton btnExport;
     private javax.swing.JButton btnOpen;
     private javax.swing.JButton btnSave;
@@ -1279,11 +1564,14 @@ public class BcsvEditorForm extends javax.swing.JFrame
     private javax.swing.JMenu mnuOpen;
     private javax.swing.JMenu mnuOther;
     private javax.swing.JMenu mnuSystem;
+    private javax.swing.JMenu mnuUseResource;
     private javax.swing.JMenu mnuZone;
     private javax.swing.JToolBar.Separator spr2;
     private javax.swing.JToolBar.Separator spr3;
     private javax.swing.JToolBar.Separator spr4;
     private javax.swing.JToolBar.Separator spr5;
+    private javax.swing.JToolBar.Separator spr6;
+    private javax.swing.JToolBar.Separator spr7;
     private javax.swing.JMenuItem subActionSound;
     private javax.swing.JMenuItem subAstroNamePlateData;
     private javax.swing.JMenuItem subAutoEffectList;
@@ -1326,6 +1614,18 @@ public class BcsvEditorForm extends javax.swing.JFrame
     private javax.swing.JMenuItem subTicoGalaxy;
     private javax.swing.JMenuItem subTicoShop;
     private javax.swing.JMenuItem subTicoShopDice;
+    private javax.swing.JMenuItem subUR1;
+    private javax.swing.JMenuItem subUR2;
+    private javax.swing.JMenuItem subUR3;
+    private javax.swing.JMenuItem subURarc1;
+    private javax.swing.JMenuItem subURarc2;
+    private javax.swing.JMenuItem subURarc3;
+    private javax.swing.JMenuItem subURarcCommon;
+    private javax.swing.JMenuItem subURcommon;
+    private javax.swing.JMenuItem subURsound1;
+    private javax.swing.JMenuItem subURsound2;
+    private javax.swing.JMenuItem subURsound3;
+    private javax.swing.JMenuItem subURsoundCommon;
     private javax.swing.JMenuItem subWorldMapCamera;
     private javax.swing.JMenuItem subWorldMapHeapGalaxy;
     private javax.swing.JMenuItem subWorldMapHeapResource;

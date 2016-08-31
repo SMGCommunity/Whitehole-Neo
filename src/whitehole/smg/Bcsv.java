@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -357,33 +354,39 @@ public class Bcsv
             hashTable.put(hash, field);
     }
 
+    public static void createCustomHashFile() {
+        try {
+            File hashCustom = new File("AdditionalFieldNames.txt");
+            hashCustom.createNewFile();
+            FileWriter writeFile = new FileWriter(hashCustom.getAbsoluteFile());
+            BufferedWriter writeLine = new BufferedWriter(writeFile);
+            writeLine.write("# Add new lines to create new field names\r\n");
+            writeLine.write("# Lines that start with '#' are ignored.\r\n");
+            writeLine.close();
+        }
+        catch (Exception ex) {
+        }
+    }
+    
     public static void populateHashTable()
     {
         hashTable = new HashMap<>();
 
-        try
-        {
-            // get hash file
+        try {
             InputStream hash = Whitehole.class.getResourceAsStream("/Resources/Hash.txt");
             InputStream hashZone = Whitehole.class.getResourceAsStream("/Resources/ZoneHash.txt");
-            // get custom hash file
+            
             File hashCustom = new File("AdditionalFieldNames.txt");
-            // create custom hash file
-            if (!hashCustom.exists()) {
-                hashCustom.createNewFile();
-                FileWriter writeFile = new FileWriter(hashCustom.getAbsoluteFile());
-                BufferedWriter writeLine = new BufferedWriter(writeFile);
-                writeLine.write("# Add new lines to create new field names\n");
-                writeLine.close();
-            }
-            // read hash files
+            
+            if (!hashCustom.exists())
+                createCustomHashFile();
+                        
             BufferedReader reader = new BufferedReader(new InputStreamReader(hash));
             BufferedReader reader2 = new BufferedReader(new InputStreamReader(hashZone));
             BufferedReader reader3 = new BufferedReader(new FileReader(hashCustom));
 
             String line;
-            while ((line = reader.readLine()) != null)
-            {
+            while ((line = reader.readLine()) != null) {
                 line = line.trim();
 
                 if (line.length() == 0) continue;
@@ -392,8 +395,7 @@ public class Bcsv
                 addHash(line);
             }
             
-            while ((line = reader2.readLine()) != null)
-            {
+            while ((line = reader2.readLine()) != null) {
                 line = line.trim();
 
                 if (line.length() == 0) continue;
@@ -402,8 +404,7 @@ public class Bcsv
                 addHash(line);
             }
             
-            while ((line = reader3.readLine()) != null)
-            {
+            while ((line = reader3.readLine()) != null) {
                 line = line.trim();
 
                 if (line.length() == 0) continue;

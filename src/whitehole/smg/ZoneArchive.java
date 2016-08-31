@@ -1,7 +1,5 @@
 /*
-    Copyright 2012 The Whitehole team
-
-    This file is part of Whitehole.
+    © 2012 - 2016 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -9,8 +7,7 @@
     any later version.
 
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
@@ -32,7 +29,11 @@ import whitehole.smg.object.SoundObj;
 import whitehole.smg.object.StartObj;
 import java.io.*;
 import java.util.*;
+import javax.swing.JOptionPane;
+import whitehole.Whitehole;
 import whitehole.fileio.*;
+import whitehole.smg.object.ChildObj;
+import whitehole.smg.object.StageObj;
 
 public class ZoneArchive 
 {
@@ -65,10 +66,15 @@ public class ZoneArchive
         saveObjects("Placement", "DemoObjInfo");
         saveObjects("GeneralPos", "GeneralPosInfo");
         saveObjects("Debug", "DebugMoveInfo");
-        if (gameMask == 2)
-            saveObjects("Placement", "ChangeObjInfo");
-        if (gameMask == 1)
-            saveObjects("Placement", "SoundInfo");
+        switch (gameMask) {
+            case 1:
+                saveObjects("Placement", "SoundInfo");
+                saveObjects("ChildObj", "ChildObjInfo");
+                break;
+            case 2:
+                saveObjects("Placement", "ChangeObjInfo");
+                break;
+        }
         savePaths();
         archive.save();
     }
@@ -80,12 +86,12 @@ public class ZoneArchive
     }
     
     
-    private void loadZone() throws IOException
-    {
-        objects = new HashMap<>();
-        subZones = new HashMap<>();
-        archive = new RarcFilesystem(filesystem.openFile(zonefile));
-        
+    private void loadZone()
+    {   
+        try {
+            objects = new HashMap<>();
+            subZones = new HashMap<>();
+            archive = new RarcFilesystem(filesystem.openFile(zonefile));
         loadObjects("MapParts", "MapPartsInfo");
         loadObjects("Placement", "ObjInfo");
         loadObjects("Start", "StartInfo");
@@ -95,12 +101,24 @@ public class ZoneArchive
         loadObjects("Placement", "DemoObjInfo");
         loadObjects("GeneralPos", "GeneralPosInfo");
         loadObjects("Debug", "DebugMoveInfo");
-        if (gameMask == 2)
-            loadObjects("Placement", "ChangeObjInfo");
-        if (gameMask == 1)
-            loadObjects("Placement", "soundinfo");
+        switch (gameMask) {
+            case 1:
+                loadObjects("Placement", "SoundInfo");
+                loadObjects("ChildObj", "ChildObjInfo");
+                break;
+            case 2:
+                loadObjects("Placement", "ChangeObjInfo");
+                break;
+        }
         loadPaths();
         loadSubZones();
+        }
+        catch (NullPointerException ex) {
+            JOptionPane.showMessageDialog(null, "Can't open galaxy, because of missing zone files.\n\nIf you are modding SMG1, try to remove the unused zones from the galaxy's zone list.\nYou can use the BCSV editor to do this.", Whitehole.fullName, 0);
+        }
+        catch (Exception ex) {
+            
+        }
     }
 
     
@@ -134,141 +152,79 @@ public class ZoneArchive
         {
             Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/" + filepath));
             
-            if (gameMask == 2) {
             switch (file)
             {
+                case "stageobjinfo":
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                        objects.get(layer).add(new StageObj(this, filepath, entry));
+                    }
+                    break;
                 case "mappartsinfo":
                     for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new MapPartObj(this, filepath, entry));
-            }
+                        objects.get(layer).add(new MapPartObj(this, filepath, entry));
+                    }
                     break;
-                    
+                case "childobjinfo":
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                        objects.get(layer).add(new ChildObj(this, filepath, entry));
+                    }
+                    break;
                 case "objinfo":
                     for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new GeneralObject(this, filepath, entry));
-            }
+                        objects.get(layer).add(new GeneralObject(this, filepath, entry));
+                    }
                     break;
-                
-                    
                 case "startinfo":
                     for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new StartObj(this, filepath, entry));
-            }
+                        objects.get(layer).add(new StartObj(this, filepath, entry));
+                    }
                     break;
-                    
                 case "planetobjinfo":
                     for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new PlanetObj(this, filepath, entry));
-            }
+                        objects.get(layer).add(new PlanetObj(this, filepath, entry));
+                    }
                     break;
-                    
-                case "areaobjinfo":
-                   for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new AreaObj(this, filepath, entry));
-            }
-                    break;
-                    
-                case "cameracubeinfo":
-                   for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new CameraCubeObj(this, filepath, entry));
-            }
-                    break;
-                    
-                case "demoobjinfo":
-                   for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new DemoObj(this, filepath, entry));
-            }
-                    break;
-                    
-                case "generalposinfo":
-                   for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new GeneralPosObj(this, filepath, entry));
-            }
-                    break;
-                    
-                case "debugmoveinfo":
-                   for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new DebugObj(this, filepath, entry));
-            }
-                    break; 
-                   
-                case "changeobjinfo":
-                   for (Bcsv.Entry entry : bcsv.entries)
-                objects.get(layer).add(new ChangeObj(this, filepath, entry));
-                    break;                    
-            }
-            }
-            else {
-            switch (file)
-            {
-                case "mappartsinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new MapPartObj(this, filepath, entry));
-            }
-                    break;
-                    
-                case "objinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new GeneralObject(this, filepath, entry));
-            }
-                    break;
-                
-                    
-                case "startinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new StartObj(this, filepath, entry));
-            }
-                    break;
-                    
-                case "planetobjinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new PlanetObj(this, filepath, entry));
-            }
-                    break;
-                    
-                case "areaobjinfo":
-                   for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new AreaObj(this, filepath, entry));
-            }
-                    break;
-                    
-                case "cameracubeinfo":
-                   for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new CameraCubeObj(this, filepath, entry));
-            }
-                    break;
-                    
                 case "soundinfo":
-                   for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new SoundObj(this, filepath, entry));
-            }
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                        objects.get(layer).add(new SoundObj(this, filepath, entry));
+                    }
                     break;
-                    
+                case "areaobjinfo":
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                        objects.get(layer).add(new AreaObj(this, filepath, entry));
+                    }
+                    break;
+                case "cameracubeinfo":
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                        objects.get(layer).add(new CameraCubeObj(this, filepath, entry));
+                    }
+                    break;
                 case "demoobjinfo":
-                   for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new DemoObj(this, filepath, entry));
-            }
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                        objects.get(layer).add(new DemoObj(this, filepath, entry));
+                    }
                     break;
-                    
                 case "generalposinfo":
-                   for (Bcsv.Entry entry : bcsv.entries) {
-                objects.get(layer).add(new GeneralPosObj(this, filepath, entry));
-            }
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                        objects.get(layer).add(new GeneralPosObj(this, filepath, entry));
+                    }
                     break;
-                   
-                case "debugobjinfo":
-                   for (Bcsv.Entry entry : bcsv.entries)
-                objects.get(layer).add(new DebugObj(this, filepath, entry));
+                case "debugmoveinfo":
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                        objects.get(layer).add(new DebugObj(this, filepath, entry));
+                    }
+                    break; 
+                case "changeobjinfo":
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                        objects.get(layer).add(new ChangeObj(this, filepath, entry));
+                    }
                     break;                    
             }
-            }
-            
             bcsv.close();
             
         }
         catch (IOException ex)
         {
-            // TODO better error handling, really
             System.out.println(ex.getMessage());
             ex.printStackTrace();
         }
