@@ -13,13 +13,13 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.rendering.objRenderer;
+package whitehole.rendering.object;
 
 import whitehole.rendering.BmdRenderer;
 
-public class SuperSpinDriver extends BmdRenderer
+public class ObjectSuperSpinDriver extends BmdRenderer
 {
-    public SuperSpinDriver(RenderInfo info, int type)
+    public ObjectSuperSpinDriver(RenderInfo info, int type)
     {
         ctor_loadModel(info, "SuperSpinDriver");
         

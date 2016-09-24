@@ -208,7 +208,7 @@ public class MainFrame extends javax.swing.JFrame {
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
         lbStatusBar.setText("Ready");
 
-        if (Settings.objectDBUpdate)
+        if (Settings.objectDB_update)
         {
             lbStatusBar.setText("Checking for object database updates...");
             ObjectDBUpdater updater = new ObjectDBUpdater(lbStatusBar);

@@ -19,10 +19,8 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GLException;
 import whitehole.vectors.*;
 
-public class ColorCubeRenderer extends GLRenderer
-{
-    public ColorCubeRenderer(float size, Color4 border, Color4 fill, boolean axes)
-    {
+public class ColorCubeRenderer extends GLRenderer {
+    public ColorCubeRenderer(float size, Color4 border, Color4 fill, boolean axes) {
         cubeSize = size;
         borderColor = border;
         fillColor = fill;
@@ -30,43 +28,35 @@ public class ColorCubeRenderer extends GLRenderer
     }
     
     @Override
-    public void close(RenderInfo info) throws GLException
-    {
+    public void close(RenderInfo info) throws GLException {
     }
     
     @Override
-    public boolean isScaled()
-    {
+    public boolean isScaled() {
         return false;
     }
 
     @Override
-    public boolean gottaRender(RenderInfo info) throws GLException
-    {
+    public boolean gottaRender(RenderInfo info) throws GLException {
         return info.renderMode != RenderMode.TRANSLUCENT;
     }
 
     @Override
-    public void render(RenderInfo info) throws GLException
-    {
+    public void render(RenderInfo info) throws GLException {
         if (info.renderMode == RenderMode.TRANSLUCENT) return;
 
         float s = cubeSize / 2f;
         GL2 gl = info.drawable.getGL().getGL2();
 
-        if (info.renderMode != RenderMode.PICKING)
-        {
-            for (int i = 0; i < 8; i++)
-            {
-                try
-                {
+        if (info.renderMode != RenderMode.PICKING) {
+            for (int i = 0; i < 8; i++) {
+                try {
                     gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
                     gl.glDisable(GL2.GL_TEXTURE_2D);
                 }
                 catch (GLException ex) {}
             }
             gl.glDisable(GL2.GL_TEXTURE_2D);
-
             gl.glDepthFunc(GL2.GL_LEQUAL);
             gl.glDepthMask(true);
             gl.glColor4f(fillColor.r, fillColor.g, fillColor.b, fillColor.a);
@@ -74,7 +64,11 @@ public class ColorCubeRenderer extends GLRenderer
             gl.glDisable(GL2.GL_BLEND);
             gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
             gl.glDisable(GL2.GL_ALPHA_TEST);
-            try { gl.glUseProgram(0); } catch (GLException ex) { }
+            try {
+                gl.glUseProgram(0);
+            }
+            catch (GLException ex) {
+            }
         }
         
         // we do this because the cube rendering was copypasted from SM64DSe
@@ -110,8 +104,7 @@ public class ColorCubeRenderer extends GLRenderer
         gl.glVertex3f(s, -s, s);
         gl.glEnd();
 
-        if (info.renderMode != RenderMode.PICKING)
-        {
+        if (info.renderMode != RenderMode.PICKING) {
             gl.glLineWidth(1.5f);
             gl.glColor4f(borderColor.r, borderColor.g, borderColor.b, borderColor.a);
 
@@ -137,8 +130,7 @@ public class ColorCubeRenderer extends GLRenderer
             gl.glVertex3f(s, -s, -s);
             gl.glEnd();
 
-            if (showAxes)
-            {
+            if (showAxes) {
                 gl.glBegin(GL2.GL_LINES);
                 gl.glColor3f(1.0f, 0.0f, 0.0f);
                 gl.glVertex3f(0.0f, 0.0f, 0.0f);

@@ -16,6 +16,7 @@
 package whitehole;
 
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 
 public class LayerForm extends javax.swing.JFrame
 {
@@ -118,7 +119,9 @@ public class LayerForm extends javax.swing.JFrame
     }//GEN-LAST:event_formWindowOpened
 
     private void txtInputKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtInputKeyReleased
-        getLayerNo(txtInput.getText());
+        if (txtInput.getText().contains("[A-P]")) {
+            getLayerNo(txtInput.getText());
+        }
     }//GEN-LAST:event_txtInputKeyReleased
 
     private void getLayerNo(String field) {

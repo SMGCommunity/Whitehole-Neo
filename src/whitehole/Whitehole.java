@@ -31,7 +31,7 @@ public class Whitehole
 {
     
     public static final String name = "Whitehole";
-    public static final String version = "v1.4.2.2";
+    public static final String version = "v1.4.2.3";
     public static final String status = "";
     public static String fullName = name + " " + version + status;
     public static final String websiteURL = "http://neomariogalaxy.bplaced.net/";
@@ -63,18 +63,18 @@ public class Whitehole
 
         Settings.initialize();
         Bcsv.populateHashTable();
-        ObjectDB.initialize();
         TextureCache.initialize();
         ShaderCache.initialize();
         RendererCache.initialize();
+        ObjectDB.initialize();
 
         try
         {
-            if (Settings.themeMetal) {
-                UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+            if (Settings.theme_system) {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             }
             else {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             }
         }
         catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex)

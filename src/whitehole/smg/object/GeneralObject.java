@@ -14,7 +14,10 @@
 */
 package whitehole.smg.object;
 
+import java.util.ArrayList;
+import java.util.List;
 import whitehole.PropertyGrid;
+import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
 import whitehole.smg.LevelObject;
 import whitehole.smg.ZoneArchive;
@@ -55,6 +58,7 @@ public class GeneralObject extends LevelObject
         
         name = objname;
         loadDBInfo();
+        getShapeModels();
         renderer = null;
         
         uniqueID = -1;
@@ -85,7 +89,10 @@ public class GeneralObject extends LevelObject
         data.put("CameraSetId", -1);
         data.put("CastId", -1);
         data.put("ViewGroupId", -1);
-        data.put("ShapeModelNo", (short)-1);
+        if (name.equals("PlantA") || name.equals("PlantB") || name.equals("PlantC")|| name.equals("PlantD") || name.equals("MarinePlant"))
+            data.put("ShapeModelNo", choicesShapeModelNo.get(0).shortValue());
+        else
+            data.put("ShapeModelNo", (short)-1);
         data.put("CommonPath_ID", (short)-1);
         data.put("ClippingGroupId", (short)-1);
         data.put("GroupId", (short)-1);
@@ -108,6 +115,15 @@ public class GeneralObject extends LevelObject
     }
     
     @Override
+    public void getShapeModels() {
+        choicesShapeModelNo = new ArrayList<>();
+        for (int shapeno = 0 ; shapeno < 100 ; shapeno++) {
+            if (Whitehole.game.filesystem.fileExists("/ObjectData/" + name + String.format("%1$02d",shapeno) + ".arc"))
+                choicesShapeModelNo.add(shapeno);
+        }
+    }
+    
+    @Override
     public void save()
     {
         data.put("name", name);
@@ -116,10 +132,10 @@ public class GeneralObject extends LevelObject
         data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
     }
 
-    
     @Override
     public void getProperties(PropertyGrid panel)
     {
+        getShapeModels();
         panel.addCategory("obj_position", "Position");
         panel.addField("pos_x", "X position", "float", null, position.x, "Default");
         panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
@@ -162,7 +178,10 @@ public class GeneralObject extends LevelObject
         panel.addField("CameraSetId", "CameraSetId", "int", null, data.get("CameraSetId"), "Default");
         panel.addField("CastId", "CastId", "int", null, data.get("CastId"), "Default");
         panel.addField("ViewGroupId", "ViewGroupId", "int", null, data.get("ViewGroupId"), "Default");
-        panel.addField("ShapeModelNo", "ShapeModelNo", "int", null, data.get("ShapeModelNo"), "Default");
+        if (!choicesShapeModelNo.isEmpty())
+            panel.addField("ShapeModelNo", "ShapeModelNo", "list", choicesShapeModelNo, data.get("ShapeModelNo"), "Default");
+        else
+            panel.addField("ShapeModelNo", "ShapeModelNo", "int", null, data.get("ShapeModelNo"), "Default");
         panel.addField("CommonPath_ID", "CommonPath_ID", "int", null, data.get("CommonPath_ID"), "Default");
         panel.addField("ClippingGroupId", "ClippingGroupId", "int", null, data.get("ClippingGroupId"), "Default");
         panel.addField("GroupId", "GroupId", "int", null, data.get("GroupId"), "Default");
@@ -180,4 +199,6 @@ public class GeneralObject extends LevelObject
         String l = layer.equals("common") ? "Common" : "Layer"+layer.substring(5).toUpperCase();
         return dbInfo.name + " [" + l + "]";
     }
+    
+    public List<Integer> choicesShapeModelNo;
 }

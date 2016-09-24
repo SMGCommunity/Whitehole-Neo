@@ -91,7 +91,6 @@ public class DemoObj extends LevelObject
         data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
     }
 
-    
     @Override
     public void getProperties(PropertyGrid panel)
     {

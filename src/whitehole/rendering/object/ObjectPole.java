@@ -13,16 +13,16 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.rendering.objRenderer;
+package whitehole.rendering.object;
 
 import java.io.IOException;
 import javax.media.opengl.*;
 import whitehole.rendering.BmdRenderer;
 import whitehole.vectors.Vector3;
 
-public class Pole extends BmdRenderer
+public class ObjectPole extends BmdRenderer
 {
-    public Pole(RenderInfo info, Vector3 scale, String type) throws IOException
+    public ObjectPole(RenderInfo info, Vector3 scale, String type) throws IOException
     {
         super(info, type);
         myscale = scale;

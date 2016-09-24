@@ -15,13 +15,14 @@
 
 package whitehole.rendering;
 
-import whitehole.rendering.objRenderer.AstroPart;
-import whitehole.rendering.objRenderer.AstroSky;
-import whitehole.rendering.objRenderer.Pole;
-import whitehole.rendering.objRenderer.PowerStar;
-import whitehole.rendering.objRenderer.Kinopio;
-import whitehole.rendering.objRenderer.SuperSpinDriver;
-import whitehole.rendering.objRenderer.UFOKinoko;
+import whitehole.rendering.object.ObjectKinopio;
+import whitehole.rendering.object.ObjectAstroPart;
+import whitehole.rendering.object.ObjectPole;
+import whitehole.rendering.object.ObjectUFOKinoko;
+import whitehole.rendering.object.ObjectSuperSpinDriver;
+import whitehole.rendering.object.ObjectAstroSky;
+import whitehole.rendering.object.ObjectPowerStar;
+import whitehole.rendering.object.ObjectOtaKing;
 import whitehole.smg.LevelObject;
 import whitehole.smg.object.PlanetObj;
 import whitehole.smg.object.AreaObj;
@@ -36,13 +37,13 @@ import whitehole.smg.object.StageObj;
 import whitehole.vectors.Color4;
 import whitehole.vectors.Vector3;
 import java.io.IOException;
+import static whitehole.Settings.editor_areas;
+import whitehole.smg.ZoneArchive;
 
-public class ObjectModelSubstitutor 
-{
-    public static String substituteModelName(LevelObject obj, String modelname)
-    {
-        switch (obj.name)
-        {
+public class Substitutor {
+    
+    public static String substituteModelName(LevelObject obj, String modelname) {
+        switch (obj.name) {
             case "ArrowSwitchMulti": return "ArrowSwitch";
             case "AstroDomeBlueStar": return "GCaptureTarget";
             case "AttackRockFinal":
@@ -63,7 +64,6 @@ public class ObjectModelSubstitutor
             case "CutBushGroup": return "CutBush";
             case "DemoKoopaJrShip": return "KoopaJrShip";
             case "DharmaSambo": return "DharmaSamboParts";
-            case "EarthenPipeInWater": return "EarthenPipe";
             case "FireBallBeamKameck": return "Kameck";
             case "FirePressureRadiate": return "FirePressure";
             case "FishGroupA": return "FishA";
@@ -124,6 +124,7 @@ public class ObjectModelSubstitutor
             case "OnimasuPivot": return "Onimasu";
             case "PenguinSkater":
             case "PenguinStudent": return "Penguin";
+            case "Plant": return "PlantSeed";
             case "PlayAttackMan": return "ScoreAttackMan";
             case "PrologueDirector": return "DemoLetter";
             case "PukupukuWaterSurface": return "Pukupuku";
@@ -210,59 +211,110 @@ public class ObjectModelSubstitutor
         return modelname;
     }
     
-    public static String substituteObjectKey(LevelObject obj, String objectkey)
-    {
-        switch (obj.name)
-        {
+    public static String substituteObjectKey(LevelObject obj, String objectkey) {
+        switch (obj.name) {
+            case "PlantA":
+            case "PlantB":
+            case "PlantC":
+            case "PlantD": objectkey += String.format("_%1$d_%2$d", obj.data.get("ShapeModelNo"), obj.data.get("Obj_arg3")); break;
+            case "MarinePlant": objectkey += String.format("_%1$d_%2$d", obj.data.get("ShapeModelNo"), obj.data.get("Obj_arg1")); break;
             case "Pole":
             case "PoleSquare":
             case "Pole2Way": objectkey += String.format("_%1$3f", obj.scale.y / obj.scale.x); break;
             case "Kinopio": 
-            case "KinopioAstro": objectkey = String.format("object_Kinopio_%1$d", obj.data.get("Obj_arg1")); break; 
-            case "UFOKinoko": objectkey = String.format("object_UFOKinoko_%1$d", obj.data.get("Obj_arg0")); break;
+            case "KinopioAstro": objectkey += String.format("_%1$d", obj.data.get("Obj_arg1")); break; 
+            case "UFOKinoko": objectkey += String.format("_%1$d", obj.data.get("Obj_arg0")); break;
+            case "OtaKing": objectkey += String.format("_%1$d", obj.data.get("Obj_arg1")); break;
             case "AstroDome":
             case "AstroDomeEntrance":
             case "AstroDomeSky":
             case "AstroStarPlate": objectkey += String.format("_%1$d", obj.data.get("Obj_arg0")); break;
         }
+        
+        if (ZoneArchive.gameMask == 2) {
+            if (obj.getClass() == AreaObj.class || obj.getClass() == CameraCubeObj.class)
+                objectkey += String.format("_%1$d", obj.data.get("AreaShapeNo"));
+        }
+        
         return objectkey;
     }
     
-    public static GLRenderer substituteRenderer(LevelObject obj, GLRenderer.RenderInfo info)
-    {
-        try
-        {
-            if (obj.getClass() == AreaObj.class) return new ColorCubeRenderer (100f, new Color4(1f, 0.5f, 0.5f), new Color4(0.3f, 1f, 1f), true);
-            if (obj.getClass() == CameraCubeObj.class) return new ColorCubeRenderer (100f, new Color4(0.3f, 0f, 1f), new Color4(0.8f, 0f, 0f), true);
-            if (obj.getClass() == ChildObj.class) return new ColorCubeRenderer (100f, new Color4(1f, 1f, 1f), new Color4(1f, 0.5f, 0.5f), true);                         
-            if (obj.getClass() == PlanetObj.class) return new ColorCubeRenderer(100f, new Color4(1f, 0.5f, 0.5f), new Color4(0.8f, 0f, 0f), true);
-            if (obj.getClass() == DemoObj.class) return new ColorCubeRenderer (100f, new Color4(1f, 0.5f, 0.5f), new Color4(1.0f, 1.0f, 0.3f), true);
-            if (obj.getClass() == GeneralPosObj.class) return new ColorCubeRenderer (100f, new Color4(1f, 1f, 1f), new Color4(1f,0.5f,0f), true);
-            if (obj.getClass() == SoundObj.class) return new ColorCubeRenderer (100f, new Color4(1f, 1f, 1f), new Color4(1f, 0.5f, 1f), true);   
-            if (obj.getClass() == ChangeObj.class) return new ColorCubeRenderer (100f, new Color4(1f, 1f, 1f), new Color4(0f,0.8f,0f), true); 
-            if (obj.getClass() == DebugObj.class) return new ColorCubeRenderer (100f, new Color4(1f, 1f, 1f), new Color4(0.8f, 0.5f, 0.1f), true);
-            if (obj.getClass() == StageObj.class) return new ColorCubeRenderer (100f, new Color4(0.3f, 0f, 1f), new Color4(1f, 0.5f, 0f), true);
+    public static GLRenderer substituteRenderer(LevelObject obj, GLRenderer.RenderInfo info) {
+        short shapeno = 0;
+        
+        try {
+            if (obj.getClass() == AreaObj.class || obj.getClass() == CameraCubeObj.class) {
+                if (editor_areas) {
+                    if (ZoneArchive.gameMask == 2) {
+                        shapeno = (short)obj.data.get("AreaShapeNo");
+                    }
+                    else {
+                        if (obj.name.endsWith("Cube") || obj.name.endsWith("Box")) {
+                            shapeno = 0;
+                        }
+                        else if (obj.name.endsWith("Sphere"))
+                            shapeno = 2;
+                        else if (obj.name.endsWith("Cylinder"))
+                            shapeno = 3;
+                        else
+                            shapeno = 4;
+                    }
+                    if (obj.getClass() == AreaObj.class)
+                        return new AreaShapeRenderer (new Color4(0.3f, 1f, 1f), shapeno);
+                    if (obj.getClass() == CameraCubeObj.class)
+                        return new AreaShapeRenderer (new Color4(0.8f, 0f, 0f), shapeno);
+                }
+                else {
+                    if (obj.getClass() == AreaObj.class)
+                        return new ColorCubeRenderer (100f, new Color4(1f, 0.5f, 0.5f), new Color4(0.3f, 1f, 1f), true);
+                    if (obj.getClass() == CameraCubeObj.class)
+                        return new ColorCubeRenderer (100f, new Color4(0.3f, 0f, 1f), new Color4(0.8f, 0f, 0f), true);
+                }
+            }
+            if (obj.getClass() == ChildObj.class)
+                return new ColorCubeRenderer (100f, new Color4(1f, 1f, 1f), new Color4(1f, 0.5f, 0.5f), true);                         
+            if (obj.getClass() == PlanetObj.class)
+                return new ColorCubeRenderer(100f, new Color4(1f, 0.5f, 0.5f), new Color4(0.8f, 0f, 0f), true);
+            if (obj.getClass() == DemoObj.class)
+                return new ColorCubeRenderer (100f, new Color4(1f, 0.5f, 0.5f), new Color4(1.0f, 1.0f, 0.3f), true);
+            if (obj.getClass() == GeneralPosObj.class)
+                return new ColorCubeRenderer (100f, new Color4(1f, 1f, 1f), new Color4(1f,0.5f,0f), true);
+            if (obj.getClass() == SoundObj.class)
+                return new ColorCubeRenderer (100f, new Color4(1f, 1f, 1f), new Color4(1f, 0.5f, 1f), true);   
+            if (obj.getClass() == ChangeObj.class)
+                return new ColorCubeRenderer (100f, new Color4(1f, 1f, 1f), new Color4(0f,0.8f,0f), true); 
+            if (obj.getClass() == DebugObj.class)
+                return new ColorCubeRenderer (100f, new Color4(1f, 1f, 1f), new Color4(0.8f, 0.5f, 0.1f), true);
+            if (obj.getClass() == StageObj.class)
+                return new ColorCubeRenderer (100f, new Color4(0.3f, 0f, 1f), new Color4(1f, 0.5f, 0f), true);
             
-            switch (obj.name)
-            {
-                case "PowerStar": return new PowerStar(info, 0);
-                case "GreenStar": return new PowerStar(info, 1);
-                case "SuperSpinDriverPink": return new SuperSpinDriver(info,0);
-                case "SuperSpinDriverGreen": return new SuperSpinDriver(info,1);
+            switch (obj.name) {
+                case "PowerStar": return new ObjectPowerStar(info, 0);
+                case "GreenStar": return new ObjectPowerStar(info, 1);
+                case "SuperSpinDriverPink": return new ObjectSuperSpinDriver(info,0);
+                case "SuperSpinDriverGreen": return new ObjectSuperSpinDriver(info,1);
                 case "MameMuimuiScorer": return new TripleBmdRenderer(info, "MameMuimuiGreen", new Vector3(0f,50f,100f), "MameMuimuiSpike", new Vector3(100f,-50f,-200), "MameMuimuiYellow", new Vector3(-200,0f,0));
                 case "MameMuimuiScorerLv2": return new TripleBmdRenderer(info, "MameMuimuiGreen", new Vector3(0f,50f,100f), "MameMuimuiYellow", new Vector3(100f,-50f,-200), "MameMuimuiSpike", new Vector3(-200,0f,0));
                 
                 case "Kinopio": 
-                case "KinopioAstro": return new Kinopio(info, (int)obj.data.get("Obj_arg1"));
-                case "KinopioBank": return new Kinopio(info, 1);
-                case "KinopioPostman": return new Kinopio(info, 2);
-                case "UFOKinoko": return new UFOKinoko(info, (int)obj.data.get("Obj_arg0"));
+                case "KinopioAstro": return new ObjectKinopio(info, (int)obj.data.get("Obj_arg1"));
+                case "KinopioBank": return new ObjectKinopio(info, 1);
+                case "KinopioPostman": return new ObjectKinopio(info, 2);
+                case "UFOKinoko": return new ObjectUFOKinoko(info, (int)obj.data.get("Obj_arg0"));
                 case "PenguinRacer": return new DoubleBmdRenderer(info, "Penguin", new Vector3(), "PenguinGoodsSwimCap", new Vector3(0f,100f,0f));
                 case "PenguinRacerLeader": return new TripleBmdRenderer(info, "Penguin", new Vector3(), "PenguinGoodsSwimCap", new Vector3(0f,100f,0f), "PenguinGoodsLeader", new Vector3());
                 
-                case "Pole": return new Pole(info, obj.scale, "Pole");
-                case "PoleSquare": return new Pole(info, obj.scale, "PoleSquare");
-                case "Pole2Way": return new Pole(info, obj.scale, "PoleSquare");
+                case "PlantA":
+                case "PlantB":
+                case "PlantC":
+                case "PlantD": return new ShapeModelRenderer(info, obj.name, (short)obj.data.get("ShapeModelNo"));
+                case "MarinePlant": return new ShapeModelRenderer(info, obj.name, (short)obj.data.get("ShapeModelNo"));
+                
+                case "EarthenPipe":
+                case "EarthenPipeInWater": return new SingleBmdRenderer(info, "EarthenPipe", new Vector3(0f,100f,0f));
+                case "Pole": return new ObjectPole(info, obj.scale, "Pole");
+                case "PoleSquare":
+                case "Pole2Way": return new ObjectPole(info, obj.scale, "PoleSquare");
                 case "RedBlueTurnBlock": return new DoubleBmdRenderer(info, "RedBlueTurnBlock", new Vector3(), "RedBlueTurnBlockBase", new Vector3());
                 case "KoopaJrCastleWindUp": return new DoubleBmdRenderer(info, "Fan", new Vector3(), "FanWind", new Vector3());
                 
@@ -279,8 +331,8 @@ public class ObjectModelSubstitutor
 
                 case "AstroStarPlate":
                 case "AstroDome":
-                case "AstroDomeEntrance": return new AstroPart(info, obj.name, (int)obj.data.get("Obj_arg0"));
-                case "AstroDomeSky": return new AstroSky(info, obj.name, (int)obj.data.get("Obj_arg0"));
+                case "AstroDomeEntrance": return new ObjectAstroPart(info, obj.name, (int)obj.data.get("Obj_arg0"));
+                case "AstroDomeSky": return new ObjectAstroSky(info, obj.name, (int)obj.data.get("Obj_arg0"));
                 
                 case "Patakuri": return new DoubleBmdRenderer(info, "Kuribo", new Vector3(), "PatakuriWing", new Vector3(0f,15f,-25f));               
                 case "HammerHeadPackun": return new DoubleBmdRenderer(info, "PackunFlower", new Vector3(), "PackunLeaf", new Vector3());
@@ -305,14 +357,15 @@ public class ObjectModelSubstitutor
                 case "BossJugem": return new DoubleBmdRenderer(info, "BossJugem", new Vector3(), "BossJugemCloud", new Vector3());
                 case "KoopaJrRobot": return new DoubleBmdRenderer(info, "KoopaJrRobot", new Vector3(), "KoopaJrRobotPod", new Vector3(0f,1000f,0f));
                 case "KoopaJrCastle": return new TripleBmdRenderer(info, "KoopaJrCastleBody", new Vector3(), "KoopaJrCastleHead", new Vector3(0f,2750f,0f), "KoopaJrCastleCapsule", new Vector3(0f,700f,0f));
+                case "OtaKing": return new ObjectOtaKing(info, obj.name, (int)obj.data.get("Obj_arg1"));
                 case "OtaRockTank": return new DoubleBmdRenderer(info, "OtaRockTank", new Vector3(), "OtaRockChief", new Vector3(0f, 500f, 0f));
                 case "TombSpider": return new TripleBmdRenderer(info, "TombSpider", new Vector3(), "TombSpiderPlanet", new Vector3(), "TombSpiderCocoon", new Vector3());
                 case "SkeletalFishBoss": return new DoubleBmdRenderer(info, "SkeletalFishBoss", new Vector3(), "SkeletalFishBossHeadA", new Vector3());
             }
         }
-        catch (IOException ex) {}
+        catch (IOException ex) {
+        }
         
         return null;
-        
     }
 }

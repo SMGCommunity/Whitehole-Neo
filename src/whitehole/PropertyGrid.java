@@ -121,16 +121,29 @@ public class PropertyGrid extends JTable
         {
             case "text":
             case "int": 
-                field.editor = new TextCellEditor(field); 
+                field.editor = new TextCellEditor(field, true); 
+                break;
+                
+            case "noedit":
+                field.editor = new TextCellEditor(field, false);
                 break;
                 
             case "float": 
                 field.renderer = new FloatCellRenderer();
-                field.editor = new FloatCellEditor(field); 
+                field.editor = new FloatCellEditor(field, true); 
+                break;
+                
+            case "float_noedit": 
+                field.renderer = new FloatCellRenderer();
+                field.editor = new FloatCellEditor(field, false); 
                 break;
                 
             case "list":
-                field.editor = new ListCellEditor(field); 
+                field.editor = new ListCellEditor(field, false); 
+                break;
+                
+            case "textlist":
+                field.editor = new ListCellEditor(field, true);
                 break;
                 
             case "bool": 
@@ -424,12 +437,13 @@ public class PropertyGrid extends JTable
         JSpinner spinner;
         Field field;
 
-        public FloatCellEditor(Field f) 
+        public FloatCellEditor(Field f, boolean e) 
         {
             field = f;
             
             spinner = new JSpinner();
             spinner.setModel(new SpinnerNumberModel(13.37f, -Float.MAX_VALUE, Float.MAX_VALUE, 1f));
+            spinner.setEnabled(e);
             spinner.addChangeListener(new ChangeListener()
             {
                 @Override
@@ -464,12 +478,13 @@ public class PropertyGrid extends JTable
         Field field;
         boolean isInt;
 
-        public TextCellEditor(Field f) 
+        public TextCellEditor(Field f, boolean e) 
         {
             field = f;
             isInt = f.type.equals("int");
             
             textfield = new JTextField(f.value.toString());
+            textfield.setEnabled(e);
             textfield.addKeyListener(new KeyListener()
             {
                 @Override
@@ -516,11 +531,12 @@ public class PropertyGrid extends JTable
         JComboBox combo;
         Field field;
 
-        public ListCellEditor(Field f) 
+        public ListCellEditor(Field f, boolean e) 
         {
             field = f;
             
             combo = new JComboBox(f.choices.toArray());
+            combo.setEditable(e);
             combo.addActionListener(new ActionListener()
             {
                 @Override

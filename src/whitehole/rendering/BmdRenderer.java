@@ -559,9 +559,11 @@ public class BmdRenderer extends GLRenderer
         }
         catch (IOException ex)
         {
-            if (container != null) try { container.close(); } catch (IOException ex2) {}
+            if (container != null) try { container.close(); } catch (IOException ex2) {
+            }
             
             throw new GLException("Failed to load model "+modelname+": "+ex.getMessage());
+            
         }
         
         bva = null;
@@ -584,7 +586,7 @@ public class BmdRenderer extends GLRenderer
             extensions.contains("GL_ARB_shader_objects") &&
             extensions.contains("GL_ARB_vertex_shader") &&
             extensions.contains("GL_ARB_fragment_shader");
-        hasShaders = hasShaders && Settings.useShaders;
+        hasShaders = hasShaders && Settings.editor_shaders;
 
         textures = new int[model.textures.length];
         for (int i = 0; i < model.textures.length; i++)

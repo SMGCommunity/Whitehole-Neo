@@ -13,13 +13,13 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.rendering.objRenderer;
+package whitehole.rendering.object;
 
 import whitehole.rendering.BmdRenderer;
 
-public class AstroPart extends BmdRenderer
+public class ObjectAstroPart extends BmdRenderer
 {
-    public AstroPart(RenderInfo info, String objname, int arg0)
+    public ObjectAstroPart(RenderInfo info, String objname, int arg0)
     {
         String[] parts = {"Observatory", "Well", "Kitchen", "BedRoom", "Machine", "Tower"};
         if (arg0 < 1 || arg0 > 6) arg0 = 1;

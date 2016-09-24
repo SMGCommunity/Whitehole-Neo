@@ -34,7 +34,7 @@ public class Yaz0File extends MemoryFile
     public void save() throws IOException
     {
         byte[] compbuffer;
-        if (Settings.yaz0enc) {
+        if (Settings.arc_enc) {
             compbuffer = Yaz0.compress(buffer);
         }
         else {

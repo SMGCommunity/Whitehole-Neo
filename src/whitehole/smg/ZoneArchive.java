@@ -27,18 +27,17 @@ import whitehole.smg.object.GeneralPosObj;
 import whitehole.smg.object.DemoObj;
 import whitehole.smg.object.SoundObj;
 import whitehole.smg.object.StartObj;
+import whitehole.smg.object.ChildObj;
+import whitehole.smg.object.StageObj;
 import java.io.*;
 import java.util.*;
 import javax.swing.JOptionPane;
 import whitehole.Whitehole;
 import whitehole.fileio.*;
-import whitehole.smg.object.ChildObj;
-import whitehole.smg.object.StageObj;
 
-public class ZoneArchive 
-{
-    public ZoneArchive(GalaxyArchive arc, String name) throws IOException
-    {
+public class ZoneArchive {
+    
+    public ZoneArchive(GalaxyArchive arc, String name) throws IOException {
         galaxy = arc;
         game = arc.game;
         filesystem = game.filesystem;
@@ -55,8 +54,8 @@ public class ZoneArchive
         loadZone();
     }
 
-    public void save() throws IOException
-    {
+    public void save() throws IOException {
+        saveObjects("Placement", "StageObjInfo");
         saveObjects("MapParts", "MapPartsInfo");
         saveObjects("Placement", "ObjInfo");
         saveObjects("Start", "StartInfo");
@@ -79,67 +78,66 @@ public class ZoneArchive
         archive.save();
     }
     
-    public void close()
-    {
-        try { archive.close(); }
-        catch (IOException ex) {}
+    public void close() {
+        try {
+            archive.close();
+        }
+        catch (IOException ex) {
+            System.out.println(ex);
+        }
     }
     
     
-    private void loadZone()
-    {   
+    private void loadZone() {   
         try {
             objects = new HashMap<>();
             subZones = new HashMap<>();
             archive = new RarcFilesystem(filesystem.openFile(zonefile));
-        loadObjects("MapParts", "MapPartsInfo");
-        loadObjects("Placement", "ObjInfo");
-        loadObjects("Start", "StartInfo");
-        loadObjects("Placement", "PlanetObjInfo");
-        loadObjects("Placement", "AreaObjInfo");
-        loadObjects("Placement", "CameraCubeInfo");
-        loadObjects("Placement", "DemoObjInfo");
-        loadObjects("GeneralPos", "GeneralPosInfo");
-        loadObjects("Debug", "DebugMoveInfo");
-        switch (gameMask) {
-            case 1:
-                loadObjects("Placement", "SoundInfo");
-                loadObjects("ChildObj", "ChildObjInfo");
-                break;
-            case 2:
-                loadObjects("Placement", "ChangeObjInfo");
-                break;
-        }
-        loadPaths();
-        loadSubZones();
+            loadObjects("Placement", "StageObjInfo");
+            loadObjects("MapParts", "MapPartsInfo");
+            loadObjects("Placement", "ObjInfo");
+            loadObjects("Start", "StartInfo");
+            loadObjects("Placement", "PlanetObjInfo");
+            loadObjects("Placement", "AreaObjInfo");
+            loadObjects("Placement", "CameraCubeInfo");
+            loadObjects("Placement", "DemoObjInfo");
+            loadObjects("GeneralPos", "GeneralPosInfo");
+            loadObjects("Debug", "DebugMoveInfo");
+            switch (gameMask) {
+                case 1:
+                    loadObjects("Placement", "SoundInfo");
+                    loadObjects("ChildObj", "ChildObjInfo");
+                    break;
+                case 2:
+                    loadObjects("Placement", "ChangeObjInfo");
+                    break;
+            }
+            loadPaths();
+            loadSubZones();
         }
         catch (NullPointerException ex) {
             JOptionPane.showMessageDialog(null, "Can't open galaxy, because of missing zone files.\n\nIf you are modding SMG1, try to remove the unused zones from the galaxy's zone list.\nYou can use the BCSV editor to do this.", Whitehole.fullName, 0);
         }
         catch (Exception ex) {
-            
+            System.out.println(ex);
         }
     }
-
     
-    private void loadObjects(String dir, String file)
-    {
+    private void loadObjects(String dir, String file) {
         List<String> layers = archive.getDirectories("/Stage/Jmp/" + dir);
         for (String layer : layers) {
             addObjectsToList(dir + "/" + layer + "/" + file);
         }
     }
     
-    private void saveObjects(String dir, String file)
-    {
+    private void saveObjects(String dir, String file) {
         List<String> layers = archive.getDirectories("/Stage/Jmp/" + dir);
         for (String layer : layers) {
             saveObjectList(dir + "/" + layer + "/" + file);
         }
     }
  
-    private void addObjectsToList(String filepath)
-    {
+    private void addObjectsToList(String filepath) {
         String[] stuff = filepath.split("/");
         String layer = stuff[1].toLowerCase();
         String file = stuff[2].toLowerCase();
@@ -148,12 +146,10 @@ public class ZoneArchive
             objects.put(layer, new ArrayList<LevelObject>());
         }
         
-        try
-        {
+        try {
             Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/" + filepath));
             
-            switch (file)
-            {
+            switch (file) {
                 case "stageobjinfo":
                     for (Bcsv.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new StageObj(this, filepath, entry));
@@ -218,32 +214,28 @@ public class ZoneArchive
                     for (Bcsv.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new ChangeObj(this, filepath, entry));
                     }
-                    break;                    
+                    break;
             }
             bcsv.close();
             
         }
-        catch (IOException ex)
-        {
+        catch (IOException ex) {
             System.out.println(ex.getMessage());
             ex.printStackTrace();
         }
     }
     
-    private void saveObjectList(String filepath)
-    {
+    private void saveObjectList(String filepath) {
         String[] stuff = filepath.split("/");
         String dir = stuff[0], file = stuff[2];
         String layer = stuff[1].toLowerCase();
         if (!objects.containsKey(layer))
             return;
         
-        try
-        {
+        try {
             Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/" + filepath));
             bcsv.entries.clear();
-            for (LevelObject obj : objects.get(layer))
-            {
+            for (LevelObject obj : objects.get(layer)) {
                 if (!dir.equals(obj.directory) || !file.equals(obj.file))
                     continue;
                 
@@ -253,71 +245,56 @@ public class ZoneArchive
             bcsv.save();
             bcsv.close();
         }
-        catch (IOException ex)
-        {
-            // TODO better error handling, really
+        catch (IOException ex) {
             System.out.println(ex.getMessage());
             ex.printStackTrace();
         }
     }
     
-    private void loadPaths()
-    {
-        try
-        {
+    private void loadPaths() {
+        try {
             Bcsv bcsv = new Bcsv(archive.openFile("/Stage/jmp/Path/CommonPathInfo"));
             paths = new ArrayList<>(bcsv.entries.size());
             for (Bcsv.Entry entry : bcsv.entries)
                 paths.add(new PathObject(this, entry));
             bcsv.close();
         }
-        catch (IOException ex)
-        {
+        catch (IOException ex) {
             System.out.println(zoneName+": Failed to load paths: "+ex.getMessage());
         }
     }
     
-    
-    private void savePaths()
-    {
-        try
-        {
+    private void savePaths() {
+        try {
             Bcsv bcsv = new Bcsv(archive.openFile("/Stage/jmp/Path/CommonPathInfo"));
 
             bcsv.entries.clear();
-            for (PathObject pobj : paths)
-            {
+            for (PathObject pobj : paths) {
                 pobj.save();
                 bcsv.entries.add(pobj.data);
             }
             bcsv.save();
             bcsv.close();
         }
-        catch (IOException ex)
-        {
+        catch (IOException ex) {
             System.out.println(zoneName+": Failed to save paths: "+ex.getMessage());
         }
     }
     
-    private void loadSubZones()
-    {
+    private void loadSubZones() {
         List<String> layers = archive.getDirectories("/Stage/Jmp/Placement");
-        for (String layer : layers)
-        {
-            try
-            {
+        for (String layer : layers) {
+            try {
                 Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/Placement/" + layer + "/StageObjInfo"));
                 subZones.put(layer.toLowerCase(), bcsv.entries);
                 bcsv.close();
             }
-            catch (IOException ex)
-            {
+            catch (IOException ex) {
                 System.out.println(ex.getMessage());
                 ex.printStackTrace();
             }
         }
     }
-    
     
     public GalaxyArchive galaxy;
     public GameArchive game;

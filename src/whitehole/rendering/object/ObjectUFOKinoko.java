@@ -13,13 +13,13 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.rendering.objRenderer;
+package whitehole.rendering.object;
 
 import whitehole.rendering.BmdRenderer;
 
-public class UFOKinoko extends BmdRenderer
+public class ObjectUFOKinoko extends BmdRenderer
 {
-    public UFOKinoko(RenderInfo info, int color)
+    public ObjectUFOKinoko(RenderInfo info, int color)
     {
         ctor_loadModel(info, "UFOKinoko");
         

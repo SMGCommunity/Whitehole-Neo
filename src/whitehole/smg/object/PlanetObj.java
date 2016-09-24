@@ -15,6 +15,8 @@
 
 package whitehole.smg.object;
 
+import java.util.Arrays;
+import java.util.List;
 import whitehole.PropertyGrid;
 import whitehole.smg.Bcsv;
 import whitehole.smg.LevelObject;
@@ -134,8 +136,8 @@ public class PlanetObj extends LevelObject
         panel.addField("Distant", "Distance", "float", null, data.get("Distant"), "Default");
         panel.addField("Priority", "Priority", "int", null, data.get("Priority"), "Default");
         panel.addField("Inverse", "Inverse", "int", null, data.get("Inverse"), "Default");
-        panel.addField("Power", "Power", "text", null, data.get("Power"), "Default");
-        panel.addField("Gravity_type", "Type", "text", null, data.get("Gravity_type"), "Default");
+        panel.addField("Power", "Power", "list", choicesGravityPower, data.get("Power"), "Default");
+        panel.addField("Gravity_type", "Type", "list", choicesGravityType, data.get("Gravity_type"), "Default");
 
         panel.addCategory("obj_args", "Object arguments");
         panel.addField("Obj_arg0", "Obj_arg0", "int", null, data.get("Obj_arg0"), "Default");
@@ -172,4 +174,9 @@ public class PlanetObj extends LevelObject
         String l = layer.equals("common") ? "Common" : "Layer"+layer.substring(5).toUpperCase();
         return dbInfo.name + " [" + l + "]";
     }
+    
+    private String[] gravityPowers = {"Normal","Light","Heavy"};
+    private String[] gravityTypes = {"Normal","Shadow","Magnet"};
+    private List<String> choicesGravityPower = Arrays.asList(gravityPowers);
+    private List<String> choicesGravityType = Arrays.asList(gravityTypes);
 }

@@ -36,7 +36,7 @@ public class ObjectDBUpdater extends Thread
         try
         {
             String ts = String.format("&ts=%1$d", ObjectDB.timestamp);
-            URL url = new URL ("http://neomariogalaxy.bplaced.net/board/objectdb/smg_download.php?whitehole&gzip" + ts);
+            URL url = new URL (Settings.objectDB_url + "?whitehole&gzip" + ts);
             URLConnection conn = url.openConnection();
             DataInputStream dis = new DataInputStream(conn.getInputStream());
             

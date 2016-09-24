@@ -22,39 +22,36 @@ public class Settings
     public static void initialize()
     {
         Preferences prefs = Preferences.userRoot();
-        objectDBUpdate = prefs.getBoolean("ObjectDBUpdate", true);
-        yaz0enc = prefs.getBoolean("Yaz0Enc", true);
-        
-        useShaders = prefs.getBoolean("UseShaders", true);
-        fastDrag = prefs.getBoolean("FastDrag", false);
-        reverseRot = prefs.getBoolean("ReverseRot", false);
-        
-        themeMetal = prefs.getBoolean("ThemeMetal", false);
-        themeSystem = prefs.getBoolean("ThemeSystem", true);
+        objectDB_url = prefs.get("objectDB.url", "http://neomariogalaxy.bplaced.net/objectdb/smg_download.php");
+        objectDB_update = prefs.getBoolean("objectDB.update", true);
+        arc_enc = prefs.getBoolean("arc.enc", true);
+        editor_areas = prefs.getBoolean("editor.areas", false);
+        editor_shaders = prefs.getBoolean("editor.shaders", true);
+        editor_fastDrag = prefs.getBoolean("editor.fastDrag", false);
+        editor_reverseRot = prefs.getBoolean("editor.reverseRot", false);
+        theme_system = prefs.getBoolean("theme.system", true);
     }
     
     public static void save()
     {
         Preferences prefs = Preferences.userRoot();
-        prefs.putBoolean("ObjectDBUpdate", objectDBUpdate);
-        prefs.putBoolean("Yaz0enc", yaz0enc);
-        
-        prefs.putBoolean("UseShaders", useShaders);
-        prefs.putBoolean("FastDrag", fastDrag);
-        prefs.putBoolean("ReverseRot", reverseRot);
-        
-        prefs.putBoolean("ThemeMetal", themeMetal);
-        prefs.putBoolean("ThemeSystem", themeSystem);
+        prefs.put("objectDB.url", objectDB_url);
+        prefs.putBoolean("objectDB.update", objectDB_update);
+        prefs.putBoolean("arc.enc", arc_enc);
+        prefs.putBoolean("editor.areas", editor_areas);
+        prefs.putBoolean("editor.shaders", editor_shaders);
+        prefs.putBoolean("editor.fastDrag", editor_fastDrag);
+        prefs.putBoolean("editor.reverseRot", editor_reverseRot);
+        prefs.putBoolean("theme.system", theme_system);
     }
     
     
-    public static boolean objectDBUpdate;
-    public static boolean yaz0enc;
-    
-    public static boolean useShaders;
-    public static boolean fastDrag;
-    public static boolean reverseRot;
-    
-    public static boolean themeMetal;
-    public static boolean themeSystem;
+    public static String objectDB_url;
+    public static boolean objectDB_update;
+    public static boolean arc_enc;
+    public static boolean editor_areas;
+    public static boolean editor_shaders;
+    public static boolean editor_fastDrag;
+    public static boolean editor_reverseRot;
+    public static boolean theme_system;
 }

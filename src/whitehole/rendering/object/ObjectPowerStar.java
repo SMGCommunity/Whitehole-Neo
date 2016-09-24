@@ -13,13 +13,13 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.rendering.objRenderer;
+package whitehole.rendering.object;
 
 import whitehole.rendering.BmdRenderer;
 
-public class PowerStar extends BmdRenderer
+public class ObjectPowerStar extends BmdRenderer
 {
-    public PowerStar(RenderInfo info, int type)
+    public ObjectPowerStar(RenderInfo info, int type)
     {
         ctor_loadModel(info, "PowerStar");
         

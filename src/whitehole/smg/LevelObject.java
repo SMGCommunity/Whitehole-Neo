@@ -22,17 +22,15 @@ import whitehole.rendering.GLRenderer;
 import whitehole.rendering.RendererCache;
 import whitehole.vectors.Vector3;
 
-public class LevelObject
-{
-    public void save() {}
+public class LevelObject {
     
+    public void save() {
+    }
     
-    public final void loadDBInfo()
-    {
+    public final void loadDBInfo() {
         if (ObjectDB.objects.containsKey(name))
             dbInfo = ObjectDB.objects.get(name);
-        else
-        {
+        else {
             dbInfo = new ObjectDB.Object();
             dbInfo.ID = name;
             dbInfo.name = "("+name+")";
@@ -41,23 +39,25 @@ public class LevelObject
         }
     }
     
-    public void initRenderer(GLRenderer.RenderInfo info)
-    {
-        if (renderer != null) return;
+    public void getShapeModels() {
+    }
+    
+    public void initRenderer(GLRenderer.RenderInfo info) {
+        if (renderer != null)
+            return;
         renderer = RendererCache.getObjectRenderer(info, this);
         renderer.compileDisplayLists(info);
         renderer.releaseStorage();
     }
     
-    public void closeRenderer(GLRenderer.RenderInfo info)
-    {
-        if (renderer == null) return;
+    public void closeRenderer(GLRenderer.RenderInfo info) {
+        if (renderer == null)
+            return;
         RendererCache.closeObjectRenderer(info, this);
         renderer = null;
     }
     
-    public void render(GLRenderer.RenderInfo info)
-    {
+    public void render(GLRenderer.RenderInfo info) {
         GL2 gl = info.drawable.getGL().getGL2();
         
         gl.glPushMatrix();
@@ -70,23 +70,21 @@ public class LevelObject
             gl.glScalef(scale.x, scale.y, scale.z);
         
         int dlid = -1;
-        switch (info.renderMode)
-        {
+        switch (info.renderMode) {
             case PICKING: dlid = 0; break;
             case OPAQUE: dlid = 1; break;
             case TRANSLUCENT: dlid = 2; break;
         }
         
         gl.glCallList(renderer.displayLists[dlid]);
-        
         gl.glPopMatrix();
     }
     
-    public void getProperties(PropertyGrid panel) {}
+    public void getProperties(PropertyGrid panel) {
+    }
     
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "LevelObject (did someone forget to override this?)";
     }
     

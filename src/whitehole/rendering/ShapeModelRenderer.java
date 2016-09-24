@@ -13,24 +13,19 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.rendering.objRenderer;
+package whitehole.rendering;
 
-import whitehole.rendering.BmdRenderer;
-
-public class AstroSky extends BmdRenderer
-{
-    public AstroSky(RenderInfo info, String objname, int arg0)
-    {
-        String[] parts = {"A", "B", "C", "A", "B", "C"};
-        if (arg0 < 1 || arg0 > 6) arg0 = 1;
-        ctor_loadModel(info, objname + parts[arg0 - 1]);
-        ctor_uploadData(info);
+public class ShapeModelRenderer extends BmdRenderer {
+    
+    public ShapeModelRenderer(RenderInfo info, String objname, short modelno) {
+        if (modelno < 100 && modelno > -1) {
+            ctor_loadModel(info, objname + String.format("%1$02d",modelno));
+            ctor_uploadData(info);
+        }
     }
     
     @Override
-    public boolean boundToObjArg(int arg)
-    {
-        if (arg == 0) return true;
-        return false;
+    public boolean boundToShapeModel() {
+        return true;
     }
 }

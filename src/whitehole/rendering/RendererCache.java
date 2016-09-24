@@ -65,10 +65,10 @@ public class RendererCache
         loadPlanetList();
         
         String modelname = obj.name;
-        modelname = ObjectModelSubstitutor.substituteModelName(obj, modelname);
+        modelname = Substitutor.substituteModelName(obj, modelname);
         
         String key = "object_" + obj.name;
-        key = ObjectModelSubstitutor.substituteObjectKey(obj, key);
+        key = Substitutor.substituteObjectKey(obj, key);
         
         if (cache.containsKey(key))
         {
@@ -80,7 +80,7 @@ public class RendererCache
         CacheEntry entry = new CacheEntry();
         entry.refCount = 1;
         
-        entry.renderer = ObjectModelSubstitutor.substituteRenderer(obj, info);
+        entry.renderer = Substitutor.substituteRenderer(obj, info);
         
         // if no renderer substitution happened, load the default renderer
         if (entry.renderer == null)
@@ -111,7 +111,7 @@ public class RendererCache
     public static void closeObjectRenderer(GLRenderer.RenderInfo info, LevelObject obj)
     {
         String key = "object_" + obj.oldname;
-        key = ObjectModelSubstitutor.substituteObjectKey(obj, key);
+        key = Substitutor.substituteObjectKey(obj, key);
         if (!cache.containsKey(key)) return;
         
         CacheEntry entry = cache.get(key);

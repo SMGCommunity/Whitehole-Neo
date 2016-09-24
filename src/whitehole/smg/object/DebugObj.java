@@ -81,7 +81,6 @@ public class DebugObj extends LevelObject
         data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
     }
 
-    
     @Override
     public void getProperties(PropertyGrid panel)
     {
@@ -104,6 +103,6 @@ public class DebugObj extends LevelObject
     public String toString()
     {
         String l = layer.equals("common") ? "Common" : "Layer"+layer.substring(5).toUpperCase();
-        return name + " [" + l + "]";
+        return dbInfo.name + " [" + l + "]";
     }
 }

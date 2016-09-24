@@ -15,16 +15,20 @@
 
 package whitehole.smg.object;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import whitehole.PropertyGrid;
+import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
 import whitehole.smg.LevelObject;
 import whitehole.smg.ZoneArchive;
 import whitehole.vectors.Vector3;
 
-public class GeneralPosObj extends LevelObject
-{
-    public GeneralPosObj(ZoneArchive zone, String filepath, Bcsv.Entry entry)
-    {
+public class GeneralPosObj extends LevelObject {
+    
+    public GeneralPosObj(ZoneArchive zone, String filepath, Bcsv.Entry entry) {
         this.zone = zone;
         String[] stuff = filepath.split("/");
         directory = stuff[0];
@@ -44,8 +48,7 @@ public class GeneralPosObj extends LevelObject
         scale = new Vector3(1,1,1);
     }
     
-    public GeneralPosObj(ZoneArchive zone, String filepath, int game, Vector3 pos)
-    {
+    public GeneralPosObj(ZoneArchive zone, String filepath, int game, Vector3 pos) {
         this.zone = zone;
         String[] stuff = filepath.split("/");
         directory = stuff[0];
@@ -73,18 +76,32 @@ public class GeneralPosObj extends LevelObject
             data.put("ChildObjId", (short)-1);
     }
     
+    public void generalPosNames() {
+        choicesGeneralPosNames = new ArrayList<String>();
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(Whitehole.class.getResourceAsStream("/Resources/GeneralPos.txt")));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+
+                choicesGeneralPosNames.add(line);
+            }
+        }
+        catch (Exception ex) {
+            System.out.println(ex);
+        }
+    }
+    
     @Override
-    public void save()
-    {
+    public void save() {
         data.put("name", name);
         data.put("pos_x", position.x); data.put("pos_y", position.y); data.put("pos_z", position.z);
         data.put("dir_x", rotation.x); data.put("dir_y", rotation.y); data.put("dir_z", rotation.z);
     }
 
-    
     @Override
-    public void getProperties(PropertyGrid panel)
-    {
+    public void getProperties(PropertyGrid panel) {
+        generalPosNames();
         panel.addCategory("obj_position", "Position");
         panel.addField("pos_x", "X position", "float", null, position.x, "Default");
         panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
@@ -94,16 +111,17 @@ public class GeneralPosObj extends LevelObject
         panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
         
         panel.addCategory("obj_objinfo", "Other");
-        panel.addField("PosName", "PosName", "text", null, data.get("PosName"), "Default"); 
+        panel.addField("PosName", "PosName", "textlist", choicesGeneralPosNames, data.get("PosName"), "Default"); 
         panel.addField("Obj_ID", "Obj_ID", "int", null, data.get("Obj_ID"), "Default");
         if (ZoneArchive.gameMask == 1)
-            panel.addField("ChildObjId", "ChildObjId", "text", null, data.get("ChildObjId"), "Default"); 
+            panel.addField("ChildObjId", "ChildObjId", "int", null, data.get("ChildObjId"), "Default"); 
     }
     
     @Override
-    public String toString()
-    {
+    public String toString() {
         String l = layer.equals("common") ? "Common" : "Layer"+layer.substring(5).toUpperCase();
-        return name + " ( " + data.get("PosName") + " ) " + "[" + l + "]";
+        return dbInfo.name + " ( " + data.get("PosName") + " ) " + "[" + l + "]";
     }
+    
+    private List<String> choicesGeneralPosNames;
 }
