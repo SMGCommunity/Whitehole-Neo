@@ -41,7 +41,7 @@ public class PathObj {
         points = new LinkedHashMap();
         displayLists = null;
         
-        name = "Path " + index;
+        name = "Path " + pathID;
         data.put("name", name);
         data.put("type", "Bezier");
         data.put("closed", "OPEN");
@@ -281,7 +281,7 @@ public class PathObj {
     
     @Override
     public String toString() {
-        return String.format("[%1$d] %2$s", index, name);
+        return String.format("[%1$d] %2$s", pathID, name);
     }
     
     private static final Random RANDOM = new Random();

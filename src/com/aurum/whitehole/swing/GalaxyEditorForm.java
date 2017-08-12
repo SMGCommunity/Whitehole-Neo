@@ -1866,16 +1866,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 else if (propname.startsWith("[P]")) {
                     String property = propname.substring(3);
                     switch (property) {
-                        case "closed":
+                        case "closed": {
                             selectedPathPoint.path.data.put(property, (boolean) value ? "CLOSE" : "OPEN");
                             rerenderTasks.add("path:" + selectedPathPoint.path.uniqueID);
                             glCanvas.repaint();
                             break;
-                        case "name":
+                        }
+                        case "name": {
                             selectedPathPoint.path.name = (String) value;
                             DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
                             objlist.nodeChanged(treeNodeList.get(selectedPathPoint.path.uniqueID));
                             break;
+                        }
+                        case "l_id": {
+                            selectedPathPoint.path.pathID = (int) value;
+                            DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+                            objlist.nodeChanged(treeNodeList.get(selectedPathPoint.path.uniqueID));
+                        }
                         default:
                             propertyChanged(property, value, selectedPathPoint.path.data);
                             break;
