@@ -128,8 +128,8 @@ public class PathPointObj extends AbstractObj {
     @Override
     public void getProperties(PropertyGrid panel) {
         panel.addCategory("path_settings", "Path settings");
-        panel.addField("[P]num", "Path ID", "noedit", null, path.index, "Default");
-        panel.addField("[P]l_id", "ID", "int", null, path.pathID, "Default");
+        panel.addField("[P]l_id", "Path ID", "int", null, path.pathID, "Default");
+        panel.addField("[P]no", "Path Index", "noedit", null, path.index, "Default");
         panel.addField("[P]closed", "Closed", "bool", null, path.data.get("closed").equals("CLOSE"), "Default");
         panel.addField("[P]usage", "Usage", "list", choiceUsage, path.data.get("usage"), "Default");
         panel.addField("[P]name", "Name", "text", null, path.data.get("name"), "Default");

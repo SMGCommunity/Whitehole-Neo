@@ -776,7 +776,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             if (obj instanceof PathPointObj) {
                 pathpoint = (PathPointObj) obj;
-                pathid = pathpoint.path.index;
+                pathid = pathpoint.path.pathID;
             }
             else if (obj.data.containsKey("CommonPath_ID"))
                 pathid = (int)(short)obj.data.get("CommonPath_ID");
@@ -808,7 +808,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     PathPointObj selectedPathPoint = (PathPointObj)selectedObj;
                     PathObj path = selectedPathPoint.path;
 
-                    lbStatusLabel.setText(String.format("Selected [%3$d] %1$s (%2$s), point %4$d", path.data.get("name"), path.zone.zoneName, path.index, selectedPathPoint.index));
+                    lbStatusLabel.setText(String.format("Selected [%3$d] %1$s (%2$s), point %4$d", path.data.get("name"), path.zone.zoneName, path.pathID, selectedPathPoint.index));
                     btnDeselect.setEnabled(true);
                     selectedPathPoint.getProperties(pnlObjectSettings);
                 }
@@ -2287,14 +2287,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     for (PathObj pobj : zonearc.paths)
                     {
                         if (!btnShowPaths.isSelected() && // isSelected? intuitive naming ftw :/
-                                !displayedPaths.containsKey(pobj.index))
+                                !displayedPaths.containsKey(pobj.pathID))
                             continue;
                         
                         pobj.render(renderinfo);
                         
                         if (mode == 1)
                         {
-                            PathPointObj ptobj = displayedPaths.get(pobj.index);
+                            PathPointObj ptobj = displayedPaths.get(pobj.pathID);
                             if (ptobj != null)
                             {
                                 Color4 selcolor = new Color4(1f, 1f, 0.5f, 1f);
