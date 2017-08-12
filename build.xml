@@ -10,6 +10,9 @@
 <project name="Whitehole" default="default" basedir=".">
     <description>Builds, tests, and runs the project Whitehole.</description>
     <import file="nbproject/build-impl.xml"/>
+	<target name="-post-compile">
+		<copy file="hashlookup.txt" todir="${dist.dir}"/>
+	</target>
     <!--
 
     There exist several targets which are by default empty and which can be 
