@@ -1858,6 +1858,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         case "pnt2_z": selectedPathPoint.point2.z = (float)value; break;
                     }
                     
+                    rerenderTasks.add("path:" + selectedPathPoint.path.uniqueID);
                     rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
                     glCanvas.repaint();
                 }
