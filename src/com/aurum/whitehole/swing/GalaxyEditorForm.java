@@ -820,7 +820,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     LinkedList layerlist = new LinkedList();
                     layerlist.add("Common");
                     for (int l = 0; l < 26; l++) {
-                        String layerstring = String.format("Layer$c", 'A'+l);
+                        String layerstring = String.format("Layer%1$c", 'A'+l);
                         if (curZoneArc.objects.containsKey(layerstring.toLowerCase()))
                             layerlist.add(layerstring);
                     }
