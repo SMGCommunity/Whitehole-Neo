@@ -15,6 +15,8 @@
 
 package com.aurum.whitehole.swing;
 
+import com.aurum.whitehole.ObjectDBUpdater;
+import com.aurum.whitehole.Settings;
 import com.aurum.whitehole.Whitehole;
 import com.aurum.whitehole.io.ExternalFilesystem;
 import com.aurum.whitehole.smg.GameArchive;
@@ -56,6 +58,11 @@ public class MainFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle(Whitehole.NAME);
         setIconImage(Whitehole.ICON);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
@@ -250,6 +257,16 @@ public class MainFrame extends javax.swing.JFrame {
         boolean hasSelection = GalaxyList.getSelectedIndex() >= 0;
         btnOpenGalaxy.setEnabled(hasSelection);
     }//GEN-LAST:event_GalaxyListValueChanged
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        lbStatusBar.setText("Ready");
+
+        if (Settings.objectDB_update) {
+            lbStatusBar.setText("Checking for object database updates...");
+            ObjectDBUpdater updater = new ObjectDBUpdater(lbStatusBar);
+            updater.start();
+        }
+    }//GEN-LAST:event_formWindowOpened
 
     private void openGalaxy() {
         TextureCache.init();

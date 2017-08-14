@@ -2219,6 +2219,14 @@ ForceDash
 ForceDashCube
 ForceDeath
 ForceLowScenarioName%d
+ForceLowScenarioName0
+ForceLowScenarioName1
+ForceLowScenarioName2
+ForceLowScenarioName3
+ForceLowScenarioName4
+ForceLowScenarioName5
+ForceLowScenarioName6
+ForceLowScenarioName7
 ForeArmL
 ForeArmR
 ForestAppearStepA
@@ -3781,6 +3789,7 @@ NextMii
 NextPage
 NextPageOver
 Nigero
+No
 NoAction
 NoCap
 NoDig

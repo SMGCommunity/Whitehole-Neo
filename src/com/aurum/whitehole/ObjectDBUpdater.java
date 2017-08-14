@@ -61,11 +61,9 @@ public class ObjectDBUpdater extends Thread {
             
             CRC32 crc = new CRC32();
             crc.update(data, 9, data.length-9);
-            
             long crcref;
             try { crcref = Long.parseLong(strdata, 16); }
             catch (NumberFormatException ex) { crcref = -1; }
-            
             if (crc.getValue() != crcref) {
                 statusLabel.setText("Failed to update object database: received invalid data.");
                 return;
@@ -80,16 +78,21 @@ public class ObjectDBUpdater extends Thread {
                     odb.delete();
                 }
                 
-                try (ByteArrayInputStream compstream = new ByteArrayInputStream(data, 9, data.length-9); GZIPInputStream gzstream = new GZIPInputStream(compstream)) {
-                    odb.createNewFile();
-                    try (FileOutputStream odbstream = new FileOutputStream(odb)) {
-                        int curbyte;
-                        while ((curbyte = gzstream.read()) != -1)
-                            odbstream.write(curbyte);
-                        
-                        odbstream.flush();
-                    }
-                }
+                ByteArrayInputStream compstream = new ByteArrayInputStream(data, 9, data.length-9);
+                GZIPInputStream gzstream = new GZIPInputStream(compstream);
+                
+                odb.createNewFile();
+                FileOutputStream odbstream = new FileOutputStream(odb);
+                
+                int curbyte;
+                while ((curbyte = gzstream.read()) != -1)
+                    odbstream.write(curbyte);
+                
+                odbstream.flush();
+                odbstream.close();
+                
+                gzstream.close();
+                compstream.close();
                 
                 if (odbbkp.exists())
                     odbbkp.delete();
@@ -111,7 +114,6 @@ public class ObjectDBUpdater extends Thread {
             statusLabel.setText("Failed to save new object database.");
         }
     }
-    
     
     private final JLabel statusLabel;
 }
