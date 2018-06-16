@@ -29,7 +29,7 @@ import java.awt.Image;
 import java.awt.Toolkit;
 
 public class Whitehole {
-    public static final String NAME = "Whitehole v1.4.3";
+    public static final String NAME = "Whitehole v1.5";
     public static final String WEBURL = "http://neomariogalaxy.bplaced.net/";
     public static final String CRASHURL = "http://neomariogalaxy.bplaced.net/?page=thread&id=148";
     public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
