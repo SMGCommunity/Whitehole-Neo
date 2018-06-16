@@ -15,6 +15,7 @@
 
 package com.aurum.whitehole.rendering.object;
 
+import com.aurum.whitehole.Settings;
 import com.aurum.whitehole.rendering.GLRenderer;
 import com.aurum.whitehole.vectors.Color4;
 import javax.media.opengl.*;
@@ -36,11 +37,12 @@ public class AreaRenderer extends GLRenderer {
 
     @Override
     public boolean gottaRender(GLRenderer.RenderInfo info) throws GLException {
-        return info.renderMode != GLRenderer.RenderMode.TRANSLUCENT;
+        return (info.renderMode != GLRenderer.RenderMode.TRANSLUCENT);
     }
 
     @Override
     public void render(GLRenderer.RenderInfo info) throws GLException {
+        System.out.println("Rendering Area!");
         if (info.renderMode == GLRenderer.RenderMode.TRANSLUCENT)
             return;
         
@@ -61,11 +63,13 @@ public class AreaRenderer extends GLRenderer {
                 gl.glUseProgram(0);
             }
             catch (GLException ex) {}
+            gl.glLineWidth(4f);
+        }else{
+            gl.glLineWidth(8f);
         }
         
         gl.glEnable(GL2.GL_DEPTH_TEST);
         gl.glCullFace(GL2.GL_FRONT);
-        gl.glLineWidth(4f);
         
         switch(areaShape) {
             case CUBE: makeBox(info, 500f); break;

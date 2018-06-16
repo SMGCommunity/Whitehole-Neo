@@ -65,9 +65,9 @@ public class PropertyGrid extends JTable {
         eventListener = listener;
     }
     
-    public void addCategory(String name, String caption) {
+    public PropertyGrid addCategory(String name, String caption) {
         if (fields.containsKey(name))
-            return;
+            return this;
         
         Field field = new Field();
         field.name = name;
@@ -85,14 +85,15 @@ public class PropertyGrid extends JTable {
         
         field.label.setFont(field.label.getFont().deriveFont(Font.BOLD));
         field.label.setHorizontalAlignment(SwingConstants.CENTER);
+        return this;
     }
     
-    public void addField(String name, String caption, String type, java.util.List choices, Object val, String info) {
+    public PropertyGrid addField(String name, String caption, String type, java.util.List choices, Object val, String info) {
         if (fields.containsKey(name)) {
             if (!val.equals(fields.get(name).value))
                 fields.get(name).value = null;
             
-            return;
+            return this;
         }
         
         Field field = new Field();
@@ -114,7 +115,7 @@ public class PropertyGrid extends JTable {
                 
             case "float": 
                 field.renderer = new FloatCellRenderer();
-                field.editor = new FloatCellEditor(field); 
+                field.editor = new FloatCellEditor(field, -Float.MAX_VALUE, Float.MAX_VALUE); 
                 break;
                 
             case "list":
@@ -139,6 +140,34 @@ public class PropertyGrid extends JTable {
             field.renderer = new GeneralCellRenderer();
         
         fields.put(name, field);
+        
+        return this;
+    }
+    
+    public PropertyGrid addIntegerField(String name, String caption, int val, String info, int min, int max) {
+        if (fields.containsKey(name)) {
+            if (!((Object)val).equals(fields.get(name).value))
+                fields.get(name).value = null;
+            
+            return this;
+        }
+        
+        Field field = new Field();
+        field.name = name;
+        field.row = curRow++;
+        field.type = "int";
+        field.choices = null;
+        field.value = val;
+        field.label = new JLabel(caption);
+        field.tip = new JToolTip();
+        field.tip.setToolTipText(info);
+        
+        field.editor = new IntCellEditor(field, min, max); 
+        field.renderer = new IntCellRenderer();
+        
+        fields.put(name, field);
+        
+        return this;
     }
     
     public void setFieldValue(String field, Object value) {
@@ -336,6 +365,30 @@ public class PropertyGrid extends JTable {
         }
     }
     
+    public class IntCellRenderer extends DefaultTableCellRenderer {
+        JLabel label;
+        
+        public IntCellRenderer() {
+            label = new JLabel();
+        }
+        
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+            if (value == null) {
+                label.setText("<multiple>");
+                return label;
+            }
+            
+            // make float rendering consistent with JSpinner's display
+            DecimalFormat df = (DecimalFormat)DecimalFormat.getInstance(Locale.ENGLISH);
+            df.applyPattern("#");
+            String formattedval = df.format(value);
+            label.setText(formattedval);
+            //label.setHorizontalAlignment(SwingConstants.RIGHT);
+            return label;
+        }
+    }
+    
     public class BoolCellRenderer extends DefaultTableCellRenderer {
         JCheckBox cb;
         
@@ -379,21 +432,21 @@ public class PropertyGrid extends JTable {
         JSpinner spinner;
         Field field;
 
-        public FloatCellEditor(Field f) {
+        public FloatCellEditor(Field f, float min, float max) {
             field = f;
             
             spinner = new JSpinner();
-            spinner.setModel(new SpinnerNumberModel(13.37f, -Float.MAX_VALUE, Float.MAX_VALUE, 1f));
+            spinner.setModel(new SpinnerNumberModel(13.37f, min, max, 1f));
             spinner.addChangeListener(new ChangeListener() {
                 @Override
                 public void stateChanged(ChangeEvent evt) {
                     // guarantee the value we're giving out is a Float. herp derp
                     Object val = spinner.getValue();
-                    float fval = (val instanceof Double) ? (float)(double)val : (float)val;
-                    field.value = fval;
-                    eventListener.propertyChanged(field.name, fval);
-                }
-            });
+                    float newVal = (val instanceof Double) ? (float)(double)val : (float)val;
+                    field.value = newVal;
+                    eventListener.propertyChanged(field.name, newVal);
+                } 
+           });
         }
 
         @Override
@@ -404,6 +457,44 @@ public class PropertyGrid extends JTable {
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) {
             spinner.setValue(value == null ? 0f : value);
+            return spinner;
+        }
+    }
+    
+    public class IntCellEditor extends AbstractCellEditor implements TableCellEditor {
+        JSpinner spinner;
+        Field field;
+
+        public IntCellEditor(Field f, float min, float max) {
+            field = f;
+            
+            spinner = new JSpinner();
+            spinner.setModel(new SpinnerNumberModel(min, min, max, 1f));
+
+            spinner.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent evt) {
+                    // guarantee the value we're giving out is a Float. herp derp
+                    int newVal = numberToInt();
+                    field.value = newVal;
+                    eventListener.propertyChanged(field.name, newVal);
+                } 
+           });
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return numberToInt();
+        }
+
+        private int numberToInt() {
+            Object val = spinner.getValue();
+            return (val instanceof Double) ? (int)(double)val : (int)(float)val;
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) {
+            spinner.setValue(value == null ? 0f : (float)(int)value);
             return spinner;
         }
     }

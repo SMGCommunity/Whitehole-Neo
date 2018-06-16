@@ -164,14 +164,14 @@ public class BmdRenderer extends GLRenderer {
         return (int) SuperFastHash.calculate(sigarray, 0, 0, sig.position());
     }
 
-    private void generateShaders(GL2 gl, int matid) throws GLException
+    public void generateShaders(GL2 gl, int matid, int...customColors) throws GLException
     {
         shaders[matid] = new Shader();
         
         int hash = shaderHash(matid);
         shaders[matid].cacheKey = hash;
         
-        if (ShaderCache.containsEntry(hash))
+        if (ShaderCache.containsEntry(hash)&&customColors.length==0)
         {
             ShaderCache.CacheEntry entry = ShaderCache.getEntry(hash);
             shaders[matid].vertexShader = entry.vertexID;
@@ -227,7 +227,9 @@ public class BmdRenderer extends GLRenderer {
 
         int success;
         Bmd.Material mat = model.materials[matid];
-
+        
+        //---------------------------------------------------------------------------------VertexShader----------------------------------------------------------------
+        
         StringBuilder vert = new StringBuilder();
         vert.append("#version 120\n");
         vert.append("\n");
@@ -293,7 +295,9 @@ public class BmdRenderer extends GLRenderer {
             throw new GLException("!Failed to compile vertex shader: " + log.toString() + "\n" + vert.toString());
             // TODO: better error reporting/logging?
         }
-
+        
+         //---------------------------------------------------------------------------------FragmentShader----------------------------------------------------------------
+        
         StringBuilder frag = new StringBuilder();
         frag.append("#version 120\n");
         frag.append("\n");
@@ -323,8 +327,8 @@ public class BmdRenderer extends GLRenderer {
             int _i = (i == 0) ? 3 : i - 1; // ???
             frag.append(String.format(usa, "    vec4 %1$s = vec4(%2$f, %3$f, %4$f, %5$f);\n",
                 outputregs[i],
-                (float)mat.colorS10[_i].r / 255f, (float)mat.colorS10[_i].g / 255f,
-                (float)mat.colorS10[_i].b / 255f, (float)mat.colorS10[_i].a / 255f));
+                (float)(customColors.length>0 ? customColors[0] : mat.colorS10[_i].r) / 255f, (float)(customColors.length>1 ? customColors[1] : mat.colorS10[_i].g) / 255f,
+                (float)(customColors.length>2 ? customColors[2] : mat.colorS10[_i].b) / 255f, (float)(customColors.length>3 ? customColors[3] : mat.colorS10[_i].a) / 255f));
         }
 
         for (int i = 0; i < 4; i++)
@@ -466,7 +470,6 @@ public class BmdRenderer extends GLRenderer {
 
         int fragid = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
         shaders[matid].fragmentShader = fragid;
-        String lol = frag.toString();    
         gl.glShaderSource(fragid, 1, new String[] { frag.toString() }, new int[] { frag.length()}, 0);
         gl.glCompileShader(fragid);
 

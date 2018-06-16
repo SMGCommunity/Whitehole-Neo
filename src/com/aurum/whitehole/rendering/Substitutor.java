@@ -116,7 +116,7 @@ public class Substitutor {
             case "RockCreator": return "Rock";
             case "RunawayRabbitCollect": return "TrickRabbit";
             case "SeaGullGroup":
-            case "SeaGullGroupMarioFace": return "SeaGull";
+            case "SeaGullGroupMarioFace": return "Seagull";
             case "ShellfishBlueChip":
             case "ShellfishCoin":
             case "ShellfishKinokoOneUp":
@@ -192,6 +192,7 @@ public class Substitutor {
             case "WingBlockCoin":
             case "WingBlockStarPiece": return "WingBlock";
             case "YoshiCapture": return "YCaptureTarget";
+            case "GreenStar": return "PowerStar";
         }
         return model;
     }
@@ -271,8 +272,8 @@ public class Substitutor {
                     case "AstroDomeSky": return new AstroSkyRenderer(info, obj.name, (int)obj.data.get("Obj_arg0"));
 
                     // Black holes
-                    case "BlackHole": return new BlackHoleRenderer(info, (int) obj.data.get("Obj_arg0"), obj.scale, Shape.SPHERE);
-                    case "BlackHoleCube": return new BlackHoleRenderer(info, (int) obj.data.get("Obj_arg0"), obj.scale, Shape.CENTEREDCUBE);
+                    case "BlackHole": return new BlackHoleRenderer(info, (int) obj.data.get("Obj_arg0"), obj.scale, Shape.SPHERE,false);
+                    case "BlackHoleCube": return new BlackHoleRenderer(info, (int) obj.data.get("Obj_arg0"), obj.scale, Shape.CENTEREDCUBE,true);
 
                     // Other
                     case "Coin":
@@ -283,10 +284,15 @@ public class Substitutor {
                     case "KinopioBank": return new KinopioRenderer(info, 1);
                     case "KinopioPostman": return new KinopioRenderer(info, 2);
                     case "UFOKinoko": return new UFOKinokoRenderer(info, (int)obj.data.get("Obj_arg0"));
+                    case "PowerStarHalo": return new PowerStarHaloRenderer(info);
                     case "EarthenPipe":
                     case "EarthenPipeInWater": return new BmdRendererSingle(info, "EarthenPipe", new Vector3(0f,100f,0f), new Vector3());
 
                     // Multi-model rendering
+                    case "RedBlueTurnBlock": return new MultiRenderer(
+                            new BmdRenderer(info,"RedBlueTurnBlock"),
+                            new BmdRenderer(info,"RedBlueTurnBlockBase")
+                    );
                     case "Patakuri": return new MultiRenderer(
                             new BmdRendererSingle(info, "Kuribo"),
                             new BmdRendererSingle(info, "PatakuriWing", new Vector3(0f,15f,-25f), new Vector3())
@@ -395,151 +401,144 @@ public class Substitutor {
                             new BmdRendererSingle(info, "SkeletalFishBoss"),
                             new BmdRendererSingle(info, "SkeletalFishBossHeadA")
                     );
+                    case "ClipAreaBoxBottom": return new ClipAreaBoxRenderer();
+                    case "ClipAreaBoxCenterHighModel": return new ClipAreaBoxRenderer();
                 }
             }
             
             if (obj instanceof AreaObj || obj instanceof CameraObj) {
-                if (Settings.editor_areas) {
-                    if (ZoneArchive.game == 2) {
-                        Shape shape;
-                        switch((short) obj.data.get("AreaShapeNo")) {
-                            case 0:
-                            case 1: shape = Shape.CUBE; break;
-                            case 2: shape = Shape.SPHERE; break;
-                            case 3: shape = Shape.CYLINDER; break;
-                            default: shape = Shape.UNDEFINED;
-                        }
-                        
-                        if (shape == Shape.UNDEFINED) {
-                            if (obj instanceof AreaObj)
-                                return new ColorCubeRenderer (100f, new Color4(1f, 0.5f, 0.5f), new Color4(0.3f, 1f, 1f), true);
-                            if (obj instanceof CameraObj)
-                                return new ColorCubeRenderer (100f, new Color4(0.3f, 0f, 1f), new Color4(0.8f, 0f, 0f), true);
-                        }
-                        else {
-                            if (obj instanceof AreaObj)
-                                return new AreaRenderer(new Color4(0.3f, 1f, 1f), shape);
-                            if (obj instanceof CameraObj)
-                                return new AreaRenderer(new Color4(0.8f, 0f, 0f), shape);
-                        }
+                if (ZoneArchive.game == 2) {
+                    Shape shape;
+                    switch((short) obj.data.get("AreaShapeNo")) {
+                        case 0:
+                        case 1: shape = Shape.CUBE; break;
+                        case 2: shape = Shape.SPHERE; break;
+                        case 3: shape = Shape.CYLINDER; break;
+                        default: shape = Shape.UNDEFINED;
                     }
-                    else if (ZoneArchive.game == 1) {
-                        switch(obj.name) {
-                            // AreaObj cubic
-                            case "AstroChangeStageCube":
-                            case "AudioEffectCube":
-                            case "BeeWallShortDistAreaCube":
-                            case "BgmProhibitArea":
-                            case "BigBubbleGoalAreaBox":
-                            case "BigBubbleSwitchBox":
-                            case "BindEndCube":
-                            case "BlackHoleCube":
-                            case "BloomCube":
-                            case "BlueStarGuidanceCube":
-                            case "ChangeBgmCube":
-                            case "CollisionArea":
-                            case "DarkMatterCube":
-                            case "DeathCube":
-                            case "DepthOfFieldCube":
-                            case "ExtraWallCheckArea":
-                            case "FallsCube":
-                            case "ForbidJumpCube":
-                            case "ForbidTriangleJumpCube":
-                            case "ForbidWaterSearchCube":
-                            case "ForceDashCube":
-                            case "HazeCube":
-                            case "HeavySteeringCube":
-                            case "LensFlareArea":
-                            case "LightCtrlCube":
-                            case "MercatorCube":
-                            case "MessageAreaCube":
-                            case "MirrorAreaCube":
-                            case "NonSleepCube":
-                            case "PipeModeCube":
-                            case "PlaneCircularModeCube":
-                            case "PlaneCollisionCube":
-                            case "PlanetModeCube":
-                            case "PlayerSeCube":
-                            case "PullBackCube":
-                            case "QuakeEffectAreaCube":
-                            case "RasterScrollCube":
-                            case "RestartCube":
-                            case "ScreenBlurCube":
-                            case "SimpleBloomCube":
-                            case "SmokeEffectColorAreaCube":
-                            case "SoundEmitterCube":
-                            case "SpinGuidanceCube":
-                            case "SunLightAreaBox":
-                            case "SwitchCube":
-                            case "TamakoroJumpGuidanceCube":
-                            case "TamakoroMoveGuidanceCube":
-                            case "TicoSeedGuidanceCube":
-                            case "TripodBossStepStartArea":
-                            case "ViewGroupCtrlCube":
-                            case "WaterCube": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.CUBE);
-                            
-                            // AreaObj spherical
-                            case "AreaMoveSphere":
-                            case "AudioEffectSphere":
-                            case "BigBubbleGoalAreaSphere":
-                            case "BigBubbleSwitchSphere":
-                            case "BloomSphere":
-                            case "CelestrialSphere":
-                            case "DeathSphere":
-                            case "DepthOfFieldSphere":
-                            case "PlayerSeSphere":
-                            case "SimpleBloomSphere":
-                            case "SoundEmitterSphere":
-                            case "ScreenBlurSphere":
-                            case "SwitchSphere": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.SPHERE);
-                            
-                            // AreaObj cylindrical
-                            case "AstroOverlookAreaCylinder":
-                            case "AudioEffectCylinder":
-                            case "BigBubbleGoalAreaCylinder":
-                            case "BigBubbleSwitchCylinder":
-                            case "BloomCylinder":
-                            case "DarkMatterCylinder":
-                            case "DashChargeCylinder":
-                            case "DeathCylinder":
-                            case "DepthOfFieldCylinder":
-                            case "DodoryuClosedCylinder":
-                            case "EffectCylinder":
-                            case "ExtraWallCheckCylinder":
-                            case "GlaringLightAreaCylinder":
-                            case "LightCtrlCylinder":
-                            case "MessageAreaCylinder":
-                            case "PlayerSeCylinder":
-                            case "PullBackCylinder":
-                            case "ScreenBlurCylinder":
-                            case "SimpleBloomCylinder":
-                            case "SwitchCylinder":
-                            case "TowerModeCylinder":
-                            case "WaterCylinder": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.CYLINDER);
-                            
-                            // CubeCamera cubic
-                            case "BigBubbleCameraAreaBox":
-                            case "CubeCameraBox": return new AreaRenderer(new Color4(0.8f, 0f, 0f), Shape.CUBE);
-                            
-                            // CubeCamera spherical
-                            case "BigBubbleCameraAreaSphere":
-                            case "CameraRepulsiveSphere":
-                            case "CubeCameraBowl":
-                            case "CubeCameraSphere": return new AreaRenderer(new Color4(0.8f, 0f, 0f), Shape.SPHERE);
-                            
-                            // CubeCamera cylindrical
-                            case "BigBubbleCameraAreaCylinder":
-                            case "CameraRepulsiveCylinder":
-                            case "CubeCameraCylinder": return new AreaRenderer(new Color4(0.8f, 0f, 0f), Shape.CYLINDER);
-                        }
+
+                    if (shape == Shape.UNDEFINED) {
+                        if (obj instanceof AreaObj)
+                            return new ColorCubeRenderer (100f, new Color4(1f, 0.5f, 0.5f), new Color4(0.3f, 1f, 1f), true);
+                        if (obj instanceof CameraObj)
+                            return new ColorCubeRenderer (100f, new Color4(0.3f, 0f, 1f), new Color4(0.8f, 0f, 0f), true);
+                    }
+                    else {
+                        if (obj instanceof AreaObj)
+                            return new AreaRenderer(new Color4(0.3f, 1f, 1f), shape);
+                        if (obj instanceof CameraObj)
+                            return new AreaRenderer(new Color4(0.8f, 0f, 0f), shape);
                     }
                 }
-                else {
-                    if (obj instanceof AreaObj)
-                        return new ColorCubeRenderer (100f, new Color4(1f, 0.5f, 0.5f), new Color4(0.3f, 1f, 1f), true);
+                else if (ZoneArchive.game == 1) {
+                    switch(obj.name) {
+                        // AreaObj cubic
+                        case "AstroChangeStageCube":
+                        case "AudioEffectCube":
+                        case "BeeWallShortDistAreaCube":
+                        case "BgmProhibitArea":
+                        case "BigBubbleGoalAreaBox":
+                        case "BigBubbleSwitchBox":
+                        case "BindEndCube":
+                        case "BlackHoleCube":
+                        case "BloomCube":
+                        case "BlueStarGuidanceCube":
+                        case "ChangeBgmCube":
+                        case "CollisionArea":
+                        case "DarkMatterCube":
+                        case "DeathCube":
+                        case "DepthOfFieldCube":
+                        case "ExtraWallCheckArea":
+                        case "FallsCube":
+                        case "ForbidJumpCube":
+                        case "ForbidTriangleJumpCube":
+                        case "ForbidWaterSearchCube":
+                        case "ForceDashCube":
+                        case "HazeCube":
+                        case "HeavySteeringCube":
+                        case "LensFlareArea":
+                        case "LightCtrlCube":
+                        case "MercatorCube":
+                        case "MessageAreaCube":
+                        case "MirrorAreaCube":
+                        case "NonSleepCube":
+                        case "PipeModeCube":
+                        case "PlaneCircularModeCube":
+                        case "PlaneCollisionCube":
+                        case "PlanetModeCube":
+                        case "PlayerSeCube":
+                        case "PullBackCube":
+                        case "QuakeEffectAreaCube":
+                        case "RasterScrollCube":
+                        case "RestartCube":
+                        case "ScreenBlurCube":
+                        case "SimpleBloomCube":
+                        case "SmokeEffectColorAreaCube":
+                        case "SoundEmitterCube":
+                        case "SpinGuidanceCube":
+                        case "SunLightAreaBox":
+                        case "SwitchCube":
+                        case "TamakoroJumpGuidanceCube":
+                        case "TamakoroMoveGuidanceCube":
+                        case "TicoSeedGuidanceCube":
+                        case "TripodBossStepStartArea":
+                        case "ViewGroupCtrlCube":
+                        case "WaterCube": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.CUBE);
 
-                    if (obj instanceof CameraObj)
-                        return new ColorCubeRenderer (100f, new Color4(0.3f, 0f, 1f), new Color4(0.8f, 0f, 0f), true);
+                        // AreaObj spherical
+                        case "AreaMoveSphere":
+                        case "AudioEffectSphere":
+                        case "BigBubbleGoalAreaSphere":
+                        case "BigBubbleSwitchSphere":
+                        case "BloomSphere":
+                        case "CelestrialSphere":
+                        case "DeathSphere":
+                        case "DepthOfFieldSphere":
+                        case "PlayerSeSphere":
+                        case "SimpleBloomSphere":
+                        case "SoundEmitterSphere":
+                        case "ScreenBlurSphere":
+                        case "SwitchSphere": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.SPHERE);
+
+                        // AreaObj cylindrical
+                        case "AstroOverlookAreaCylinder":
+                        case "AudioEffectCylinder":
+                        case "BigBubbleGoalAreaCylinder":
+                        case "BigBubbleSwitchCylinder":
+                        case "BloomCylinder":
+                        case "DarkMatterCylinder":
+                        case "DashChargeCylinder":
+                        case "DeathCylinder":
+                        case "DepthOfFieldCylinder":
+                        case "DodoryuClosedCylinder":
+                        case "EffectCylinder":
+                        case "ExtraWallCheckCylinder":
+                        case "GlaringLightAreaCylinder":
+                        case "LightCtrlCylinder":
+                        case "MessageAreaCylinder":
+                        case "PlayerSeCylinder":
+                        case "PullBackCylinder":
+                        case "ScreenBlurCylinder":
+                        case "SimpleBloomCylinder":
+                        case "SwitchCylinder":
+                        case "TowerModeCylinder":
+                        case "WaterCylinder": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.CYLINDER);
+
+                        // CubeCamera cubic
+                        case "BigBubbleCameraAreaBox":
+                        case "CubeCameraBox": return new AreaRenderer(new Color4(0.8f, 0f, 0f), Shape.CUBE);
+
+                        // CubeCamera spherical
+                        case "BigBubbleCameraAreaSphere":
+                        case "CameraRepulsiveSphere":
+                        case "CubeCameraBowl":
+                        case "CubeCameraSphere": return new AreaRenderer(new Color4(0.8f, 0f, 0f), Shape.SPHERE);
+
+                        // CubeCamera cylindrical
+                        case "BigBubbleCameraAreaCylinder":
+                        case "CameraRepulsiveCylinder":
+                        case "CubeCameraCylinder": return new AreaRenderer(new Color4(0.8f, 0f, 0f), Shape.CYLINDER);
+                    }
                 }
             }
             

@@ -3,6 +3,18 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/worldmapObject/WorldmapPoint.java</file>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/worldmapObject/WorldmapRoute.java</file>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/swing/GalaxyEditorForm.java</file>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/worldmapObject/WorldmapTravelObject.java</file>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/rendering/object/AreaRenderer.java</file>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/rendering/object/GravityRenderer.java</file>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/rendering/Substitutor.java</file>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/smg/object/GravityObj.java</file>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/Settings.java</file>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/worldmapObject/GalaxyPreview.java</file>
+            <file>file:/C:/Users/jupah/Documents/GitHub/Whitehole-1.4/src/com/aurum/whitehole/worldmapObject/MiscWorldmapObject.java</file>
+        </group>
     </open-files>
 </project-private>

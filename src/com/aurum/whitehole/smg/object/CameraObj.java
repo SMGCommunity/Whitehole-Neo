@@ -15,6 +15,8 @@
 
 package com.aurum.whitehole.smg.object;
 
+import com.aurum.whitehole.Settings;
+import com.aurum.whitehole.rendering.GLRenderer;
 import com.aurum.whitehole.swing.PropertyGrid;
 import com.aurum.whitehole.smg.Bcsv;
 import com.aurum.whitehole.smg.ZoneArchive;
@@ -163,5 +165,11 @@ public class CameraObj extends AbstractObj {
         }
         else
             return dbInfo.name + " [" + l + "]";
+    }
+    
+    @Override
+    public void render(GLRenderer.RenderInfo info){
+        if(Settings.editor_areas)
+            super.render(info);
     }
 }

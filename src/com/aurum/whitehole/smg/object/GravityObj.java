@@ -15,6 +15,8 @@
 
 package com.aurum.whitehole.smg.object;
 
+import com.aurum.whitehole.Settings;
+import com.aurum.whitehole.rendering.GLRenderer;
 import java.util.List;
 import com.aurum.whitehole.swing.PropertyGrid;
 import com.aurum.whitehole.smg.Bcsv;
@@ -165,6 +167,12 @@ public class GravityObj extends AbstractObj {
     public String toString() {
         String l = layer.equals("common") ? "Common" : "Layer"+layer.substring(5).toUpperCase();
         return dbInfo.name + " [" + l + "]";
+    }
+    
+    @Override
+    public void render(GLRenderer.RenderInfo info){
+        if(Settings.editor_areas)
+            super.render(info);
     }
     
     private static List<String> choicesGravityPower = new ArrayList() {{ add("Normal"); add("Light"); add("Heavy"); }};
