@@ -1,7 +1,7 @@
 # Whitehole
 Whitehole is a level editor for Super Mario Galaxy 1 and 2.<br>
 <br>
-<h3>Changelog:</h3><br>
+<h3>Changelog:</h3>
 <h5>version 1.5</h5>
 There are improved/new renderers for BlackHole, PowerStar Light Object, Flip-Swap Platform, MatterSplatterHole, GreenStar.<br>
 The option to show areas is now also in the editor window.<br>
