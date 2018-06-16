@@ -1,6 +1,8 @@
 # Whitehole
 Whitehole is a level editor for Super Mario Galaxy 1 and 2.<br>
 <br>
+The executable .jar file is located in the dist folder<br>
+<br>
 <h3>Changelog:</h3>
 <h5>version 1.5</h5>
 There are improved/new renderers for BlackHole, PowerStar Light Object, Flip-Swap Platform, MatterSplatterHole, GreenStar.<br>
