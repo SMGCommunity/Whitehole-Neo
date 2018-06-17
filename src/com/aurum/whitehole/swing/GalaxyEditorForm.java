@@ -303,6 +303,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         tgbReverseRot.setSelected(Settings.editor_reverseRot);
         
+        btnShowAreas.setSelected(Settings.editor_areas);
+        btnShowGravity.setSelected(Settings.editor_areas);
+        btnShowCameras.setSelected(Settings.editor_areas);
+        
         Font bigfont = lbStatusLabel.getFont().deriveFont(Font.BOLD, 12f);
         lbStatusLabel.setFont(bigfont);
         
@@ -489,8 +493,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             });
             pmnWorldmapQuickActions.add(menuitem);
         }
-        
-        btnShowAreas.setSelected(Settings.editor_areas);
     }
     
     private void loadZone(String zone) throws IOException {
@@ -551,7 +553,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         tgbShowAxis = new javax.swing.JToggleButton();
         jSeparator7 = new javax.swing.JToolBar.Separator();
         tgbShowFake = new javax.swing.JToggleButton();
+        jSeparator10 = new javax.swing.JToolBar.Separator();
         btnShowAreas = new javax.swing.JToggleButton();
+        btnShowGravity = new javax.swing.JToggleButton();
+        btnShowCameras = new javax.swing.JToggleButton();
         lbStatusLabel = new javax.swing.JLabel();
         tpLeftPanel = new javax.swing.JTabbedPane();
         pnlScenarioZonePanel = new javax.swing.JSplitPane();
@@ -697,6 +702,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         });
         jToolBar2.add(tgbShowFake);
+        jToolBar2.add(jSeparator10);
 
         btnShowAreas.setText("Show areas");
         btnShowAreas.setFocusable(false);
@@ -708,6 +714,28 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         });
         jToolBar2.add(btnShowAreas);
+
+        btnShowGravity.setText("Show gravity");
+        btnShowGravity.setFocusable(false);
+        btnShowGravity.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnShowGravity.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnShowGravity.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnShowGravityActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(btnShowGravity);
+
+        btnShowCameras.setText("Show cameras");
+        btnShowCameras.setFocusable(false);
+        btnShowCameras.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnShowCameras.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnShowCameras.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnShowCamerasActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(btnShowCameras);
 
         pnlGLPanel.add(jToolBar2, java.awt.BorderLayout.NORTH);
 
@@ -1657,10 +1685,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
     private void btnShowPathsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnShowPathsActionPerformed
     {//GEN-HEADEREND:event_btnShowPathsActionPerformed
-        for (String zone : zoneArcs.keySet())
-            rerenderTasks.add("zone:" + zone);
-        
-        glCanvas.repaint();
+        renderAllObjects();
     }//GEN-LAST:event_btnShowPathsActionPerformed
 
     private void tgbReverseRotActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbReverseRotActionPerformed
@@ -1670,10 +1695,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_tgbReverseRotActionPerformed
 
     private void tgbShowFakeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowFakeActionPerformed
-        for (String zone : zoneArcs.keySet())
-            rerenderTasks.add("zone:" + zone);
-        
-        glCanvas.repaint();
+        renderAllObjects();
     }//GEN-LAST:event_tgbShowFakeActionPerformed
 
     private void tgbShowAxisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAxisActionPerformed
@@ -2181,21 +2203,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_btnDeleteWorldmapObjActionPerformed
 
     private void btnShowAreasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowAreasActionPerformed
-        Settings.editor_areas = btnShowAreas.isSelected();
-        Enumeration enumeration = ((DefaultMutableTreeNode)tvObjectList.getModel().getRoot()).getChildAt(4).children();
-        while (enumeration.hasMoreElements()) {
-            ObjTreeNode tnode =  (ObjTreeNode)enumeration.nextElement();
-            if (!(tnode.object instanceof AbstractObj))
-            continue;
+        renderAllObjects();
+    }//GEN-LAST:event_btnShowAreasActionPerformed
 
-            AbstractObj obj = (AbstractObj)tnode.object;
-            System.out.println(obj.name+" "+obj.uniqueID);
-        }
+    public void renderAllObjects() {
         for (String zone : zoneArcs.keySet())
             rerenderTasks.add("zone:" + zone);
         
         glCanvas.repaint();
-    }//GEN-LAST:event_btnShowAreasActionPerformed
+    }
+
+    private void btnShowGravityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowGravityActionPerformed
+        renderAllObjects();
+    }//GEN-LAST:event_btnShowGravityActionPerformed
+
+    private void btnShowCamerasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowCamerasActionPerformed
+        renderAllObjects();
+    }//GEN-LAST:event_btnShowCamerasActionPerformed
     
     public void addRerenderTask(String task) {
         if (!rerenderTasks.contains(task))
@@ -3581,7 +3605,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                                 (byte)uniqueid, 
                                 (byte)0xFF);
                     }
-                    obj.render(renderinfo);
+                    final String c = obj.getClass().getSimpleName();
+                    switch(c){
+                        case "AreaObj":
+                            if(btnShowAreas.isSelected())
+                                obj.render(renderinfo);
+                            break;
+                        case "GravityObj":
+                            if(btnShowGravity.isSelected())
+                                obj.render(renderinfo);
+                            break;
+                        case "CameraObj":
+                            if(btnShowCameras.isSelected())
+                                obj.render(renderinfo);
+                            break;
+                        default:
+                            obj.render(renderinfo);
+                    }
                 }
                 
                 if (mode == 2 && !selectedObjs.isEmpty())
@@ -4730,6 +4770,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private javax.swing.JButton btnEditZone;
     private javax.swing.JButton btnSaveWorldmap;
     private javax.swing.JToggleButton btnShowAreas;
+    private javax.swing.JToggleButton btnShowCameras;
+    private javax.swing.JToggleButton btnShowGravity;
     private javax.swing.JToggleButton btnShowPaths;
     private javax.swing.JMenuItem itemClose;
     private javax.swing.JMenuItem itemControls;
@@ -4752,6 +4794,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JToolBar.Separator jSeparator10;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;

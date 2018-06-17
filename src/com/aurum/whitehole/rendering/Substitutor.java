@@ -544,35 +544,30 @@ public class Substitutor {
             
             // Planet rendering
             if (obj instanceof GravityObj) {
-                if (Settings.editor_areas) {
-                    switch(obj.name) {
-                        // PlanetObj unfinished
-                        case "GlobalDiskGravity":
-                        case "GlobalDiskTorusGravity":
-                        case "GlobalPlaneGravity":
-                        case "GlobalSegmentGravity":
-                        case "GlobalWireGravity": return new ColorCubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(0f,0.8f,0f), true);
-                            
-                        // PlanetObj cubic
-                        case "GlobalCubeGravity":
-                        case "GlobalPlaneGravityInBox":
-                        case "ZeroGravityBox":  return new GravityRenderer(obj.scale, (float) obj.data.get("Range"), Shape.CUBE);
-                            
-                        // PlanetObj spherical
-                        case "GlobalPointGravity":
-                        case "ZeroGravitySphere":  return new GravityRenderer(obj.scale, (float) obj.data.get("Range"), Shape.SPHERE);
-                            
-                        // PlanetObj cylindrical
-                        case "GlobalBarrelGravity":
-                        case "GlobalPlaneGravityInCylinder":
-                        case "ZeroGravityCylinder": return new GravityRenderer(obj.scale, (float) obj.data.get("Range"), Shape.CYLINDER);
-                        
-                        // PlanetObj cone
-                        case "GlobalConeGravity": return new GravityRenderer(obj.scale, (float) obj.data.get("Range"), Shape.CONE);
-                    }
-                }
-                else {
-                    return new ColorCubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(0f,0.8f,0f), true);
+                switch(obj.name) {
+                    // PlanetObj unfinished
+                    case "GlobalDiskGravity":
+                    case "GlobalDiskTorusGravity":
+                    case "GlobalPlaneGravity":
+                    case "GlobalSegmentGravity":
+                    case "GlobalWireGravity": return new ColorCubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(0f,0.8f,0f), true);
+
+                    // PlanetObj cubic
+                    case "GlobalCubeGravity":
+                    case "GlobalPlaneGravityInBox":
+                    case "ZeroGravityBox":  return new GravityRenderer(obj.scale, (float) obj.data.get("Range"), Shape.CUBE);
+
+                    // PlanetObj spherical
+                    case "GlobalPointGravity":
+                    case "ZeroGravitySphere":  return new GravityRenderer(obj.scale, (float) obj.data.get("Range"), Shape.SPHERE);
+
+                    // PlanetObj cylindrical
+                    case "GlobalBarrelGravity":
+                    case "GlobalPlaneGravityInCylinder":
+                    case "ZeroGravityCylinder": return new GravityRenderer(obj.scale, (float) obj.data.get("Range"), Shape.CYLINDER);
+
+                    // PlanetObj cone
+                    case "GlobalConeGravity": return new GravityRenderer(obj.scale, (float) obj.data.get("Range"), Shape.CONE);
                 }
             }
             

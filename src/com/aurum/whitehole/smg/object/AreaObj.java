@@ -16,6 +16,7 @@
 package com.aurum.whitehole.smg.object;
 
 import com.aurum.whitehole.Settings;
+import com.aurum.whitehole.rendering.GLRenderer;
 import com.aurum.whitehole.rendering.GLRenderer.RenderInfo;
 import com.aurum.whitehole.swing.PropertyGrid;
 import com.aurum.whitehole.smg.Bcsv;
@@ -179,7 +180,6 @@ public class AreaObj extends AbstractObj {
     
     @Override
     public void render(RenderInfo info){
-        if(Settings.editor_areas)
-            super.render(info);
+        super.render(info);
     }
 }

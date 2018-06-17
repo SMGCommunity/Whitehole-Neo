@@ -171,8 +171,7 @@ public class GravityObj extends AbstractObj {
     
     @Override
     public void render(GLRenderer.RenderInfo info){
-        if(Settings.editor_areas)
-            super.render(info);
+        super.render(info);
     }
     
     private static List<String> choicesGravityPower = new ArrayList() {{ add("Normal"); add("Light"); add("Heavy"); }};

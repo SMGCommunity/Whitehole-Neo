@@ -169,7 +169,6 @@ public class CameraObj extends AbstractObj {
     
     @Override
     public void render(GLRenderer.RenderInfo info){
-        if(Settings.editor_areas)
-            super.render(info);
+        super.render(info);
     }
 }

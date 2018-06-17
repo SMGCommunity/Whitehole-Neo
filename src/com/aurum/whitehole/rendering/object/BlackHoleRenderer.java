@@ -56,7 +56,8 @@ public class BlackHoleRenderer extends GLRenderer {
             return;
         }
         gl.glPushMatrix();
-            gl.glScalef(sclBlackHole, sclBlackHole, sclBlackHole);
+            float scale = sclBlackHole*0.5f;
+            gl.glScalef(scale, scale, scale);
             renderBlackHole.render(info);
             gl.glPushMatrix();
                 gl.glScalef(2f, 2f, 2f);

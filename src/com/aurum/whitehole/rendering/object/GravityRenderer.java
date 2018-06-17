@@ -15,6 +15,7 @@
 
 package com.aurum.whitehole.rendering.object;
 
+import com.aurum.whitehole.Settings;
 import com.aurum.whitehole.rendering.GLRenderer;
 import com.aurum.whitehole.rendering.GLRenderer.RenderInfo;
 import com.aurum.whitehole.rendering.object.AreaRenderer.Shape;
@@ -44,7 +45,8 @@ public class GravityRenderer extends GLRenderer {
         gl.glScalef(scale.x, scale.y, scale.z);
         inner.render(info);
         gl.glPopMatrix();
-        
+
+
         gl.glPushMatrix();
         gl.glScalef(range, shape == Shape.SPHERE ? scale.y : range, range);
         outer.render(info);
