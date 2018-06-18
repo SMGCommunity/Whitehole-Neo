@@ -3349,6 +3349,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 
                 if (parentForm == null)
                 {
+                    RendererCache.prerender(renderinfo);
                     System.err.println("RenderMode: "+renderinfo.renderMode);
                     for (AbstractObj obj : globalObjList.values())
                     {

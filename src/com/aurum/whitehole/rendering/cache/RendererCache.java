@@ -30,6 +30,13 @@ import com.aurum.whitehole.smg.object.AbstractObj;
 import javax.media.opengl.*;
 
 public class RendererCache {
+    public static void prerender(GLRenderer.RenderInfo info){
+        pre_defaultStar = new BmdRenderer(info, "PowerStar");
+        pre_defaultStar.generateShaders(info.drawable.getGL().getGL2(), 0, 254,219,0);
+        
+        pre_greenStar = new BmdRenderer(info, "PowerStar");
+        pre_greenStar.generateShaders(info.drawable.getGL().getGL2(), 0, 0,219,50);
+    }
     public static void init() {
         cache = new HashMap();
         planetList = null;
@@ -60,6 +67,13 @@ public class RendererCache {
     }
     
     public static GLRenderer getObjectRenderer(GLRenderer.RenderInfo info, AbstractObj obj) {
+        switch(obj.name){
+            case "PowerStar":
+                return pre_defaultStar;
+            case "GreenStar":
+                return pre_greenStar;
+        }
+        
         loadPlanetList();
         
         String modelname = Substitutor.substituteModelName(obj, obj.name);
@@ -128,4 +142,10 @@ public class RendererCache {
     public static List<String> planetList;
     public static GLContext refContext;
     public static int contextCount;
+    
+    //prerendered
+    public static BmdRenderer 
+            pre_defaultStar, 
+            pre_greenStar;
+    
 }
