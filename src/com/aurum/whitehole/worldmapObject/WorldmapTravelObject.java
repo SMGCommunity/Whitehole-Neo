@@ -22,7 +22,7 @@ public class WorldmapTravelObject extends MiscWorldmapObject {
     public String getName(){
         switch((String)entryMO.get("PartsTypeName")){
             case "StarRoadWarpPoint"   : return "Default WorldmapEntry to Point "+entryMO.get("Param01");
-            case "WorldWarpPoint"   : return "Portal from World"+(worldmapId+1)+" to Point "+entryMO.get("Param01");
+            case "WorldWarpPoint"   : return "Portal from World"+worldmapId+" to Point "+entryMO.get("Param01");
             default: return "invalid Worldmap Entry Point";
         }
     }

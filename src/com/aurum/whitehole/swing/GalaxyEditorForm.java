@@ -505,11 +505,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             arc = zoneArcs.get(zone);
         
         for (java.util.List<AbstractObj> objlist : arc.objects.values()) {
-            for (AbstractObj obj : objlist) {
-                globalObjList.put(maxUniqueID, obj);
-                obj.uniqueID = maxUniqueID;
-                
-                maxUniqueID++;
+            if (galaxyMode) {
+                for (AbstractObj obj : objlist) {
+                    globalObjList.put(maxUniqueID, obj);
+                    obj.uniqueID = maxUniqueID;
+
+                    maxUniqueID++;
+                }
+            }else{
+                for (AbstractObj obj : objlist) {
+                    globalObjList.put(obj.uniqueID, obj);
+                }
             }
         }
         
@@ -623,6 +629,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         setIconImage(Whitehole.ICON);
         setMinimumSize(new java.awt.Dimension(960, 720));
         addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowActivated(java.awt.event.WindowEvent evt) {
+                formWindowActivated(evt);
+            }
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
             }
@@ -1666,7 +1675,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             for (GalaxyEditorForm form : zoneEditors.values())
                 form.dispose();
         }
-        
+        if(!galaxyMode)
+            return;
         if (unsavedChanges) {
             int res = JOptionPane.showConfirmDialog(this, "Save your changes?", Whitehole.NAME, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
             
@@ -2220,6 +2230,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void btnShowCamerasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowCamerasActionPerformed
         renderAllObjects();
     }//GEN-LAST:event_btnShowCamerasActionPerformed
+
+    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
+        renderAllObjects();
+    }//GEN-LAST:event_formWindowActivated
     
     public void addRerenderTask(String task) {
         if (!rerenderTasks.contains(task))
@@ -3760,7 +3774,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 switch (task[0])
                 {
                     case "zone":
-                        renderinfo.renderMode = GLRenderer.RenderMode.PICKING;      prerenderZone(gl, task[1]);
+                        renderinfo.renderMode = GLRenderer.RenderMode.PICKING;      renderAllObjects(gl);
                         renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;       prerenderZone(gl, task[1]);
                         renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  prerenderZone(gl, task[1]);
                         break;
@@ -4290,6 +4304,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             int arg = val & 0x7;
             if (objid != 0xFFFFFF && !globalObjList.containsKey(objid))
                 return;
+            
+            System.out.println("selected: "+objid);
             
             AbstractObj theobject = globalObjList.get(objid);
             int oldarg = selectionArg;
