@@ -305,6 +305,11 @@ public class Substitutor {
                             new BmdRendererSingle(info, "NyoroponBody"),
                             new BmdRendererSingle(info, "NyoroponHead", new Vector3(0f,500f,0f), new Vector3(90f,0f,0f))
                     );
+                    case "Grapyon": return new MultiRenderer(
+                            new BmdRendererSingle(info, "GrapyonBody"),
+                            new BmdRendererSingle(info, "GrapyonHead", new Vector3(0f,80f,0f), new Vector3(0f,0f,0f))
+                    );
+                    
                     case "StrayTico": return new MultiRenderer(
                             new BmdRendererSingle(info, "StrayTico"),
                             new BmdRendererSingle(info, "ItemBubble")
