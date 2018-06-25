@@ -1360,8 +1360,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         .addIntegerField("misc_check_stars", "Required Stars",
                             (int)misc.entryMO.get("Param00"), "", 0, Integer.MAX_VALUE)
                         
-                        .addField("misc_check_id", "Id in Worldmap", "float", null,
-                            (float)(int)misc.entryMO.get("PartsIndex"), "");
+                        .addIntegerField("misc_check_id", "Id in Worldmap",
+                            (int)misc.entryMO.get("PartsIndex"), "", 0, Integer.MAX_VALUE);
                         
                        
                     break;
