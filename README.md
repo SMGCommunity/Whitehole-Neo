@@ -24,11 +24,11 @@ Now introducing exciting features like... an improved PowerStarLight renderer...
 -Some multi-threading implemented for faster loading!<br>
 <br>
 <h3>Bugfixes</h3>
--Fixed objects that are in rotated zones not moving in the correct direction when dragged
--Fixed the Map corrupting if cancel is pressed when asked to save changes
--Fixed whitehole not rendering some custom models that will still work ingame
--Fixed general saving bugs and added a handler for failed saving (thanks shibbo!)
--Made all error messages clearer and handled better (and with punctuation!!)
+-Fixed objects that are in rotated zones not moving in the correct direction when dragged<br>
+-Fixed the Map corrupting if cancel is pressed when asked to save changes<br>
+-Fixed whitehole not rendering some custom models that will still work ingame<br>
+-Fixed general saving bugs and added a handler for failed saving (thanks shibbo!)<br>
+-Made all error messages clearer and handled better (and with punctuation!!)<br>
 <br>
 <h3>Controls:</h3>
 Pan Camera: Left-mouse drag or arrow keys/numpad<br>
