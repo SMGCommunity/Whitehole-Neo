@@ -1,0 +1,70 @@
+/*
+    © 2012 - 2019 - Whitehole Team
+
+    Whitehole is free software: you can redistribute it and/or modify it under
+    the terms of the GNU General Public License as published by the Free
+    Software Foundation, either version 3 of the License, or (at your option)
+    any later version.
+
+    Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
+    WARRANTY; See the GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along 
+    with Whitehole. If not, see http://www.gnu.org/licenses/.
+*/
+
+package com.thesuncat.whitehole;
+
+import java.util.prefs.Preferences;
+
+public class Settings {
+    public static void init() {
+        Preferences prefs = Preferences.userRoot();
+        objectDB_url = prefs.get("objectDB.url", "http://neomariogalaxy.bplaced.net/objectdb/smg_download.php");
+        objectDB_update = prefs.getBoolean("objectDB.update", true);
+        arc_enc = prefs.getBoolean("arc.enc", true);
+        editor_shaders = prefs.getBoolean("editor.shaders", true);
+        editor_fastDrag = prefs.getBoolean("editor.fastDrag", false);
+        gameDir = prefs.getBoolean("game.dir", true);
+        dark = prefs.getBoolean("theme.dark", false);
+        richPresence = prefs.getBoolean("rich.presence", true);
+        aa = prefs.getBoolean("anti.alias", true);
+        fakeCol = prefs.getBoolean("fake.colors", false);
+        reverseRot = prefs.getBoolean("reverse.rotation", false); //fake it
+        showAreas = prefs.getBoolean("show.areas", true);
+        showGravity = prefs.getBoolean("show.gravity", true);
+        showCameras = prefs.getBoolean("show.cameras", true);
+        showPaths = prefs.getBoolean("show.paths", true);
+        showAxis = prefs.getBoolean("show.axis", false);
+        legacy = prefs.getBoolean("legacy.mode", false);
+    }
+    
+    public static void save() {
+        Preferences prefs = Preferences.userRoot();
+        prefs.put("objectDB.url", objectDB_url);
+        prefs.putBoolean("objectDB.update", objectDB_update);
+        prefs.putBoolean("arc.enc", arc_enc);
+        prefs.putBoolean("editor.shaders", editor_shaders);
+        prefs.putBoolean("editor.fastDrag", editor_fastDrag);
+        prefs.putBoolean("game.dir", gameDir);
+        prefs.putBoolean("theme.dark", dark);
+        prefs.putBoolean("rich.presence", richPresence);
+        prefs.putBoolean("anti.alias", aa);
+        prefs.putBoolean("legacy.mode", legacy);
+    }
+    
+    public static void saveEditorPrefs(boolean area, boolean gravity, boolean cameras, boolean paths, boolean axis) {
+        Preferences prefs = Preferences.userRoot();
+        prefs.putBoolean("show.areas", area);
+        prefs.putBoolean("show.gravity", gravity);
+        prefs.putBoolean("show.cameras", cameras);
+        prefs.putBoolean("show.paths", paths);
+        prefs.putBoolean("show.axis", axis);
+        init();
+    }
+    
+    public static String objectDB_url;
+    public static boolean objectDB_update, arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy;
+    public static boolean editor_shaders, editor_fastDrag;
+    public static boolean showAreas, showCameras, showGravity, showPaths, showAxis;
+}
