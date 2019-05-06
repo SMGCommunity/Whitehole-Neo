@@ -1,0 +1,683 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SMG1/2 Stage and Music Database -->
+<database timestamp="1540641993">
+
+	<categories>
+		<category id="1">Stage</category>
+		<category id="2">Music</category>
+	</categories>
+
+	<object id="SMG_astroout02_strm">
+		<name>Comet Observatory 2</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_astroout02_strm.ast</file>
+	</object>
+	
+	<object id="SMG_astroout03_strm">
+		<name>Comet Observatory 3</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_astroout03_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG_BOSS_01A">
+		<name>King Kaliente and Bugaboom</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_boss01a_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG_BOSS_01B">
+		<name>King Kaliente and Bugaboom (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_boss01b_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG_BOSS_03A">
+		<name>Dino Piranha</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_boss03a_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG_BOSS_03B">
+		<name>Dino Piranha (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_boss03b_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG_BOSS_05A">
+		<name>Major Burrows</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_boss05a_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG_BOSS_05B">
+		<name>Major Burrows (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_boss05b_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG_BOSS_09A">
+		<name>Bouldergeist</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SSMG_boss09a_multi.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG_BOSS_09B">
+		<name>Bouldergeist (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_boss09b_multi.ast</file>
+	</object>
+	
+	<object id="SMG_galaxy01_strm">
+		<name>Good Egg Galaxy</name>
+		<category id="2"/>
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_galaxy01_strm.ast</file>
+	</object>
+	
+	<object id="SMG_galaxy14_strm">
+		<name>Gusty Garden Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_galaxy14_strm.ast</file>
+	</object>
+	
+	<object id="SMG_galaxy17_multi">
+		<name>Buoy Base Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_galaxy17_multi.ast</file>
+	</object>
+	
+	<object id="SMG_galaxy28_strm">
+		<name>Bowser's Galaxy Reactor</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG_galaxy28_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss01a_strm">
+		<name>Gobblegut</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss01a_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss01b_strm">
+		<name>Gobblegut (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss01b_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss02a_strm">
+		<name>Glamdozer</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss02a_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss02b_strm">
+		<name>Glamdozer (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss02b_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss03a_multi">
+		<name>Megahammer</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss03a_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_boss03b_strm">
+		<name>Megahammer (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss03b_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss05a_strm">
+		<name>Peewee Piranha</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss05a_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss05b_strm">
+		<name>Peewee Piranha (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss05b_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss06a_strm">
+		<name>Boomsday Machine</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss06a_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss06b_strm">
+		<name>Boomsday Machine (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss06b_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss07_multi">
+		<name>Bowser Battle</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss07_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_boss07b_multi">
+		<name>Bowser Battle (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss07b_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_boss08a_strm">
+		<name>Digga-Leg/Whomp King</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss08a_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss08b_strm">
+		<name>Digga-Leg/Whomp King (fast)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss08b_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_boss10_multi">
+		<name>Final Bowser Battle (with sfx)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss10_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_boss10_strm">
+		<name>Final Bowser Battle</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_boss10_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_ev_ending01_strm">
+		<name>Final Cutscene: Luma Steals Mario's Hat</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_ending01_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_ev_epilogue01_strm">
+		<name>Epilogue: Rescuing Peach</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_epilogue01_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_GLIDER">
+		<name>Wild Glide Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_glider_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_EV_KINOTAN">
+		<name>Toad Brigade</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_kinotan_strm.ast</file>
+	</object>
+	
+	
+	<object id="SMG2_ev_kuppabt01_strm">
+		<name>Bowser's Entrance</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_kuppabt01_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_MINI_GAME">
+		<name>Minigame</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_minigame_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_EV_MOKKU">
+		<name>Tall Trunk Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_mokku_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_ev_prolo02_strm">
+		<name>Prologue: The Star Festival</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_prolo02_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_ev_prolo05_strm">
+		<name>Prologue: Bowser Attacking</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_prolo05_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_ev_rabbit_strm">
+		<name>Bunny Chase</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_rabbit_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_STAR_CHANCE">
+		<name>Star Spawned</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_starchance_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_STAR_CHANCE_2">
+		<name>Star Spawned (2)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_starchance02_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_STAR_CHANCE_3">
+		<name>Star Spawned (3)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_ev_starchance03_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_first_astro_strm">
+		<name>First Grand Star</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_first_astro_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_first_astro2_strm">
+		<name>New World</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_first_astro2_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_DANGER">
+		<name>Danger</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy_danger_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_HURRY">
+		<name>Hurry (Speedrun Comet)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy_hurry_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_INTER">
+		<name>Lubba's Theme</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy_inter_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_01">
+		<name>Slipsand Galaxy and Clockwork Ruins Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy01_multi.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_02">
+		<name>Cosmic Cove Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy02_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_03">
+		<name>Rightside Down Galaxy and Upside Dizzy Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy03_multi.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_04">
+		<name>Flip Swap Galaxy and Flip Out Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy04_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_06">
+		<name>Sky Station Galaxy (1st Star)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy06_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_05">
+		<name>Sky Station Galaxy (2nd Star)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy05_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_07">
+		<name>Fluffy Bluff Galaxy and Cloudy Court Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy07_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_08">
+		<name>Unused</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy08_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_09">
+		<name>Spin-Dig Galaxy and Boulder Bowl Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy09_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_10">
+		<name>Sweet Mystery Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy10_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_11">
+		<name>Haunty Halls Galaxy and Boo Moon Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy11_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_12">
+		<name>Space Storm Galaxy and Battle Belt Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy12_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_13">
+		<name>Honeybloom Galaxy and Honey Hop Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy13_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_14">
+		<name>Flipsville and Chompworks Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy14_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_15">
+		<name>Bowser's Lava Lair</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy15_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_galaxy16_multi">
+		<name>Shiverburn Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy16_multi.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_18">
+		<name>Room Alone (Upside Dizzy Pipe)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy18_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_19">
+		<name>Freezy Flake Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy19_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_20">
+		<name>Bowser's Galaxy Generator</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy20_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_21">
+		<name>Throwback Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy21_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_22">
+		<name>Stone Cyclone Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy22_multi.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_23">
+		<name>Supermassive Galaxy and Mario Squared Galaxy and Twisty Trials Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy23_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_24">
+		<name>Slimy Spring Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy24_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_24B">
+		<name>Slimy Spring Galaxy (Ending)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy24b_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_25">
+		<name>Into the Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy25_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_26">
+		<name>Purple Coins</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy26_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_27">
+		<name>Starshine Beach Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy27_multi.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_28">
+		<name>Fleet Glide Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy28_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_29">
+		<name>Puzzle Plank Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy29_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_30">
+		<name>Melty Monster Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy30_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_31">
+		<name>Bowser Junior's Galaxy Theme</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy31_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_GALAXY_32">
+		<name>Yoshi Star Galaxy</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_galaxy32_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_jg_cometse_strm">
+		<name>Prankster Comet Spawned</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_jg_cometse_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_mario_ship01_strm">
+		<name>Starship Mario</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_mario_ship01_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_mario_ship02_strm">
+		<name>Starship Mario (2)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_mario_ship02_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_mario_ship03_strm">
+		<name>Starship Mario (3)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_mario_ship03_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_second_astro_strm">
+		<name>Grand Stars</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_second_astro_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_SMG2_STAFFROLL">
+		<name>Credits Theme</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_staffroll_strm.ast</file>
+	</object>
+	
+	<object id="MBGM_TITLE">
+		<name>Title Screen</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_title_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_worldmap06_multi">
+		<name>World 1 and 2</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_worldmap06_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_worldmap05_multi">
+		<name>World 1 (Green Stars)</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_worldmap05_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_worldmap00_multi">
+		<name>World 3</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_worldmap00_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_worldmap04_multi">
+		<name>World 4</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_worldmap04_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_worldmap08_multi">
+		<name>World 5</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_worldmap08_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_worldmap07_multi">
+		<name>World 6</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_worldmap07_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_worldmap03_multi">
+		<name>World S</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_worldmap03_multi.ast</file>
+	</object>
+	
+	<object id="SMG2_worldmap01_strm">
+		<name>Unknown Worldmap Theme</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_worldmap01_strm.ast</file>
+	</object>
+	
+	<object id="SMG2_worldmap02_strm">
+		<name>Unknown Worldmap Theme 2</name>
+		<category id="2" />
+		<game id="2"/>
+		<file>/AudioRes/Stream/SMG2_worldmap02_strm.ast</file>
+	</object>
+
+</database>
