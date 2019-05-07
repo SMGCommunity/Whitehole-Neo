@@ -391,36 +391,37 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      */
     public void keyTranslating() {
         if(getFocusOwner() == glCanvas) {
-            for(AbstractObj currentChangeObj : selectedObjs.values()) {
-                float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
-                if(lastDist == 0)
-                    lastDist = curDist;
-                float pol = 1f;
-                if(curDist < lastDist)
-                    pol *= -1;
-                if(startingMousePos.y < lastMouseMove.y)
-                    pol *= -1;
-
-                if(keyAxis != null) switch(keyAxis) {
-                    case "x":
-                        currentChangeObj.position.x += pol * Math.abs(lastDist - curDist);
-                        break;
-                    case "y":
-                        currentChangeObj.position.y += pol * Math.abs(lastDist - curDist);
-                        break;
-                    case "z":
-                        currentChangeObj.position.z += pol * Math.abs(lastDist - curDist);
-                        break;
-                    default:
-                        break;
-                }
-
+            Vector3 delta = new Vector3();
+            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
+            if(lastDist == 0)
                 lastDist = curDist;
-                rerenderTasks.add("zone:" + currentChangeObj.zone.zoneName);
-                pnlObjectSettings.repaint();
-                glCanvas.repaint();
-                unsavedChanges = true;
+            float pol = 1f;
+            if(curDist < lastDist)
+                pol *= -1;
+            if(startingMousePos.y < lastMouseMove.y)
+                pol *= -1;
+
+            if(keyAxis != null) switch(keyAxis) {
+                case "x":
+                    delta.x = pol * Math.abs(lastDist - curDist);
+                    break;
+                case "y":
+                    delta.y += pol * Math.abs(lastDist - curDist);
+                    break;
+                case "z":
+                    delta.z += pol * Math.abs(lastDist - curDist);
+                    break;
+                default:
+                    break;
             }
+            
+            offsetSelectionBy(delta);
+
+            lastDist = curDist;
+            rerenderTasks.add("zone:" + curZone);
+            pnlObjectSettings.repaint();
+            glCanvas.repaint();
+            unsavedChanges = true;
         }
     }
     
@@ -429,41 +430,41 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      */
     public void keyScaling() {
         if(getFocusOwner() == glCanvas) {
-            for(AbstractObj currentChangeObj : selectedObjs.values()) {
-                float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
-                if(lastDist == 0)
-                    lastDist = curDist;
-                float pol = 0.01f;
-                if(curDist < lastDist)
-                    pol *= -1;
-                if(startingMousePos.y < lastMouseMove.y)
-                    pol *= -1;
-                
-                if(keyAxis != null) switch(keyAxis) {
-                    case "all":
-                        currentChangeObj.scale.x += pol * Math.abs(lastDist - curDist);
-                        currentChangeObj.scale.y += pol * Math.abs(lastDist - curDist);
-                        currentChangeObj.scale.z += pol * Math.abs(lastDist - curDist);
-                        break;
-                    case "x":
-                        currentChangeObj.scale.x += pol * Math.abs(lastDist - curDist);
-                        break;
-                    case "y":
-                        currentChangeObj.scale.y += pol * Math.abs(lastDist - curDist);
-                        break;
-                    case "z":
-                        currentChangeObj.scale.z += pol * Math.abs(lastDist - curDist);
-                        break;
-                    default:
-                        break;
-                }
-                
+            Vector3 delta = new Vector3();
+            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
+            if(lastDist == 0)
                 lastDist = curDist;
-                rerenderTasks.add("zone:" + currentChangeObj.zone.zoneName);
-                pnlObjectSettings.repaint();
-                glCanvas.repaint();
-                unsavedChanges = true;
+            float pol = 0.01f;
+            if(curDist < lastDist)
+                pol *= -1;
+            if(startingMousePos.y < lastMouseMove.y)
+                pol *= -1;
+
+            if(keyAxis != null) switch(keyAxis) {
+                case "all":
+                    delta.x += pol * Math.abs(lastDist - curDist);
+                    delta.y += pol * Math.abs(lastDist - curDist);
+                    delta.z += pol * Math.abs(lastDist - curDist);
+                    break;
+                case "x":
+                    delta.x += pol * Math.abs(lastDist - curDist);
+                    break;
+                case "y":
+                    delta.y += pol * Math.abs(lastDist - curDist);
+                    break;
+                case "z":
+                    delta.z += pol * Math.abs(lastDist - curDist);
+                    break;
+                default:
+                    break;
             }
+
+            scaleSelectionBy(delta);
+            lastDist = curDist;
+            rerenderTasks.add("zone:" + curZone);
+            pnlObjectSettings.repaint();
+            glCanvas.repaint();
+            unsavedChanges = true;
         }
     }
     
@@ -472,36 +473,37 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      */
     public void keyRotating() {
         if(getFocusOwner() == glCanvas) {
-            for(AbstractObj currentChangeObj : selectedObjs.values()) {
-                float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
-                if(lastDist == 0)
-                    lastDist = curDist;
-                float pol = 0.1f;
-                if(curDist < lastDist)
-                    pol *= -1;
-                if(startingMousePos.y < lastMouseMove.y)
-                    pol *= -1;
-
-                if(keyAxis != null) switch(keyAxis) {
-                    case "x":
-                        currentChangeObj.rotation.x += pol * Math.abs(lastDist - curDist);
-                        break;
-                    case "y":
-                        currentChangeObj.rotation.y += pol * Math.abs(lastDist - curDist);
-                        break;
-                    case "z":
-                        currentChangeObj.rotation.z += pol * Math.abs(lastDist - curDist);
-                        break;
-                    default:
-                        break;
-                }
-
+            Vector3 delta = new Vector3();
+            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
+            if(lastDist == 0)
                 lastDist = curDist;
-                rerenderTasks.add("zone:" + currentChangeObj.zone.zoneName);
-                pnlObjectSettings.repaint();
-                glCanvas.repaint();
-                unsavedChanges = true;
+            float pol = 0.1f;
+            if(curDist < lastDist)
+                pol *= -1;
+            if(startingMousePos.y < lastMouseMove.y)
+                pol *= -1;
+
+            if(keyAxis != null) switch(keyAxis) {
+                case "x":
+                    delta.x += pol * Math.abs(lastDist - curDist);
+                    break;
+                case "y":
+                    delta.y += pol * Math.abs(lastDist - curDist);
+                    break;
+                case "z":
+                    delta.z += pol * Math.abs(lastDist - curDist);
+                    break;
+                default:
+                    break;
             }
+            
+            rotateSelectionBy(delta);
+
+            lastDist = curDist;
+            rerenderTasks.add("zone:" + curZone);
+            pnlObjectSettings.repaint();
+            glCanvas.repaint();
+            unsavedChanges = true;
         }
     }
     
@@ -1181,20 +1183,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             return;
         }
         
-        // Check if any are paths/path points
+        // Check if any are paths/path points linked to selected objs
         for(AbstractObj obj : selectedObjs.values()) {
             int pathid = -1;
             
             if(obj instanceof PathPointObj)
                 pathid = ((PathPointObj) obj).path.pathID;
             else if(obj.data.containsKey("CommonPath_ID"))
-                pathid =(int)(short)obj.data.get("CommonPath_ID");
+                pathid = (short) obj.data.get("CommonPath_ID");
             
             if(pathid == -1)
                 continue;
             
+            // Display path if it is linked to object
             if(displayedPaths.get(pathid) == null)
-                displayedPaths.put(pathid, (PathPointObj) obj);
+                displayedPaths.put(pathid, (PathPointObj) globalPathPointList.get(pathid));
         }
         
         // Check if the selected objects' classes are the same
@@ -2267,7 +2270,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void tgbPasteObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbPasteObjActionPerformed
         tgbPasteObj.setSelected(false);
         if(copyObj != null) {
-            //following 5 lines by OcelotGaming
             ArrayList<AbstractObj> copiedObjs = new ArrayList();
             for(Map.Entry<Integer, AbstractObj> entry : copyObj.entrySet()) {
                 AbstractObj value = entry.getValue();
@@ -2278,15 +2280,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 addingObject = "general|"+currentTempObj.name;
                 addingObjectOnLayer = currentTempObj.layer;
                 addObject(new Point(glCanvas.getWidth()/2,glCanvas.getHeight()/2));
-                try {
-                    if(curUndoIndex != undo.size()) {
-                        undo.clear();
-                        curUndoIndex = 0;
-                    }
-                } catch(ArrayIndexOutOfBoundsException ex) { }
-
-                undo.add(new UndoObj("addObj", newobj));
-                curUndoIndex++;
+                
+                addUndoEntry("addObj", newobj);
 
                 newobj.rotation = currentTempObj.rotation;
                 addingObject="";
@@ -2834,16 +2829,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         addingObject = "";
         
-        try {
-            if(curUndoIndex != undo.size()) {
-                undo.clear();
-                curUndoIndex = 0;
-            }
-        } catch(ArrayIndexOutOfBoundsException ex) { }
-        
-        undo.add(new UndoObj("addObj", newobj));
-        curUndoIndex++;
-        
         newobj.rotation.x = obj.rotation.x; newobj.rotation.y = obj.rotation.y; newobj.rotation.z = obj.rotation.z;
         newobj.scale.x = obj.scale.x; newobj.scale.y = obj.scale.y; newobj.scale.z = obj.scale.z;
         addingObject="";
@@ -2884,6 +2869,58 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         newobj.renderer = obj.renderer;
+        
+        addUndoEntry("addObj", newobj);
+    }
+    
+    public void undo() {
+        // Decrease undo index
+        if(undoIndex >= 1)
+            undoIndex--;
+        else // Nothing to undo
+            return;
+        
+        UndoEntry change = undoList.get(undoIndex);
+        switch(change.type) {
+            case "changeObj":
+                AbstractObj obj = globalObjList.get(change.id);
+                obj.data =(Bcsv.Entry) change.data.clone();
+                obj.position =(Vector3) change.position.clone();
+                obj.rotation =(Vector3) change.rotation.clone();
+                obj.scale =(Vector3) change.scale.clone();
+                pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
+                pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
+                pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
+                pnlObjectSettings.repaint();
+                addRerenderTask("zone:"+obj.zone.zoneName);
+                break;
+            case "deleteObj":
+                addingObject = change.objType + "|" + change.name;
+                addingObjectOnLayer = change.layer;
+                addObject(change.position);
+                addingObject = "";
+
+                newobj.data =(Bcsv.Entry) change.data.clone();
+                newobj.position =(Vector3) change.position.clone();
+                newobj.rotation =(Vector3) change.rotation.clone();
+                newobj.scale =(Vector3) change.scale.clone();
+                addRerenderTask("zone:"+newobj.zone.zoneName);
+                break;
+            case "addObj":
+                deleteObject(change.id);
+        }
+    }
+    
+    public void addUndoEntry(String type, AbstractObj obj) {
+        if(undoIndex != undoList.size())
+            undoList.subList(0, undoIndex);
+        if(undoIndex > 0) {
+            if(undoList.get(undoIndex - 1).type.equals(type) && undoList.get(undoIndex - 1).id == obj.uniqueID)
+                return;
+        }
+
+        undoList.add(new UndoEntry(type, obj));
+        undoIndex++;
     }
     
     public void addRerenderTask(String task) {
@@ -3019,10 +3056,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pnlObjectSettings.repaint();
                 rerenderTasks.add(String.format("path:%1$d", selectedPathPoint.path.uniqueID));
                 rerenderTasks.add("zone:"+selectedPathPoint.path.zone.zoneName);
-            }
-            else {
+            } else {
                 if(selectedObj instanceof StageObj)
                     return;
+                
+                addUndoEntry("changeObj", selectedObj);
                 
                 selectedObj.position.x += delta.x;
                 selectedObj.position.y += delta.y;
@@ -3032,15 +3070,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
                 pnlObjectSettings.repaint();
                 addRerenderTask("zone:"+selectedObj.zone.zoneName);
-                try {
-                    if(curUndoIndex != undo.size()) {
-                        undo.clear();
-                        curUndoIndex = 0;
-                    }
-                } catch(ArrayIndexOutOfBoundsException ex) { }
-                    
-                undo.add(new UndoObj(selectedObj));
-                curUndoIndex++;
             }
             glCanvas.repaint();
         }
@@ -3051,6 +3080,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
                 return;
             
+            addUndoEntry("changeObj", selectedObj);
+            
             selectedObj.rotation.x += delta.x;
             selectedObj.rotation.y += delta.y;
             selectedObj.rotation.z += delta.z;
@@ -3058,16 +3089,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             pnlObjectSettings.setFieldValue("dir_y", selectedObj.rotation.y);
             pnlObjectSettings.setFieldValue("dir_z", selectedObj.rotation.z);
             pnlObjectSettings.repaint();
-            
-            try {
-                if(curUndoIndex != undo.size()) {
-                    undo.clear();
-                    curUndoIndex = 0;
-                }
-            } catch(ArrayIndexOutOfBoundsException ex) { }
-            
-            undo.add(new UndoObj(selectedObj));
-            curUndoIndex++;
             
             addRerenderTask("zone:"+selectedObj.zone.zoneName);
             addRerenderTask("object:"+selectedObj.uniqueID);
@@ -3080,6 +3101,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
                 return;
             
+            addUndoEntry("changeObj", selectedObj);
+            
             selectedObj.scale.x += delta.x;
             selectedObj.scale.y += delta.y;
             selectedObj.scale.z += delta.z;
@@ -3087,16 +3110,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             pnlObjectSettings.setFieldValue("scale_y", selectedObj.scale.y);
             pnlObjectSettings.setFieldValue("scale_z", selectedObj.scale.z);
             pnlObjectSettings.repaint();
-            
-            try {
-                if(curUndoIndex != undo.size()) {
-                    undo.clear();
-                    curUndoIndex = 0;
-                }
-            } catch(ArrayIndexOutOfBoundsException ex) { }
-            
-            undo.add(new UndoObj(selectedObj));
-            curUndoIndex++;
 
             addRerenderTask("zone:"+selectedObj.zone.zoneName);
             addRerenderTask("object:"+selectedObj.uniqueID);
@@ -3726,15 +3739,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if(globalObjList.containsKey(uid)) {
             AbstractObj obj = globalObjList.get(uid);
             
-            try {
-                if(curUndoIndex != undo.size()) {
-                    undo.clear();
-                    curUndoIndex = 0;
-                }
-            } catch(ArrayIndexOutOfBoundsException ex) { }
-            
-            undo.add(new UndoObj("deleteObj", obj));
-            curUndoIndex++;
+            addUndoEntry("deleteObj", obj);
             
             obj.zone.objects.get(obj.layer).remove(obj);
             rerenderTasks.add(String.format("delobj:%1$d", uid));
@@ -5147,23 +5152,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
                     if(!addingObject.isEmpty()) {
                         addObject(lastMouseMove);
-                        try {
-                            if(curUndoIndex != undo.size()) {
-                                undo.clear();
-                                curUndoIndex = 0;
-                            }
-                        } catch(ArrayIndexOutOfBoundsException ex) { }
 
-                        undo.add(new UndoObj("addObj", newobj));
-                        curUndoIndex++;
+                        undoList.add(new UndoEntry("addObj", newobj));
+                        undoIndex++;
         
                         if(!shiftpressed) {
                             addingObject = "";
                             tgbAddObject.setSelected(false);
                             setStatusText();
                         }
-                    }
-                    else if(deletingObjects) {
+                    } else if(deletingObjects) {
                         deleteObject(objid);
                         if(!shiftpressed)  {
                             deletingObjects = false;
@@ -5387,37 +5385,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
             }
             if(e.getKeyCode() == KeyEvent.VK_Z && e.isControlDown()) {
-                if(curUndoIndex >= 1) curUndoIndex--;
-                UndoObj oldObj = undo.get(curUndoIndex);
-                if(oldObj.type.equals("changeObj")) {
-                    AbstractObj obj = globalObjList.get(oldObj.id);
-                    obj.data =(Bcsv.Entry) oldObj.data.clone();
-                    obj.position =(Vector3) oldObj.position.clone();
-                    obj.rotation =(Vector3) oldObj.rotation.clone();
-                    obj.scale =(Vector3) oldObj.scale.clone();
-                    pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
-                    pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
-                    pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
-                    pnlObjectSettings.repaint();
-                    addRerenderTask("zone:"+obj.zone.zoneName);
-                }
-                if(oldObj.type.equals("deleteObj")) {
-                    addingObject = oldObj.objType + "|" + oldObj.name;
-                    addingObjectOnLayer = oldObj.layer;
-                    addObject(oldObj.position);
-                    addingObject = "";
-                    
-                    newobj.data =(Bcsv.Entry) oldObj.data.clone();
-                    newobj.position =(Vector3) oldObj.position.clone();
-                    newobj.rotation =(Vector3) oldObj.rotation.clone();
-                    newobj.scale =(Vector3) oldObj.scale.clone();
-                    addRerenderTask("zone:"+newobj.zone.zoneName);
-                }
-                if(oldObj.type.equals("addObj")) {
-                    deleteObject(oldObj.id);
-                }
-                System.out.println(curUndoIndex);
-                
+                undo();
+                System.out.println("Undos left: " + undoIndex);
                 glCanvas.repaint();
             }
             if(e.getKeyCode() == KeyEvent.VK_S && !e.isControlDown() && !e.isShiftDown()) {
@@ -5446,18 +5415,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 keyRotating = true;
                 startingMousePos = lastMouseMove;
             }
-            switch(e.getKeyCode()) {
-                case KeyEvent.VK_X:
-                    keyAxis = "x";
-                    break;
-                case KeyEvent.VK_Y:
-                    keyAxis = "y";
-                    break;
-                case KeyEvent.VK_Z:
-                    keyAxis = "z";
-                    break;
-                default:
-                    break;
+            
+            if(keyRotating || keyScaling || keyTranslating) {
+                switch(e.getKeyCode()) {
+                    case KeyEvent.VK_X:
+                        keyAxis = "x";
+                        break;
+                    case KeyEvent.VK_Y:
+                        keyAxis = "y";
+                        break;
+                    case KeyEvent.VK_Z:
+                        keyAxis = "z";
+                        break;
+                    default:
+                        break;
+                }
             }
             if(e.isShiftDown()) {
                 if(e.getKeyCode() == KeyEvent.VK_A) {
@@ -5872,13 +5844,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public boolean keyScaling, keyTranslating, keyRotating, camSelected = false, fullscreen = false;
     public String keyAxis = "all";
     
-    public ArrayList<UndoObj> undo = new ArrayList<>();
-    private int curUndoIndex = 0;
+    public ArrayList<UndoEntry> undoList = new ArrayList<>();
+    private int undoIndex = 0;
     private float lastDist;
     
     // This object is used to save previous obj info for undo
-    public class UndoObj {
-        public UndoObj(AbstractObj obj) {
+    public class UndoEntry {
+        public UndoEntry(AbstractObj obj) {
             position =(Vector3) obj.position.clone();
             rotation =(Vector3) obj.rotation.clone();
             scale =(Vector3) obj.scale.clone();
@@ -5889,7 +5861,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             name = obj.name;
             objType = obj.type;
         }
-        public UndoObj(String editType, AbstractObj obj) {
+        public UndoEntry(String editType, AbstractObj obj) {
             position =(Vector3) obj.position.clone();
             rotation =(Vector3) obj.rotation.clone();
             scale =(Vector3) obj.scale.clone();
