@@ -50,8 +50,7 @@ public class Yaz0File extends MemoryFile
     }
     
     @Override
-    public void close() throws IOException
-    {
+    public void close() throws IOException {
         if (backend != null)
             backend.close();
     }

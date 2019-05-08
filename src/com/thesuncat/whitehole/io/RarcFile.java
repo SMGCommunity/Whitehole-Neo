@@ -17,10 +17,8 @@ package com.thesuncat.whitehole.io;
 
 import java.io.IOException;
 
-public class RarcFile extends MemoryFile
-{
-    public RarcFile(RarcFilesystem fs, String fullname) throws IOException
-    {
+public class RarcFile extends MemoryFile {
+    public RarcFile(RarcFilesystem fs, String fullname) throws IOException {
         super(fs.getFileContents(fullname));
         
         filesystem = fs;
@@ -28,8 +26,7 @@ public class RarcFile extends MemoryFile
     }
 
     @Override
-    public void save() throws IOException
-    {
+    public void save() throws IOException {
         filesystem.reinsertFile(this);
     }
 

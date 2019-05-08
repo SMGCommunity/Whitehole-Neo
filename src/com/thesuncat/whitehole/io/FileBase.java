@@ -17,15 +17,28 @@ package com.thesuncat.whitehole.io;
 
 import java.io.IOException;
 
-public interface FileBase 
-{
-    public void save() throws IOException;      // Forces changes to the file's contents to be saved
-    public void close() throws IOException;     // Closes the file
+public interface FileBase  {
+    /**
+     * Forces changes to the file's contents to be saved
+     * @throws IOException 
+     */
+    public void save() throws IOException;
     
-    // Typically used by classes extending MemoryFile, to save RAM. Has no effect on ExternalFiles.
+    /**
+     * Closes the file. Only necessary for {@code Yaz0File}s.
+     * @throws IOException 
+     */
+    public void close() throws IOException;
+    
+    /**
+     * Typically used by classes extending MemoryFile, to save RAM. Has no effect on ExternalFiles.
+     */
     public void releaseStorage();
     
-    // Affects the byte ordering of the Read/Write methods
+    /**
+     * Affects the byte ordering of the Read/Write methods
+     * @param bigendian whether the ordering is big endian
+     */
     public void setBigEndian(boolean bigendian);
     
     public long getLength() throws IOException;

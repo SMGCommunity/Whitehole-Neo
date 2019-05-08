@@ -30,8 +30,7 @@ public class Bcsv  {
         this.file = file;
         file.setBigEndian(true);
         
-        if (file.getLength() == 0)
-        {
+        if (file.getLength() == 0) {
             fields = new LinkedHashMap<>();
             entries = new ArrayList<>();
             
@@ -110,9 +109,8 @@ public class Bcsv  {
          this.entries = file.entries;
          this.fields = file.fields;
     }
-
-    public void save() throws IOException
-    {
+    
+    public void save() throws IOException {
         int[] datasizes = { 4, -1, 4, 4, 2, 1, 4 };
         int entrysize = 0;
 
@@ -235,16 +233,13 @@ public class Bcsv  {
 
         addHash(name); // hehe
 
-        if (type == 2 || type == 6)
-        {
+        if (type == 2 || type == 6) {
             mask = 0xFFFFFFFF;
             shift = 0;
         }
 
-        if (offset == -1)
-        {
-            for (Field field : fields.values())
-            {
+        if (offset == -1) {
+            for (Field field : fields.values()) {
                 short fieldend = (short)(field.entryOffset + datasizes[field.type]);
                 if (fieldend > offset) offset = fieldend;
             }
@@ -260,9 +255,7 @@ public class Bcsv  {
         fields.put(newfield.nameHash, newfield);
 
         for (Entry entry : entries)
-        {
             entry.put(name, defaultval);
-        }
 
         return newfield;
     }
