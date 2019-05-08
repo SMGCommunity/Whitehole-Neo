@@ -35,10 +35,10 @@ import com.thesuncat.whitehole.worldmapObject.*;
 import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.io.RarcFilesystem;
-import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.smg.Bcsv;
 import com.thesuncat.whitehole.smg.GalaxyArchive;
 import com.thesuncat.whitehole.smg.ZoneArchive;
+import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer.RenderMode;
 import com.thesuncat.whitehole.rendering.cache.RendererCache;
@@ -215,7 +215,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @param zone the zone to be edited
      */
     public GalaxyEditorForm(GalaxyEditorForm gal_parent, ZoneArchive zone) {
-        
         initComponents();
         initVariables();
         if(Settings.dark)
@@ -260,7 +259,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             lbLayersList.setForeground(new Color(157,158,161));
             lbLayersList.setOpaque(true);
         }
-        pack();
         
         zoneModeLayerBitmask = 1;
         JCheckBox[] cblayers = new JCheckBox[curZoneArc.objects.keySet().size()];
@@ -325,7 +323,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         btnShowPaths.setSelected(Settings.showPaths);
         tgbShowAxis.setSelected(Settings.showAxis);
         
-        // TODO: make these do something instead of simply deleting them
+        // TODO: make these buttons do something instead of simply hiding them
         btnAddScenario.setVisible(false);
         btnEditScenario.setVisible(false);
         btnDeleteScenario.setVisible(false);
@@ -388,20 +386,38 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     /**
      * Called when translating through the shortcut key G
+     * @param shiftPressed will move slower if shift is pressed
      */
-    public void keyTranslating() {
+    public void keyTranslating(boolean shiftPressed) {
         if(getFocusOwner() == glCanvas) {
             Vector3 delta = new Vector3();
             float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
             if(lastDist == 0)
                 lastDist = curDist;
-            float pol = 1f;
+            float pol = 10f;
+            
+            if(shiftPressed)
+                pol *= 0.1;
+            
             if(curDist < lastDist)
                 pol *= -1;
             if(startingMousePos.y < lastMouseMove.y)
                 pol *= -1;
 
             if(keyAxis != null) switch(keyAxis) {
+                case "all":
+                    float objz = depthUnderCursor;
+                    
+                    float xdelta = (startingMousePos.x - lastMouseMove.x) * pixelFactorX * objz * scaledown;
+                    float ydelta = (startingMousePos.y - lastMouseMove.y) * -pixelFactorY * objz * scaledown;
+                    
+                    delta = new Vector3(
+                           (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
+                            ydelta *(float)Math.cos(camRotation.y),
+                            -(xdelta *(float)Math.cos(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x)));
+                    applySubzoneRotation(delta);
+                    System.out.println(delta);
+                    break;
                 case "x":
                     delta.x = pol * Math.abs(lastDist - curDist);
                     break;
@@ -427,14 +443,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     /**
      * Called when scaling through the shortcut key S
+     * @param shiftPressed will move slower if shift is pressed
      */
-    public void keyScaling() {
+    public void keyScaling(boolean shiftPressed) {
         if(getFocusOwner() == glCanvas) {
             Vector3 delta = new Vector3();
             float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
             if(lastDist == 0)
                 lastDist = curDist;
             float pol = 0.01f;
+            
+            if(shiftPressed)
+                pol *= 0.1;
+            
             if(curDist < lastDist)
                 pol *= -1;
             if(startingMousePos.y < lastMouseMove.y)
@@ -470,14 +491,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     /**
      * Called when rotating through the shortcut key R
+     * @param shiftPressed will move slower if shift is pressed
      */
-    public void keyRotating() {
+    public void keyRotating(boolean shiftPressed) {
         if(getFocusOwner() == glCanvas) {
             Vector3 delta = new Vector3();
             float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
             if(lastDist == 0)
                 lastDist = curDist;
             float pol = 0.1f;
+            
+            if(shiftPressed)
+                pol *= 0.1;
+            
             if(curDist < lastDist)
                 pol *= -1;
             if(startingMousePos.y < lastMouseMove.y)
@@ -2343,40 +2369,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         tgbCamPrev.setSelected(false);
         if(selectedObjs.size() == 1) {
-            //following 5 lines by OcelotGaming
-            for(Map.Entry<Integer, AbstractObj> entry : selectedObjs.entrySet()) {
-                AbstractObj value = entry.getValue();
-                objs.add(value);
-            }
-            for(AbstractObj obj : objs) {
-                if(obj instanceof CameraObj) {
-                    //System.out.println("Viewing cam!");
-                    try {
-                        //int camid =(int)((CameraObj) obj).data.get("Obj_arg0");
-                        viewCamera((int) obj.data.get("Obj_arg0"));
-                        /*String formatted = Integer.toHexString(camid);
-                        while(formatted.length() < 4)
-                            formatted = "0" + formatted;
-                        if(!formatted.contains("0") && !formatted.contains("1") && !formatted.contains("2") && !formatted.contains("3") && !formatted.contains("4") && !formatted.contains("5") && !formatted.contains("6") && !formatted.contains("7") && !formatted.contains("8") && !formatted.contains("9")) {
-                            formatted = "c:" + formatted;
-                        } else {
-                            formatted = "c:" + formatted;
-                        }
-                        lbStatusLabel.setText("Viewing camera " + formatted + ".");*/
-                    } catch(Exception ex) {
-                        lbStatusLabel.setText("Failed to view camera: " + ex.getMessage() + ".");
-                    }
+            if(selectedObjs.values().iterator().next() instanceof CameraObj) {
+                try {
+                    viewCamera((int) selectedObjs.values().iterator().next().data.get("Obj_arg0"));
+                } catch(Exception ex) {
+                    lbStatusLabel.setText("Failed to view camera: " + ex.getMessage() + ".");
                 }
             }
         }
     }//GEN-LAST:event_tgbCamPrevActionPerformed
 
     private void itemScreenshotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemScreenshotActionPerformed
-        try {
-            saveImage(glCanvas.getGL().getGL2(), glCanvas.getWidth(), glCanvas.getHeight());
-        } catch(AWTException | InterruptedException ex) {
-            return;
-        }
+        saveImage();
     }//GEN-LAST:event_itemScreenshotActionPerformed
 
     private void btnDeleteZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteZoneActionPerformed
@@ -2386,27 +2390,29 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void btnDeleteScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteScenarioActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnDeleteScenarioActionPerformed
-
-    protected void saveImage(GL2 gl3, int width, int height) throws AWTException, InterruptedException {
+    
+    /**
+     * When I wrote this, only God and I knew the meaning.
+     * Now God alone knows.
+     */
+    protected void saveImage() {
         BufferedImage screenshot;
         glCanvas.getGL().getContext().makeCurrent();
         glCanvas.repaint();
         glCanvas.getGL().glFlush();
         screenshot = Screenshot.readToBufferedImage(glCanvas.getWidth(), glCanvas.getHeight(), false);
-        while(screenshot.getRGB(screenshot.getWidth()/2, screenshot.getHeight()/2) == Color.black.getRGB() && screenshot.getRGB(20, 20) == Color.black.getRGB() && screenshot.getRGB(screenshot.getWidth() - 20, screenshot.getHeight() - 20) == Color.black.getRGB()) {
+        
+        // Screenshot will randomly be just black, looping here to make sure it isn't
+        while(screenshot.getRGB(1, 1) == Color.black.getRGB() &&
+                screenshot.getRGB(30, 30) == Color.black.getRGB() &&
+                screenshot.getRGB(50, screenshot.getHeight() - 30) == Color.black.getRGB()) {
             screenshot = Screenshot.readToBufferedImage(glCanvas.getWidth(), glCanvas.getHeight(), false);
-            try {
-                // for some reason, calling wait here fixes a bug where captures would be all black
-                this.wait(10);
-            } catch(Exception ex) {
-                //do nothing lol
-            }
         }
+        
         CopyImage ci = new CopyImage();
         ci.copyImage(screenshot);
 }
     
-    public ArrayList<AbstractObj> objs = new ArrayList();
     public void viewCamera(int id) {
         if(camBcsv == null) {
             try {
@@ -2416,12 +2422,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 return;
             }
         }
-        float angleA = 0, angleB = 0;
+        
         ArrayList<Field> fields = new ArrayList();
         for(Map.Entry<Integer, Field> entry : camBcsv.fields.entrySet()) {
             Field value = entry.getValue();
             fields.add(value);
         }
+        
+        // idColumn holds the index of the column that contains the c:XXXX strings
         int idColumn = 0;
         for(int i = 0; i < fields.size(); i++) {
             if("[00000D1B]".equals(fields.get(i).name) || "id".equals(fields.get(i).name)) {
@@ -2429,77 +2437,64 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 break;
             }
         }
+        
         if(idColumn == 0) {
-            //System.out.println("oh nose, no id field found. did I do a bad?");
             lbStatusLabel.setText("Could not find camera ID field in the BCSV. Corrupted BCAM?");
             return;
         }
+        
+        // Creating the c:XXXX camera id
         String idString;
         String formatted = Integer.toHexString(id);
         while(formatted.length() < 4)
             formatted = "0" + formatted;
-        if(!formatted.contains("0") && !formatted.contains("1") && !formatted.contains("2") && !formatted.contains("3") && !formatted.contains("4") && !formatted.contains("5") && !formatted.contains("6") && !formatted.contains("7") && !formatted.contains("8") && !formatted.contains("9")) {
-            idString = "c:" + Integer.toHexString(id); //workaround for PCs that use a different char for 0, this will simply write the ID in hex w/o the zero padding
-        } else {
+        if(!formatted.matches(".*\\d.*")) // will match if it has any numbers in it
+            idString = "c:" + Integer.toHexString(id); // workaround for PCs that use a different char for 0, this will simply write the ID in hex w/o the zero padding
+        else
             idString = "c:" + formatted;
-        }
+        
         Bcsv.Entry cameraInQuestion = null;
         for(int i = 0; i < camBcsv.entries.size(); i++) {
             Bcsv.Entry curEntry = camBcsv.entries.get(i);
             ArrayList keys = new ArrayList(curEntry.keySet());
             String curIdString =(String) curEntry.get((Integer)keys.get(idColumn));
-            if(curIdString.contains("c:")) {
-                if(Integer.parseInt(curIdString.substring(2), 16) == id) {
-                    cameraInQuestion =(Bcsv.Entry) curEntry.clone();
-                    curIdString =(String) cameraInQuestion.get((Integer)keys.get(idColumn));
-                    System.out.println("found id: " + Integer.parseInt(curIdString.substring(2), 16));
-                    break;
-                }
-                System.out.println(Integer.parseInt(curIdString.substring(2), 16));
+            if(curIdString.contains("c:") && Integer.parseInt(curIdString.substring(2), 16) == id) {
+                cameraInQuestion =(Bcsv.Entry) curEntry.clone();
+                break;
             }
         }
+        
         if(cameraInQuestion == null) {
             lbStatusLabel.setText("Could not find camera id " + idString + "(" + id + ") in the camera BCSV.");
             return;
         }
+        
+        // TODO: account for zone rotation :weary:
         for(int i = 0; i < fields.size(); i++) {
             ArrayList keys = new ArrayList(cameraInQuestion.keySet());
             switch(fields.get(i).name) {
                 case "angleA":
-                    angleA =(float)(cameraInQuestion.get((Integer)keys.get(i)));
-                    //System.out.println(angleA);
-                    angleA = angleA * 180;
-                    angleA =(float)(angleA / Math.PI);
-                    angleA = angleA + 180;
-                    angleA =(float)(angleA /(180/Math.PI));
-                    camRotation.x = angleA;// +(float)(Math.PI);
-                    System.out.println("x: " + camRotation.x);
+                    camRotation.x = -1f * (float) (cameraInQuestion.get((Integer)keys.get(i))) + (float) Math.PI;
                     break;
-                    //(float)(Math.abs((int)(((camRotation.x *(180/Math.PI)) - 180)) % 360) * Math.PI) / 180;
                 case "angleB":
-                    angleB =(float)(cameraInQuestion.get((Integer)keys.get(i)));
-                    angleB = angleB * 180;
-                    angleB =(float)(angleB / Math.PI);
-                    angleB =(float)(angleB /(180 / Math.PI));
-                    camRotation.y =  angleB;
-                    System.out.println("y: " + camRotation.y);
+                    camRotation.y = (float) (cameraInQuestion.get((Integer)keys.get(i)));
                     break;
-                    //(float)(((camRotation.y *(180/Math.PI)) % 360) * Math.PI) / 180
                 case "dist":
-                    camDistance =(float) cameraInQuestion.get((Integer)keys.get(i)) / scaledown;
-                    System.out.print("dist: " + camDistance);
+                    camDistance = (float) cameraInQuestion.get((Integer)keys.get(i)) / scaledown;
                     break;
-                case "[BEC02B35]":
-                    Vector3 objPos =(Vector3) objs.get(0).position.clone();
-                    camPosition.y =((float)cameraInQuestion.get((Integer)keys.get(i)) + objPos.y) / scaledown;
-                    camTarget.y =(float) objPos.y / scaledown;
-                    camTarget.x =(float) objPos.x / scaledown;
-                    camTarget.z =(float) objPos.z / scaledown;
+                case "[BEC02B35]": // this field holds the Y height
+                    Vector3 objPos = (Vector3) selectedObjs.values().iterator().next().position.clone();
+                    camPosition.y = ((float)cameraInQuestion.get((Integer)keys.get(i)) + objPos.y) / scaledown;
+                    camTarget.y = (float) objPos.y / scaledown;
+                    camTarget.x = (float) objPos.x / scaledown;
+                    camTarget.z = (float) objPos.z / scaledown;
+                    applySubzoneRotation(camTarget);
                     break;
                 default:
                     break;
             }
         }
+        
         lbStatusLabel.setText("Viewing camera " + idString + "(" + id + ").");
         renderer.updateCamera();
         renderer.display(glCanvas);
@@ -2603,11 +2598,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         String formatted = Integer.toHexString(largest + 1);
         while(formatted.length() < 4)
             formatted = "0" + formatted;
-        if(!formatted.contains("0") && !formatted.contains("1") && !formatted.contains("2") && !formatted.contains("3") && !formatted.contains("4") && !formatted.contains("5") && !formatted.contains("6") && !formatted.contains("7") && !formatted.contains("8") && !formatted.contains("9")) {
+        if(!formatted.matches(".*\\d.*"))
             id = "c:" + Integer.toHexString(largest + 1); //workaround for PCs that use a different char for 0, this will simply write the ID in hex w/o the zero padding
-        } else {
+        else
             id = "c:" + formatted;
-        }
+        
         boolean goodSelects = false;
         AbstractObj object = null;
         if(selectedObjs.size() == 1) {
@@ -2671,8 +2666,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     curEntry.put((int) keys.get(i), 0.0f);
                     break;
                 case "dist":
-                    curEntry.put((int) keys.get(i),(float) Math.sqrt(Math.abs(Math.pow(object.position.x -(camPosition.x * scaledown), 2) + Math.pow(object.position.y -(camPosition.y * scaledown), 2) + Math.pow(object.position.z -(camPosition.z * scaledown), 2))));
-                    lastCamDist =(float) Math.sqrt(Math.abs(Math.pow(object.position.x -(camPosition.x * scaledown), 2) + Math.pow(object.position.y -(camPosition.y * scaledown), 2) + Math.pow(object.position.z -(camPosition.z * scaledown), 2)));
+                    curEntry.put((int) keys.get(i), (float) Math.sqrt(
+                            Math.abs(Math.pow(object.position.x - (camPosition.x * scaledown), 2) +
+                                    Math.pow(object.position.y -(camPosition.y * scaledown), 2) +
+                                    Math.pow(object.position.z -(camPosition.z * scaledown), 2))));
+                    lastCamDist = (float) Math.sqrt(
+                            Math.abs(Math.pow(object.position.x -(camPosition.x * scaledown), 2) +
+                                    Math.pow(object.position.y -(camPosition.y * scaledown), 2) +
+                                    Math.pow(object.position.z -(camPosition.z * scaledown), 2)));
                     break;
                 case "fovy":
                     curEntry.put((int) keys.get(i), 45.0f);
@@ -2884,10 +2885,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         switch(change.type) {
             case "changeObj":
                 AbstractObj obj = globalObjList.get(change.id);
-                obj.data =(Bcsv.Entry) change.data.clone();
-                obj.position =(Vector3) change.position.clone();
-                obj.rotation =(Vector3) change.rotation.clone();
-                obj.scale =(Vector3) change.scale.clone();
+                obj.data = (Bcsv.Entry) change.data.clone();
+                obj.position = (Vector3) change.position.clone();
+                obj.rotation = (Vector3) change.rotation.clone();
+                obj.scale = (Vector3) change.scale.clone();
                 pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
                 pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
                 pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
@@ -2905,10 +2906,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 newobj.rotation =(Vector3) change.rotation.clone();
                 newobj.scale =(Vector3) change.scale.clone();
                 addRerenderTask("zone:"+newobj.zone.zoneName);
+                
+                // TODO: fix a bug where moving the supermassive pipes, deleting one, and undoing sometimes deletes half the data. please, send help
+                if(!newobj.data.containsKey("MessageId"))
+                    System.err.println("aw peck, I did a dumb"); // epic breakpoint statement
                 break;
             case "addObj":
                 deleteObject(change.id);
         }
+        undoList.remove(change);
     }
     
     public void addUndoEntry(String type, AbstractObj obj) {
@@ -2918,6 +2924,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(undoList.get(undoIndex - 1).type.equals(type) && undoList.get(undoIndex - 1).id == obj.uniqueID)
                 return;
         }
+        
+        System.out.println("Added " + type + " with " + obj);
 
         undoList.add(new UndoEntry(type, obj));
         undoIndex++;
@@ -4972,7 +4980,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             float xdelta = e.getX() - lastMouseMove.x;
             float ydelta = e.getY() - lastMouseMove.y;
             
-            if(!isDragging &&(Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f)) {
+            if(!isDragging && (Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f)) {
                 pickingCapture = true;
                 isDragging = true;
             }
@@ -5061,6 +5069,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         @Override
         public void mouseMoved(MouseEvent e) {
+            if(!inited) return;
+            
+            // Rich Presence stuff
             if(getFocusOwner() == jSplitPane1) {
                 lastMove = System.currentTimeMillis() / 1000;
                 if(Settings.fileNames)
@@ -5068,16 +5079,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 else
                     Whitehole.currentTask = "Editing a galaxy";
             }
-            if(!inited) return;
+            
             lastMouseMove = e.getPoint();
+            
             if(startingMousePos == null)
                 startingMousePos = new Point(1,1);
             if(keyTranslating)
-                keyTranslating();
+                keyTranslating(e.isShiftDown());
             if(keyScaling)
-                keyScaling();
+                keyScaling(e.isShiftDown());
             if(keyRotating)
-                keyRotating();
+                keyRotating(e.isShiftDown());
         }
 
         @Override
@@ -5308,9 +5320,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 vdelta.y += ydist *(float)Math.cos(camRotation.y);
                 vdelta.z +=(xdist *(float)Math.cos(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));
                 
-                camTarget.x += vdelta.x;
-                camTarget.y += vdelta.y;
-                camTarget.z += vdelta.z;
+                int mult = 1;
+                
+                // Fast scroll
+                if(e.isShiftDown())
+                    mult = 3;
+                
+                camTarget.x += vdelta.x * mult;
+                camTarget.y += vdelta.y * mult;
+                camTarget.z += vdelta.z * mult;
 
                 updateCamera();
             }
@@ -5575,9 +5593,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     else if((keyMask &(1 << 8)) != 0)
                         scaleSelectionBy(deltaSize);
                 } else {
-                    finaldelta.x =(float)(-(delta.x * Math.sin(camRotation.x)) -(delta.y * Math.cos(camRotation.x) * Math.sin(camRotation.y)) +(delta.z * Math.cos(camRotation.x) * Math.cos(camRotation.y)));
-                    finaldelta.y =(float)((delta.y * Math.cos(camRotation.y)) +(delta.z * Math.sin(camRotation.y)));
-                    finaldelta.z =(float)((delta.x * Math.cos(camRotation.x)) -(delta.y * Math.sin(camRotation.x) * Math.sin(camRotation.y)) +(delta.z * Math.sin(camRotation.x) * Math.cos(camRotation.y)));
+                    finaldelta.x =(float)(-(delta.x * Math.sin(camRotation.x)) - (delta.y * Math.cos(camRotation.x) * Math.sin(camRotation.y)) +
+                            (delta.z * Math.cos(camRotation.x) * Math.cos(camRotation.y)));
+                    finaldelta.y =(float)((delta.y * Math.cos(camRotation.y)) + (delta.z * Math.sin(camRotation.y)));
+                    finaldelta.z =(float)((delta.x * Math.cos(camRotation.x)) - (delta.y * Math.sin(camRotation.x) * Math.sin(camRotation.y)) +
+                            (delta.z * Math.sin(camRotation.x) * Math.cos(camRotation.y)));
                     camTarget.x += finaldelta.x * 0.005f;
                     camTarget.y += finaldelta.y * 0.005f;
                     camTarget.z += finaldelta.z * 0.005f;

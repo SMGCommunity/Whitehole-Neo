@@ -15,39 +15,14 @@
 
 package com.thesuncat.whitehole.rendering;
 
-import com.thesuncat.whitehole.rendering.object.GravityRenderer;
-import com.thesuncat.whitehole.rendering.object.OtaKingRenderer;
-import com.thesuncat.whitehole.rendering.object.PowerStarHaloRenderer;
-import com.thesuncat.whitehole.rendering.object.AstroSkyRenderer;
-import com.thesuncat.whitehole.rendering.object.AstroRenderer;
-import com.thesuncat.whitehole.rendering.object.ItemBubbleRenderer;
-import com.thesuncat.whitehole.rendering.object.PoleRenderer;
-import com.thesuncat.whitehole.rendering.object.ClipAreaBoxRenderer;
-import com.thesuncat.whitehole.rendering.object.UFOKinokoRenderer;
-import com.thesuncat.whitehole.rendering.object.BlackHoleRenderer;
-import com.thesuncat.whitehole.rendering.object.KinopioRenderer;
-import com.thesuncat.whitehole.smg.object.MapPartObj;
-import com.thesuncat.whitehole.smg.object.AreaObj;
-import com.thesuncat.whitehole.smg.object.SoundObj;
-import com.thesuncat.whitehole.smg.object.LevelObj;
-import com.thesuncat.whitehole.smg.object.ChangeObj;
-import com.thesuncat.whitehole.smg.object.DebugObj;
-import com.thesuncat.whitehole.smg.object.PositionObj;
-import com.thesuncat.whitehole.smg.object.AbstractObj;
-import com.thesuncat.whitehole.smg.object.CutsceneObj;
-import com.thesuncat.whitehole.smg.object.ChildObj;
-import com.thesuncat.whitehole.smg.object.CameraObj;
-import com.thesuncat.whitehole.smg.object.GravityObj;
-import com.thesuncat.whitehole.rendering.object.ShapeRenderer;
-import com.thesuncat.whitehole.rendering.object.AreaRenderer;
+import com.thesuncat.whitehole.rendering.object.AreaRenderer.Shape;
+import com.thesuncat.whitehole.rendering.object.*;
+import com.thesuncat.whitehole.smg.ZoneArchive;
+import com.thesuncat.whitehole.smg.object.*;
 import com.thesuncat.whitehole.vectors.Color4;
 import com.thesuncat.whitehole.vectors.Vector3;
 import java.io.IOException;
-import com.thesuncat.whitehole.rendering.object.AreaRenderer.Shape;
-import com.thesuncat.whitehole.rendering.object.TransparentWallRenderer;
-import com.thesuncat.whitehole.smg.ZoneArchive;
-import java.util.ArrayList;
-import java.util.Arrays;
+
 
 public class Substitutor {
     public static String substituteModelName(AbstractObj obj, String model) {
@@ -309,8 +284,8 @@ public class Substitutor {
                     case "PowerStarHalo": return new PowerStarHaloRenderer(info);
                     case "EarthenPipe":
                     case "EarthenPipeInWater": return new BmdRendererSingle(info, "EarthenPipe", new Vector3(0f,100f,0f), new Vector3());
-                    case "InvisibleWall10x10": return new TransparentWallRenderer();
-                    // TODO 10x20
+                    case "InvisibleWall10x10": return new TransparentWallRenderer(1);
+                    case "InvisibleWall10x20": return new TransparentWallRenderer(2);
                     
                     // Multi-model rendering
                     case "RedBlueTurnBlock": return new MultiRenderer(
@@ -621,183 +596,4 @@ public class Substitutor {
         
         return null;
     }
-    
-    // Needed temporarily to speed up zone prerendering, until I rewrite this system
-    public static ArrayList<String> substitutedObjects = new ArrayList<>(Arrays.asList(
-        "PlantA", "PlantB", "PlantC", "PlantD", "MarinePlant",
-        "Pole", "PoleNoModel", "PoleSquare", "PoleSquareNoModel", "Pole2Way",
-        "Flag",
-        "FlagRaceA",
-        "FlagSurfing",
-        "FlagTamakoro",
-        "FlagPeachCastleA",
-        "FlagPeachCastleB",
-        "FlagPeachCastleC",
-        "FlagKoopaA",
-        "FlagKoopaB",
-        "FlagKoopaCastle",
-        "AstroStarPlate",
-        "AstroDome",
-        "AstroDomeEntrance",
-        "AstroDomeSky",
-        "BlackHole",
-        "BlackHoleCube",
-        "Coin",
-        "PurpleCoin",
-        "OtaKing",
-        "Kinopio",
-        "KinopioAstro",
-        "KinopioBank",
-        "KinopioPostman",
-        "UFOKinoko",
-        "PowerStarHalo",
-        "EarthenPipe",
-        "EarthenPipeInWater",
-        "InvisibleWall10x10",
-        "RedBlueTurnBlock",
-        "Patakuri",
-        "PatakuriBig",
-        "Nyoropon",
-        "Grapyon",
-        "StrayTico",
-        "HammerHeadPackun",
-        "HammerHeadPackunSpike",
-        "CocoSambo",
-        "Kiraira",
-        "Torpedo",
-        "BegomanSpike",
-        "BegomanSpring",
-        "BegomanSpringHide",
-        "JumpBeamer",
-        "JumpGuarder",
-        "GliderBazooka",
-        "GliderShooter",
-        "KillerShooter",
-        "WaterBazooka",
-        "ElectricBazooka",
-        "DinoPackun",
-        "DinoPackunVs1",
-        "DinoPackunVs2",
-        "BossBegoman",
-        "BossJugem",
-        "KoopaJrRobot",
-        "KoopaJrCastle",
-        "OtaRockTank",
-        "TombSpider",
-        "SkeletalFishBoss",
-        "ClipAreaBoxBottom",
-        "ClipAreaBoxCenterHighModel",
-        "AstroChangeStageCube",
-        "AudioEffectCube",
-        "BeeWallShortDistAreaCube",
-        "BgmProhibitArea",
-        "BigBubbleGoalAreaBox",
-        "BigBubbleSwitchBox",
-        "BindEndCube",
-        "BlackHoleCube",
-        "BloomCube",
-        "BlueStarGuidanceCube",
-        "ChangeBgmCube",
-        "CollisionArea",
-        "DarkMatterCube",
-        "DeathCube",
-        "DepthOfFieldCube",
-        "ExtraWallCheckArea",
-        "FallsCube",
-        "ForbidJumpCube",
-        "ForbidTriangleJumpCube",
-        "ForbidWaterSearchCube",
-        "ForceDashCube",
-        "HazeCube",
-        "HeavySteeringCube",
-        "LensFlareArea",
-        "LightCtrlCube",
-        "MercatorCube",
-        "MessageAreaCube",
-        "MirrorAreaCube",
-        "NonSleepCube",
-        "PipeModeCube",
-        "PlaneCircularModeCube",
-        "PlaneCollisionCube",
-        "PlanetModeCube",
-        "PlayerSeCube",
-        "PullBackCube",
-        "QuakeEffectAreaCube",
-        "RasterScrollCube",
-        "RestartCube",
-        "ScreenBlurCube",
-        "SimpleBloomCube",
-        "SmokeEffectColorAreaCube",
-        "SoundEmitterCube",
-        "SpinGuidanceCube",
-        "SunLightAreaBox",
-        "SwitchCube",
-        "TamakoroJumpGuidanceCube",
-        "TamakoroMoveGuidanceCube",
-        "TicoSeedGuidanceCube",
-        "TripodBossStepStartArea",
-        "ViewGroupCtrlCube",
-        "WaterCube",
-        "AreaMoveSphere",
-        "AudioEffectSphere",
-        "BigBubbleGoalAreaSphere",
-        "BigBubbleSwitchSphere",
-        "BloomSphere",
-        "CelestrialSphere",
-        "DeathSphere",
-        "DepthOfFieldSphere",
-        "PlayerSeSphere",
-        "SimpleBloomSphere",
-        "SoundEmitterSphere",
-        "ScreenBlurSphere",
-        "SwitchSphere",
-        "AstroOverlookAreaCylinder",
-        "AudioEffectCylinder",
-        "BigBubbleGoalAreaCylinder",
-        "BigBubbleSwitchCylinder",
-        "BloomCylinder",
-        "DarkMatterCylinder",
-        "DashChargeCylinder",
-        "DeathCylinder",
-        "DepthOfFieldCylinder",
-        "DodoryuClosedCylinder",
-        "EffectCylinder",
-        "ExtraWallCheckCylinder",
-        "GlaringLightAreaCylinder",
-        "LightCtrlCylinder",
-        "MessageAreaCylinder",
-        "PlayerSeCylinder",
-        "PullBackCylinder",
-        "ScreenBlurCylinder",
-        "SimpleBloomCylinder",
-        "SwitchCylinder",
-        "TowerModeCylinder",
-        "WaterCylinder",
-        "BigBubbleCameraAreaBox",
-        "CubeCameraBox",
-        "BigBubbleCameraAreaSphere",
-        "CameraRepulsiveSphere",
-        "CubeCameraBowl",
-        "CubeCameraSphere",
-        "BigBubbleCameraAreaCylinder",
-        "CameraRepulsiveCylinder",
-        "CubeCameraCylinder",
-        "GlobalDiskGravity",
-        "GlobalDiskTorusGravity",
-        "GlobalPlaneGravity",
-        "GlobalSegmentGravity",
-        "GlobalWireGravity",
-        "GlobalCubeGravity",
-        "GlobalPlaneGravityInBox",
-        "ZeroGravityBox",
-        "Range",
-        "GlobalPointGravity",
-        "ZeroGravitySphere",
-        "Range",
-        "GlobalBarrelGravity",
-        "GlobalPlaneGravityInCylinder",
-        "ZeroGravityCylinder",
-        "Range",
-        "GlobalConeGravity",
-        "Range"));
 }

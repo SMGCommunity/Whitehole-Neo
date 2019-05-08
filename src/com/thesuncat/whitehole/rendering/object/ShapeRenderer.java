@@ -20,7 +20,7 @@ import com.thesuncat.whitehole.rendering.BmdRenderer;
 public class ShapeRenderer extends BmdRenderer {
     public ShapeRenderer(RenderInfo info, String objname, short modelno) {
         if (modelno < 100 && modelno > -1) {
-            ctor_loadModel(info, objname + String.format("%1$02d", modelno));
+            ctor_loadModel(objname + String.format("%1$02d", modelno));
             ctor_uploadData(info);
         }
     }

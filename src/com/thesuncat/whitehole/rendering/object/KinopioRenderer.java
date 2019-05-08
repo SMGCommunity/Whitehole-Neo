@@ -19,7 +19,7 @@ import com.thesuncat.whitehole.rendering.BmdRenderer;
 
 public class KinopioRenderer extends BmdRenderer {
     public KinopioRenderer(RenderInfo info, int color) {
-        ctor_loadModel(info, "Kinopio");
+        ctor_loadModel("Kinopio");
         
         switch (color) {
             case 0: // blue

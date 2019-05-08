@@ -19,8 +19,8 @@ import com.thesuncat.whitehole.rendering.GLRenderer;
 import javax.media.opengl.*;
 
 public class TransparentWallRenderer extends GLRenderer {
-    public TransparentWallRenderer() {
-        
+    public TransparentWallRenderer(int wallWidthMult) {
+        w = wallWidthMult;
     }
     
     @Override
@@ -74,7 +74,7 @@ public class TransparentWallRenderer extends GLRenderer {
         
         gl.glEnable(GL2.GL_CULL_FACE);
         gl.glCullFace(GL2.GL_FRONT);
-        gl.glScalef(1.0f, 0.01f, 1.0f);
+        gl.glScalef(1.0f * w, 0.01f, 1.0f);
         gl.glBegin(GL2.GL_TRIANGLE_STRIP);
         gl.glVertex3f(-s, -s, -s);
         gl.glVertex3f(-s, s, -s);
@@ -129,4 +129,9 @@ public class TransparentWallRenderer extends GLRenderer {
             gl.glEnd();
         }
     }
+    
+    /**
+     * The width of the wall. 1 for 10x10 and 2 for 10x20
+     */
+    private final int w;
 }

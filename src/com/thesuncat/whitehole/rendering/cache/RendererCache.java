@@ -40,7 +40,7 @@ public class RendererCache {
         
         pre_greenStar = new BmdRenderer(info, "PowerStar");
         if(!Settings.legacy)
-            pre_greenStar.generateShaders(gl2, 0, 0, 219, 50);
+            pre_greenStar.generateShaders(gl2, 0, 60, 140, 50);
         
         pre_grandStar = new BmdRenderer(info, "GrandStar");
         if(!Settings.legacy)
@@ -107,13 +107,10 @@ public class RendererCache {
         entry.refCount = 1;
         
         String modelName = Substitutor.substituteModelName(obj, obj.name);
-        if(Substitutor.substitutedObjects.contains(modelName))
-            entry.renderer = Substitutor.substituteRenderer(obj, info);
-        else {
+        if((entry.renderer = Substitutor.substituteRenderer(obj, info)) == null) {
             try {
                 entry.renderer = planetList.contains(modelName) ? new PlanetRenderer(info, modelName) : new BmdRenderer(info, modelName);
-            }
-            catch (GLException ex) {
+            } catch (GLException ex) {
                 System.out.println(ex);
             }
         }

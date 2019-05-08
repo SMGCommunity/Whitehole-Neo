@@ -81,13 +81,18 @@ public class GLRenderer {
     
     public int[] displayLists;
     
-    
+    /**
+     * Describes the current rendering pass.
+     */
     public static enum RenderMode {
         PICKING,
         OPAQUE,
         TRANSLUCENT
     }
     
+    /**
+     * Describes a GLCanvas and a {@see RenderMode RenderMode}.
+     */
     public static class RenderInfo {
         public GLAutoDrawable drawable;
         public RenderMode renderMode;

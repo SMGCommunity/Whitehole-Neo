@@ -523,18 +523,32 @@ public class BmdRenderer extends GLRenderer {
         //System.out.println(frag.toString());
     }
 
-    
+    /**
+     * Create default blue cube renderer
+     */
     public BmdRenderer() {
         fallback = new ColorCubeRenderer(100F, new Color4(0.5F, 0.5F, 1F, 1F), new Color4(0F, 0F, 0.8F, 1F), true);
     }
     
+    /**
+     * Attempt to load model from {@code modelname}.
+     * @param info
+     * @param modelname
+     * @throws GLException 
+     */
     public BmdRenderer(RenderInfo info, String modelname) throws GLException {
         this();
-        ctor_loadModel(info, modelname);
+        ctor_loadModel(modelname);
         ctor_uploadData(info);
     }
     
-    protected final void ctor_loadModel(RenderInfo info, String modelname) throws GLException {
+    /**
+     * Load BMD/BDL from ARC using {@code modelname}.<br>
+     * NOTE: {@code modelname} is first run through Substitutor.
+     * @param modelname the name of the object
+     * @throws GLException 
+     */
+    protected final void ctor_loadModel(String modelname) throws GLException {
         container = null;
         model = null;
         visible = null;
@@ -549,7 +563,7 @@ public class BmdRenderer extends GLRenderer {
             else if(container.fileExists("/" + modelname + "/" + modelname + ".bmd"))
                 model = new Bmd(container.openFile("/" + modelname + "/" + modelname + ".bmd"));
         }
-        catch(IOException ex) {
+        catch(IOException up) {
             if(container != null) {
                 try {
                     container.close();

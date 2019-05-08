@@ -393,15 +393,12 @@ public class RarcFilesystem implements FilesystemBase
     public FileBase openFile(String filename) throws FileNotFoundException
     {
         if (!fileEntries.containsKey(pathToKey(filename)))
-            throw new FileNotFoundException(filename + " not found in RARC");
+            throw new FileNotFoundException(filename + " not found in RARC!");
         
-        try
-        {
+        try {
             return new RarcFile(this, filename);
-        }
-        catch (IOException ex)
-        {
-            throw new FileNotFoundException("got IOException");
+        } catch (IOException ex) {
+            throw new FileNotFoundException("Could not find file " + filename + ".");
         }
     }
     
