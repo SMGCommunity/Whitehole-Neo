@@ -144,44 +144,44 @@ public class MainFrame extends javax.swing.JFrame {
         
         pmnTools.setLightWeightPopupEnabled(true);
         
-        if(Settings.gameDir && Preferences.userRoot().get("lastGameDir", null) != null) {
-            String seldir = Preferences.userRoot().get("lastGameDir", null);
-            
-            try {
-                Whitehole.game = new GameArchive(new ExternalFilesystem(seldir));
-            } catch (IOException ex) {
-                System.exit(1);
-            }
-
-            DefaultListModel galaxylist = new DefaultListModel();
-            galaxyList.setModel(galaxylist);
-            
-            List<String> galaxies = Whitehole.game.getGalaxies();
-            
-            if (Whitehole.gameType == 0) {
-                for (String galaxy : galaxies) {
-                    galaxylist.removeElement(galaxy);
-                }
-                btnTools.setEnabled(false);
-                if(Settings.japanese)
-                    lbStatusBar.setText("ディレクトリを開くことができませんでした");
-                else
-                    lbStatusBar.setText("Selected directory isn't an SMG1/2 workspace.");
-            }
-            else {
-                for (String galaxy : galaxies) {
-                    galaxylist.addElement(galaxy);
-                }
-                btnTools.setEnabled(true);
-                if(Settings.japanese)
-                    lbStatusBar.setText("ゲームディレクトリが正常に開かれました");
-                else
-                    lbStatusBar.setText("Successfully opened the game directory!");
-            }
-        }
+        if(Settings.gameDir && Preferences.userRoot().get("lastGameDir", null) != null)
+            openGameDir(Preferences.userRoot().get("lastGameDir", null));
         
         galaxyEditors = new HashMap();
-        
+    }
+    
+    private void openGameDir(String dir) {
+        try {
+            Whitehole.game = new GameArchive(new ExternalFilesystem(dir));
+        } catch (IOException ex) {
+            System.exit(1);
+        }
+
+        DefaultListModel galaxylist = new DefaultListModel();
+        galaxyList.setModel(galaxylist);
+
+        List<String> galaxies = Whitehole.game.getGalaxies();
+
+        if (Whitehole.gameType == 0) {
+            for (String galaxy : galaxies)
+                galaxylist.removeElement(galaxy);
+
+            btnTools.setEnabled(false);
+
+            if(Settings.japanese)
+                lbStatusBar.setText("ディレクトリを開くことができませんでした");
+            else
+                lbStatusBar.setText("Selected directory isn't an SMG1/2 workspace.");
+        } else {
+            for (String galaxy : galaxies)
+                galaxylist.addElement(galaxy);
+
+            btnTools.setEnabled(true);
+            if(Settings.japanese)
+                lbStatusBar.setText("ゲームディレクトリが正常に開かれました");
+            else
+                lbStatusBar.setText("Successfully opened the game directory!");
+        }
     }
     
     private void initDarkTheme() {
@@ -385,36 +385,7 @@ public class MainFrame extends javax.swing.JFrame {
         String seldir = fc.getSelectedFile().getPath();
         Preferences.userRoot().put("lastGameDir", seldir);
         
-        try {
-            Whitehole.game = new GameArchive(new ExternalFilesystem(seldir));
-        }
-        catch (IOException ex) {
-            return;
-        }
-        
-        DefaultListModel galaxylist = new DefaultListModel();
-        galaxyList.setModel(galaxylist);
-        java.util.List<String> galaxies = Whitehole.game.getGalaxies();
-        
-        if (Whitehole.gameType == 0) {
-            for (String galaxy : galaxies)
-                galaxylist.removeElement(galaxy);
-            btnTools.setEnabled(false);
-            if(Settings.japanese)
-                lbStatusBar.setText("ディレクトリを開くことができませんでした");
-            else
-                lbStatusBar.setText("Selected directory isn't an SMG1/2 workspace.");
-        }
-        else {
-            for (String galaxy : galaxies) {
-                galaxylist.addElement(galaxy);
-            }
-            btnTools.setEnabled(true);
-            if(Settings.japanese)
-                lbStatusBar.setText("ゲームディレクトリが正常に開かれました");
-            else
-                lbStatusBar.setText("Successfully opened the game directory!");
-        }
+        openGameDir(seldir);
     }//GEN-LAST:event_btnOpenGameActionPerformed
 
     private void btnOpenGalaxyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnOpenGalaxyActionPerformed

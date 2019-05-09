@@ -21,8 +21,7 @@ import java.util.*;
 
 public class RarcFilesystem implements FilesystemBase
 {
-    public RarcFilesystem(FileBase _file) throws IOException
-    {
+    public RarcFilesystem(FileBase _file) throws IOException {
         file = new Yaz0File(_file);
         file.setBigEndian(true);
 
@@ -524,6 +523,41 @@ public class RarcFilesystem implements FilesystemBase
         for(FileEntry e : fileEntries.values())
             ret.add(e.fullName);
         return ret;
+    }
+    
+    public ArrayList<String> getAllDirs() {
+        ArrayList<String> ret = new ArrayList<>();
+        for(DirEntry e : dirEntries.values())
+            ret.add(e.fullName);
+        return ret;
+    }
+    
+    public String getRoot() {
+        String root = "";
+        for(char c : getAllDirs().get(0).substring(1).toCharArray()) {
+            if(c == '/')
+                break;
+            root += c;
+        }
+        
+        return root;
+    }
+    
+    public boolean isFile(String dir) {
+        dir = dir.replace('/' + getRoot(), "");
+        return fileEntries.containsKey(dir) && !dirEntries.containsKey(dir);
+    }
+    
+    public boolean isDir(String dir) {
+        dir = dir.replace('/' + getRoot(), "");
+        boolean b = dirEntries.containsKey(dir) && !fileEntries.containsKey(dir);
+        System.out.println(dir + " is " + b);
+        return b;
+    }
+    
+    public String getDirName(String dir) {
+        dir = dir.replace('/' + getRoot(), "");
+        return dirEntries.get(dir).name;
     }
 
     private FileBase file;

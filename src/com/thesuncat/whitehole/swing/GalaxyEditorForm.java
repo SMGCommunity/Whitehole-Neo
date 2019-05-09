@@ -2392,8 +2392,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_btnDeselectActionPerformed
 
     private void tgbCamPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbCamPrevActionPerformed
-        // TODO: this is broken, eta fix
-        
         tgbCamPrev.setSelected(false);
         if(selectedObjs.size() == 1) {
             if(selectedObjs.values().iterator().next() instanceof CameraObj) {

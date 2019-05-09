@@ -15,26 +15,23 @@
 
 package com.thesuncat.whitehole;
 
-import com.thesuncat.whitehole.rendering.cache.TextureCache;
-import com.thesuncat.whitehole.rendering.cache.RendererCache;
-import com.thesuncat.whitehole.rendering.cache.ShaderCache;
-import club.minnced.discord.rpc.DiscordEventHandlers;
-import club.minnced.discord.rpc.DiscordRPC;
-import club.minnced.discord.rpc.DiscordRichPresence;
-import com.thesuncat.whitehole.swing.MainFrame;
-import java.nio.charset.Charset;
-import java.util.prefs.Preferences;
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import club.minnced.discord.rpc.*;
+import com.thesuncat.whitehole.io.ExternalFile;
+import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.rendering.cache.*;
 import com.thesuncat.whitehole.smg.Bcsv;
 import com.thesuncat.whitehole.smg.GameArchive;
-import com.thesuncat.whitehole.swing.GalaxyEditorForm;
+import com.thesuncat.whitehole.swing.*;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
+import javax.swing.*;
+
+
 
 public class Whitehole {
     public static final String NAME = "Whitehole v1.5.4";
@@ -49,11 +46,24 @@ public class Whitehole {
      * Unknown = 0<br>
      * SMG1 = 1<br>
      * SMG2 = 2<br>
-     * SMG3 = NaN
+     * SMG3 = NaN :(
      */
     public static int gameType;
     
     public static void main(String[] args) throws IOException {
+        
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            Logger.getLogger(Whitehole.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        if(args.length != 0) {
+            if(args[0].endsWith(".arc")) {
+                new RarcEditorForm(new RarcFilesystem(new ExternalFile(args[0]))).setVisible(true);
+            }
+            return;
+        }
         
         if (!Charset.isSupported("SJIS")) {
             if (!Preferences.userRoot().getBoolean("charset-alreadyWarned", false)) {
@@ -99,7 +109,7 @@ public class Whitehole {
                         if(closing)
                             return;
                         
-                        // Slow down thread
+                        // Slow thread down
                         try {
                             Thread.sleep(3000);
                         } catch (InterruptedException ignore) {}
@@ -109,12 +119,6 @@ public class Whitehole {
             discord.start();
         }
         
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-            Logger.getLogger(Whitehole.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
         new MainFrame().setVisible(true);
     }
     
@@ -122,6 +126,9 @@ public class Whitehole {
         ODB_THREAD.interrupt();
     }
     
+    /**
+     * ObjectDB init thread
+     */
     private static final Thread ODB_THREAD = new Thread(new Runnable() {
             @Override
             public void run() {
