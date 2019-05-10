@@ -18,6 +18,7 @@ package com.thesuncat.whitehole.io;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class RarcFilesystem implements FilesystemBase
 {
@@ -533,30 +534,27 @@ public class RarcFilesystem implements FilesystemBase
     }
     
     public String getRoot() {
-        String root = "";
-        for(char c : getAllDirs().get(0).substring(1).toCharArray()) {
-            if(c == '/')
-                break;
-            root += c;
-        }
-        
-        return root;
+        return dirEntries.values().iterator().next().name;
     }
     
     public boolean isFile(String dir) {
-        dir = dir.replace('/' + getRoot(), "");
-        return fileEntries.containsKey(dir) && !dirEntries.containsKey(dir);
+        dir = dir.replaceFirst(Pattern.quote(getRoot()), "").toLowerCase();
+        boolean b = fileEntries.containsKey(dir) && !dirEntries.containsKey(dir);
+        if(!b)
+            System.out.println(dir + " is not a file?");
+        return b;
     }
     
     public boolean isDir(String dir) {
-        dir = dir.replace('/' + getRoot(), "");
+        dir = dir.replaceFirst(Pattern.quote(getRoot()), "").toLowerCase();
         boolean b = dirEntries.containsKey(dir) && !fileEntries.containsKey(dir);
-        System.out.println(dir + " is " + b);
+        if(!b)
+            System.out.println(dir + " is not a dir?");
         return b;
     }
     
     public String getDirName(String dir) {
-        dir = dir.replace('/' + getRoot(), "");
+        dir = dir.replaceFirst(Pattern.quote('/' + getRoot()), "");
         return dirEntries.get(dir).name;
     }
 

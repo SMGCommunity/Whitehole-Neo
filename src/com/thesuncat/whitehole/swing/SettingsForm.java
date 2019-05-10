@@ -108,6 +108,7 @@ public class SettingsForm extends javax.swing.JDialog {
         chkJapanese = new javax.swing.JCheckBox();
         chkReverseRot = new javax.swing.JCheckBox();
         chkFileNames = new javax.swing.JCheckBox();
+        chkAssoc = new javax.swing.JCheckBox();
 
         jCheckBox1.setText("jCheckBox1");
 
@@ -150,64 +151,31 @@ public class SettingsForm extends javax.swing.JDialog {
 
         chkGameDir.setText("Automatically reopen game directory");
         chkGameDir.setActionCommand("Automatically reopen game folder");
-        chkGameDir.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkGameDirActionPerformed(evt);
-            }
-        });
 
         chkDarkTheme.setText("Dark theme");
-        chkDarkTheme.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkDarkThemeActionPerformed(evt);
-            }
-        });
 
         chkRichPresence.setSelected(true);
         chkRichPresence.setText("Discord Rich Presence");
-        chkRichPresence.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkRichPresenceActionPerformed(evt);
-            }
-        });
 
         chkAntiAlias.setSelected(true);
         chkAntiAlias.setText("Use Anti-Aliasing");
-        chkAntiAlias.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkAntiAliasActionPerformed(evt);
-            }
-        });
 
         chkFakeCol.setText("Render 'picking' colors (debugging)");
-        chkFakeCol.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkFakeColActionPerformed(evt);
-            }
-        });
 
         chkNoShaderRender.setText("Ignore important rendering functions (for outdated OpenGL)");
         chkNoShaderRender.setActionCommand("Black and white");
-        chkNoShaderRender.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkNoShaderRenderActionPerformed(evt);
-            }
-        });
 
         chkJapanese.setText("Japanese");
-        chkJapanese.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkJapaneseActionPerformed(evt);
-            }
-        });
 
         chkReverseRot.setText("Reverse editor camera rotation");
 
         chkFileNames.setSelected(true);
         chkFileNames.setText("Show opened files");
-        chkFileNames.addActionListener(new java.awt.event.ActionListener() {
+
+        chkAssoc.setText("Associate .ARC Files");
+        chkAssoc.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkFileNamesActionPerformed(evt);
+                chkAssocActionPerformed(evt);
             }
         });
 
@@ -240,7 +208,9 @@ public class SettingsForm extends javax.swing.JDialog {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(chkDarkTheme)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(chkJapanese))
+                                .addComponent(chkJapanese)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(chkAssoc))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(chkRichPresence)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -271,7 +241,8 @@ public class SettingsForm extends javax.swing.JDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(chkDarkTheme)
-                            .addComponent(chkJapanese))
+                            .addComponent(chkJapanese)
+                            .addComponent(chkAssoc))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(chkGameDir)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -327,42 +298,15 @@ public class SettingsForm extends javax.swing.JDialog {
         dispose();
     }//GEN-LAST:event_btnOkActionPerformed
 
-    private void chkGameDirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkGameDirActionPerformed
-
-    }//GEN-LAST:event_chkGameDirActionPerformed
-
-    private void chkDarkThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkDarkThemeActionPerformed
-
-    }//GEN-LAST:event_chkDarkThemeActionPerformed
-
-    private void chkRichPresenceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkRichPresenceActionPerformed
-
-    }//GEN-LAST:event_chkRichPresenceActionPerformed
-
-    private void chkAntiAliasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkAntiAliasActionPerformed
-
-    }//GEN-LAST:event_chkAntiAliasActionPerformed
-
-    private void chkFakeColActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkFakeColActionPerformed
-
-    }//GEN-LAST:event_chkFakeColActionPerformed
-
-    private void chkNoShaderRenderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkNoShaderRenderActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_chkNoShaderRenderActionPerformed
-
-    private void chkJapaneseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkJapaneseActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_chkJapaneseActionPerformed
-
-    private void chkFileNamesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkFileNamesActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_chkFileNamesActionPerformed
+    private void chkAssocActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkAssocActionPerformed
+        assocUpdate = true;
+    }//GEN-LAST:event_chkAssocActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnOk;
     private javax.swing.JCheckBox chkAntiAlias;
+    private javax.swing.JCheckBox chkAssoc;
     private javax.swing.JCheckBox chkDarkTheme;
     private javax.swing.JCheckBox chkFakeCol;
     private javax.swing.JCheckBox chkFastDrag;
@@ -381,4 +325,5 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JLabel lblUpdateUrl;
     private javax.swing.JTextField txtObjectDBUrl;
     // End of variables declaration//GEN-END:variables
+    private boolean assocUpdate = false;
 }

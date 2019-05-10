@@ -63,6 +63,8 @@
                               <Component id="chkDarkTheme" min="-2" max="-2" attributes="0"/>
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
                               <Component id="chkJapanese" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="chkAssoc" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="chkRichPresence" min="-2" max="-2" attributes="0"/>
@@ -103,6 +105,7 @@
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="chkDarkTheme" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="chkJapanese" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="chkAssoc" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="chkGameDir" min="-2" max="-2" attributes="0"/>
@@ -212,60 +215,39 @@
         <Property name="text" type="java.lang.String" value="Automatically reopen game directory"/>
         <Property name="actionCommand" type="java.lang.String" value="Automatically reopen game folder"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkGameDirActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="chkDarkTheme">
       <Properties>
         <Property name="text" type="java.lang.String" value="Dark theme"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkDarkThemeActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="chkRichPresence">
       <Properties>
         <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="Discord Rich Presence"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkRichPresenceActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="chkAntiAlias">
       <Properties>
         <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="Use Anti-Aliasing"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkAntiAliasActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="chkFakeCol">
       <Properties>
         <Property name="text" type="java.lang.String" value="Render &apos;picking&apos; colors (debugging)"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkFakeColActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="chkNoShaderRender">
       <Properties>
         <Property name="text" type="java.lang.String" value="Ignore important rendering functions (for outdated OpenGL)"/>
         <Property name="actionCommand" type="java.lang.String" value="Black and white"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkNoShaderRenderActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="chkJapanese">
       <Properties>
         <Property name="text" type="java.lang.String" value="Japanese"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkJapaneseActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="chkReverseRot">
       <Properties>
@@ -277,8 +259,13 @@
         <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="Show opened files"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="chkAssoc">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Associate .ARC Files"/>
+      </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkFileNamesActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkAssocActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

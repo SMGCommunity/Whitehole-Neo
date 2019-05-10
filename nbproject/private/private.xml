@@ -4,8 +4,9 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Laurent/Documents/NetBeansProjects/Whitehole-1.4/src/com/thesuncat/whitehole/smg/Bcsv.java</file>
-            <file>file:/C:/Users/Laurent/Documents/NetBeansProjects/Whitehole-1.4/src/com/thesuncat/whitehole/swing/GalaxyEditorForm.java</file>
+            <file>file:/D:/whitehole/Whitehole-1.4/src/com/thesuncat/whitehole/swing/RarcEditorForm.java</file>
+            <file>file:/D:/whitehole/Whitehole-1.4/src/com/thesuncat/whitehole/Whitehole.java</file>
+            <file>file:/D:/whitehole/Whitehole-1.4/src/com/thesuncat/whitehole/io/RarcFilesystem.java</file>
         </group>
     </open-files>
 </project-private>

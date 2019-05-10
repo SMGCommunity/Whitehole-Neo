@@ -10,7 +10,7 @@
     WARRANTY; See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License along 
-    with Whitehole. If not, see http://www.gnu.org/licenses/.
+    with Whitehole. If not, see http:www.gnu.org/licenses/.
 */
 
 package com.thesuncat.whitehole;
@@ -34,8 +34,8 @@ import javax.swing.*;
 
 
 public class Whitehole {
-    public static final String NAME = "Whitehole v1.5.4";
-    public static final String WEBURL = "http://discord.gg/xWCFAMA";
+    public static final String NAME = "Whitehole v1.5.4 BETA";
+    public static final String WEBURL = "http:discord.gg/xWCFAMA";
     public static final String CRASHURL = "TheSunCat#1007";
     public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
     
@@ -58,16 +58,19 @@ public class Whitehole {
             Logger.getLogger(Whitehole.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        if(args.length != 0) {
-            if(args[0].endsWith(".arc")) {
-                new RarcEditorForm(new RarcFilesystem(new ExternalFile(args[0]))).setVisible(true);
+        if(true) {//args.length != 0) {
+            if(true) {//args[0].endsWith(".arc")) {
+                new RarcEditorForm(new RarcFilesystem(new ExternalFile("D:\\SMGO\\game\\files\\StageData\\AbekobeGalaxy\\AbekobeGalaxyMap.arc"))).setVisible(true);
             }
             return;
         }
         
         if (!Charset.isSupported("SJIS")) {
             if (!Preferences.userRoot().getBoolean("charset-alreadyWarned", false)) {
-                JOptionPane.showMessageDialog(null, "Shift-JIS encoding isn't supported.\nWhitehole will default to ASCII, which may cause certain strings to look corrupted.\n\nThis message appears only once.", 
+                JOptionPane.showMessageDialog(null, "Shift-JIS encoding isn't supported.\n"
+                        + "Whitehole will default to ASCII, which may cause certain strings to look corrupted.\n"
+                        + "\n"
+                        + "This message appears only once.", 
                         Whitehole.NAME, JOptionPane.WARNING_MESSAGE);
                 Preferences.userRoot().putBoolean("charset-alreadyWarned", true);
             }

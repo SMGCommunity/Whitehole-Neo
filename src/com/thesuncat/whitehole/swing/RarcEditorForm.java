@@ -17,57 +17,85 @@ package com.thesuncat.whitehole.swing;
 
 import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.io.RarcFilesystem;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreePath;
 
 public class RarcEditorForm extends javax.swing.JFrame {
 
-    public RarcEditorForm(RarcFilesystem filesystem) {
+    public RarcEditorForm(RarcFilesystem filesystem) throws IOException {
         initComponents();
         
         setIconImage(Whitehole.ICON);
         fs = filesystem;
         dirs = fs.getAllDirs();
-        addedDirs = new ArrayList();
+        files = fs.getAllFileDirs();
+        
+        if(dirs == null || files == null)
+            throw new IOException("dirs or files is null");
+        
+        dirs = removeFirstChar(dirs);
+        files = removeFirstChar(files);
+        
+        all = new ArrayList(dirs);
+        all.addAll(files);
         
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(fs.getRoot());
-        createChildren(fs.getRoot(), root);
+        createChildren(1, root, fs.getRoot());
         
         DefaultTreeModel mdl = new DefaultTreeModel(root);
         
         fileView.setModel(mdl);
+        
+        setTreeExpandedState(fileView);
     }
     
-    private void createChildren(String root, DefaultMutableTreeNode node) {
-        if(dirs == null)
-            return;
-        
-        for(String dir : dirs) {
-            System.out.println("Root: " + root + ", dir: " + dir);
-            if(dir.startsWith('/' + root) && fs.isDir(dir)) {
-                node.add(new DefaultMutableTreeNode(fs.getDirName(dir)));
+    private ArrayList<String> alreadyAdded = new ArrayList();
+    
+    private void createChildren(int level, DefaultMutableTreeNode parentNode, String parentName) throws IOException {
+        for(String dir : all) {
+            String[] parts = dir.split("/");
+            
+            if(!alreadyAdded.contains(dir) && parts.length > level && parts[level - 1].equals(parentName)) {
+                if((dirs.contains(dir) && !fs.isDir(dir)) || (files.contains(dir) && !fs.isFile(dir)))
+                    throw new IOException(dir + " is fake??");
+                
+                DefaultMutableTreeNode child = new DefaultMutableTreeNode(parts[level]);
+                createChildren(level + 1, child, parts[level]);
+                parentNode.add(child);
+                alreadyAdded.add(dir);
             }
         }
-        
     }
     
-    private boolean startsWithAny(String s, ArrayList<String> matches) {
-        boolean ret = false;
-        for(String m : matches) {
-            if(s.startsWith(m)) {
-                ret = true;
-                break;
-            }
-        }
+    private ArrayList<String> removeFirstChar(ArrayList<String> e) {
+        for(int i = 0; i < e.size(); i++)
+            e.set(i, e.get(i).substring(1));
         
-        return ret;
+        return e;
+    }
+    
+    public static void setTreeExpandedState(JTree tree) {
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getModel().getRoot();
+      setNodeExpandedState(tree, node);
+    }
+
+    private static void setNodeExpandedState(JTree tree, DefaultMutableTreeNode node) {
+        ArrayList<DefaultMutableTreeNode> list = Collections.list(node.children());
+        for (DefaultMutableTreeNode treeNode : list)
+            setNodeExpandedState(tree, treeNode);
+        
+        TreePath path = new TreePath(node.getPath());
+        tree.expandPath(path);
     }
     
     private RarcFilesystem fs;
-    ArrayList<String> dirs;
-    ArrayList<String> addedDirs;
+    ArrayList<String> dirs, files;
+    ArrayList<String> all;
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -75,6 +103,9 @@ public class RarcEditorForm extends javax.swing.JFrame {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         fileView = new javax.swing.JTree();
+        jToolBar1 = new javax.swing.JToolBar();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -82,20 +113,37 @@ public class RarcEditorForm extends javax.swing.JFrame {
         fileView.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
         jScrollPane1.setViewportView(fileView);
 
+        jToolBar1.setRollover(true);
+
+        jButton1.setText("Open");
+        jButton1.setFocusable(false);
+        jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(jButton1);
+
+        jButton2.setText("Save");
+        jButton2.setFocusable(false);
+        jButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(jButton2);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
+                    .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(19, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -103,6 +151,9 @@ public class RarcEditorForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTree fileView;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
 }
