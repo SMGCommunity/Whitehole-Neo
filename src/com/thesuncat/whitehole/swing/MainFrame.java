@@ -15,33 +15,22 @@
 
 package com.thesuncat.whitehole.swing;
 
-import com.thesuncat.whitehole.rendering.cache.TextureCache;
-import com.thesuncat.whitehole.rendering.cache.RendererCache;
-import com.thesuncat.whitehole.rendering.cache.ShaderCache;
-import com.thesuncat.whitehole.ObjectDBUpdater;
-import com.thesuncat.whitehole.Settings;
-import com.thesuncat.whitehole.Whitehole;
+import com.thesuncat.whitehole.*;
+import com.thesuncat.whitehole.rendering.cache.*;
 import com.thesuncat.whitehole.io.ExternalFilesystem;
 import com.thesuncat.whitehole.smg.GameArchive;
-import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkScrollBarUI;
-import java.util.prefs.Preferences;
+import com.thesuncat.whitehole.swing.DarkThemeRenderers.*;
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Insets;
 import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.util.prefs.Preferences;
+import java.awt.event.*;
 import java.util.ArrayList;
 import javax.swing.plaf.basic.BasicMenuItemUI;
-import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class MainFrame extends javax.swing.JFrame {
     

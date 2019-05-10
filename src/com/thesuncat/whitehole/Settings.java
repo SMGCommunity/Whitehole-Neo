@@ -39,6 +39,7 @@ public class Settings {
         japanese = prefs.getBoolean("lang.japanese", false);
         richPresence = prefs.getBoolean("discord.presence", true);
         fileNames = prefs.getBoolean("discord.filenames", false);
+        associated = prefs.getBoolean("arc.associated", false);
     }
     
     public static void save() {
@@ -57,6 +58,7 @@ public class Settings {
         prefs.putBoolean("lang.japanese", japanese);
         prefs.putBoolean("discord.presence", richPresence);
         prefs.putBoolean("discord.filenames", fileNames);
+        prefs.putBoolean("arc.associated", associated);
     }
     
     public static void saveEditorPrefs(boolean area, boolean gravity, boolean cameras, boolean paths, boolean axis) {
@@ -70,6 +72,7 @@ public class Settings {
     }
     
     public static String objectDB_url;
+    public static boolean associated;
     public static boolean objectDB_update, arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy, japanese, fileNames;
     public static boolean editor_shaders, editor_fastDrag;
     public static boolean showAreas, showCameras, showGravity, showPaths, showAxis;

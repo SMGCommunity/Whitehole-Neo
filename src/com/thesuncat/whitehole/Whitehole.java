@@ -58,9 +58,9 @@ public class Whitehole {
             Logger.getLogger(Whitehole.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        if(true) {//args.length != 0) {
-            if(true) {//args[0].endsWith(".arc")) {
-                new RarcEditorForm(new RarcFilesystem(new ExternalFile("D:\\SMGO\\game\\files\\StageData\\AbekobeGalaxy\\AbekobeGalaxyMap.arc"))).setVisible(true);
+        if(args.length != 0) {
+            if(args[0].endsWith(".arc")) {
+                new RarcEditorForm(new RarcFilesystem(new ExternalFile(args[0]))).setVisible(true);
             }
             return;
         }

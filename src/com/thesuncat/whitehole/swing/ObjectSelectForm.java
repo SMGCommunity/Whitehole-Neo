@@ -23,20 +23,14 @@ import java.util.Map.Entry;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.tree.*;
 import com.thesuncat.whitehole.smg.ZoneArchive;
-import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkComboBoxUI;
+import com.thesuncat.whitehole.swing.DarkThemeRenderers.*;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Rectangle;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JScrollPane;
 import javax.swing.UIManager;
-import javax.swing.plaf.basic.BasicComboBoxUI;
-import javax.swing.plaf.basic.BasicComboPopup;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.plaf.basic.BasicToolBarUI;
-import javax.swing.plaf.basic.ComboPopup;
 
 public class ObjectSelectForm extends javax.swing.JDialog {
     public ObjectSelectForm(java.awt.Frame parent, int game, String selobj) {
@@ -48,38 +42,8 @@ public class ObjectSelectForm extends javax.swing.JDialog {
             txtSearch.setBackground(new Color(47,49,54));
             txtSearch.setCaretColor(new Color(157,158,161));
             jLabel1.setForeground(new Color(157,158,161));
-            jScrollPane1.getVerticalScrollBar().setUI(new BasicScrollBarUI()
-            {
-               @Override
-                protected JButton createDecreaseButton(int orientation) {
-                    return createZeroButton();
-                }
-                @Override    
-                protected JButton createIncreaseButton(int orientation) {
-                      return createZeroButton();
-                }
-                @Override 
-                protected void configureScrollBarColors(){
-                    thumbColor = new Color(32,34,37);
-                    trackColor = new Color(47,49,54);
-                }
-            });
-            jScrollPane1.getHorizontalScrollBar().setUI(new BasicScrollBarUI() {   
-                @Override
-                protected JButton createDecreaseButton(int orientation) {
-                    return createZeroButton();
-                }
-
-                @Override    
-                protected JButton createIncreaseButton(int orientation) {
-                      return createZeroButton();
-                }
-                @Override 
-                protected void configureScrollBarColors(){
-                    thumbColor = new Color(32,34,37);
-                    trackColor = new Color(47,49,54);
-                }
-            });
+            jScrollPane1.getVerticalScrollBar().setUI(new DarkScrollBarUI());
+            jScrollPane1.getHorizontalScrollBar().setUI(new DarkScrollBarUI());
             tvObjectList.setBackground(new Color(47,49,54));
             tvObjectList.setForeground(new Color(157,158,161));
             tvObjectList.setCellRenderer(new com.thesuncat.whitehole.swing.TreeCellRenderer());
@@ -104,34 +68,8 @@ public class ObjectSelectForm extends javax.swing.JDialog {
             txtObject.setBackground(new Color(54, 57, 63));
             txtObject.setForeground(new Color(157, 158, 161));
             txtObject.setCaretColor(new Color(157,158,161));
-            jScrollPane2.getVerticalScrollBar().setUI(new BasicScrollBarUI()
-            {
-               @Override
-                protected JButton createDecreaseButton(int orientation) {
-                    return createZeroButton();
-            }
-                @Override    
-                protected JButton createIncreaseButton(int orientation) {
-                      return createZeroButton();
-                }
-                @Override 
-                protected void configureScrollBarColors(){
-                    thumbColor = new Color(32,34,37);
-                    trackColor = new Color(47,49,54);
-                } 
-            });
-            jScrollPane2.getHorizontalScrollBar().setUI(new BasicScrollBarUI() {   
-                @Override
-                protected JButton createDecreaseButton(int orientation) {
-                    return createZeroButton();
-                }
-
-                @Override    
-                protected JButton createIncreaseButton(int orientation) {
-                      return createZeroButton();
-                }
-
-            });
+            jScrollPane2.getVerticalScrollBar().setUI(new DarkScrollBarUI());
+            jScrollPane2.getHorizontalScrollBar().setUI(new DarkScrollBarUI());
             epObjDescription.setBackground(new Color(54, 57, 63));
             epObjDescription.setForeground(new Color(157, 158, 161));
         }
@@ -159,22 +97,6 @@ public class ObjectSelectForm extends javax.swing.JDialog {
             selectedLayer = " Common";
             cbxLayer.setSelectedItem(selectedLayer);
         }
-    }
-    public JButton createZeroButton() {
-        JButton jbutton = new JButton();
-        jbutton.setPreferredSize(new Dimension(0, 0));
-        jbutton.setMinimumSize(new Dimension(0, 0));
-        jbutton.setMaximumSize(new Dimension(0, 0));
-        return jbutton;
-    }
-    
-    // for some reason JComboBox wants a static method
-    public static JButton createZeroButton1() {
-        JButton jbutton = new JButton();
-        jbutton.setPreferredSize(new Dimension(0, 0));
-        jbutton.setMinimumSize(new Dimension(0, 0));
-        jbutton.setMaximumSize(new Dimension(0, 0));
-        return jbutton;
     }
     /**
      * This method is called from within the constructor to initialize the form.

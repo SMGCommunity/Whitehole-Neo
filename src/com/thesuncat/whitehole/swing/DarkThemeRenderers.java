@@ -14,38 +14,15 @@
  */
 package com.thesuncat.whitehole.swing;
 
-import static com.thesuncat.whitehole.swing.ObjectSelectForm.createZeroButton1;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JMenuBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import static javax.swing.SwingConstants.BOTTOM;
-import static javax.swing.SwingConstants.LEFT;
-import static javax.swing.SwingConstants.RIGHT;
-import static javax.swing.SwingConstants.TOP;
+import static javax.swing.SwingConstants.*;
+import java.awt.*;
+import javax.swing.*;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.plaf.basic.*;
 import javax.swing.plaf.UIResource;
-import javax.swing.plaf.basic.BasicComboBoxUI;
-import javax.swing.plaf.basic.BasicComboPopup;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
-import javax.swing.plaf.basic.BasicScrollBarUI;
-import javax.swing.plaf.basic.BasicSplitPaneDivider;
-import javax.swing.plaf.basic.BasicSplitPaneUI;
-import javax.swing.plaf.basic.BasicTabbedPaneUI;
-import javax.swing.plaf.basic.BasicToolBarUI;
-import javax.swing.plaf.basic.ComboPopup;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.text.View;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class DarkThemeRenderers {
     public static class DarkJMenuBar extends JMenuBar {
@@ -107,14 +84,6 @@ public class DarkThemeRenderers {
         protected void configureScrollBarColors() {
             thumbColor = new Color(32, 34, 37);
             trackColor = new Color(47, 49, 54);
-        }
-
-        private JButton createZeroButton() {
-            JButton jbutton = new JButton();
-            jbutton.setPreferredSize(new Dimension(0, 0));
-            jbutton.setMinimumSize(new Dimension(0, 0));
-            jbutton.setMaximumSize(new Dimension(0, 0));
-            return jbutton;
         }
     }
     
@@ -279,11 +248,11 @@ public class DarkThemeRenderers {
                         scrollerPane.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
                             @Override
                             protected JButton createDecreaseButton(int orientation) {
-                                return createZeroButton1();
-                                }
+                                return createZeroButton();
+                            }
                             @Override    
                             protected JButton createIncreaseButton(int orientation) {
-                                  return createZeroButton1();
+                                return createZeroButton();
                             }
                             @Override 
                             protected void configureScrollBarColors(){
@@ -295,5 +264,13 @@ public class DarkThemeRenderers {
                 }
             };
         }
+    }
+    
+    private static JButton createZeroButton() {
+        JButton jbutton = new JButton();
+        jbutton.setPreferredSize(new Dimension(0, 0));
+        jbutton.setMinimumSize(new Dimension(0, 0));
+        jbutton.setMaximumSize(new Dimension(0, 0));
+        return jbutton;
     }
 }

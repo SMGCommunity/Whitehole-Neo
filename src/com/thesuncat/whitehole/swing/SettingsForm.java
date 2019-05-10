@@ -18,9 +18,13 @@ package com.thesuncat.whitehole.swing;
 import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.Whitehole;
 import java.awt.Color;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
 
 public class SettingsForm extends javax.swing.JDialog {
     public SettingsForm(java.awt.Frame parent, boolean modal) {
@@ -44,6 +48,7 @@ public class SettingsForm extends javax.swing.JDialog {
         chkJapanese.setSelected(Settings.japanese);
         chkReverseRot.setSelected(Settings.reverseRot);
         chkFileNames.setSelected(Settings.fileNames);
+        chkAssoc.setSelected(Settings.associated);
     }
     
     private void initJapanese() {
@@ -71,17 +76,44 @@ public class SettingsForm extends javax.swing.JDialog {
     
     private void initDarkTheme() {
         ArrayList<JCheckBox> chkArray = new ArrayList<>();
-        chkArray.addAll(Arrays.asList(chkAntiAlias, chkDarkTheme, chkFakeCol, chkFastDrag, chkGameDir, chkJapanese, chkNoShaderRender, chkObjectDBUpdate, chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames));
+        chkArray.addAll(Arrays.asList(chkAntiAlias, chkDarkTheme, chkFakeCol, chkFastDrag, chkGameDir, chkJapanese, chkNoShaderRender,
+                chkObjectDBUpdate, chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames, chkAssoc));
         for (int i = 0; i < chkArray.size(); i++){
             chkArray.get(i).setBackground(new Color(32,34,37));
             chkArray.get(i).setForeground(new Color(157,158,161));
         }
+        
         this.getContentPane().setBackground(new Color(32,34,37));
         lblMisc.setForeground(new Color(157,158,161));
         lblUpdateUrl.setForeground(new Color(157,158,161));
         lblRendering.setForeground(new Color(157,158,161));
         lblObjectDatabase.setForeground(new Color(157,158,161));
         txtObjectDBUrl.setBackground(new Color(177,178,181));
+    }
+    
+    private void installAssoc() {
+        try {
+            String assoc = "assoc .arc=WhiteholeFile";
+            String ftype = "ftype WhiteholeFile=" + System.getProperty("java.home") + "\\javaw.exe -jar "
+                    + Whitehole.class.getProtectionDomain().getCodeSource().getLocation().getPath().substring(1) + " %1";
+            Runtime.getRuntime().exec("cmd /c start runas /savecred /user:administrator \"cmd.exe /c \\\"" + assoc + "\\\"\"");
+            Runtime.getRuntime().exec("cmd /c start runas /savecred /user:administrator \"cmd.exe /c \\\"" + ftype + "\\\"\"");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "well im dumb");
+            Logger.getLogger(SettingsForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void uninstallAssoc() {
+        try {
+            String assoc = "assoc .arc=";
+            String ftype = "ftype WhiteholeFile=";
+            Runtime.getRuntime().exec("cmd /k start runas /savecred /user:administrator \"cmd.exe /c \\\"" + assoc + "\\\"\"");
+            Runtime.getRuntime().exec("cmd /k start runas /savecred /user:administrator \"cmd.exe /c \\\"" + ftype + "\\\"\"");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "well im dumb");
+            Logger.getLogger(SettingsForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @SuppressWarnings("unchecked")
@@ -294,6 +326,14 @@ public class SettingsForm extends javax.swing.JDialog {
         Settings.japanese = chkJapanese.isSelected();
         Settings.reverseRot = chkReverseRot.isSelected();
         Settings.fileNames = chkFileNames.isSelected();
+        
+        if(assocUpdate) {
+            if(Settings.associated = chkAssoc.isSelected())
+                installAssoc();
+            else
+                uninstallAssoc();
+        }
+        
         Settings.save();
         dispose();
     }//GEN-LAST:event_btnOkActionPerformed
