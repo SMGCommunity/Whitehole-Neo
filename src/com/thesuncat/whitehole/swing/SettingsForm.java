@@ -18,7 +18,9 @@ package com.thesuncat.whitehole.swing;
 import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.Whitehole;
 import java.awt.Color;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -93,11 +95,11 @@ public class SettingsForm extends javax.swing.JDialog {
     
     private void installAssoc() {
         try {
-            String assoc = "assoc .arc=WhiteholeFile";
-            String ftype = "ftype WhiteholeFile=" + System.getProperty("java.home") + "\\javaw.exe -jar "
-                    + Whitehole.class.getProtectionDomain().getCodeSource().getLocation().getPath().substring(1) + " %1";
-            Runtime.getRuntime().exec("cmd /c start runas /savecred /user:administrator \"cmd.exe /c \\\"" + assoc + "\\\"\"");
-            Runtime.getRuntime().exec("cmd /c start runas /savecred /user:administrator \"cmd.exe /c \\\"" + ftype + "\\\"\"");
+            String command = "\\\"" + System.getProperty("java.home") + "\\javaw.exe\\\" -jar \\\""
+                    + Whitehole.class.getProtectionDomain().getCodeSource().getLocation().getPath().substring(1).replace("/", "\\") + "\\\" \\\"%1\\\"";
+            
+            Runtime.getRuntime().exec("reg add HKCU\\Software\\Classes\\.arc /t REG_SZ /d WhiteholeFile"); // Add Value
+            Runtime.getRuntime().exec("reg add HKCU\\Software\\Classes\\WhiteholeFile\\Shell\\Open\\Command /t REG_SZ /d \"" + command + "\""); // Add Value
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "well im dumb");
             Logger.getLogger(SettingsForm.class.getName()).log(Level.SEVERE, null, ex);
@@ -106,10 +108,17 @@ public class SettingsForm extends javax.swing.JDialog {
     
     private void uninstallAssoc() {
         try {
-            String assoc = "assoc .arc=";
-            String ftype = "ftype WhiteholeFile=";
-            Runtime.getRuntime().exec("cmd /k start runas /savecred /user:administrator \"cmd.exe /c \\\"" + assoc + "\\\"\"");
-            Runtime.getRuntime().exec("cmd /k start runas /savecred /user:administrator \"cmd.exe /c \\\"" + ftype + "\\\"\"");
+            Process p = Runtime.getRuntime().exec("reg delete HKCU\\Software\\Classes\\.arc");
+            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
+            out.write("y");
+            out.newLine();
+            out.flush();
+            
+            Process p2 = Runtime.getRuntime().exec("reg delete HKCU\\Software\\Classes\\WhiteholeFile");
+            BufferedWriter out2 = new BufferedWriter(new OutputStreamWriter(p2.getOutputStream()));
+            out2.write("y");
+            out2.newLine();
+            out2.flush();
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "well im dumb");
             Logger.getLogger(SettingsForm.class.getName()).log(Level.SEVERE, null, ex);

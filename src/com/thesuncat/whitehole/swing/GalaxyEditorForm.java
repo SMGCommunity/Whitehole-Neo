@@ -78,18 +78,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         subZoneData.put(key, subzone);
                     }
                 }
-
-                String zoneLetters = "abcdefghijklmnop";
-
-                for(char c : zoneLetters.toCharArray()) {
-                    if(mainzone.zones.containsKey("layer" + c)) {
-                        for(StageObj subzone : mainzone.zones.get("layer" + c)) {
-                            String key = i + "/" + subzone.name;
-                            if(subZoneData.containsKey(key)) throw new IOException("Duplicate zone " + key);
-                            subZoneData.put(key, subzone);
-                        }
-                    }
-                }
                 
                 int mainlayermask = (int) galaxyArc.scenarioData.get(i).get(galaxyName);
                 for(int l = 0; l < 16; l++) {
@@ -200,7 +188,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         } catch(IOException ex) {
             // Thrown if files are missing or there is a duplicate Zone
             JOptionPane.showMessageDialog(null, "Failed to open the galaxy: " + ex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
-            dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+            ex.printStackTrace();
+            dispose();
             return;
         }
         
@@ -276,9 +265,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         }
         lbLayersList.setListData(cblayers);
-        
-        if(!galaxyName.startsWith("WorldMap0"))
-            tpLeftPanel.remove(2);
         
         populateObjectList(zoneModeLayerBitmask);
     }
