@@ -60,7 +60,7 @@ public class Whitehole {
         
         if(args.length != 0) {
             if(args[0].endsWith(".arc")) {
-                new RarcEditorForm(new RarcFilesystem(new ExternalFile(args[0]))).setVisible(true);
+                new RarcEditorForm(args[0]).setVisible(true);
             }
             return;
         }

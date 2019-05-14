@@ -16,23 +16,34 @@
 package com.thesuncat.whitehole.swing;
 
 import com.thesuncat.whitehole.Whitehole;
+import com.thesuncat.whitehole.io.ExternalFile;
 import com.thesuncat.whitehole.io.RarcFilesystem;
+import java.awt.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import javax.swing.JTree;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
+import javax.swing.tree.*;
 
 public class RarcEditorForm extends javax.swing.JFrame {
 
-    public RarcEditorForm(RarcFilesystem filesystem) throws IOException {
+    public RarcEditorForm(String filesystem) throws IOException {
         initComponents();
+        filePath = filesystem;
+        
+        if(filePath.contains("/"))
+            fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
+        else if(filePath.contains("\\"))
+            fileName = filePath.substring(filePath.lastIndexOf("\\") + 1);
+        else return;
         
         setIconImage(Whitehole.ICON);
         setLocationRelativeTo(null);
         
+        openRarc(new RarcFilesystem(new ExternalFile(fileName)));
+    }
+    
+    private void openRarc(RarcFilesystem filesystem) throws IOException {
         fs = filesystem;
         dirs = fs.getAllDirs();
         files = fs.getAllFileDirs();
@@ -46,6 +57,8 @@ public class RarcEditorForm extends javax.swing.JFrame {
         all = new ArrayList(dirs);
         all.addAll(files);
         
+        alreadyAdded = new ArrayList();
+        
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(fs.getRoot());
         createChildren(1, root, fs.getRoot());
         
@@ -54,9 +67,12 @@ public class RarcEditorForm extends javax.swing.JFrame {
         fileView.setModel(mdl);
         
         setTreeExpandedState(fileView);
+        fileView.setCellRenderer(new CellRenderer());
+        
+        setTitle(Whitehole.NAME + " editing " + fileName);
     }
     
-    private ArrayList<String> alreadyAdded = new ArrayList();
+    private ArrayList<String> alreadyAdded;
     
     private void createChildren(int level, DefaultMutableTreeNode parentNode, String parentName) throws IOException {
         for(String dir : all) {
@@ -67,6 +83,9 @@ public class RarcEditorForm extends javax.swing.JFrame {
                     throw new IOException(dir + " is fake??");
                 
                 DefaultMutableTreeNode child = new DefaultMutableTreeNode(parts[level]);
+//                if(dirs.contains(dir))
+//                    child.set
+                
                 createChildren(level + 1, child, parts[level]);
                 parentNode.add(child);
                 alreadyAdded.add(dir);
@@ -96,6 +115,8 @@ public class RarcEditorForm extends javax.swing.JFrame {
     }
     
     private RarcFilesystem fs;
+    private String fileName;
+    private String filePath;
     ArrayList<String> dirs, files;
     ArrayList<String> all;
 
@@ -158,4 +179,18 @@ public class RarcEditorForm extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
+
+    private class CellRenderer extends DefaultTreeCellRenderer {
+        @Override
+        public Component getTreeCellRendererComponent(JTree tree,
+            Object value, boolean selected, boolean expanded,
+            boolean leaf, int row, boolean hasFocus) {
+                super.getTreeCellRendererComponent(tree, value, selected,expanded, leaf, row, hasFocus);
+                DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) value;
+                setIcon(leafIcon);
+
+
+                return this;
+        }
+    }
 }
