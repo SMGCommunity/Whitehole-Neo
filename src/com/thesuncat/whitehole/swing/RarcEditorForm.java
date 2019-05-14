@@ -31,6 +31,8 @@ public class RarcEditorForm extends javax.swing.JFrame {
         initComponents();
         
         setIconImage(Whitehole.ICON);
+        setLocationRelativeTo(null);
+        
         fs = filesystem;
         dirs = fs.getAllDirs();
         files = fs.getAllFileDirs();
