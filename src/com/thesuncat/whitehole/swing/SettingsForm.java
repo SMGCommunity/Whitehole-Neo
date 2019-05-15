@@ -113,6 +113,7 @@ public class SettingsForm extends javax.swing.JDialog {
             pb.redirectErrorStream(true);
             Process p = pb.start();
             BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            
             String line;
             while((line = in.readLine()) != null) {System.out.println(line);}
             

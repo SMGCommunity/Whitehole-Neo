@@ -16,8 +16,6 @@
 package com.thesuncat.whitehole;
 
 import club.minnced.discord.rpc.*;
-import com.thesuncat.whitehole.io.ExternalFile;
-import com.thesuncat.whitehole.io.RarcFilesystem;
 import com.thesuncat.whitehole.rendering.cache.*;
 import com.thesuncat.whitehole.smg.Bcsv;
 import com.thesuncat.whitehole.smg.GameArchive;
@@ -57,6 +55,8 @@ public class Whitehole {
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
             Logger.getLogger(Whitehole.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        args = new String[] {"D:\\SMGO\\game\\files\\ObjectData\\WoodDrumRailLiftA.arc"};
         
         if(args.length != 0) {
             if(args[0].endsWith(".arc")) {

@@ -19,11 +19,14 @@ import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.io.ExternalFile;
 import com.thesuncat.whitehole.io.RarcFilesystem;
 import java.awt.Component;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import javax.swing.JTree;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.File;
+import java.util.*;
+import javax.swing.*;
 import javax.swing.tree.*;
+import java.io.IOException;
 
 public class RarcEditorForm extends javax.swing.JFrame {
 
@@ -40,7 +43,45 @@ public class RarcEditorForm extends javax.swing.JFrame {
         setIconImage(Whitehole.ICON);
         setLocationRelativeTo(null);
         
-        openRarc(new RarcFilesystem(new ExternalFile(fileName)));
+        openRarc(new RarcFilesystem(new ExternalFile(filePath)));
+        
+        fileView.setTransferHandler(new TransferHandler() {
+            @Override
+            public boolean canImport(TransferHandler.TransferSupport support) {
+                for (DataFlavor flavor : support.getDataFlavors()) {
+                    if (flavor.isFlavorJavaFileListType())
+                        return true;
+                }
+                return false;
+            }
+
+            @Override
+            public boolean importData(TransferHandler.TransferSupport support) {
+                if (!this.canImport(support))
+                    return false;
+
+                List<File> files;
+                try {
+                    files = (List<File>) support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                } catch (UnsupportedFlavorException | IOException ex) {
+                    return false;
+                }
+                
+                if(files.size() != 1)
+                    return false;
+                
+                try {
+                    filePath = files.get(0).getAbsolutePath();
+                    openRarc(new RarcFilesystem(new ExternalFile(filePath)));
+                } catch(IOException ex) {
+                    return false;
+                }
+                
+                return true;
+            }
+        });
+        
+        fileView.setCellEditor(new DefaultTreeCellEditor(fileView, (DefaultTreeCellRenderer) fileView.getCellRenderer()));
     }
     
     private void openRarc(RarcFilesystem filesystem) throws IOException {
@@ -83,8 +124,6 @@ public class RarcEditorForm extends javax.swing.JFrame {
                     throw new IOException(dir + " is fake??");
                 
                 DefaultMutableTreeNode child = new DefaultMutableTreeNode(parts[level]);
-//                if(dirs.contains(dir))
-//                    child.set
                 
                 createChildren(level + 1, child, parts[level]);
                 parentNode.add(child);
@@ -114,6 +153,19 @@ public class RarcEditorForm extends javax.swing.JFrame {
         tree.expandPath(path);
     }
     
+    private boolean isFile(String name) {
+        boolean ret = false;
+        
+        for(String s : files) {
+            if(s.endsWith(name)) {
+                ret = true;
+                break;
+            }
+        }
+        
+        return ret;
+    }
+    
     private RarcFilesystem fs;
     private String fileName;
     private String filePath;
@@ -127,8 +179,9 @@ public class RarcEditorForm extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         fileView = new javax.swing.JTree();
         jToolBar1 = new javax.swing.JToolBar();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        btnOpen = new javax.swing.JButton();
+        btnAddFolder = new javax.swing.JButton();
+        btnRename = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -136,19 +189,41 @@ public class RarcEditorForm extends javax.swing.JFrame {
         fileView.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
         jScrollPane1.setViewportView(fileView);
 
+        jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
 
-        jButton1.setText("Open");
-        jButton1.setFocusable(false);
-        jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(jButton1);
+        btnOpen.setText("Open");
+        btnOpen.setFocusable(false);
+        btnOpen.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnOpen.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnOpen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOpenActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnOpen);
 
-        jButton2.setText("Save");
-        jButton2.setFocusable(false);
-        jButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(jButton2);
+        btnAddFolder.setText("Add Folder");
+        btnAddFolder.setFocusable(false);
+        btnAddFolder.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnAddFolder.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnAddFolder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddFolderActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnAddFolder);
+
+        btnRename.setText("Rename");
+        btnRename.setFocusable(false);
+        btnRename.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnRename.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnRename.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRenameActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnRename);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -172,10 +247,34 @@ public class RarcEditorForm extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenActionPerformed
+        JFileChooser chooser = new JFileChooser(filePath.substring(0, filePath.indexOf(fileName)));
+        if(chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+            return;
+        
+        try {
+            filePath = chooser.getSelectedFile().getAbsolutePath();
+            openRarc(new RarcFilesystem(new ExternalFile(filePath)));
+        } catch(IOException ex) {
+            JOptionPane.showMessageDialog(this, "Unable to open ARC file: " + ex.getLocalizedMessage());
+        }
+        
+    }//GEN-LAST:event_btnOpenActionPerformed
+
+    private void btnAddFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddFolderActionPerformed
+        
+    }//GEN-LAST:event_btnAddFolderActionPerformed
+
+    private void btnRenameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRenameActionPerformed
+        fileView.startEditingAtPath(fileView.getSelectionPath());
+    }//GEN-LAST:event_btnRenameActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddFolder;
+    private javax.swing.JButton btnOpen;
+    private javax.swing.JButton btnRename;
     private javax.swing.JTree fileView;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
@@ -186,11 +285,16 @@ public class RarcEditorForm extends javax.swing.JFrame {
             Object value, boolean selected, boolean expanded,
             boolean leaf, int row, boolean hasFocus) {
                 super.getTreeCellRendererComponent(tree, value, selected,expanded, leaf, row, hasFocus);
-                DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) value;
-                setIcon(leafIcon);
-
+                
+                System.out.println(((ImageIcon) leafIcon).getIconHeight());
+                
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+                if(isFile(node.getUserObject().toString()))
+                    setIcon(fileIcon);
 
                 return this;
         }
+        
+        private final ImageIcon fileIcon = new ImageIcon(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/rarceditor/unkfile.png")));
     }
 }
