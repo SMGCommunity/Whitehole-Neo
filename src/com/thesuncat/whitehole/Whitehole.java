@@ -56,12 +56,9 @@ public class Whitehole {
             Logger.getLogger(Whitehole.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        args = new String[] {"D:\\SMGO\\game\\files\\ObjectData\\WoodDrumRailLiftA.arc"};
-        
         if(args.length != 0) {
-            if(args[0].endsWith(".arc")) {
+            if(args[0].endsWith(".arc"))
                 new RarcEditorForm(args[0]).setVisible(true);
-            }
             return;
         }
         

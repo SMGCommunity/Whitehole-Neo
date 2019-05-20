@@ -20,8 +20,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class RarcFilesystem implements FilesystemBase
-{
+public class RarcFilesystem implements FilesystemBase {
     public RarcFilesystem(FileBase _file) throws IOException {
         file = new Yaz0File(_file);
         file.setBigEndian(true);
@@ -56,13 +55,10 @@ public class RarcFilesystem implements FilesystemBase
         root.tempID = 0;
 
         dirEntries.put("/", root);
-        for (int i = 0; i < numDirNodes; i++)
-        {
+        for (int i = 0; i < numDirNodes; i++) {
             DirEntry parentdir = null;
-            for (DirEntry de : dirEntries.values())
-            {
-                if (de.tempID == i)
-                {
+            for (DirEntry de : dirEntries.values()) {
+                if (de.tempID == i) {
                     parentdir = de;
                     break;
                 }
@@ -72,8 +68,7 @@ public class RarcFilesystem implements FilesystemBase
 
             short numentries = file.readShort();
             int firstentry = file.readInt();
-            for (int j = 0; j < numentries; j++)
-            {
+            for (int j = 0; j < numentries; j++) {
                 int entryoffset = fileEntriesOffset + ((j + firstentry) * 0x14);
                 file.position(entryoffset);
 
@@ -89,8 +84,7 @@ public class RarcFilesystem implements FilesystemBase
                 
                 String fullname = parentdir.fullName + "/" + name;
 
-                if (entrytype == 0x0200)
-                {
+                if (entrytype == 0x0200) {
                     DirEntry d = new DirEntry();
                     d.parentDir = parentdir;
                     d.name = name;
@@ -99,9 +93,7 @@ public class RarcFilesystem implements FilesystemBase
 
                     dirEntries.put(pathToKey(fullname), d);
                     parentdir.childrenDirs.add(d);
-                }
-                else
-                {
+                } else {
                     FileEntry f = new FileEntry();
                     f.parentDir = parentdir;
                     f.dataOffset = fileDataOffset + dataoffset;
@@ -119,8 +111,7 @@ public class RarcFilesystem implements FilesystemBase
     
     // fix: ignore the root directory name in filenames
     // SMG ignores it as well, and some RARC packers set it arbitrarily
-    private String pathToKey(String path)
-    {
+    private String pathToKey(String path) {
         String ret = path.toLowerCase();
         ret = ret.substring(1);
         if (!ret.contains("/")) return "/";
@@ -128,18 +119,15 @@ public class RarcFilesystem implements FilesystemBase
         return ret;
     }
     
-    private int align32(int val)
-    {
+    private int align32(int val) {
         return (val + 0x1F) & ~0x1F;
     }
     
-    private int dirMagic(String name)
-    {
+    private int dirMagic(String name) {
         String uppername = name.toUpperCase();
         int ret = 0;
         
-        for (int i = 0; i < 4; i++)
-        {
+        for (int i = 0; i < 4; i++) {
             ret <<= 8;
             
             if (i >= uppername.length())
@@ -151,11 +139,9 @@ public class RarcFilesystem implements FilesystemBase
         return ret;
     }
     
-    private short nameHash(String name)
-    {
+    private short nameHash(String name) {
         short ret = 0;
-        for (char ch : name.toCharArray())
-        {
+        for (char ch : name.toCharArray()) {
             ret *= 3;
             ret += ch;
         }
@@ -163,10 +149,8 @@ public class RarcFilesystem implements FilesystemBase
     }
     
     @Override
-    public void save() throws IOException
-    {
-        for (FileEntry fe : fileEntries.values())
-        {
+    public void save() throws IOException {
+        for (FileEntry fe : fileEntries.values()) {
             if (fe.data != null) continue;
             file.position(fe.dataOffset);
             fe.data = file.readBytes(fe.dataSize);
@@ -180,8 +164,7 @@ public class RarcFilesystem implements FilesystemBase
         int dataLength = 0;
         for (DirEntry de : dirEntries.values())
             dataOffset += de.name.length() + 1;
-        for (FileEntry fe : fileEntries.values())
-        {
+        for (FileEntry fe : fileEntries.values()) {
             dataOffset += fe.name.length() + 1;
             dataLength += align32(fe.dataSize);
         }
@@ -226,8 +209,7 @@ public class RarcFilesystem implements FilesystemBase
         int c = 1;
         while (curdir.parentDir != null) curdir = (DirEntry)entriesarray[c++];
         short fileid = 0;
-        for (;;)
-        {
+        for (;;) {
             // write the directory node
             curdir.tempID = dirSubOffset / 0x10;
             file.position(dirOffset + dirSubOffset);
@@ -238,8 +220,7 @@ public class RarcFilesystem implements FilesystemBase
             file.writeInt(fileSubOffset / 0x14);
             dirSubOffset += 0x10;
             
-            if (curdir.tempID > 0)
-            {
+            if (curdir.tempID > 0) {
                 file.position(curdir.tempNameOffset);
                 file.writeShort((short)stringSubOffset);
                 file.writeInt(curdir.tempID);
@@ -249,8 +230,7 @@ public class RarcFilesystem implements FilesystemBase
             
             // write the child file/dir entries
             file.position(fileOffset + fileSubOffset);
-            for (DirEntry cde : curdir.childrenDirs)
-            {
+            for (DirEntry cde : curdir.childrenDirs) {
                 file.writeShort((short)0xFFFF);
                 file.writeShort(nameHash(cde.name));
                 file.writeShort((short)0x0200);
@@ -261,8 +241,7 @@ public class RarcFilesystem implements FilesystemBase
                 fileSubOffset += 0x14;
             }
             
-            for (FileEntry cfe : curdir.childrenFiles)
-            {
+            for (FileEntry cfe : curdir.childrenFiles) {
                 file.position(fileOffset + fileSubOffset);
                 file.writeShort(fileid);
                 file.writeShort(nameHash(cfe.name));
@@ -302,21 +281,20 @@ public class RarcFilesystem implements FilesystemBase
             file.writeInt(0x00000000);
             fileSubOffset += 0x28;
             
-            // determine who's next on the list
-            // * if we have a child directory, process it
-            // * otherwise, look if we have remaining siblings
-            // * and if none, go back to our parent and look for siblings again
-            // * until we have done them all
+            /**
+             * determine who's next on the list
+             * if we have a child directory, process it
+             * otherwise, look if we have remaining siblings
+             * and if none, go back to our parent and look for siblings again
+             * until we have done them all
+            **/
             if (!curdir.childrenDirs.isEmpty())
             {
                 dirstack.push(curdir.childrenDirs.iterator());
                 curdir = dirstack.peek().next();
-            }
-            else
-            {
+            } else {
                 curdir = null;
-                while (curdir == null)
-                {
+                while (curdir == null) {
                     if (dirstack.empty())
                         break;
                     
@@ -336,21 +314,18 @@ public class RarcFilesystem implements FilesystemBase
     }
 
     @Override
-    public void close() throws IOException
-    {
+    public void close() throws IOException {
         file.close();
     }
 
 
     @Override
-    public boolean directoryExists(String directory)
-    {
+    public boolean directoryExists(String directory) {
         return dirEntries.containsKey(pathToKey(directory));
     }
 
     @Override
-    public List<String> getDirectories(String directory)
-    {
+    public List<String> getDirectories(String directory) {
         if (!dirEntries.containsKey(pathToKey(directory))) 
             return null;
         
@@ -358,23 +333,19 @@ public class RarcFilesystem implements FilesystemBase
         
         List<String> ret = new ArrayList<>();
         for (DirEntry de : dir.childrenDirs)
-        {
             ret.add(de.name);
-        }
         
         return ret;
     }
 
 
     @Override
-    public boolean fileExists(String filename)
-    {
+    public boolean fileExists(String filename) {
         return fileEntries.containsKey(pathToKey(filename));
     }
 
     @Override
-    public List<String> getFiles(String directory)
-    {
+    public List<String> getFiles(String directory) {
         if (!dirEntries.containsKey(pathToKey(directory))) 
             return null;
         
@@ -382,16 +353,13 @@ public class RarcFilesystem implements FilesystemBase
         
         List<String> ret = new ArrayList<>();
         for (FileEntry fe : dir.childrenFiles)
-        {
             ret.add(fe.name);
-        }
         
         return ret;
     }
 
     @Override
-    public FileBase openFile(String filename) throws FileNotFoundException
-    {
+    public FileBase openFile(String filename) throws FileNotFoundException {
         if (!fileEntries.containsKey(pathToKey(filename)))
             throw new FileNotFoundException(filename + " not found in RARC!");
         
@@ -403,8 +371,7 @@ public class RarcFilesystem implements FilesystemBase
     }
     
     @Override
-    public void createFile(String parent, String newfile)
-    {
+    public void createFile(String parent, String newfile) {
         String parentkey = pathToKey(parent);
         String fnkey = pathToKey(parent + "/" + newfile);
         if (!dirEntries.containsKey(parentkey)) return;
@@ -425,8 +392,7 @@ public class RarcFilesystem implements FilesystemBase
     }
 
     @Override
-    public void renameFile(String file, String newname)
-    {
+    public void renameFile(String file, String newname) {
         file = pathToKey(file);
         if (!fileEntries.containsKey(file)) return;
         FileEntry fe = fileEntries.get(file);
@@ -447,10 +413,10 @@ public class RarcFilesystem implements FilesystemBase
     }
 
     @Override
-    public void deleteFile(String file)
-    {
+    public void deleteFile(String file) {
         file = pathToKey(file);
         if (!fileEntries.containsKey(file)) return;
+        
         FileEntry fe = fileEntries.get(file);
         DirEntry parent = fe.parentDir;
         
@@ -460,12 +426,10 @@ public class RarcFilesystem implements FilesystemBase
 
 
     // support functions for RarcFile
-    public byte[] getFileContents(String fullname) throws IOException
-    {
+    public byte[] getFileContents(String fullname) throws IOException {
         FileEntry fe = fileEntries.get(pathToKey(fullname));
         
-        if (fe.data != null)
-        {
+        if (fe.data != null){
             byte[] thedata = Arrays.copyOf(fe.data, fe.dataSize);
             return thedata;
         }
@@ -474,18 +438,15 @@ public class RarcFilesystem implements FilesystemBase
         return file.readBytes((int)fe.dataSize);
     }
 
-    public void reinsertFile(RarcFile _file) throws IOException
-    {
+    public void reinsertFile(RarcFile _file) throws IOException {
         FileEntry fe = fileEntries.get(pathToKey(_file.fileName));
         fe.data = _file.getContents();
         fe.dataSize = (int)_file.getLength();
     }
 
 
-    private class FileEntry
-    {
-        public FileEntry()
-        { 
+    private class FileEntry {
+        public FileEntry() {
             data = null;
         }
         
@@ -500,10 +461,8 @@ public class RarcFilesystem implements FilesystemBase
         public byte[] data;
     }
 
-    private class DirEntry
-    {
-        public DirEntry()
-        {
+    private class DirEntry {
+        public DirEntry() {
             childrenDirs = new LinkedList<>();
             childrenFiles = new LinkedList<>();
         }
@@ -538,7 +497,7 @@ public class RarcFilesystem implements FilesystemBase
     }
     
     public boolean isFile(String dir) {
-        dir = dir.replaceFirst(Pattern.quote(getRoot()), "").toLowerCase();
+        dir = pathToKey(dir);
         boolean b = fileEntries.containsKey(dir) && !dirEntries.containsKey(dir);
         if(!b)
             System.out.println(dir + " is not a file?");
@@ -546,16 +505,11 @@ public class RarcFilesystem implements FilesystemBase
     }
     
     public boolean isDir(String dir) {
-        dir = dir.replaceFirst(Pattern.quote(getRoot()), "").toLowerCase();
+        dir = pathToKey(dir);
         boolean b = dirEntries.containsKey(dir) && !fileEntries.containsKey(dir);
         if(!b)
             System.out.println(dir + " is not a dir?");
         return b;
-    }
-    
-    public String getDirName(String dir) {
-        dir = dir.replaceFirst(Pattern.quote('/' + getRoot()), "");
-        return dirEntries.get(dir).name;
     }
 
     private FileBase file;

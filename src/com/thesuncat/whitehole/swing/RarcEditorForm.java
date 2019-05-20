@@ -17,8 +17,10 @@ package com.thesuncat.whitehole.swing;
 
 import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.io.ExternalFile;
+import com.thesuncat.whitehole.io.RarcFile;
 import com.thesuncat.whitehole.io.RarcFilesystem;
 import java.awt.Component;
+import java.awt.MouseInfo;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -27,6 +29,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class RarcEditorForm extends javax.swing.JFrame {
 
@@ -57,27 +60,64 @@ public class RarcEditorForm extends javax.swing.JFrame {
 
             @Override
             public boolean importData(TransferHandler.TransferSupport support) {
+                System.out.println("import data");
                 if (!this.canImport(support))
                     return false;
 
-                List<File> files;
+                List<File> inFiles;
                 try {
-                    files = (List<File>) support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                    inFiles = (List<File>) support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                 } catch (UnsupportedFlavorException | IOException ex) {
                     return false;
                 }
                 
-                if(files.size() != 1)
+                if(inFiles.size() != 1)
                     return false;
                 
-                try {
-                    filePath = files.get(0).getAbsolutePath();
-                    openRarc(new RarcFilesystem(new ExternalFile(filePath)));
-                } catch(IOException ex) {
-                    return false;
+                File inFile = inFiles.get(0);
+                if(inFile.getName().endsWith(".arc")) {
+                    try {
+                        filePath = inFile.getAbsolutePath();
+                        openRarc(new RarcFilesystem(new ExternalFile(filePath)));
+                    } catch(IOException ex) {
+                        return false;
+                    }
+
+                    return true;
+                } else { // import file
+                    try {
+                        TreePath path = fileView.getSelectionPath();
+                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                        String dir = "/";
+                        
+                        Object[] pathArray = path.getPath();
+                        for(int i = 0; i < pathArray.length - 1; i++)
+                            dir += pathArray[i] + "/";
+                        
+                        String oldPath = dir + pathArray[pathArray.length - 1];
+                        
+                        String newPath = dir + inFile.getName();
+                        System.out.println("import file " + newPath);
+                        
+                        if(files.contains(newPath))
+                            return false; // should replace file but whatever I'll totally remember to change this later
+                        
+                        RarcFile f = (RarcFile) fs.openFile(oldPath.toLowerCase());
+                        f.setContents(Files.readAllBytes(inFile.toPath()));
+                        f.save();
+                        
+                        fs.renameFile(oldPath.toLowerCase(), newPath.toLowerCase());
+                        
+                        files.set(files.indexOf(oldPath.substring(1)), newPath.substring(1));
+                        
+                        node.setUserObject(inFile.getName());
+                        ((DefaultTreeModel) fileView.getModel()).reload(node);
+                    } catch(Exception ex) {
+                        System.out.println("failed to import " + inFile + "\n" + ex.getMessage());
+                        return false;
+                    }
+                    return true;
                 }
-                
-                return true;
             }
         });
         
@@ -166,6 +206,10 @@ public class RarcEditorForm extends javax.swing.JFrame {
         return ret;
     }
     
+    private void openFileInRarc() {
+        // TODO :c
+    }
+    
     private RarcFilesystem fs;
     private String fileName;
     private String filePath;
@@ -187,6 +231,11 @@ public class RarcEditorForm extends javax.swing.JFrame {
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         fileView.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        fileView.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                fileViewMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(fileView);
 
         jToolBar1.setFloatable(false);
@@ -270,6 +319,12 @@ public class RarcEditorForm extends javax.swing.JFrame {
         fileView.startEditingAtPath(fileView.getSelectionPath());
     }//GEN-LAST:event_btnRenameActionPerformed
 
+    private void fileViewMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileViewMouseClicked
+        if(evt.getClickCount() < 2)
+            return;
+        openFileInRarc();
+    }//GEN-LAST:event_fileViewMouseClicked
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddFolder;
     private javax.swing.JButton btnOpen;
@@ -285,8 +340,6 @@ public class RarcEditorForm extends javax.swing.JFrame {
             Object value, boolean selected, boolean expanded,
             boolean leaf, int row, boolean hasFocus) {
                 super.getTreeCellRendererComponent(tree, value, selected,expanded, leaf, row, hasFocus);
-                
-                System.out.println(((ImageIcon) leafIcon).getIconHeight());
                 
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
                 if(isFile(node.getUserObject().toString()))
