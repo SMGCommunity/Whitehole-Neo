@@ -29,14 +29,15 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.*;
 
-
-
 public class Whitehole {
     public static final String NAME = "Whitehole v1.5.4 BETA";
     public static final String WEBURL = "http:discord.gg/xWCFAMA";
     public static final String CRASHURL = "TheSunCat#1007";
     public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
     
+    /**
+     * The current game directory.
+     */
     public static GameArchive game;
     
     /**
@@ -55,6 +56,8 @@ public class Whitehole {
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
             Logger.getLogger(Whitehole.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        args = new String[] {"C:\\Users\\Laurent\\Downloads\\SMGO\\AbekobeLiftZoneMap.arc"};
         
         if(args.length != 0) {
             if(args[0].endsWith(".arc"))
@@ -137,6 +140,7 @@ public class Whitehole {
             }
         }, "ObjectDB Loader");
     
+    // Rich presence stuff
     public static boolean closing = false;
     public static String currentTask = "Idle";
 }

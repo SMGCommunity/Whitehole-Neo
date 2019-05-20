@@ -26,15 +26,12 @@ public class GameArchive {
     }
     
     public void getGameType(String name) {
-        if (filesystem.fileExists(String.format("/StageData/%1$s.arc", name))) {
+        if (filesystem.fileExists(String.format("/StageData/%1$s.arc", name)))
             Whitehole.gameType = 1;   // SMG1
-        }
-        else if (filesystem.fileExists(String.format("/StageData/%1$s/%1$sMap.arc", name))) {
+        else if (filesystem.fileExists(String.format("/StageData/%1$s/%1$sMap.arc", name)))
             Whitehole.gameType = 2;   // SMG2
-        }
-        else {
-            Whitehole.gameType = 0;   // no game
-        }
+        else
+            Whitehole.gameType = 0;   // no game detected
     }
     
     public boolean galaxyExists(String name) {
@@ -56,8 +53,7 @@ public class GameArchive {
     public void close() {
         try { 
             filesystem.close();
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
         }
     }
     

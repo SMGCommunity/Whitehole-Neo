@@ -189,7 +189,7 @@ public class Bcsv  {
 
                     case 2:
                         try{
-                        file.writeFloat((float)entry.get(field.nameHash));
+                            file.writeFloat((float)entry.get(field.nameHash));
                         } catch(ClassCastException ex) {
                             System.out.println(field.name + " is a pecking float!!!");
                         }

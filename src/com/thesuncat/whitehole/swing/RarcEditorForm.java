@@ -19,9 +19,7 @@ import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.io.ExternalFile;
 import com.thesuncat.whitehole.io.RarcFile;
 import com.thesuncat.whitehole.io.RarcFilesystem;
-import java.awt.Component;
-import java.awt.MouseInfo;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
@@ -30,6 +28,7 @@ import javax.swing.*;
 import javax.swing.tree.*;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 
 public class RarcEditorForm extends javax.swing.JFrame {
 
@@ -97,10 +96,7 @@ public class RarcEditorForm extends javax.swing.JFrame {
                         String oldPath = dir + pathArray[pathArray.length - 1];
                         
                         String newPath = dir + inFile.getName();
-                        System.out.println("import file " + newPath);
-                        
-                        if(files.contains(newPath))
-                            return false; // should replace file but whatever I'll totally remember to change this later
+                        System.out.println("importing file at " + newPath);
                         
                         RarcFile f = (RarcFile) fs.openFile(oldPath.toLowerCase());
                         f.setContents(Files.readAllBytes(inFile.toPath()));
@@ -121,7 +117,8 @@ public class RarcEditorForm extends javax.swing.JFrame {
             }
         });
         
-        fileView.setCellEditor(new DefaultTreeCellEditor(fileView, (DefaultTreeCellRenderer) fileView.getCellRenderer()));
+        fileView.setEditable(true);
+        fileView.setCellEditor(new CellEditor(fileView, (DefaultTreeCellRenderer) fileView.getCellRenderer()));
     }
     
     private void openRarc(RarcFilesystem filesystem) throws IOException {
@@ -317,6 +314,8 @@ public class RarcEditorForm extends javax.swing.JFrame {
 
     private void btnRenameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRenameActionPerformed
         fileView.startEditingAtPath(fileView.getSelectionPath());
+        
+        
     }//GEN-LAST:event_btnRenameActionPerformed
 
     private void fileViewMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileViewMouseClicked
@@ -344,10 +343,35 @@ public class RarcEditorForm extends javax.swing.JFrame {
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
                 if(isFile(node.getUserObject().toString()))
                     setIcon(fileIcon);
-
+                else
+                    setIcon(openIcon);
                 return this;
         }
-        
-        private final ImageIcon fileIcon = new ImageIcon(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/rarceditor/unkfile.png")));
     }
+    
+    private class CellEditor extends DefaultTreeCellEditor {
+        
+        public CellEditor(JTree tree, DefaultTreeCellRenderer renderer) {
+            super(tree, renderer);
+        }
+        
+        @Override
+        protected void determineOffset(JTree tree, Object value,
+                                        boolean isSelected, boolean expanded,
+                                        boolean leaf, int row) {
+            if(renderer != null) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+                if(isFile(node.getUserObject().toString()))
+                    editingIcon = fileIcon;
+                else
+                    editingIcon = renderer.getOpenIcon();
+                offset = renderer.getIconTextGap() + editingIcon.getIconWidth();
+            } else {
+                editingIcon = null;
+                offset = 0;
+            }
+        }
+    }
+    
+    private final ImageIcon fileIcon = new ImageIcon(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/rarceditor/unkfile.png")));
 }
