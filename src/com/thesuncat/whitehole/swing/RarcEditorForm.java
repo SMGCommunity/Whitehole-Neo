@@ -23,6 +23,7 @@ import com.thesuncat.whitehole.io.RarcFilesystem;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.*;
 import javax.swing.*;
@@ -30,6 +31,7 @@ import javax.swing.tree.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class RarcEditorForm extends javax.swing.JFrame {
 
@@ -116,11 +118,6 @@ public class RarcEditorForm extends javax.swing.JFrame {
                         listmodel.nodeChanged(tn);
 
                         setFileDescription(tn);
-//                        fs.renameFile(oldPath.toLowerCase(), inFile.getName());
-//                        
-//                        files.set(files.indexOf(oldPath.substring(1)), newPath.substring(1));
-//                        
-//                        node.setUserObject(inFile.getName());
                         ((DefaultTreeModel) fileView.getModel()).reload(node);
                     } catch(Exception ex) {
                         System.err.println("failed to import " + inFile + "\n" + ex.getMessage());
@@ -134,45 +131,314 @@ public class RarcEditorForm extends javax.swing.JFrame {
         fileView.setEditable(true);
         fileView.setCellEditor(new CellEditor(fileView, (DefaultTreeCellRenderer) fileView.getCellRenderer()));
     }
+
+    private void doFolderListing(FileTreeNode pnode, String parent) {
+        FileTreeNode tn;
+        String[] dummy = new String[]{};
+        Object[] childdirs = fs.getDirectories(parent).toArray(dummy);
+        Object[] childfiles = fs.getFiles(parent).toArray(dummy);
+        Arrays.sort(childdirs);
+        Arrays.sort(childfiles);
+        for (Object dir : childdirs) {
+            tn = new FileTreeNode(fs, parent + "/" + (String)dir);
+            pnode.add(tn);
+            this.treeNodes.put(parent + "/" + (String)dir, tn);
+            this.doFolderListing(tn, parent + "/" + (String)dir);
+        }
+        for (Object file : childfiles) {
+            tn = new FileTreeNode(fs, parent + "/" + (String)file);
+            pnode.add(tn);
+            this.treeNodes.put(parent + "/" + (String)file, tn);
+        }
+    }
+
+    private void importDirectory(ExternalFilesystem fs, String destpath, String dir) throws IOException {
+        String root = fs.getRoot() + "/";
+        String[] dummy = new String[]{};
+        Object[] childdirs = fs.getDirectories(root + dir).toArray(dummy);
+        Object[] childfiles = fs.getFiles(root + dir).toArray(dummy);
+        Arrays.sort(childdirs);
+        Arrays.sort(childfiles);
+        for (Object cdir : childdirs) {
+            this.archive.createDirectory(destpath, (String)cdir);
+            this.importDirectory(fs, destpath + "/" + (String)cdir, dir + "/" + (String)cdir);
+        }
+        for (Object cfile : childfiles) {
+            FileBase thefile = fs.openFile(root + dir + "/" + (String)cfile, "r");
+            this.archive.createFile(destpath, (String)cfile, thefile);
+            thefile.close();
+        }
+    }
+
+    private void btnAddFileFolderActionPerformed(ActionEvent evt) {
+        JFileChooser fc = new JFileChooser();
+        fc.setFileSelectionMode(2);
+        fc.setDialogTitle("Choose a file or folder to import");
+        String lastfile = Preferences.userRoot().get("lastFileAdded", null);
+        if (lastfile != null) {
+            fc.setSelectedFile(new File(lastfile));
+        }
+        if (fc.showOpenDialog(this) != 0) {
+            return;
+        }
+        File selfile = fc.getSelectedFile();
+        Preferences.userRoot().put("lastFileAdded", selfile.getPath());
+        String pathtoaddin = this.selectedPath;
+        pathtoaddin = pathtoaddin.isEmpty() || !this.archive.fileExists(pathtoaddin) ? this.archive.getRoot() : pathtoaddin.substring(pathtoaddin.lastIndexOf("/") + 1);
+        if (selfile.isFile()) {
+            int c;
+            String thispath;
+            try {
+                ExternalFile thefile = new ExternalFile(selfile.getPath(), "r");
+                this.archive.createFile(pathtoaddin, selfile.getName(), thefile);
+                this.trySave();
+                thefile.close();
+            }
+            catch (IOException ex) {
+                this.lblStatusLabel.setText("Failed to import the file: " + ex.getMessage());
+            }
+            String fullpath = pathtoaddin + "/" + selfile.getName();
+            FileTreeNode pnode = this.treeNodes.get(pathtoaddin);
+            FileTreeNode newnode = new FileTreeNode(this.archive, fullpath);
+            for (c = 0; c < pnode.getChildCount() && (thispath = ((FileTreeNode)pnode.getChildAt(c)).toString()).compareTo(selfile.getName()) < 0; ++c) {
+            }
+            pnode.insert(newnode, c);
+            this.treeNodes.put(fullpath, newnode);
+            DefaultTreeModel listmodel = (DefaultTreeModel)this.tvFileView.getModel();
+            listmodel.nodesWereInserted(pnode, new int[]{c});
+        } else {
+            int c;
+            String thispath;
+            try {
+                ExternalFilesystem thefs = new ExternalFilesystem(selfile.getPath());
+                this.archive.createDirectory(pathtoaddin, selfile.getName());
+                this.importDirectory(thefs, pathtoaddin + "/" + selfile.getName(), "");
+                this.trySave();
+                thefs.close();
+            }
+            catch (IOException ex) {
+                this.lblStatusLabel.setText("Failed to import the directory: " + ex.getMessage());
+            }
+            String fullpath = pathtoaddin + "/" + selfile.getName();
+            FileTreeNode pnode = this.treeNodes.get(pathtoaddin);
+            FileTreeNode newnode = new FileTreeNode(this.archive, fullpath);
+            for (c = 0; c < pnode.getChildCount() && (thispath = ((FileTreeNode)pnode.getChildAt(c)).toString()).compareTo(selfile.getName()) < 0; ++c) {
+            }
+            this.doFolderListing(newnode, fullpath);
+            pnode.insert(newnode, c);
+            this.treeNodes.put(fullpath, newnode);
+            DefaultTreeModel listmodel = (DefaultTreeModel)this.tvFileView.getModel();
+            listmodel.nodesWereInserted(pnode, new int[]{c});
+        }
+    }
+
+    private void extractDirectory(String dir, String outpath) throws IOException {
+        File outdir = new File(outpath);
+        outdir.mkdir();
+        List<String> childdirs = this.archive.getDirectories(dir);
+        List<String> childfiles = this.archive.getFiles(dir);
+        for (String cdir : childdirs) {
+            this.extractDirectory(dir + "/" + cdir, outpath + "/" + cdir);
+        }
+        for (String cfile : childfiles) {
+            FileBase srcfile = this.archive.openFile(dir + "/" + cfile);
+            ExternalFile dstfile = new ExternalFile(outpath + "/" + cfile, "rw");
+            dstfile.setLength(srcfile.getLength());
+            dstfile.setContents(srcfile.getContents());
+            dstfile.save();
+            dstfile.close();
+            srcfile.close();
+        }
+    }
+
+    private void btnExtractItemActionPerformed(ActionEvent evt) {
+        JFileChooser fc = new JFileChooser();
+        fc.setFileSelectionMode(0);
+        fc.setDialogTitle("Choose where to extract this item");
+        String lastfile = Preferences.userRoot().get("lastFile", null);
+        if (lastfile != null) {
+            fc.setSelectedFile(new File(new File(lastfile).getParentFile() + "/" + this.selectedPath.substring(this.selectedPath.lastIndexOf("/") + 1)));
+        }
+        if (fc.showOpenDialog(this) != 0) {
+            return;
+        }
+        File selfile = fc.getSelectedFile();
+        if (selfile.exists() && JOptionPane.showConfirmDialog(this, "There is already an item with this name. Overwrite it?", "WiiExplorer", 0) != 0) {
+            return;
+        }
+        try {
+            if (this.archive.fileExists(this.selectedPath)) {
+                FileBase srcfile = this.archive.openFile(this.selectedPath);
+                ExternalFile dstfile = new ExternalFile(selfile.getPath(), "rw");
+                dstfile.setLength(srcfile.getLength());
+                dstfile.setContents(srcfile.getContents());
+                dstfile.save();
+                dstfile.close();
+                srcfile.close();
+                this.lblStatusLabel.setText("File extracted successfully.");
+            } else {
+                this.extractDirectory(this.selectedPath, selfile.getPath());
+                this.lblStatusLabel.setText("Directory extracted successfully.");
+            }
+        }
+        catch (IOException ex) {
+            this.lblStatusLabel.setText("Extraction failed: " + ex.getMessage());
+        }
+    }
+
+    private void setFileDescription(FileTreeNode tn) {
+        String fullpath;
+        this.selectedPath = fullpath = (String)tn.getUserObject();
+        if (tn.isFile) {
+            int sizeround;
+            int filesize;
+            String[] sizeexts = new String[]{"kB", "MB", "GB"};
+            int e = 0;
+            String sizeext = "bytes";
+            if (sizeround == 1) {
+                sizeext = "byte";
+            } else {
+                for (sizeround = filesize = this.archive.fileSize((String)fullpath); sizeround >= 1000; sizeround /= 1000) {
+                    sizeext = sizeexts[e];
+                    if (++e < 3) continue;
+                }
+            }
+            Object[] arrobject = new Object[4];
+            arrobject[0] = fullpath;
+            arrobject[1] = sizeround;
+            arrobject[2] = sizeext;
+            arrobject[3] = sizeround == filesize ? "" : String.format(" (%1$d byte%2$s)", filesize, filesize == 1 ? "" : "s");
+            this.lblStatusLabel.setText(String.format("%1$s -- %2$d %3$s%4$s", arrobject));
+        } else {
+            int ndirs = this.archive.getDirectories(fullpath).size();
+            int nfiles = this.archive.getFiles(fullpath).size();
+            this.lblStatusLabel.setText(String.format("%1$s -- %2$d element%7$s (%3$d director%5$s, %4$d file%6$s)", fullpath, ndirs + nfiles, ndirs, nfiles, ndirs == 1 ? "y" : "ies", nfiles == 1 ? "" : "s", ndirs + nfiles == 1 ? "" : "s"));
+        }
+    }
+
+    private void tvFileViewValueChanged(TreeSelectionEvent evt) {
+        boolean sel = true;
+        TreePath path = this.tvFileView.getSelectionPath();
+        TreeNode _tn = null;
+        if (path == null) {
+            sel = false;
+        } else {
+            _tn = (TreeNode)path.getLastPathComponent();
+            if (_tn == null || _tn.getClass() != FileTreeNode.class) {
+                sel = false;
+            }
+        }
+        if (!sel) {
+            this.lblStatusLabel.setText("");
+            this.selectedPath = "";
+            this.btnExtractItem.setEnabled(false);
+            this.btnReplaceItem.setEnabled(false);
+            this.btnRenameItem.setEnabled(false);
+            this.btnDeleteItem.setEnabled(false);
+        } else {
+            FileTreeNode tn = (FileTreeNode)_tn;
+            this.setFileDescription(tn);
+            this.btnExtractItem.setEnabled(true);
+            this.btnReplaceItem.setEnabled(tn.isFile);
+            this.btnRenameItem.setEnabled(true);
+            this.btnDeleteItem.setEnabled(!this.selectedPath.equals(this.archive.getRoot()));
+        }
+    }
+
+    private void btnReplaceItemActionPerformed(ActionEvent evt) {
+        if (!this.archive.fileExists(this.selectedPath)) {
+            throw new UnsupportedOperationException("oops, bug");
+        }
+        JFileChooser fc = new JFileChooser();
+        fc.setFileSelectionMode(0);
+        fc.setDialogTitle("Choose a file to import");
+        String lastfile = Preferences.userRoot().get("lastFileReplaced", null);
+        if (lastfile != null) {
+            fc.setSelectedFile(new File(lastfile));
+        }
+        if (fc.showOpenDialog(this) != 0) {
+            return;
+        }
+        String selfile = fc.getSelectedFile().getPath();
+        Preferences.userRoot().put("lastFileReplaced", selfile);
+        try {
+            ExternalFile srcfile = new ExternalFile(selfile, "r");
+            FileBase dstfile = this.archive.openFile(this.selectedPath);
+            dstfile.setLength(srcfile.getLength());
+            dstfile.setContents(srcfile.getContents());
+            dstfile.save();
+            this.trySave();
+            dstfile.close();
+            srcfile.close();
+        }
+        catch (IOException ex) {
+            this.lblStatusLabel.setText("Failed to replace file: " + ex.getMessage());
+        }
+        this.setFileDescription(this.treeNodes.get(this.selectedPath));
+    }
+
+    private void btnRenameItemActionPerformed(ActionEvent evt) {
+        String thename = JOptionPane.showInputDialog(this, "Enter the new name for the item:", "WiiExplorer", 3);
+        if (thename == null || thename.trim().isEmpty()) {
+            return;
+        }
+        if (thename.contains("/") || thename.contains("\\")) {
+            JOptionPane.showMessageDialog(this, "Invalid name entered. It must not contain slashes.", "WiiExplorer", 0);
+            return;
+        }
+        if (this.archive.fileExists(this.selectedPath)) {
+            this.archive.renameFile(this.selectedPath, thename);
+        } else {
+            this.archive.renameDirectory(this.selectedPath, thename);
+        }
+        FileTreeNode tn = this.treeNodes.get(this.selectedPath);
+        this.treeNodes.remove(this.selectedPath);
+        this.selectedPath = this.selectedPath.substring(0, this.selectedPath.lastIndexOf("/") + 1) + thename;
+        tn.setUserObject(this.selectedPath);
+        this.treeNodes.put(this.selectedPath, tn);
+        DefaultTreeModel listmodel = (DefaultTreeModel)this.tvFileView.getModel();
+        listmodel.nodeChanged(tn);
+        this.setFileDescription(tn);
+        this.trySave();
+    }
+
+    private void btnDeleteItemActionPerformed(ActionEvent evt) {
+        if (JOptionPane.showConfirmDialog(this, "Really delete this item?", "WiiExplorer", 0) != 0) {
+            return;
+        }
+        if (this.archive.fileExists(this.selectedPath)) {
+            this.archive.deleteFile(this.selectedPath);
+        } else {
+            this.archive.deleteDirectory(this.selectedPath);
+        }
+        FileTreeNode tn = this.treeNodes.get(this.selectedPath);
+        int rindex = tn.getParent().getIndex(tn);
+        this.treeNodes.remove(this.selectedPath);
+        ArrayList<String> toremove = new ArrayList<String>();
+        for (String k : this.treeNodes.keySet()) {
+            if (!k.startsWith(this.selectedPath)) continue;
+            toremove.add(k);
+        }
+        for (String k : toremove) {
+            this.treeNodes.remove(k);
+        }
+        DefaultTreeModel listmodel = (DefaultTreeModel)this.tvFileView.getModel();
+        listmodel.nodesWereRemoved(tn.getParent(), new int[]{rindex}, null);
+        this.trySave();
+    }
     
     private void openRarc(RarcFilesystem filesystem) throws IOException {
         fs = filesystem;
-        dirs = fs.getAllDirs();
-        files = fs.getAllFileDirs();
-        
-        if(dirs == null || files == null)
-            throw new IOException("dirs or files is null");
-        
-        dirs = removeFirstChar(dirs);
-        files = removeFirstChar(files);
-        
-        all = new ArrayList(dirs);
-        all.addAll(files);
-        
-        alreadyAdded = new ArrayList();
         
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(fs.getRoot());
-        populateFSList();
-        //createChildren(1, root, fs.getRoot());
-        
         DefaultTreeModel mdl = new DefaultTreeModel(root);
-        
+        doFolderListing(root, fs.getRoot());
         fileView.setModel(mdl);
         
         setTreeExpandedState(fileView);
         fileView.setCellRenderer(new CellRenderer());
         
         setTitle(Whitehole.NAME + " editing " + fileName);
-    }
-    
-    private void populateFSList() {
-      String rootdir = fs.getRoot();
-      FileTreeNode root = new FileTreeNode(fs, rootdir);
-      DefaultTreeModel treeModel = (DefaultTreeModel) new DefaultTreeModel(root);
-
-      doFolderListing(root, rootdir);
-      
-      fileView.setModel(treeModel);
     }
 
     private void doFolderListing(DefaultMutableTreeNode parentNode, String parent) {
@@ -196,43 +462,22 @@ public class RarcEditorForm extends javax.swing.JFrame {
     }
     
     private  class FileTreeNode extends DefaultMutableTreeNode {
-        private FilesystemBase fs;
         public boolean isFile;
 
         public FileTreeNode(FilesystemBase fs, String path) {
           super(path);
-
-          this.fs = fs;
           this.isFile = fs.fileExists(path);
         }
 
+        @Override
         public String toString() {
-          String name = this.userObject.toString();
+          String name = userObject.toString();
           if (name.equals("/"))
             return "[root]";
           return name.substring(name.lastIndexOf("/") + 1);
         }
 }
 
-    
-    private ArrayList<String> alreadyAdded;
-    
-//    private void createChildren(int level, DefaultMutableTreeNode parentNode, String parentName) throws IOException {
-//        for(String dir : all) {
-//            String[] parts = dir.split("/");
-//            
-//            if(!alreadyAdded.contains(dir) && parts.length > level && parts[level - 1].equals(parentName)) {
-//                if((dirs.contains(dir) && !fs.isDir(dir)) || (files.contains(dir) && !fs.isFile(dir)))
-//                    throw new IOException(dir + " is fake??");
-//                
-//                DefaultMutableTreeNode child = new DefaultMutableTreeNode(parts[level]);
-//                
-//                createChildren(level + 1, child, parts[level]);
-//                parentNode.add(child);
-//                alreadyAdded.add(dir);
-//            }
-//        }
-//    }
     
     private ArrayList<String> removeFirstChar(ArrayList<String> e) {
         for(int i = 0; i < e.size(); i++)
@@ -255,19 +500,6 @@ public class RarcEditorForm extends javax.swing.JFrame {
         tree.expandPath(path);
     }
     
-    private boolean isFile(String name) {
-        boolean ret = false;
-        
-        for(String s : files) {
-            if(s.endsWith(name)) {
-                ret = true;
-                break;
-            }
-        }
-        
-        return ret;
-    }
-    
     private void openFileInRarc() {
         // TODO :c
     }
@@ -276,8 +508,6 @@ public class RarcEditorForm extends javax.swing.JFrame {
     private String fileName;
     private String filePath;
     public HashMap<String, FileTreeNode> treeNodes;
-//    ArrayList<String> dirs, files;
-//    ArrayList<String> all;
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -375,7 +605,33 @@ public class RarcEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_btnOpenActionPerformed
 
     private void btnAddFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddFolderActionPerformed
-        
+        int c;
+        String thispath;
+        String thename = JOptionPane.showInputDialog(this, "Enter the name of the new folder:", "WiiExplorer", 3);
+        if (thename == null || thename.trim().isEmpty()) {
+            return;
+        }
+        if (thename.contains("/") || thename.contains("\\")) {
+            JOptionPane.showMessageDialog(this, "Invalid name entered. It must not contain slashes.", "WiiExplorer", 0);
+            return;
+        }
+        String pathtoaddin = this.selectedPath;
+        if (pathtoaddin.isEmpty()) {
+            pathtoaddin = this.archive.getRoot();
+        } else if (this.archive.fileExists(pathtoaddin)) {
+            pathtoaddin = pathtoaddin.substring(pathtoaddin.lastIndexOf("/") + 1);
+        }
+        String fullpath = pathtoaddin + "/" + thename;
+        FileTreeNode pnode = this.treeNodes.get(pathtoaddin);
+        FileTreeNode newnode = new FileTreeNode(this.archive, fullpath);
+        for (c = 0; c < pnode.getChildCount() && (thispath = ((FileTreeNode)pnode.getChildAt(c)).toString()).compareTo(thename) < 0; ++c) {
+        }
+        pnode.insert(newnode, c);
+        this.treeNodes.put(fullpath, newnode);
+        DefaultTreeModel listmodel = (DefaultTreeModel)this.tvFileView.getModel();
+        listmodel.nodesWereInserted(pnode, new int[]{c});
+        this.archive.createDirectory(pathtoaddin, thename);
+        this.trySave();
     }//GEN-LAST:event_btnAddFolderActionPerformed
 
     private void btnRenameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRenameActionPerformed
@@ -407,7 +663,14 @@ public class RarcEditorForm extends javax.swing.JFrame {
                 super.getTreeCellRendererComponent(tree, value, selected,expanded, leaf, row, hasFocus);
                 
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-                if(isFile(node.getUserObject().toString()))
+                
+                String nodePath = "/";
+                for(Object s : node.getUserObjectPath())
+                    nodePath += s + "/";
+                nodePath += node.getUserObject().toString();
+                
+                System.out.println("Node path " + nodePath);
+                if(fs.isFile(nodePath))
                     setIcon(fileIcon);
                 else
                     setIcon(openIcon);
@@ -426,8 +689,13 @@ public class RarcEditorForm extends javax.swing.JFrame {
                                         boolean isSelected, boolean expanded,
                                         boolean leaf, int row) {
             if(renderer != null) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-                if(isFile(node.getUserObject().toString()))
+                FileTreeNode node = (FileTreeNode) value;
+                String nodePath = "/";
+                for(Object s : node.getUserObjectPath())
+                    nodePath += s + "/";
+                nodePath += node.getUserObject().toString();
+                
+                if(fs.isFile(nodePath))
                     editingIcon = fileIcon;
                 else
                     editingIcon = renderer.getOpenIcon();
