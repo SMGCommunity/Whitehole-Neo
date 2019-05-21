@@ -18,7 +18,6 @@ package com.thesuncat.whitehole.io;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class RarcFilesystem implements FilesystemBase {
     public RarcFilesystem(FileBase _file) throws IOException {
@@ -391,23 +390,30 @@ public class RarcFilesystem implements FilesystemBase {
         fileEntries.put(pathToKey(fe.fullName), fe);
     }
 
+    /**
+     * Rename a file inside the RARC
+     * @param file full path to file
+     * @param newname new name of file (not including path)
+     */
     @Override
-    public void renameFile(String file, String newname) {
+    public void renameFile(String file, String newname) throws FileNotFoundException {
         file = pathToKey(file);
-        if (!fileEntries.containsKey(file)) return;
+        if (!fileEntries.containsKey(file)) throw new FileNotFoundException("could not find " + file);
         FileEntry fe = fileEntries.get(file);
         DirEntry parent = fe.parentDir;
         
         String parentkey = pathToKey(parent.fullName + "/" + newname);
         if (fileEntries.containsKey(parentkey) ||
             dirEntries.containsKey(parentkey)) 
-            return;
+            throw new FileNotFoundException("error code nine million"); // temp
         
         String fnkey = pathToKey(fe.fullName);
         fileEntries.remove(fnkey);
         
         fe.name = newname;
         fe.fullName = parent.fullName + "/" + newname;
+        
+        fnkey = pathToKey(fe.fullName);
         
         fileEntries.put(fnkey, fe);
     }
@@ -493,7 +499,13 @@ public class RarcFilesystem implements FilesystemBase {
     }
     
     public String getRoot() {
-        return dirEntries.values().iterator().next().name;
+        Object[] entries = dirEntries.values().toArray();
+        DirEntry curdir = (DirEntry) entries[0];
+        
+        int i = 0;
+        while (curdir.parentDir != null)
+            curdir = (DirEntry) entries[(i++)];
+        return curdir.fullName;
     }
     
     public boolean isFile(String dir) {

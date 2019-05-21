@@ -17,6 +17,7 @@ package com.thesuncat.whitehole.swing;
 
 import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.io.ExternalFile;
+import com.thesuncat.whitehole.io.FilesystemBase;
 import com.thesuncat.whitehole.io.RarcFile;
 import com.thesuncat.whitehole.io.RarcFilesystem;
 import java.awt.*;
@@ -102,14 +103,27 @@ public class RarcEditorForm extends javax.swing.JFrame {
                         f.setContents(Files.readAllBytes(inFile.toPath()));
                         f.save();
                         
-                        fs.renameFile(oldPath.toLowerCase(), newPath.toLowerCase());
                         
-                        files.set(files.indexOf(oldPath.substring(1)), newPath.substring(1));
+                        fs.renameFile(oldPath, inFile.getName());
                         
-                        node.setUserObject(inFile.getName());
+                        FileTreeNode tn = (FileTreeNode) treeNodes.get(oldPath);
+                        treeNodes.remove(oldPath);
+                        this.selectedPath = (this.selectedPath.substring(0, this.selectedPath.lastIndexOf("/") + 1) + thename);
+                        tn.setUserObject(newPath);
+                        this.treeNodes.put(this.selectedPath, tn);
+
+                        DefaultTreeModel listmodel = (DefaultTreeModel)this.tvFileView.getModel();
+                        listmodel.nodeChanged(tn);
+
+                        setFileDescription(tn);
+//                        fs.renameFile(oldPath.toLowerCase(), inFile.getName());
+//                        
+//                        files.set(files.indexOf(oldPath.substring(1)), newPath.substring(1));
+//                        
+//                        node.setUserObject(inFile.getName());
                         ((DefaultTreeModel) fileView.getModel()).reload(node);
                     } catch(Exception ex) {
-                        System.out.println("failed to import " + inFile + "\n" + ex.getMessage());
+                        System.err.println("failed to import " + inFile + "\n" + ex.getMessage());
                         return false;
                     }
                     return true;
@@ -138,7 +152,8 @@ public class RarcEditorForm extends javax.swing.JFrame {
         alreadyAdded = new ArrayList();
         
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(fs.getRoot());
-        createChildren(1, root, fs.getRoot());
+        populateFSList();
+        //createChildren(1, root, fs.getRoot());
         
         DefaultTreeModel mdl = new DefaultTreeModel(root);
         
@@ -150,24 +165,74 @@ public class RarcEditorForm extends javax.swing.JFrame {
         setTitle(Whitehole.NAME + " editing " + fileName);
     }
     
+    private void populateFSList() {
+      String rootdir = fs.getRoot();
+      FileTreeNode root = new FileTreeNode(fs, rootdir);
+      DefaultTreeModel treeModel = (DefaultTreeModel) new DefaultTreeModel(root);
+
+      doFolderListing(root, rootdir);
+      
+      fileView.setModel(treeModel);
+    }
+
+    private void doFolderListing(DefaultMutableTreeNode parentNode, String parent) {
+      String[] dummy = new String[0];
+      String[] childDirs = (String[]) fs.getDirectories(parent).toArray(dummy);
+      String[] childFiles = (String[]) fs.getFiles(parent).toArray(dummy);
+
+      Arrays.sort(childDirs);
+      Arrays.sort(childFiles);
+      for(String dir : childDirs) {
+        FileTreeNode tn = new FileTreeNode(fs, parent + "/" + dir);
+        parentNode.add(tn);
+        treeNodes.put(parent + "/" + dir, tn);
+
+        doFolderListing(tn, parent + "/" + dir);
+      } for (String file : childFiles) {
+        FileTreeNode tn = new FileTreeNode(fs, parent + "/" + file);
+        parentNode.add(tn);
+        treeNodes.put(parent + "/" + file, tn);
+      }
+    }
+    
+    private  class FileTreeNode extends DefaultMutableTreeNode {
+        private FilesystemBase fs;
+        public boolean isFile;
+
+        public FileTreeNode(FilesystemBase fs, String path) {
+          super(path);
+
+          this.fs = fs;
+          this.isFile = fs.fileExists(path);
+        }
+
+        public String toString() {
+          String name = this.userObject.toString();
+          if (name.equals("/"))
+            return "[root]";
+          return name.substring(name.lastIndexOf("/") + 1);
+        }
+}
+
+    
     private ArrayList<String> alreadyAdded;
     
-    private void createChildren(int level, DefaultMutableTreeNode parentNode, String parentName) throws IOException {
-        for(String dir : all) {
-            String[] parts = dir.split("/");
-            
-            if(!alreadyAdded.contains(dir) && parts.length > level && parts[level - 1].equals(parentName)) {
-                if((dirs.contains(dir) && !fs.isDir(dir)) || (files.contains(dir) && !fs.isFile(dir)))
-                    throw new IOException(dir + " is fake??");
-                
-                DefaultMutableTreeNode child = new DefaultMutableTreeNode(parts[level]);
-                
-                createChildren(level + 1, child, parts[level]);
-                parentNode.add(child);
-                alreadyAdded.add(dir);
-            }
-        }
-    }
+//    private void createChildren(int level, DefaultMutableTreeNode parentNode, String parentName) throws IOException {
+//        for(String dir : all) {
+//            String[] parts = dir.split("/");
+//            
+//            if(!alreadyAdded.contains(dir) && parts.length > level && parts[level - 1].equals(parentName)) {
+//                if((dirs.contains(dir) && !fs.isDir(dir)) || (files.contains(dir) && !fs.isFile(dir)))
+//                    throw new IOException(dir + " is fake??");
+//                
+//                DefaultMutableTreeNode child = new DefaultMutableTreeNode(parts[level]);
+//                
+//                createChildren(level + 1, child, parts[level]);
+//                parentNode.add(child);
+//                alreadyAdded.add(dir);
+//            }
+//        }
+//    }
     
     private ArrayList<String> removeFirstChar(ArrayList<String> e) {
         for(int i = 0; i < e.size(); i++)
@@ -210,8 +275,9 @@ public class RarcEditorForm extends javax.swing.JFrame {
     private RarcFilesystem fs;
     private String fileName;
     private String filePath;
-    ArrayList<String> dirs, files;
-    ArrayList<String> all;
+    public HashMap<String, FileTreeNode> treeNodes;
+//    ArrayList<String> dirs, files;
+//    ArrayList<String> all;
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents

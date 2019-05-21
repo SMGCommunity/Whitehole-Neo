@@ -57,7 +57,6 @@ public class Whitehole {
             Logger.getLogger(Whitehole.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        args = new String[] {"C:\\Users\\Laurent\\Downloads\\SMGO\\AbekobeLiftZoneMap.arc"};
         
         if(args.length != 0) {
             if(args[0].endsWith(".arc"))
