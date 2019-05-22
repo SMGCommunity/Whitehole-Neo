@@ -24,7 +24,11 @@ public class RarcFile extends MemoryFile {
         filesystem = fs;
         fileName = fullname;
     }
-
+    
+    /**
+     * Saves the file into its filesystem.
+     * @throws IOException 
+     */
     @Override
     public void save() throws IOException {
         filesystem.reinsertFile(this);

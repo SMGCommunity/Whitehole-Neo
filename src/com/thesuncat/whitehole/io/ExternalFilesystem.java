@@ -114,4 +114,19 @@ public class ExternalFilesystem implements FilesystemBase {
 
 
     private File baseDirectory;
+
+    @Override
+    public void createDirectory(String parent, String newdir) {
+        throw new UnsupportedOperationException("not done lol");
+    }
+
+    @Override
+    public void renameDirectory(String file, String newname) throws FileNotFoundException {
+        throw new UnsupportedOperationException("not done lol");
+    }
+
+    @Override
+    public void deleteDirectory(String dir) {
+        throw new UnsupportedOperationException("not done lol");
+    }
 }

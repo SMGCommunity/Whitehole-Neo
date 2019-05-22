@@ -337,7 +337,6 @@ public class RarcFilesystem implements FilesystemBase {
         return ret;
     }
 
-
     @Override
     public boolean fileExists(String filename) {
         return fileEntries.containsKey(pathToKey(filename));
@@ -366,6 +365,65 @@ public class RarcFilesystem implements FilesystemBase {
             return new RarcFile(this, filename);
         } catch (IOException ex) {
             throw new FileNotFoundException("Could not find file " + filename + ".");
+        }
+    }
+    
+    @Override
+    public void createDirectory(String parent, String newdir) {
+        if (!dirEntries.containsKey(parent.toLowerCase()))
+            return;
+        
+        if (dirEntries.containsKey((parent + "/" + newdir).toLowerCase()))
+            return;
+        
+        DirEntry parentdir = dirEntries.get(parent.toLowerCase());
+        DirEntry de = new DirEntry();
+        de.childrenDirs = new LinkedList();
+        de.childrenFiles = new LinkedList();
+        de.fullName = parent + "/" + newdir;
+        de.name = newdir;
+        de.parentDir = parentdir;
+        parentdir.childrenDirs.add(de);
+        dirEntries.put(de.fullName.toLowerCase(), de);
+    }
+
+    @Override
+    public void renameDirectory(String directory, String newname) {
+        if (!dirEntries.containsKey(directory.toLowerCase()))
+            return;
+        
+        DirEntry de = dirEntries.get(directory.toLowerCase());
+        DirEntry parent = de.parentDir;
+        String parentpath = "";
+        if (parent != null) {
+            if (fileEntries.containsKey((parent.fullName + "/" + newname).toLowerCase())
+                    || dirEntries.containsKey((parent.fullName + "/" + newname).toLowerCase()))
+                return;
+            
+            parentpath = parent.fullName;
+        }
+        dirEntries.remove(de.fullName.toLowerCase());
+        de.name = newname;
+        de.fullName = parentpath + "/" + newname;
+        dirEntries.put(de.fullName.toLowerCase(), de);
+    }
+
+    @Override
+    public void deleteDirectory(String directory) {
+        if (!this.dirEntries.containsKey(directory.toLowerCase())) {
+            return;
+        }
+        DirEntry de = this.dirEntries.get(directory.toLowerCase());
+        DirEntry parent = de.parentDir;
+        if (parent != null) {
+            parent.childrenDirs.remove(de);
+        }
+        this.dirEntries.remove(directory.toLowerCase());
+        for (DirEntry cde : de.childrenDirs) {
+            this.dirEntries.remove(cde.fullName.toLowerCase());
+        }
+        for (FileEntry cfe : de.childrenFiles) {
+            this.fileEntries.remove(cfe.fullName.toLowerCase());
         }
     }
     
@@ -505,23 +563,19 @@ public class RarcFilesystem implements FilesystemBase {
         int i = 0;
         while (curdir.parentDir != null)
             curdir = (DirEntry) entries[(i++)];
-        return curdir.fullName;
+        
+        System.out.println("getRoot() returns " + curdir.fullName);
+        return curdir.fullName.substring(1);
     }
     
     public boolean isFile(String dir) {
         dir = pathToKey(dir);
-        boolean b = fileEntries.containsKey(dir) && !dirEntries.containsKey(dir);
-        if(!b)
-            System.out.println(dir + " is not a file?");
-        return b;
+        return fileEntries.containsKey(dir) && !dirEntries.containsKey(dir);
     }
     
     public boolean isDir(String dir) {
         dir = pathToKey(dir);
-        boolean b = dirEntries.containsKey(dir) && !fileEntries.containsKey(dir);
-        if(!b)
-            System.out.println(dir + " is not a dir?");
-        return b;
+        return dirEntries.containsKey(dir) && !fileEntries.containsKey(dir);
     }
 
     private FileBase file;

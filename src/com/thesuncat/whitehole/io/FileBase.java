@@ -25,7 +25,7 @@ public interface FileBase  {
     public void save() throws IOException;
     
     /**
-     * Closes the file. Only necessary for {@code Yaz0File}s.
+     * Closes the file. Only necessary for {@code Yaz0File}.
      * @throws IOException 
      */
     public void close() throws IOException;

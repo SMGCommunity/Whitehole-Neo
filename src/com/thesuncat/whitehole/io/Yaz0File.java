@@ -34,21 +34,22 @@ public class Yaz0File extends MemoryFile
     public void save() throws IOException
     {
         byte[] compbuffer;
-        if (Settings.arc_enc) {
+        if (Settings.arc_enc)
             compbuffer = Yaz0.compress(buffer);
-        }
-        else {
+        else
             compbuffer = buffer;
-        }
         
-        if (backend != null)
-        {
+        if (backend != null) {
             backend.setContents(compbuffer);
             backend.save();
             backend.releaseStorage();
         }
     }
     
+    /**
+     * Close the file.
+     * @throws IOException 
+     */
     @Override
     public void close() throws IOException {
         if (backend != null)
