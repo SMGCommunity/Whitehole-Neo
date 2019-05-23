@@ -419,8 +419,11 @@ public class RarcEditorForm extends javax.swing.JFrame {
         fileView = new javax.swing.JTree();
         jToolBar1 = new javax.swing.JToolBar();
         btnOpen = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
         btnAddFolder = new javax.swing.JButton();
+        btnExtract = new javax.swing.JButton();
         btnRename = new javax.swing.JButton();
+        btnDelete = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -451,6 +454,7 @@ public class RarcEditorForm extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(btnOpen);
+        jToolBar1.add(jSeparator1);
 
         btnAddFolder.setText("Add Folder");
         btnAddFolder.setFocusable(false);
@@ -463,6 +467,17 @@ public class RarcEditorForm extends javax.swing.JFrame {
         });
         jToolBar1.add(btnAddFolder);
 
+        btnExtract.setText("Extract");
+        btnExtract.setFocusable(false);
+        btnExtract.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnExtract.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnExtract.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExtractActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnExtract);
+
         btnRename.setText("Rename");
         btnRename.setFocusable(false);
         btnRename.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -473,6 +488,17 @@ public class RarcEditorForm extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(btnRename);
+
+        btnDelete.setText("Delete");
+        btnDelete.setFocusable(false);
+        btnDelete.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnDelete.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnDelete);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -511,7 +537,6 @@ public class RarcEditorForm extends javax.swing.JFrame {
         
     }//GEN-LAST:event_btnOpenActionPerformed
 
-    @SuppressWarnings("empty-statement")
     private void btnAddFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddFolderActionPerformed
         String folderName = JOptionPane.showInputDialog(this, "Enter the name of the new folder:", "WiiExplorer", 3);
         if (folderName == null || folderName.trim().isEmpty())
@@ -536,15 +561,47 @@ public class RarcEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_fileViewMouseClicked
 
     private void fileViewValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_fileViewValueChanged
-        // TODO :eyes:
+        boolean sel = true;
+        TreePath path = fileView.getSelectionPath();
+        if (path == null)
+            sel = false;
+        else {
+            TreeNode tn = (TreeNode) path.getLastPathComponent();
+            if (tn == null || tn.getClass() != FileTreeNode.class)
+                sel = false;
+        }
+        
+        if (!sel) {
+            selectedPath = "";
+            btnExtract.setEnabled(false);
+            btnRename.setEnabled(false);
+            btnDelete.setEnabled(false);
+        } else {
+            FileTreeNode tn = (FileTreeNode) path.getLastPathComponent();
+            selectedPath = (String) tn.getUserObject();
+            btnExtract.setEnabled(true);
+            btnRename.setEnabled(true);
+            btnDelete.setEnabled(!selectedPath.equals(fs.getRoot()));
+        }
     }//GEN-LAST:event_fileViewValueChanged
+
+    private void btnExtractActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExtractActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnExtractActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDeleteActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddFolder;
+    private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnExtract;
     private javax.swing.JButton btnOpen;
     private javax.swing.JButton btnRename;
     private javax.swing.JTree fileView;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
 

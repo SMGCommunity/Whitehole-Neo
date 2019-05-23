@@ -564,7 +564,6 @@ public class RarcFilesystem implements FilesystemBase {
         while (curdir.parentDir != null)
             curdir = (DirEntry) entries[(i++)];
         
-        System.out.println("getRoot() returns " + curdir.fullName);
         return curdir.fullName.substring(1);
     }
     

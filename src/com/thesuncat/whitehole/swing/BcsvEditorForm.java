@@ -28,7 +28,6 @@ import javax.swing.table.*;
 import com.thesuncat.whitehole.smg.Bcsv;
 import com.thesuncat.whitehole.swing.DarkThemeRenderers.*;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import javax.swing.JButton;
@@ -69,8 +68,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
         bcsv = null;
         zoneName = "";
         
-        if (Whitehole.gameType == 1)
-        {
+        if (Whitehole.gameType == 1) {
             tbArchiveName.setText("/StageData/CocoonExGalaxy/CocoonExGalaxyScenario.arc");
             tbFileName.setText("/CocoonExGalaxyScenario/ScenarioData.bcsv");
             zoneName = "CocoonEXGalaxy";
@@ -88,8 +86,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
             subTicoShopDice.setVisible(false);
         }
         
-        if (Whitehole.gameType == 2)
-        {
+        if (Whitehole.gameType == 2) {
             tbArchiveName.setText("/StageData/RedBlueExGalaxy/RedBlueExGalaxyScenario.arc");
             tbFileName.setText("/RedBlueExGalaxyScenario/ScenarioData.bcsv");
             zoneName = "RedBlueExGalaxy";
@@ -218,8 +215,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
             }
         }
         
-        try
-        {
+        try {
             if (archive != null) archive.close();
             if (bcsv != null) bcsv.close();
             archive = null; bcsv = null;
@@ -229,17 +225,12 @@ public class BcsvEditorForm extends javax.swing.JFrame
             
             fileArchive = tbArchiveName.getText();
             fileBcsv = tbFileName.getText();
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Can't open BCSV file: "+ ex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
-            try
-            {
+            try {
                 if (bcsv != null) bcsv.close();
                 if (archive != null) archive.close();
-            }
-            catch (IOException ex2) {
-            }
+            } catch (IOException ex2) {}
             bcsv = null; archive = null;
             return;
         }
@@ -250,18 +241,16 @@ public class BcsvEditorForm extends javax.swing.JFrame
         for (Bcsv.Field field : bcsv.fields.values())
             table.addColumn(field.name);
         
-        for (Bcsv.Entry entry : bcsv.entries)
-        {
-            Vector<Object> row = new Vector<>(bcsv.fields.size());
-            for (Bcsv.Field field : bcsv.fields.values())
-            {
+        for (Bcsv.Entry entry : bcsv.entries) {
+            ArrayList<Object> row = new ArrayList(bcsv.fields.size());
+            for (Bcsv.Field field : bcsv.fields.values()) {
                 Object val = entry.get(field.nameHash);
                     row.add(val);
             }
-            table.addRow(row);
+            table.addRow(row.toArray());
         }
-        if(Settings.dark)
-        {
+        
+        if(Settings.dark) {
             JTableHeader header = tblBcsv.getTableHeader();
             header.setBackground(new Color(47,49,54));
             tblBcsv.setTableHeader(header);
@@ -274,20 +263,16 @@ public class BcsvEditorForm extends javax.swing.JFrame
     public void bcsvSave() {
         bcsv.entries.clear();
         
-        for (int r = 0; r < tblBcsv.getRowCount(); r++)
-        {
+        for (int r = 0; r < tblBcsv.getRowCount(); r++) {
             Bcsv.Entry entry = new Bcsv.Entry();
             
             int c = 0;
-            for (Bcsv.Field field : bcsv.fields.values())
-            {
+            for (Bcsv.Field field : bcsv.fields.values()) {
                 Object valobj = tblBcsv.getValueAt(r, c);
                 String val = (valobj == null) ? "" : valobj.toString();
                 
-                try
-                {
-                    switch (field.type)
-                    {
+                try {
+                    switch (field.type) {
                         case 0:
                         case 3:
                             entry.put(field.nameHash, Integer.parseInt(val));
@@ -310,10 +295,8 @@ public class BcsvEditorForm extends javax.swing.JFrame
                             break;
                     }
                 }
-                catch (NumberFormatException ex)
-                {
-                    switch (field.type)
-                    {
+                catch (NumberFormatException ex) {
+                    switch (field.type) {
                         case 0:
                         case 3: entry.put(field.nameHash, (int)0); break;
                         case 4: entry.put(field.nameHash, (short)0); break;
@@ -329,8 +312,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
         try { 
             bcsv.save();
             archive.save();
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
     }
@@ -348,20 +330,16 @@ public class BcsvEditorForm extends javax.swing.JFrame
                 pwriter.write("\r\n");
                 TableModel model = tblBcsv.getModel();
                 
-                for (int h = 0 ; h < model.getColumnCount();h++)
-                {
+                for (int h = 0 ; h < model.getColumnCount();h++) {
                     pwriter.write(model.getColumnName(h));
                     if (h-1 != model.getColumnCount());
                     pwriter.write(",");
                 }
                 pwriter.write("\r\n");
                 
-                for (int clmCnt = model.getColumnCount(), rowCnt = model.getRowCount(), i = 0; i < rowCnt; i++)
-                {
-                    for (int j = 0; j < clmCnt; j++)
-                    {
-                        if (model.getValueAt(i, j) != null)
-                        {
+                for (int clmCnt = model.getColumnCount(), rowCnt = model.getRowCount(), i = 0; i < rowCnt; i++) {
+                    for (int j = 0; j < clmCnt; j++) {
+                        if (model.getValueAt(i, j) != null) {
                             String value = model.getValueAt(i, j).toString();
                             pwriter.write(value);
                         }
@@ -374,9 +352,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
             }
             JOptionPane.showMessageDialog(null, "The BCSV file has been exported.", Whitehole.NAME, JOptionPane.OK_CANCEL_OPTION);
         }
-	catch (IOException e)
-        {
-        }
+	catch (IOException e) {}
     }
 
     private void enterZoneName() {
@@ -1214,23 +1190,18 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_btnClearActionPerformed
 
     private void btnExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportActionPerformed
-        if (tblBcsv.getColumnCount() == 0) {
-            JOptionPane.showMessageDialog(null, "No BCSV file opened.", Whitehole.NAME, JOptionPane.OK_CANCEL_OPTION);
-        }
-        else {
+        if (tblBcsv.getColumnCount() == 0)
+            JOptionPane.showMessageDialog(null, "Please open a BCSV file first.", Whitehole.NAME, JOptionPane.OK_CANCEL_OPTION);
+        else
             bcsvExport();
-        }
     }//GEN-LAST:event_btnExportActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
-        try
-        {
+        try {
             if (bcsv != null) bcsv.close();
             if (archive != null) archive.close();
-        }
-        catch (IOException ex) {
-        }
+        } catch (IOException ex) {}
     }//GEN-LAST:event_formWindowClosing
 
     private void subOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subOpenActionPerformed
@@ -1267,12 +1238,11 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subProductMapObjDataActionPerformed
 
     private void subObjNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subObjNameActionPerformed
-        if (Whitehole.gameType == 1) {
+        if (Whitehole.gameType == 1)
             tbArchiveName.setText("/StageData/ObjNameTable.arc");
-        }
-        else {
+        else
             tbArchiveName.setText("/SystemData/ObjNameTable.arc");
-        }
+        
         tbFileName.setText("/ObjNameTable/ObjNameTable.tbl");
         bcsvOpen();
     }//GEN-LAST:event_subObjNameActionPerformed
@@ -1458,12 +1428,11 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subWorldMapHeapResourceActionPerformed
 
     private void subLightDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subLightDataActionPerformed
-        if (Whitehole.gameType == 1) {
+        if (Whitehole.gameType == 1)
             tbArchiveName.setText("/ObjectData/LightData.arc");
-        }
-        else {
+        else
             tbArchiveName.setText("/LightData/LightData.arc");
-        }
+        
         tbFileName.setText("/LightData/LightData.bcsv");
         bcsvOpen();
     }//GEN-LAST:event_subLightDataActionPerformed
@@ -1521,12 +1490,10 @@ public class BcsvEditorForm extends javax.swing.JFrame
     private void subCameraParamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subCameraParamActionPerformed
         enterZoneName();
         if (!zoneName.isEmpty()) {
-            if (Whitehole.gameType == 1) {
+            if (Whitehole.gameType == 1)
                 tbArchiveName.setText("/StageData/" + zoneName + ".arc");
-            }
-            else {
+            else
                 tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Map.arc");
-            }
             tbFileName.setText("/Stage/camera/CameraParam.bcam");
             bcsvOpen();
         }
@@ -1538,11 +1505,11 @@ public class BcsvEditorForm extends javax.swing.JFrame
             if (Whitehole.gameType == 1) {
                 tbArchiveName.setText("/ObjectData/LightData.arc");
                 tbFileName.setText("/LightData/Light" + zoneName + ".bcsv");
-            }
-            else {
+            } else {
                 tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Light.arc");
                 tbFileName.setText("/Stage/csv/" + zoneName + "Light.bcsv");
             }
+            
             bcsvOpen();
         }
     }//GEN-LAST:event_subLightDataZoneActionPerformed
@@ -1550,12 +1517,11 @@ public class BcsvEditorForm extends javax.swing.JFrame
     private void subStageInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subStageInfoActionPerformed
         enterZoneName();
         if (!zoneName.isEmpty()) {
-            if (Whitehole.gameType == 1) {
+            if (Whitehole.gameType == 1)
                 tbArchiveName.setText("/StageData/" + zoneName + ".arc");
-            }
-            else {
+            else
                 tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Map.arc");
-            }
+            
             tbFileName.setText("/Stage/jmp/List/StageInfo");
             bcsvOpen();
         }
@@ -1564,12 +1530,11 @@ public class BcsvEditorForm extends javax.swing.JFrame
     private void subChangeSceneListInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subChangeSceneListInfoActionPerformed
         enterZoneName();
         if (!zoneName.isEmpty()) {
-            if (Whitehole.gameType == 1) {
+            if (Whitehole.gameType == 1)
                 tbArchiveName.setText("/StageData/" + zoneName + ".arc");
-            }
-            else {
+            else
                 tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Map.arc");
-            }
+            
             tbFileName.setText("/Stage/jmp/List/ChangeSceneListInfo");
             bcsvOpen();
         }
@@ -1783,11 +1748,4 @@ public class BcsvEditorForm extends javax.swing.JFrame
     public javax.swing.JTextField tbFileName;
     public javax.swing.JTable tblBcsv;
     // End of variables declaration//GEN-END:variables
-    public JButton createZeroButton() {
-        JButton jbutton = new JButton();
-        jbutton.setPreferredSize(new Dimension(0, 0));
-        jbutton.setMinimumSize(new Dimension(0, 0));
-        jbutton.setMaximumSize(new Dimension(0, 0));
-        return jbutton;
-    }
 }
