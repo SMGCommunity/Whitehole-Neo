@@ -16,14 +16,10 @@
 package com.thesuncat.whitehole.swing;
 
 import com.thesuncat.whitehole.Whitehole;
-import com.thesuncat.whitehole.io.ExternalFile;
-import com.thesuncat.whitehole.io.FilesystemBase;
-import com.thesuncat.whitehole.io.RarcFile;
-import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.io.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.*;
 import javax.swing.*;
@@ -31,7 +27,6 @@ import javax.swing.tree.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class RarcEditorForm extends javax.swing.JFrame {
 
@@ -233,86 +228,6 @@ public class RarcEditorForm extends javax.swing.JFrame {
 //            listmodel.nodesWereInserted(pnode, new int[]{c});
 //        }
 //    }
-//
-//    private void extractDirectory(String dir, String outpath) throws IOException {
-//        File outdir = new File(outpath);
-//        outdir.mkdir();
-//        List<String> childdirs = archive.getDirectories(dir);
-//        List<String> childfiles = archive.getFiles(dir);
-//        for (String cdir : childdirs) {
-//            extractDirectory(dir + "/" + cdir, outpath + "/" + cdir);
-//        }
-//        for (String cfile : childfiles) {
-//            FileBase srcfile = archive.openFile(dir + "/" + cfile);
-//            ExternalFile dstfile = new ExternalFile(outpath + "/" + cfile, "rw");
-//            dstfile.setLength(srcfile.getLength());
-//            dstfile.setContents(srcfile.getContents());
-//            dstfile.save();
-//            dstfile.close();
-//            srcfile.close();
-//        }
-//    }
-//
-//    private void btnExtractItemActionPerformed(ActionEvent evt) {
-//        JFileChooser fc = new JFileChooser();
-//        fc.setFileSelectionMode(0);
-//        fc.setDialogTitle("Choose where to extract this item");
-//        String lastfile = Preferences.userRoot().get("lastFile", null);
-//        if (lastfile != null) {
-//            fc.setSelectedFile(new File(new File(lastfile).getParentFile() + "/" + selectedPath.substring(selectedPath.lastIndexOf("/") + 1)));
-//        }
-//        if (fc.showOpenDialog(this) != 0) {
-//            return;
-//        }
-//        File selfile = fc.getSelectedFile();
-//        if (selfile.exists() && JOptionPane.showConfirmDialog(this, "There is already an item with this name. Overwrite it?", "WiiExplorer", 0) != 0) {
-//            return;
-//        }
-//        try {
-//            if (archive.fileExists(selectedPath)) {
-//                FileBase srcfile = archive.openFile(selectedPath);
-//                ExternalFile dstfile = new ExternalFile(selfile.getPath(), "rw");
-//                dstfile.setLength(srcfile.getLength());
-//                dstfile.setContents(srcfile.getContents());
-//                dstfile.save();
-//                dstfile.close();
-//                srcfile.close();
-//                lblStatusLabel.setText("File extracted successfully.");
-//            } else {
-//                extractDirectory(selectedPath, selfile.getPath());
-//                lblStatusLabel.setText("Directory extracted successfully.");
-//            }
-//        }
-//        catch (IOException ex) {
-//            lblStatusLabel.setText("Extraction failed: " + ex.getMessage());
-//        }
-//    }
-//
-
-    private void btnDeleteItemActionPerformed(ActionEvent evt) {
-        if(fs.fileExists(selectedPath))
-            fs.deleteFile(selectedPath);
-        else
-            fs.deleteDirectory(selectedPath);
-        
-        FileTreeNode tn = treeNodes.get(selectedPath);
-        int rindex = tn.getParent().getIndex(tn);
-        treeNodes.remove(selectedPath);
-        ArrayList<String> toremove = new ArrayList();
-        
-        for (String k : treeNodes.keySet()) {
-            if (!k.startsWith(selectedPath)) continue;
-            toremove.add(k);
-        }
-        
-        for (String k : toremove)
-            treeNodes.remove(k);
-        
-        DefaultTreeModel listmodel = (DefaultTreeModel) fileView.getModel();
-        listmodel.nodesWereRemoved(tn.getParent(), new int[]{rindex}, null);
-        
-        // trySave();
-    }
     
     private void openRarc(RarcFilesystem filesystem) throws IOException {
         fs = filesystem;
@@ -380,7 +295,8 @@ public class RarcEditorForm extends javax.swing.JFrame {
     }
     
     private void openFileInRarc() {
-        // TODO :c
+        if(selectedPath.endsWith(".msbt"))
+            new MsbtEditorForm(selectedPath, filePath).setVisible(true);
     }
     
     private void addFolder(String name) {
@@ -586,11 +502,81 @@ public class RarcEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_fileViewValueChanged
 
     private void btnExtractActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExtractActionPerformed
-        // TODO add your handling code here:
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Choose where to extract this item");
+        fc.setCurrentDirectory(new File(Whitehole.curGameDir));
+        
+        if(fc.showOpenDialog(this) != 0) // if user cancels or closes the window
+            return;
+        
+        File selfile = fc.getSelectedFile();
+        
+        // return if file is being overwritten and user chooses not to overwrite
+        if (selfile.exists()
+                && JOptionPane.showConfirmDialog(this, "The file " + selfile.getName() + " already exists. Replace it?", "Whitehole", 0) != 0)
+            return;
+        
+        try {
+            if (fs.fileExists(selectedPath)) {
+                FileBase srcFile = fs.openFile(selectedPath);
+                ExternalFile destFile = new ExternalFile(selfile.getPath());
+                destFile.setLength(srcFile.getLength());
+                destFile.setContents(srcFile.getContents());
+                destFile.save();
+                destFile.close();
+                srcFile.close();
+            } else {
+                extractDirectory(selectedPath, selfile.getPath());
+            }
+        }
+        catch (IOException ex) {
+            System.err.println(ex);
+        }
     }//GEN-LAST:event_btnExtractActionPerformed
-
+    
+    private void extractDirectory(String dir, String outPath) throws IOException {
+        File outDir = new File(outPath);
+        outDir.mkdir();
+        List<String> childDirs = fs.getDirectories(dir);
+        List<String> childFiles = fs.getFiles(dir);
+        
+        for (String cdir : childDirs)
+            extractDirectory(dir + "/" + cdir, outPath + "/" + cdir);
+        
+        for (String cfile : childFiles) {
+            FileBase srcFile = fs.openFile(dir + "/" + cfile);
+            ExternalFile destFile = new ExternalFile(outPath + "/" + cfile);
+            destFile.setLength(srcFile.getLength());
+            destFile.setContents(srcFile.getContents());
+            destFile.save();
+            destFile.close();
+            srcFile.close();
+        }
+    }
+    
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        // TODO add your handling code here:
+        if(fs.fileExists(selectedPath))
+            fs.deleteFile(selectedPath);
+        else
+            fs.deleteDirectory(selectedPath);
+        
+        FileTreeNode tn = treeNodes.get(selectedPath);
+        int rindex = tn.getParent().getIndex(tn);
+        treeNodes.remove(selectedPath);
+        ArrayList<String> toremove = new ArrayList();
+        
+        for (String k : treeNodes.keySet()) {
+            if (!k.startsWith(selectedPath)) continue;
+            toremove.add(k);
+        }
+        
+        for (String k : toremove)
+            treeNodes.remove(k);
+        
+        DefaultTreeModel listmodel = (DefaultTreeModel) fileView.getModel();
+        listmodel.nodesWereRemoved(tn.getParent(), new int[]{rindex}, null);
+        
+        // trySave();
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -34,8 +34,6 @@ import javax.swing.plaf.basic.BasicMenuItemUI;
 
 public class MainFrame extends javax.swing.JFrame {
     
-    public long t = System.currentTimeMillis();
-    
     public MainFrame() {
         initComponents();
         
@@ -145,6 +143,8 @@ public class MainFrame extends javax.swing.JFrame {
         } catch (IOException ex) {
             System.exit(1);
         }
+        
+        Whitehole.curGameDir = dir;
 
         DefaultListModel galaxylist = new DefaultListModel();
         galaxyList.setModel(galaxylist);
@@ -434,9 +434,11 @@ public class MainFrame extends javax.swing.JFrame {
     private void formWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowGainedFocus
         Whitehole.currentTask = "Idle";
     }//GEN-LAST:event_formWindowGainedFocus
-
+    
+    /**
+     * Open a new GalaxyEditorForm editing the currently selected galaxy in the JList.
+     */
     public void openGalaxy() {
-        t = System.currentTimeMillis();
         
         TextureCache.init();
         ShaderCache.init();

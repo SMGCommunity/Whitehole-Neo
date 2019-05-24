@@ -38,7 +38,7 @@ public class CanmEditorForm extends javax.swing.JFrame {
             glCanvas.addMouseWheelListener(renderer);
             glCanvas.addKeyListener(renderer);
             glCanvas.addGLEventListener(renderer);
-            glCanvas.setMaximumSize(new Dimension(1000, 1000));
+            glCanvas.setMaximumSize(new Dimension(32767, 32767));
             
             pnlGlCanvas.add(glCanvas);
             setSize(getContentPane().getPreferredSize());

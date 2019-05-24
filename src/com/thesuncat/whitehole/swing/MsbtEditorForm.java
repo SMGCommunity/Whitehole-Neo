@@ -82,6 +82,25 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         initComponents();
         setupEditor();
     }
+    
+    /**
+     * Constructor used for opening a given file from inside a RARC
+     * @param fileName the name of the file inside of the RARC, including the root name
+     * @param rarcName the name of the RARC filesystem that contains this file
+     */
+    public MsbtEditorForm(String fileName, String rarcName) {
+        initComponents();
+        setupEditor();
+        lblArchive.setText(rarcName);
+        lblFile.setText(fileName);
+        btnOpenActionPerformed(null);
+        
+        lblArchive.setVisible(false);
+        lblFile.setVisible(false);
+        tbArchiveName.setVisible(false);
+        tbFileName.setVisible(false);
+        btnOpen.setVisible(false);
+    }
    
     private void repaintStyles() {
         doc.setCharacterAttributes(0, doc.getLength(), normal, true);

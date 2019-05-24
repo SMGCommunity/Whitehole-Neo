@@ -49,6 +49,12 @@ public class Whitehole {
      */
     public static int gameType;
     
+    /**
+     * The directory of the currently open game. Updated by MainFrame when opening a game directory.
+     * Set to the last game dir before MainFrame is launched.
+     */
+    public static String curGameDir = Preferences.userRoot().get("lastGameDir", null);
+    
     public static void main(String[] args) throws IOException {
         
         try {
