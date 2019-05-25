@@ -27,6 +27,8 @@ import javax.swing.tree.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 
 public class RarcEditorForm extends javax.swing.JFrame {
 
@@ -104,7 +106,7 @@ public class RarcEditorForm extends javax.swing.JFrame {
                         // WiiExplorer rename code
                         fs.renameFile(oldPath, inFile.getName());
                         
-                        FileTreeNode tn = (FileTreeNode) treeNodes.get(oldPath);
+                        FileTreeNode tn = (FileTreeNode) treeNodes.get(oldPath.substring(1));
                         treeNodes.remove(oldPath);
                         selectedPath = (selectedPath.substring(0, selectedPath.lastIndexOf("/") + 1) + inFile.getName());
                         tn.setUserObject(newPath);
@@ -127,7 +129,29 @@ public class RarcEditorForm extends javax.swing.JFrame {
         
         fileView.setEditable(true);
         fileView.setCellEditor(new CellEditor(fileView, (DefaultTreeCellRenderer) fileView.getCellRenderer()));
+        
+        DefaultTreeModel t = (DefaultTreeModel) fileView.getModel();
+        t.addTreeModelListener(new TreeModelListener() {
+            @Override
+            public void treeNodesChanged(TreeModelEvent e) {
+                if(renaming) {
+                    // do stuffs
+                    renaming = false;
+                }
+            }
+
+            @Override
+            public void treeNodesInserted(TreeModelEvent e) {}
+
+            @Override
+            public void treeNodesRemoved(TreeModelEvent e) {}
+
+            @Override
+            public void treeStructureChanged(TreeModelEvent e) {}
+        });
     }
+    
+    private boolean renaming = false;
 
     private void doFolderListing(FileTreeNode pnode, String parent) {
         FileTreeNode tn;
@@ -261,23 +285,6 @@ public class RarcEditorForm extends javax.swing.JFrame {
         parentNode.add(tn);
         treeNodes.put(parent + "/" + file, tn);
       }
-    }
-    
-    private  class FileTreeNode extends DefaultMutableTreeNode {
-        public boolean isFile;
-
-        public FileTreeNode(FilesystemBase fs, String path) {
-          super(path);
-          isFile = fs.fileExists(path);
-        }
-
-        @Override
-        public String toString() {
-          String name = userObject.toString();
-          if (name.equals("/"))
-            return "[root]";
-          return name.substring(name.lastIndexOf("/") + 1);
-        }
     }
     
     public static void setTreeExpandedState(JTree tree) {
@@ -467,6 +474,7 @@ public class RarcEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_btnAddFolderActionPerformed
 
     private void btnRenameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRenameActionPerformed
+        renaming = true;
         fileView.startEditingAtPath(fileView.getSelectionPath());
     }//GEN-LAST:event_btnRenameActionPerformed
 
@@ -634,4 +642,21 @@ public class RarcEditorForm extends javax.swing.JFrame {
     }
     
     private final ImageIcon fileIcon = new ImageIcon(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/rarceditor/unkfile.png")));
+    
+    private  class FileTreeNode extends DefaultMutableTreeNode {
+        public boolean isFile;
+
+        public FileTreeNode(FilesystemBase fs, String path) {
+          super(path);
+          isFile = fs.fileExists(path);
+        }
+
+        @Override
+        public String toString() {
+          String name = userObject.toString();
+          if (name.equals("/"))
+            return "[root]";
+          return name.substring(name.lastIndexOf("/") + 1);
+        }
+    }
 }

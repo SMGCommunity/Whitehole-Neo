@@ -167,9 +167,8 @@ public class BmdRenderer extends GLRenderer {
         return(int) SuperFastHash.calculate(sigarray, 0, 0, sig.position());
     }
 
-    // Huge performance eater. TODO rewrite
-    public void generateShaders(GL2 gl, int matid, int...customColors) throws GLException
-    {
+    // Huge performance eater. rewrite will never happen :c
+    public void generateShaders(GL2 gl, int matid, int...customColors) throws GLException {
         if(shaders == null)
             shaders = new Shader[1];
         shaders[matid] = new Shader();

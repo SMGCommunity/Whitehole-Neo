@@ -21,6 +21,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +64,6 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
     private float pixelFactorX, pixelFactorY;
     
     public String galaxyName;
-    public float camSpeed = 0.3f; // depthUnderCursor cannot be calculated without a picking buffer, using arbitrary initial value of 0.3
     
     public SimpleGalaxyRenderer(String _galaxyName, GLCanvas parentCanvas) throws IOException {
         super();
@@ -115,6 +115,7 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
     
     @Override
     public void init(GLAutoDrawable glad) {
+        System.out.println("init");
         GL2 gl = glad.getGL().getGL2();
 
         RendererCache.setRefContext(glad.getContext());
@@ -229,7 +230,6 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
 
     @Override
     public void display(GLAutoDrawable glad) {
-        System.out.println("displaying..?");
         GL2 gl = glad.getGL().getGL2();
         renderinfo.drawable = glad;
 
@@ -278,11 +278,16 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
         gl.glDisable(GL2.GL_TEXTURE_2D);
         gl.glDisable(GL2.GL_BLEND);
         gl.glDisable(GL2.GL_ALPHA_TEST);
-
+        
+        gl.glReadPixels(lastMouseMove.x, glad.getHeight() - lastMouseMove.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
+        
         renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;
         
         glad.swapBuffers();
     }
+    
+    private FloatBuffer pickingDepthBuffer = FloatBuffer.allocate(1);
+    private float depthUnderCursor = 0;
     
     private void doRerenderTasks() {
         try {
@@ -433,43 +438,37 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        System.out.println("mouseDragged");
         float xdelta = e.getX() - lastMouseMove.x;
         float ydelta = e.getY() - lastMouseMove.y;
 
-//        if(!isDragging && (Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f))
-//            isDragging = true;
-//
-//        if(!isDragging)
-//            return;
-
         lastMouseMove = e.getPoint();
-        if(e.getButton() == MouseEvent.BUTTON3) {
+        System.out.println(mouseButton);
+        if(mouseButton == MouseEvent.BUTTON3) {
             if(upsideDown)
                 xdelta = -xdelta;
 
             if(!Settings.reverseRot) {
                 xdelta = -xdelta;
                 ydelta = -ydelta ;
-            } else {
-                xdelta *= 0.002f;
-                ydelta *= 0.002f;
-
-                float diff = camDistance - camSpeed; 
-                camTarget.x += diff * Math.cos(camRotation.x) * Math.cos(camRotation.y);
-                camTarget.y += diff * Math.sin(camRotation.y);
-                camTarget.z += diff * Math.sin(camRotation.x) * Math.cos(camRotation.y);
-
-                camRotation.x -= xdelta;
-                camRotation.y -= ydelta;
-
-                camTarget.x -= diff * Math.cos(camRotation.x) * Math.cos(camRotation.y);
-                camTarget.y -= diff * Math.sin(camRotation.y);
-                camTarget.z -= diff * Math.sin(camRotation.x) * Math.cos(camRotation.y);
             }
-        } else if(e.getButton() == MouseEvent.BUTTON1) {
-            xdelta *= Math.min(0.005f, pixelFactorX * camSpeed);
-            ydelta *= Math.min(0.005f, pixelFactorY * camSpeed);
+            
+            xdelta *= 0.002f;
+            ydelta *= 0.002f;
+
+            float diff = camDistance - depthUnderCursor; 
+            camTarget.x += diff * Math.cos(camRotation.x) * Math.cos(camRotation.y);
+            camTarget.y += diff * Math.sin(camRotation.y);
+            camTarget.z += diff * Math.sin(camRotation.x) * Math.cos(camRotation.y);
+
+            camRotation.x -= xdelta;
+            camRotation.y -= ydelta;
+
+            camTarget.x -= diff * Math.cos(camRotation.x) * Math.cos(camRotation.y);
+            camTarget.y -= diff * Math.sin(camRotation.y);
+            camTarget.z -= diff * Math.sin(camRotation.x) * Math.cos(camRotation.y);
+        } else if(mouseButton == MouseEvent.BUTTON1) {
+            xdelta *= Math.min(0.005f, pixelFactorX * depthUnderCursor);
+            ydelta *= Math.min(0.005f, pixelFactorY * depthUnderCursor);
 
             camTarget.x -= xdelta *(float)Math.sin(camRotation.x);
             camTarget.x -= ydelta *(float)Math.cos(camRotation.x) *(float)Math.sin(camRotation.y);
@@ -479,6 +478,7 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
         }
 
         updateCamera();
+        e.getComponent().repaint();
     }
 
     @Override
@@ -488,7 +488,9 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        float delta =(float)(e.getPreciseWheelRotation() * Math.min(0.1f, camSpeed / 10f));
+        depthUnderCursor = -(zFar * zNear /(pickingDepthBuffer.get(0) *(zFar - zNear) - zFar));
+        
+        float delta =(float)(e.getPreciseWheelRotation() * Math.min(0.1f, depthUnderCursor / 10f));
 
         Vector3 vdelta = new Vector3(
                 delta *(float)Math.cos(camRotation.x) *(float)Math.cos(camRotation.y),
@@ -509,14 +511,21 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
         e.getComponent().repaint();
     }
     
+    private int mouseButton;
+    
     @Override
     public void mouseClicked(MouseEvent e) {}
 
     @Override
-    public void mousePressed(MouseEvent e) {}
+    public void mousePressed(MouseEvent e) {
+        mouseButton = e.getButton();
+        depthUnderCursor = -(zFar * zNear /(pickingDepthBuffer.get(0) *(zFar - zNear) - zFar));
+    }
 
     @Override
-    public void mouseReleased(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {
+        mouseButton = MouseEvent.NOBUTTON;
+    }
 
     @Override
     public void mouseEntered(MouseEvent e) {}
@@ -562,7 +571,7 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
                 gl.getContext().release();
                 parent.repaint();
             } catch(GLException ex) {
-                System.out.println("rip");
+                System.err.println("rip"); // should never be thrown
             }
         }
         private final GL2 gl;

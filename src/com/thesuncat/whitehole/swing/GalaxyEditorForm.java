@@ -5047,7 +5047,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             lastMouseMove = e.getPoint();
             
             if(!selectedObjs.isEmpty() && selectedObjs.containsKey(underCursor >>> 3)) {
-                if(mouseButton == MouseEvent.BUTTON1) {
+                if(mouseButton == MouseEvent.BUTTON1) { // left click
                     float objz = depthUnderCursor;
                     
                     xdelta *= pixelFactorX * objz * scaledown;
@@ -5063,7 +5063,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     unsavedChanges = true;
                 }
             } else {
-                if(mouseButton == MouseEvent.BUTTON3) {
+                if(mouseButton == MouseEvent.BUTTON3) { // right click
                     if(upsideDown) xdelta = -xdelta;
                     
                     if(!Settings.reverseRot) {
