@@ -115,7 +115,6 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
     
     @Override
     public void init(GLAutoDrawable glad) {
-        System.out.println("init");
         GL2 gl = glad.getGL().getGL2();
 
         RendererCache.setRefContext(glad.getContext());

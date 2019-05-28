@@ -3749,6 +3749,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             public void keyReleased(KeyEvent e) {
             }
         });
+        
         fullScreen.addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent e) {}
@@ -3774,9 +3775,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             @Override
             public void windowDeactivated(WindowEvent e) {}
         });
+        
         fullScreen.setSize(Toolkit.getDefaultToolkit().getScreenSize());
         fullScreen.setExtendedState(Frame.MAXIMIZED_BOTH);
         fullScreen.setUndecorated(true);
+        
         GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
         caps.setSampleBuffers(true);
         caps.setNumSamples(8);
@@ -3800,7 +3803,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             obj.zone.objects.get(obj.layer).remove(obj);
             rerenderTasks.add(String.format("delobj:%1$d", uid));
-            rerenderTasks.add("zone:"+obj.zone.zoneName);
+            rerenderTasks.add("zone:" + obj.zone.zoneName);
 
             if(treeNodeList.containsKey(uid)) {
                 DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
@@ -4283,7 +4286,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             super();
             fullscreen = true;
             if(worldmapId!=-1)
-                fov =(float)((45f * Math.PI) / 180f);
+                fov = (float) ((45f * Math.PI) / 180f);
             else
                 fov =(float)((70f * Math.PI) / 180f);
         }
@@ -4292,9 +4295,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             super();
             
             if(worldmapId != -1)
-                fov =(float)((45f * Math.PI) / 180f);
+                fov = (float) ((45f * Math.PI) / 180f);
             else
-                fov =(float)((70f * Math.PI) / 180f);
+                fov = (float) ((70f * Math.PI) / 180f);
         }
         
         @Override
@@ -4333,7 +4336,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             StartObj start = null;
             for(AbstractObj obj : firstzone.objects.get("common")) {
                 if(obj instanceof StartObj) {
-                    start =(StartObj)obj;
+                    start = (StartObj) obj;
                     break;
                 }
             }

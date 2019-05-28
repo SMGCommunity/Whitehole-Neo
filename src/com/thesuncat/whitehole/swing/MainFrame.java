@@ -200,7 +200,7 @@ public class MainFrame extends javax.swing.JFrame {
                 new MsbtEditorForm().setVisible(true);
                 break;
             case "CANM Editor":
-                new CanmEditorForm().setVisible(true);
+                Parser.main(null);
         }
     }
     
