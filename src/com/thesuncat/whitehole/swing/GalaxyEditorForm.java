@@ -43,6 +43,7 @@ import com.thesuncat.whitehole.rendering.cache.RendererCache;
 import com.thesuncat.whitehole.smg.Bcsv.Field;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.plaf.MenuItemUI;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     
@@ -598,14 +599,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         itemClose = new javax.swing.JMenuItem();
         mnuEdit = new javax.swing.JMenu();
         subCopy = new javax.swing.JMenu();
-        itemPositionCopy = new javax.swing.JMenuItem();
-        itemRotationCopy = new javax.swing.JMenuItem();
-        itemScaleCopy = new javax.swing.JMenuItem();
+        itmPositionCopy = new javax.swing.JMenuItem();
+        itmRotationCopy = new javax.swing.JMenuItem();
+        itmScaleCopy = new javax.swing.JMenuItem();
         subPaste = new javax.swing.JMenu();
-        itemPositionPaste = new javax.swing.JMenuItem();
-        itemRotationPaste = new javax.swing.JMenuItem();
-        itemScalePaste = new javax.swing.JMenuItem();
-        itemScreenshot = new javax.swing.JMenuItem();
+        itmPositionPaste = new javax.swing.JMenuItem();
+        itmRotationPaste = new javax.swing.JMenuItem();
+        itmScalePaste = new javax.swing.JMenuItem();
+        itmScreenshot = new javax.swing.JMenuItem();
         mnuHelp = new javax.swing.JMenu();
         itemControls = new javax.swing.JMenuItem();
 
@@ -1064,74 +1065,69 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         subCopy.setText("Copy");
 
-        itemPositionCopy.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.ALT_MASK));
-        itemPositionCopy.setText("Position");
-        itemPositionCopy.addActionListener(new java.awt.event.ActionListener() {
+        itmPositionCopy.setText("Position");
+        itmPositionCopy.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemPositionCopyActionPerformed(evt);
+                itmPositionCopyActionPerformed(evt);
             }
         });
-        subCopy.add(itemPositionCopy);
+        subCopy.add(itmPositionCopy);
 
-        itemRotationCopy.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.event.InputEvent.ALT_MASK));
-        itemRotationCopy.setText("Rotation");
-        itemRotationCopy.addActionListener(new java.awt.event.ActionListener() {
+        itmRotationCopy.setText("Rotation");
+        itmRotationCopy.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemRotationCopyActionPerformed(evt);
+                itmRotationCopyActionPerformed(evt);
             }
         });
-        subCopy.add(itemRotationCopy);
+        subCopy.add(itmRotationCopy);
 
-        itemScaleCopy.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.ALT_MASK));
-        itemScaleCopy.setText("Scale");
-        itemScaleCopy.addActionListener(new java.awt.event.ActionListener() {
+        itmScaleCopy.setText("Scale");
+        itmScaleCopy.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemScaleCopyActionPerformed(evt);
+                itmScaleCopyActionPerformed(evt);
             }
         });
-        subCopy.add(itemScaleCopy);
+        subCopy.add(itmScaleCopy);
 
         mnuEdit.add(subCopy);
 
         subPaste.setText("Paste");
 
-        itemPositionPaste.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.SHIFT_MASK));
-        itemPositionPaste.setText("Position (0.0, 0.0, 0.0)");
-        itemPositionPaste.addActionListener(new java.awt.event.ActionListener() {
+        itmPositionPaste.setText("Position (0.0, 0.0, 0.0)");
+        itmPositionPaste.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemPositionPasteActionPerformed(evt);
+                itmPositionPasteActionPerformed(evt);
             }
         });
-        subPaste.add(itemPositionPaste);
+        subPaste.add(itmPositionPaste);
 
-        itemRotationPaste.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.event.InputEvent.SHIFT_MASK));
-        itemRotationPaste.setText("Rotation (0.0, 0.0, 0.0)");
-        itemRotationPaste.addActionListener(new java.awt.event.ActionListener() {
+        itmRotationPaste.setText("Rotation (0.0, 0.0, 0.0)");
+        itmRotationPaste.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemRotationPasteActionPerformed(evt);
+                itmRotationPasteActionPerformed(evt);
             }
         });
-        subPaste.add(itemRotationPaste);
+        subPaste.add(itmRotationPaste);
 
-        itemScalePaste.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.SHIFT_MASK));
-        itemScalePaste.setText("Scale (1.0, 1.0, 1.0)");
-        itemScalePaste.setToolTipText("");
-        itemScalePaste.addActionListener(new java.awt.event.ActionListener() {
+        itmScalePaste.setText("Scale (1.0, 1.0, 1.0)");
+        itmScalePaste.setToolTipText("");
+        itmScalePaste.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemScalePasteActionPerformed(evt);
+                itmScalePasteActionPerformed(evt);
             }
         });
-        subPaste.add(itemScalePaste);
+        subPaste.add(itmScalePaste);
 
         mnuEdit.add(subPaste);
 
-        itemScreenshot.setText("Save Screenshot");
-        itemScreenshot.addActionListener(new java.awt.event.ActionListener() {
+        itmScreenshot.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.ALT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+        itmScreenshot.setText("Screenshot");
+        itmScreenshot.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemScreenshotActionPerformed(evt);
+                itmScreenshotActionPerformed(evt);
             }
         });
-        mnuEdit.add(itemScreenshot);
+        mnuEdit.add(itmScreenshot);
 
         jMenuBar1.add(mnuEdit);
 
@@ -1294,12 +1290,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         // Check if a CameraArea is selected. If so, enable the camera-related buttons
         camSelected = false;
         if(selectedObjs.size() == 1) {
-            ArrayList<AbstractObj> tempobjs = new ArrayList();
-            for(Map.Entry<Integer, AbstractObj> entry : selectedObjs.entrySet()) {
-                AbstractObj value = entry.getValue();
-                tempobjs.add(value);
-            }
-            for(AbstractObj object : tempobjs) {
+            for(AbstractObj object : selectedObjs.values()) {
                 if(object instanceof CameraObj)
                     camSelected = true;
             }
@@ -1821,52 +1812,52 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 btnShowCameras.isSelected(), btnShowPaths.isSelected(), tgbShowAxis.isSelected());
     }//GEN-LAST:event_itemCloseActionPerformed
 
-    private void itemPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemPositionCopyActionPerformed
+    private void itmPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionCopyActionPerformed
         if(selectedObjs.size() == 1) {
             for(AbstractObj selectedObj : selectedObjs.values()) {
                 copyPos =(Vector3) selectedObj.position.clone();
-                itemPositionPaste.setText("Position(" + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ")");
+                itmPositionPaste.setText("Position(" + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ")");
                 if(Settings.japanese)
                     lbStatusLabel.setText("位置をコピー " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
                 else
                     lbStatusLabel.setText("Copied position " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
             }
         }
-    }//GEN-LAST:event_itemPositionCopyActionPerformed
+    }//GEN-LAST:event_itmPositionCopyActionPerformed
     
-    private void itemRotationCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemRotationCopyActionPerformed
+    private void itmRotationCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationCopyActionPerformed
         if(selectedObjs.size() == 1) {
             for(AbstractObj selectedObj : selectedObjs.values()) {
                 if(selectedObj instanceof PathPointObj)
                     return;
                 
                 copyDir =(Vector3) selectedObj.rotation.clone();
-                itemRotationPaste.setText("Rotation(" + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ")");
+                itmRotationPaste.setText("Rotation(" + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ")");
                 if(Settings.japanese)
                     lbStatusLabel.setText("回転をコピー " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
                 else
                     lbStatusLabel.setText("Copied rotation " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
             }
         }
-    }//GEN-LAST:event_itemRotationCopyActionPerformed
+    }//GEN-LAST:event_itmRotationCopyActionPerformed
 
-    private void itemScaleCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemScaleCopyActionPerformed
+    private void itmScaleCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScaleCopyActionPerformed
         if(selectedObjs.size() == 1) {
             for(AbstractObj selectedObj : selectedObjs.values()) {
                 if(selectedObj instanceof PathPointObj || selectedObj instanceof PositionObj || selectedObj instanceof StageObj)
                     return;
                 
                 copyScale =(Vector3) selectedObj.scale.clone();
-                itemScalePaste.setText("Scale(" + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ")");
+                itmScalePaste.setText("Scale(" + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ")");
                 if(Settings.japanese)
                     lbStatusLabel.setText("倍率をコピー " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
                 else
                     lbStatusLabel.setText("Copied scale " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
             }
         }
-    }//GEN-LAST:event_itemScaleCopyActionPerformed
+    }//GEN-LAST:event_itmScaleCopyActionPerformed
 
-    private void itemScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemScalePasteActionPerformed
+    private void itmScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScalePasteActionPerformed
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof PathPointObj || selectedObj instanceof PositionObj || selectedObj instanceof StageObj)
                 return;
@@ -1891,9 +1882,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 lbStatusLabel.setText("Pasted scale " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
             unsavedChanges = true;
         }
-    }//GEN-LAST:event_itemScalePasteActionPerformed
+    }//GEN-LAST:event_itmScalePasteActionPerformed
 
-    private void itemPositionPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemPositionPasteActionPerformed
+    private void itmPositionPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionPasteActionPerformed
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof StageObj)
                 return;
@@ -1934,7 +1925,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             } else {
                 addUndoEntry("changeObj", selectedObj);
                 
-                selectedObj.position =(Vector3) copyPos.clone();
+                selectedObj.position = (Vector3) copyPos.clone();
                 
                 pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
                 pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
@@ -1952,9 +1943,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 lbStatusLabel.setText("Pasted position " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
             unsavedChanges = true;
         }
-    }//GEN-LAST:event_itemPositionPasteActionPerformed
+    }//GEN-LAST:event_itmPositionPasteActionPerformed
 
-    private void itemRotationPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemRotationPasteActionPerformed
+    private void itmRotationPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationPasteActionPerformed
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj.getClass() == PathPointObj.class)
                 return;
@@ -1978,7 +1969,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 lbStatusLabel.setText("Pasted rotation " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
             unsavedChanges = true;
         }
-    }//GEN-LAST:event_itemRotationPasteActionPerformed
+    }//GEN-LAST:event_itmRotationPasteActionPerformed
 
     private void itemControlsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemControlsActionPerformed
         JOptionPane.showMessageDialog(null,
@@ -2316,21 +2307,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void tgbPasteObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbPasteObjActionPerformed
         tgbPasteObj.setSelected(false);
         if(copyObj != null) {
-            ArrayList<AbstractObj> copiedObjs = new ArrayList();
-            for(Map.Entry<Integer, AbstractObj> entry : copyObj.entrySet()) {
-                AbstractObj value = entry.getValue();
-
-                copiedObjs.add(value);
-            }
-            for(AbstractObj currentTempObj : copiedObjs) {
-                addingObject = "general|"+currentTempObj.name;
+            for(AbstractObj currentTempObj : copyObj.values()) {
+                addingObject = "general|" + currentTempObj.name;
                 addingObjectOnLayer = currentTempObj.layer;
-                addObject(new Point(glCanvas.getWidth()/2,glCanvas.getHeight()/2));
+                addObject(new Point(glCanvas.getWidth() / 2, glCanvas.getHeight() / 2));
                 
                 addUndoEntry("addObj", newobj);
 
                 newobj.rotation = currentTempObj.rotation;
-                addingObject="";
+                addingObject = "";
             }
             lbStatusLabel.setText("Pasted objects.");
             glCanvas.repaint();
@@ -2390,10 +2375,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_tgbCamPrevActionPerformed
 
-    private void itemScreenshotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemScreenshotActionPerformed
-        saveImage();
-    }//GEN-LAST:event_itemScreenshotActionPerformed
-
     private void btnDeleteZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteZoneActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnDeleteZoneActionPerformed
@@ -2401,6 +2382,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void btnDeleteScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteScenarioActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnDeleteScenarioActionPerformed
+
+    private void itmScreenshotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScreenshotActionPerformed
+        saveImage();
+    }//GEN-LAST:event_itmScreenshotActionPerformed
     
     /**
      * Copies the contents of the GLCanvas to the System Clipboard.<br>
@@ -2422,6 +2407,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             screenshot = Screenshot.readToBufferedImage(glCanvas.getWidth(), glCanvas.getHeight(), false);
             attempts++;
         }
+        
+        if(screenshot.getRGB(1, 1) == Color.black.getRGB())
+            lbStatusLabel.setText("Failed to save screenshot: cryptic bug yay");
         
         CopyImage ci = new CopyImage();
         ci.copyImage(screenshot);
@@ -5437,6 +5425,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     tgbDeleteObject.doClick();
             }
             
+            // Hide an object
             if(e.getKeyCode() == KeyEvent.VK_H) {
                 if(e.isAltDown()) {
                     for(AbstractObj obj : globalObjList.values()) {
@@ -5458,38 +5447,45 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     glCanvas.repaint();
                 }
             }
+            
+            // Undo
             if(e.getKeyCode() == KeyEvent.VK_Z && e.isControlDown()) {
                 undo();
                 System.out.println("Undos left: " + undoIndex);
                 glCanvas.repaint();
             }
-            if(e.getKeyCode() == KeyEvent.VK_S && !e.isControlDown() && !e.isShiftDown()) {
-                startingMousePos = lastMouseMove;
-                ArrayList<AbstractObj> scalingObjs = new ArrayList();
-                for(Map.Entry<Integer, AbstractObj> entry : selectedObjs.entrySet()) {
-                    AbstractObj value = entry.getValue();
-                    scalingObjs.add(value);
+            
+            // Scale/Move/Rotate With Mouse Shortcuts
+            if(!e.isControlDown() && !e.isAltDown() && !e.isShiftDown()) {
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_S: // Scale
+                        startingMousePos = lastMouseMove;
+                        ArrayList<AbstractObj> scalingObjs = new ArrayList();
+                        
+                        for(AbstractObj obj : selectedObjs.values())
+                            scalingObjs.add(obj);
+                        
+                        for(AbstractObj currentChangeObj : scalingObjs) {
+                            startingObjScale.x = currentChangeObj.scale.x;
+                            startingObjScale.y = currentChangeObj.scale.y;
+                            startingObjScale.z = currentChangeObj.scale.z;
+                            startingObjPos.x = currentChangeObj.position.x;
+                            startingObjPos.y = currentChangeObj.position.y;
+                            startingObjPos.z = currentChangeObj.position.z;
+                        }   keyScaling = true;
+                        break;
+                    case KeyEvent.VK_G: // Move
+                        startingMousePos = lastMouseMove;
+                        keyTranslating = true;
+                        break;
+                    case KeyEvent.VK_R: // Rotate
+                        keyRotating = true;
+                        startingMousePos = lastMouseMove;
+                        break;
                 }
-                for(AbstractObj currentChangeObj : scalingObjs) {
-                    startingObjScale.x = currentChangeObj.scale.x;
-                    startingObjScale.y = currentChangeObj.scale.y;
-                    startingObjScale.z = currentChangeObj.scale.z;
-                    startingObjPos.x = currentChangeObj.position.x;
-                    startingObjPos.y = currentChangeObj.position.y;
-                    startingObjPos.z = currentChangeObj.position.z;
-                }
-                
-                keyScaling = true;
-            }
-            if(e.getKeyCode() == KeyEvent.VK_G) {
-                startingMousePos = lastMouseMove;
-                keyTranslating = true;
-            }
-            if(e.getKeyCode() == KeyEvent.VK_R) {
-                keyRotating = true;
-                startingMousePos = lastMouseMove;
             }
             
+            // Set rotation axis
             if(keyRotating || keyScaling || keyTranslating) {
                 switch(e.getKeyCode()) {
                     case KeyEvent.VK_X:
@@ -5505,18 +5501,20 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         break;
                 }
             }
-            if(e.isShiftDown()) {
-                if(e.getKeyCode() == KeyEvent.VK_A) {
-                    if(getFocusOwner() == glCanvas) {
-                        pmnAddObjects.setLightWeightPopupEnabled(false);
-                        pmnAddObjects.show(pnlGLPanel, lastMouseMove.x, lastMouseMove.y);
-                        pmnAddObjects.setOpaque(true);
-                        pmnAddObjects.setVisible(true);
-                    }
+            
+            // Pull Up Add menu
+            if(e.isShiftDown() && e.getKeyCode() == KeyEvent.VK_A) {
+                if(getFocusOwner() == glCanvas) {
+                    pmnAddObjects.setLightWeightPopupEnabled(false);
+                    pmnAddObjects.show(pnlGLPanel, lastMouseMove.x, lastMouseMove.y);
+                    pmnAddObjects.setOpaque(true);
+                    pmnAddObjects.setVisible(true);
                 }
             }
+            
+            // Copy-Pase
             if(e.isControlDown()) {
-                if(e.getKeyCode() == KeyEvent.VK_C) {
+                if(e.getKeyCode() == KeyEvent.VK_C) { // Copy
                     copyObj =(LinkedHashMap<Integer, AbstractObj>) selectedObjs.clone();
                     if(selectedObjs.size() == 1)
                         lbStatusLabel.setText("Copied " + new ArrayList<>(copyObj.values()).get(0).name + ".");
@@ -5526,25 +5524,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 else if(e.getKeyCode() == KeyEvent.VK_V) {
                     if(copyObj != null) { 
                         if(!copyObj.isEmpty()) {
-                            //following 5 lines by OcelotGaming
-                            ArrayList<AbstractObj> copiedObjs = new ArrayList();
-                            for(Map.Entry<Integer, AbstractObj> entry : copyObj.entrySet()) {
-                                AbstractObj value = entry.getValue();
-                                copiedObjs.add(value);
-                            }
-                            for(AbstractObj currentObj : copiedObjs)
+                            for(AbstractObj currentObj : copyObj.values())
                                 pasteObject(currentObj);
-                            if(copiedObjs.size() == 1)
+                            
+                            if(copyObj.size() == 1)
                                 lbStatusLabel.setText("Pasted " + new ArrayList<>(copyObj.values()).get(0).name + ".");
                             else
                                 lbStatusLabel.setText("Pasted objects.");
+                            
                             addingObject = "";
                             glCanvas.repaint();
                         }
                     }
                 }
             }
-            if(e.getKeyCode() == KeyEvent.VK_SPACE && selectedObjs.size() > 0) {
+            
+            // Jump Camera to Object
+            if(e.getKeyCode() == KeyEvent.VK_SPACE && selectedObjs.size() == 1) {
                 ArrayList keyset = new ArrayList(selectedObjs.keySet());
                 Vector3 camTarg = new Vector3(
                         selectedObjs.get((int)keyset.get(0)).position.x,
@@ -5558,24 +5554,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     System.out.println(szdata.position);
                 }
                 
-                camTarget =(Vector3) camTarg.clone();
+                camTarget = (Vector3) camTarg.clone();
                 
                 camTarget.x = camTarget.x / scaledown;
                 camTarget.y = camTarget.y / scaledown;
                 camTarget.z = camTarget.z / scaledown;
                 camDistance = 0.1f;
-                try {
-                    camRotation.y =(float)Math.PI / 8f;
-                    //camRotation.x =(-selectedObjs.get((int)keyset.get(0)).rotation.y - 90f) *(float)Math.PI / 180f;
-                } catch(NullPointerException ex) {
-                    // Means it's a path, no need for rotation
-                }
+                
+                camRotation.y = (float) Math.PI / 8f;
 
-                // TODO: zone rotation/position offsets :weary:
+                applySubzoneRotation(camTarget);
 
                 updateCamera();
                 glCanvas.repaint();
             }
+            
+            // Fullscreen Toggle
             if(e.getKeyCode() == KeyEvent.VK_F) {
                 if(glCanvas.isFocusOwner())
                     makeFullscreen();
@@ -5588,6 +5582,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     setVisible(true);
                 }
             }
+            
+            // Arrow Key Shortcuts
             if((keyMask & 0x3F) != 0) {
                 Vector3 delta = new Vector3();
                 Vector3 deltaPos = new Vector3();
@@ -5640,6 +5636,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     deltaDir.z += 5;
                     deltaSize.z += 1;
                 }
+                
+                
                 if(!selectedObjs.isEmpty()) {
                     unsavedChanges = true;
                     if((keyMask &(1 << 6)) != 0)
@@ -5859,14 +5857,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private javax.swing.JToggleButton btnShowPaths;
     private javax.swing.JMenuItem itemClose;
     private javax.swing.JMenuItem itemControls;
-    private javax.swing.JMenuItem itemPositionCopy;
-    private javax.swing.JMenuItem itemPositionPaste;
-    private javax.swing.JMenuItem itemRotationCopy;
-    private javax.swing.JMenuItem itemRotationPaste;
     private javax.swing.JMenuItem itemSave;
-    private javax.swing.JMenuItem itemScaleCopy;
-    private javax.swing.JMenuItem itemScalePaste;
-    private javax.swing.JMenuItem itemScreenshot;
+    private javax.swing.JMenuItem itmPositionCopy;
+    private javax.swing.JMenuItem itmPositionPaste;
+    private javax.swing.JMenuItem itmRotationCopy;
+    private javax.swing.JMenuItem itmRotationPaste;
+    private javax.swing.JMenuItem itmScaleCopy;
+    private javax.swing.JMenuItem itmScalePaste;
+    private javax.swing.JMenuItem itmScreenshot;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -6145,14 +6143,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void initDarkTheme() {
         ArrayList<JButton> btnArray = new ArrayList<>();
-        ArrayList<JMenuItem> subArray = new ArrayList<>();
+        ArrayList<JMenuItem> itmArray = new ArrayList<>();
         ArrayList<JMenu> mnuArray = new ArrayList<>();
         ArrayList<JToggleButton> tbtnArray= new ArrayList<>();
         btnArray.addAll(Arrays.asList(btnAddScenario, btnAddWorldmapRoute, btnAddZone, btnDeleteScenario, btnDeleteWorldmapObj,
                 btnDeleteZone, btnDeselect, btnEditScenario, btnEditZone, btnSaveWorldmap));
-        subArray.addAll(Arrays.asList(itemClose, itemControls, itemPositionCopy, itemPositionPaste, itemRotationCopy, itemRotationPaste,
-                itemSave, itemScaleCopy, itemScalePaste));
-        mnuArray.addAll(Arrays.asList(mnuEdit, mnuHelp, mnuSave, subCopy, subPaste));
+        itmArray.addAll(Arrays.asList(itemClose, itemControls, itmPositionCopy, itmPositionPaste, itmRotationCopy, itmRotationPaste,
+                itemSave, itmScaleCopy, itmScalePaste, itmScreenshot));
+        mnuArray.addAll(Arrays.asList(mnuEdit, mnuHelp, mnuSave));
         tbtnArray.addAll(Arrays.asList(btnShowAreas, btnShowCameras, btnShowGravity, btnShowPaths, tgbAddObject,
                 tgbAddWorldmapObj, tgbDeleteObject, tgbCamGen, tgbCamPrev, tgbCopyObj, tgbPasteObj, tgbQuickAction, tgbShowAxis));
         jSplitPane1.setBackground(new Color(47,49,54));
@@ -6269,21 +6267,194 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             btnArray.get(i).setBackground(new Color(32, 34, 37));
             btnArray.get(i).setForeground(new Color(157, 158, 161));
         }
-        for(int i = 0; i < subArray.size(); i++) {
-            subArray.get(i).setOpaque(true);
-            subArray.get(i).setBackground(new Color(32, 34, 37));
-            subArray.get(i).setForeground(new Color(157, 158, 161));
-        }
-        for(int i = 0; i < mnuArray.size(); i++) {
-            mnuArray.get(i).setOpaque(true);
-            mnuArray.get(i).setBackground(new Color(32, 34, 37));
-            mnuArray.get(i).setForeground(new Color(157, 158, 161));
+        for(JMenuItem itm : itmArray) {
+            itm.setOpaque(true);
+            itm.setBackground(new Color(32, 34, 37));
+            itm.setForeground(new Color(157, 158, 161));
+            
+//            itm.setPreferredSize(new Dimension(itm.getSize().width - 10, itm.getSize().height));
+//            itm.setMaximumSize(new Dimension(itm.getSize().width - 10, itm.getSize().height));
+//            itm.setMinimumSize(new Dimension(itm.getSize().width - 15, itm.getSize().height));
+            
+            itm.setUI(new javax.swing.plaf.basic.BasicMenuItemUI() {
+                @Override
+                public void paintMenuItem(Graphics g, JComponent c,
+                        Icon checkIcon, Icon arrowIcon,
+                        Color background, Color foreground,
+                        int defaultTextIconGap) {
+                    // Save original graphics font and color
+                    Font holdf = g.getFont();
+                    Color holdc = g.getColor();
+
+                    JMenuItem mi = (JMenuItem) c;
+                    g.setFont(mi.getFont());
+
+                    Rectangle viewRect = new Rectangle(5, 0, mi.getWidth(), mi.getHeight());
+
+                    paintBackground(g, mi, background);
+                    paintText(g, mi, viewRect, mi.getText());
+
+                    // Restore original graphics font and color
+                    g.setColor(holdc);
+                    g.setFont(holdf);
+                }
+                
+                @Override
+                protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
+                    Color oldColor = g.getColor();
+                    int menuWidth = menuItem.getWidth();
+                    int menuHeight = menuItem.getHeight();
+                    g.setColor(new Color(47,49,54));
+                    g.fillRect(0,0, menuWidth, menuHeight);
+                    g.setColor(oldColor);
+                }
+                
+                @Override
+                protected void paintText(Graphics g, JMenuItem menuItem, Rectangle textRect, String text) {
+                    ButtonModel model = menuItem.getModel();
+                    FontMetrics fm = g.getFontMetrics();
+                    
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(
+                            RenderingHints.KEY_TEXT_ANTIALIASING,
+                            RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+                    
+                    
+                    Color oldColor = g2d.getColor();
+
+                    if(model.isArmed())
+                        g2d.setColor(Color.lightGray.darker());
+                    else
+                        g2d.setColor(Color.lightGray);
+                    
+                    g2d.drawString(text, textRect.x, textRect.y + fm.getAscent());
+                    
+                    // get keystroke text
+                    KeyStroke accelerator = menuItem.getAccelerator();
+                    
+                    if(accelerator != null) {
+                        String accText = "";
+                        int modifiers = accelerator.getModifiers();
+                        if (modifiers > 0) {
+                            accText = java.awt.event.KeyEvent.getKeyModifiersText(modifiers);
+                            accText += acceleratorDelimiter;
+                        }
+
+                        int keyCode = accelerator.getKeyCode();
+                        if (keyCode != 0)
+                            accText += java.awt.event.KeyEvent.getKeyText(keyCode);
+                        else
+                            accText += accelerator.getKeyChar();
+
+                        g2d.drawString(accText,
+                                menuItem.getWidth() - fm.stringWidth(accText) - 5,
+                                textRect.y + fm.getAscent());
+                    }
+                    g2d.setColor(oldColor);
+                }
+            });
         }
         
-        for(int i = 0; i < tbtnArray.size(); i++) {
-            tbtnArray.get(i).setOpaque(true);
-            tbtnArray.get(i).setBackground(new Color(32, 34, 37));
-            tbtnArray.get(i).setForeground(new Color(157, 158, 161));
+        for(JMenu mnu : mnuArray) {
+            mnu.setOpaque(true);
+            mnu.setBackground(new Color(32, 34, 37));
+            mnu.setForeground(new Color(157, 158, 161));
+            
+            mnu.setSize(mnu.getWidth() - 10, mnu.getHeight());
+        }
+        
+        for(JToggleButton tbtn : tbtnArray) {
+            tbtn.setOpaque(true);
+            tbtn.setBackground(new Color(32, 34, 37));
+            tbtn.setForeground(new Color(157, 158, 161));
+        }
+        
+        for(JMenu mnu : new JMenu[] {subCopy, subPaste}) {
+            mnu.setOpaque(true);
+            mnu.setBackground(new Color(32, 34, 37));
+            mnu.setForeground(new Color(157, 158, 161));
+            
+            mnu.setUI(new javax.swing.plaf.basic.BasicMenuUI() {
+                @Override
+                public void paintMenuItem(Graphics g, JComponent c,
+                        Icon checkIcon, Icon arrowIcon,
+                        Color background, Color foreground,
+                        int defaultTextIconGap) {
+                    // Save original graphics font and color
+                    Font holdf = g.getFont();
+                    Color holdc = g.getColor();
+
+                    JMenuItem mi = (JMenuItem) c;
+                    g.setFont(mi.getFont());
+
+                    Rectangle viewRect = new Rectangle(5, 0, mi.getWidth(), mi.getHeight());
+
+                    paintBackground(g, mi, background);
+                    paintText(g, mi, viewRect, mi.getText());
+
+                    // Restore original graphics font and color
+                    g.setColor(holdc);
+                    g.setFont(holdf);
+                }
+                
+                @Override
+                protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
+                    Color oldColor = g.getColor();
+                    int menuWidth = menuItem.getWidth();
+                    int menuHeight = menuItem.getHeight();
+                    g.setColor(new Color(47,49,54));
+                    g.fillRect(0,0, menuWidth, menuHeight);
+                    g.setColor(oldColor);
+                }
+                
+                @Override
+                protected void paintText(Graphics g, JMenuItem menuItem, Rectangle textRect, String text) {
+                    ButtonModel model = menuItem.getModel();
+                    FontMetrics fm = g.getFontMetrics();
+                    
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(
+                            RenderingHints.KEY_TEXT_ANTIALIASING,
+                            RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+                    
+                    
+                    Color oldColor = g2d.getColor();
+
+                    if(model.isArmed())
+                        g2d.setColor(Color.lightGray.darker());
+                    else
+                        g2d.setColor(Color.lightGray);
+                    
+                    g2d.drawString(text, textRect.x, textRect.y + fm.getAscent());
+                    
+                    // get keystroke text
+                    KeyStroke accelerator = menuItem.getAccelerator();
+                    
+                    if(accelerator != null) {
+                        String accText = "";
+                        int modifiers = accelerator.getModifiers();
+                        if (modifiers > 0) {
+                            accText = java.awt.event.KeyEvent.getKeyModifiersText(modifiers);
+                            accText += acceleratorDelimiter;
+                        }
+
+                        int keyCode = accelerator.getKeyCode();
+                        if (keyCode != 0)
+                            accText += java.awt.event.KeyEvent.getKeyText(keyCode);
+                        else
+                            accText += accelerator.getKeyChar();
+
+                        g2d.drawString(accText,
+                                menuItem.getWidth() - fm.stringWidth(accText) - 5,
+                                textRect.y + fm.getAscent());
+                    } else {
+                        g2d.drawString(">",
+                                menuItem.getWidth() - fm.stringWidth(">") - 5,
+                                textRect.y + fm.getAscent());
+                    }
+                    g2d.setColor(oldColor);
+                }
+            });
         }
     }
     
@@ -6294,13 +6465,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             itemClose.setText("閉じる");
         mnuEdit.setText("編集");
             subCopy.setText("コピー");
-                itemPositionCopy.setText("位置");
-                itemRotationCopy.setText("回転");
-                itemScaleCopy.setText("倍率");
+                itmPositionCopy.setText("位置");
+                itmRotationCopy.setText("回転");
+                itmScaleCopy.setText("倍率");
             subPaste.setText("貼り付け");
-                itemPositionPaste.setText("位置(0.0, 0.0, 0.0)");
-                itemRotationPaste.setText("回転(0.0, 0.0, 0.0)");
-                itemScalePaste.setText("倍率(1.0, 1.0, 1.0)");
+                itmPositionPaste.setText("位置(0.0, 0.0, 0.0)");
+                itmRotationPaste.setText("回転(0.0, 0.0, 0.0)");
+                itmScalePaste.setText("倍率(1.0, 1.0, 1.0)");
         mnuHelp.setText("ヘルプ");
             itemControls.setText("操作について");
         

@@ -14,6 +14,9 @@
     <Property name="iconImage" type="java.awt.Image" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
       <Connection code="Whitehole.ICON" type="code"/>
     </Property>
+    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+      <Dimension value="[598, 235]"/>
+    </Property>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
@@ -35,7 +38,7 @@
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="1" attributes="0">
-              <EmptySpace max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
@@ -55,7 +58,7 @@
                               <Group type="102" alignment="1" attributes="0">
                                   <Component id="lblUpdateUrl" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="txtObjectDBUrl" min="-2" pref="215" max="-2" attributes="0"/>
+                                  <Component id="txtObjectDBUrl" max="32767" attributes="0"/>
                               </Group>
                               <Component id="chkObjectDBUpdate" min="-2" max="-2" attributes="0"/>
                           </Group>
@@ -81,7 +84,7 @@
                       <Component id="chkNoShaderRender" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -205,7 +208,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="lblUpdateUrl">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Update URL"/>
+        <Property name="text" type="java.lang.String" value="Update URL:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txtObjectDBUrl">

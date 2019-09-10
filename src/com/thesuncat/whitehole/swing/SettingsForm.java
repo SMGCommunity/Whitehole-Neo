@@ -156,6 +156,7 @@ public class SettingsForm extends javax.swing.JDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Settings");
         setIconImage(Whitehole.ICON);
+        setMinimumSize(new java.awt.Dimension(598, 235));
 
         chkObjectDBUpdate.setText("Check for object database updates on startup");
         chkObjectDBUpdate.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
@@ -188,7 +189,7 @@ public class SettingsForm extends javax.swing.JDialog {
         lblMisc.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblMisc.setText("Misc");
 
-        lblUpdateUrl.setText("Update URL");
+        lblUpdateUrl.setText("Update URL:");
 
         chkGameDir.setText("Automatically reopen game directory");
         chkGameDir.setActionCommand("Automatically reopen game folder");
@@ -225,7 +226,7 @@ public class SettingsForm extends javax.swing.JDialog {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -244,7 +245,7 @@ public class SettingsForm extends javax.swing.JDialog {
                                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                     .addComponent(lblUpdateUrl)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txtObjectDBUrl, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(txtObjectDBUrl))
                                 .addComponent(chkObjectDBUpdate))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(chkDarkTheme)
@@ -262,7 +263,7 @@ public class SettingsForm extends javax.swing.JDialog {
                         .addComponent(btnCancel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(chkNoShaderRender)))
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
