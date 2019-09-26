@@ -30,27 +30,8 @@ import javax.swing.text.NumberFormatter;
 public class MsbfEditorForm extends javax.swing.JFrame {
     
     public MsbfEditorForm(String arcName, String fileName) throws IOException {
-<<<<<<< HEAD
         arc = new RarcFilesystem(Whitehole.game.filesystem.openFile(arcName));
         msbf = new MsbfFile(arc.openFile(fileName));
-=======
-        try {
-            arc = new RarcFilesystem(Whitehole.game.filesystem.openFile(arcName));
-            msbf = new MsbfFile(arc.openFile(fileName));
-        } catch(IOException e) {
-            throw new IOException("a");
-        }
-        initComponents();
-        
-        if(!msbf.chars.isEmpty()) {
-            String[] charModel = new String[msbf.chars.size()];
-            for(int i = 0; i < msbf.chars.size(); i++)
-                charModel[i] = Integer.toString(msbf.chars.get(i));
-            cbxCharChooser.setModel(new DefaultComboBoxModel<>(charModel));
-            cbxCharChooser.setSelectedIndex(0);
-            txtChar.setText(Integer.toString(msbf.chars.get(0)));
-        }
->>>>>>> b243b7da2dccf001ac2065402e96eeaea1ef0b83
         
         setTitle("Msbf Editor - Editing " + fileName);
         
@@ -68,43 +49,8 @@ public class MsbfEditorForm extends javax.swing.JFrame {
             ((NumberFormatter) txt.getFormatter()).setAllowsInvalid(false);
         }
         
-<<<<<<< HEAD
         cbxEntryChooser.addActionListener((ActionEvent e) -> {
             reloadEditor(cbxEntryChooser.getSelectedIndex(), false);
-=======
-        Object o = msbf.flowList.get(0);
-        if(o instanceof Flow) {
-            Flow flow = (Flow) o;
-            spnUnk0.setValue(flow.unk0);
-            spnUnk1.setValue(flow.unk1);
-            spnUnk2.setValue(flow.unk2);
-            spnUnk3.setValue(flow.unk3);
-            spnUnk4.setValue(flow.unk4);
-            spnUnk5.setValue(flow.unk5);
-            txtName.setText("No entry here!");
-            txtName.setEditable(false);
-            lblIndex.setVisible(false);
-            spnIndex.setVisible(false);
-        } else {
-            Flow flow = ((FlowEntry) o).flow;
-            spnUnk0.setValue(flow.unk0);
-            spnUnk1.setValue(flow.unk1);
-            spnUnk2.setValue(flow.unk2);
-            spnUnk3.setValue(flow.unk3);
-            spnUnk4.setValue(flow.unk4);
-            spnUnk5.setValue(flow.unk5);
-            txtName.setText(((FlowEntry) o).label);
-            txtName.setEditable(true);
-            lblIndex.setVisible(true);
-            spnIndex.setVisible(true);
-            spnIndex.setValue(((FlowEntry) o).index);
-        }
-        cbxEntryChooser.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateValues();
-            }
->>>>>>> b243b7da2dccf001ac2065402e96eeaea1ef0b83
         });
         
         setLocationRelativeTo(null);
@@ -492,17 +438,8 @@ public class MsbfEditorForm extends javax.swing.JFrame {
                         .addComponent(jLabel8)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btnAddChar))
-<<<<<<< HEAD
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                         .addComponent(txtChar)
-=======
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlCharsLayout.createSequentialGroup()
-                        .addGroup(pnlCharsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(txtChar, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(pnlCharsLayout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(cbxCharChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)))
->>>>>>> b243b7da2dccf001ac2065402e96eeaea1ef0b83
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnDelChar))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
@@ -518,15 +455,10 @@ public class MsbfEditorForm extends javax.swing.JFrame {
                     .addComponent(jLabel8)
                     .addComponent(btnAddChar, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-<<<<<<< HEAD
                 .addComponent(cbxCharChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtChar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-=======
-                .addGroup(pnlCharsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cbxCharChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
->>>>>>> b243b7da2dccf001ac2065402e96eeaea1ef0b83
                     .addComponent(btnDelChar, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -538,13 +470,8 @@ public class MsbfEditorForm extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-<<<<<<< HEAD
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-=======
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
-                .addComponent(pnlChars, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
->>>>>>> b243b7da2dccf001ac2065402e96eeaea1ef0b83
                 .addContainerGap())
         );
         layout.setVerticalGroup(

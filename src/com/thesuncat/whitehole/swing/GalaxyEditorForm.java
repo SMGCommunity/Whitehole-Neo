@@ -46,26 +46,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicToolBarUI;
 import javax.swing.tree.*;
-<<<<<<< HEAD
-=======
-import com.jogamp.opengl.util.awt.Screenshot;
-import com.thesuncat.whitehole.Whitehole;
-import com.thesuncat.whitehole.Settings;
-import com.thesuncat.whitehole.swing.DarkThemeRenderers.*;
-import com.thesuncat.whitehole.smg.*;
-import com.thesuncat.whitehole.smg.object.*;
-import com.thesuncat.whitehole.vectors.*;
-import com.thesuncat.whitehole.worldmapObject.*;
-import com.thesuncat.whitehole.io.RarcFilesystem;
-import com.thesuncat.whitehole.rendering.BmdRenderer;
-import com.thesuncat.whitehole.rendering.GLRenderer;
-import com.thesuncat.whitehole.rendering.GLRenderer.RenderMode;
-import com.thesuncat.whitehole.rendering.cache.RendererCache;
-import com.thesuncat.whitehole.smg.Bcsv.Field;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-import javax.swing.plaf.MenuItemUI;
->>>>>>> b243b7da2dccf001ac2065402e96eeaea1ef0b83
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     
