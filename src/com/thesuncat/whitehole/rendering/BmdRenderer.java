@@ -15,24 +15,17 @@
 
 package com.thesuncat.whitehole.rendering;
 
-import com.thesuncat.whitehole.vectors.Color4;
-import com.thesuncat.whitehole.vectors.Vector2;
-import com.thesuncat.whitehole.vectors.Vector3;
-import com.thesuncat.whitehole.vectors.Matrix4;
-import com.thesuncat.whitehole.rendering.cache.TextureCache;
-import com.thesuncat.whitehole.rendering.cache.ShaderCache;
-import com.thesuncat.whitehole.smg.Bva;
-import com.thesuncat.whitehole.smg.Bmd;
-import com.thesuncat.whitehole.SuperFastHash;
-import com.thesuncat.whitehole.Settings;
-import com.thesuncat.whitehole.Whitehole;
-import java.io.*;
-import java.nio.*;
-import java.nio.charset.*;
-import java.util.Locale;
+import com.thesuncat.whitehole.*;
 import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.rendering.cache.*;
+import com.thesuncat.whitehole.smg.*;
 import com.thesuncat.whitehole.smg.ImageUtils.FilterMode;
 import com.thesuncat.whitehole.smg.ImageUtils.WrapMode;
+import com.thesuncat.whitehole.vectors.*;
+import java.io.IOException;
+import java.nio.*;
+import java.nio.charset.Charset;
+import java.util.Locale;
 import javax.media.opengl.*;
 
 public class BmdRenderer extends GLRenderer {
@@ -359,9 +352,9 @@ public class BmdRenderer extends GLRenderer {
             String rout, a, b, c, d, operation;
 
             if(mat.constColorSel[i] !=(byte)0xFF)
-                frag.append("    konst.rgb = " + c_konstsel[mat.constColorSel[i]] + ";\n");
+                frag.append("    konst.rgb = ").append(c_konstsel[mat.constColorSel[i]]).append(";\n");
             if(mat.constAlphaSel[i] !=(byte)0xFF)
-                frag.append("    konst.a = " + a_konstsel[mat.constAlphaSel[i]] + ";\n");
+                frag.append("    konst.a = ").append(a_konstsel[mat.constAlphaSel[i]]).append(";\n");
             if(mat.tevOrder[i].texMap !=(byte)0xFF && mat.tevOrder[i].texcoordID !=(byte)0xFF)
                 frag.append(String.format("    texcolor = texture2D(texture%1$d, gl_TexCoord[%2$d].st);\n",
                     mat.tevOrder[i].texMap, mat.tevOrder[i].texcoordID));
@@ -469,9 +462,9 @@ public class BmdRenderer extends GLRenderer {
                 else if(mat.alphaComp.func1 == 7) fullcompare = compare0;
             }
 
-            if(fullcompare.equals("")) fullcompare = String.format(alphacombine[mat.alphaComp.mergeFunc], compare0, compare1);
+            if(fullcompare.isEmpty()) fullcompare = String.format(alphacombine[mat.alphaComp.mergeFunc], compare0, compare1);
 
-            frag.append("    if(!(" + fullcompare + ")) discard;\n");
+            frag.append("    if(!(").append(fullcompare).append(")) discard;\n");
         }
 
         frag.append("}\n");

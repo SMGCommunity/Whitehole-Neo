@@ -18,7 +18,7 @@ package com.thesuncat.whitehole;
 import java.io.*;
 import java.util.*;
 import org.jdom2.*;
-import org.jdom2.input.*;
+import org.jdom2.input.SAXBuilder;
 
 public class ObjectDB {
     public static void init() {
@@ -56,9 +56,9 @@ public class ObjectDB {
                 try {
                     entry.needsPath = flags.getAttribute("needsPaths").getBooleanValue();
                 } catch(NullPointerException ex) {}
-                if (entry.notes.isEmpty() || entry.notes.equals(""))
+                if (entry.notes.isEmpty())
                     entry.notes = "(No description found for this object.)";
-                if (entry.type.isEmpty() || entry.notes.equals(""))
+                if (entry.type.isEmpty())
                     entry.type = "Unknown";
                 
                 entry.files = new ArrayList();

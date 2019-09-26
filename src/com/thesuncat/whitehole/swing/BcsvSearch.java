@@ -1,18 +1,12 @@
 package com.thesuncat.whitehole.swing;
 
 import com.thesuncat.whitehole.Whitehole;
-import com.thesuncat.whitehole.io.FileBase;
-import com.thesuncat.whitehole.io.RarcFile;
-import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.io.*;
 import com.thesuncat.whitehole.smg.Bcsv;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 import java.util.prefs.Preferences;
-import javax.swing.DefaultListModel;
 import javax.swing.*;
 
 public class BcsvSearch extends javax.swing.JFrame {
@@ -148,7 +142,7 @@ public class BcsvSearch extends javax.swing.JFrame {
     
     private void searchArc(String relPath) throws FileNotFoundException, IOException {
         String searchStr = txtSearch.getText();
-        if(searchStr.equals(""))
+        if(searchStr.isEmpty())
             return;
         RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile(relPath));
         

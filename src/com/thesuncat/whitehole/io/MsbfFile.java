@@ -15,14 +15,9 @@
 
 package com.thesuncat.whitehole.io;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.io.*;
+import java.nio.*;
+import java.util.*;
 
 public class MsbfFile {
     
@@ -200,7 +195,7 @@ public class MsbfFile {
         
         ArrayList<ArrayList<FlowEntry>> buckets = new ArrayList(0x1DC);
         for(int i = 0; i < 0x1DC; i++)
-            buckets.add(new ArrayList<FlowEntry>());
+            buckets.add(new ArrayList<>());
         for(FlowEntry msg : saveEntries) {
             int hash = (int) labelHash(msg.label);
             buckets.get(hash).add(msg);

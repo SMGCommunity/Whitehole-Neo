@@ -16,65 +16,18 @@
 package com.thesuncat.whitehole.swing;
 
 import com.thesuncat.whitehole.Whitehole;
-import com.thesuncat.whitehole.io.*;
 import com.thesuncat.whitehole.io.MsbtFile.MsbtMessage;
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontFormatException;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import com.thesuncat.whitehole.io.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
-import javax.swing.JTextPane;
-import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
+import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicMenuItemUI;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultStyledDocument;
-import javax.swing.text.StyledDocument;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
+import javax.swing.text.*;
 
 public class MsbtEditorForm extends javax.swing.JFrame {
 
@@ -293,7 +246,7 @@ public class MsbtEditorForm extends javax.swing.JFrame {
                         "Enter time in frames: ",
                         Whitehole.NAME, JOptionPane.PLAIN_MESSAGE, null, null, null);
         s = s.trim();
-        if(s.equals("")) {
+        if(s.isEmpty()) {
             JOptionPane.showMessageDialog(btnSave, "Please enter a number!", "Error adding wait command!", JOptionPane.PLAIN_MESSAGE);
             return;
         }
@@ -1004,8 +957,8 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         btnSave.setEnabled(false);
         btnSave.setFocusable(false);
         btnOpen.setFocusable(false);
-        tbArchiveName.setText("/StageData/BigGalaxy/BigGalaxyMap.arc");
-        tbFileName.setText("/Stage/camera/StartScenario1.canm");
+        tbArchiveName.setText("/LocalizeData/UsEnglish/MessageData/YosshiHomeGalaxy_clean.arc");
+        tbFileName.setText("/YosshiHomeGalaxy/YosshiHomeGalaxy.msbf");
     }
     
     public void deleteCurEntry() {
@@ -1099,7 +1052,7 @@ public class MsbtEditorForm extends javax.swing.JFrame {
                     if(com.index < 0 || com.index > msg.string.messageText.length())
                         msg.string.commands.remove(com);
                 }                
-                if(msg.label.label.equals("") || msg.string.messageText.equals(""))
+                if(msg.label.label.isEmpty() || msg.string.messageText.isEmpty())
                     msbt.messages.remove(msg);
                 else {
                     ArrayList<MsbtCommand> coms = new ArrayList<>();

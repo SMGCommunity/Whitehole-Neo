@@ -51,7 +51,7 @@ public class Whitehole {
     
     /**
      * The directory of the currently open game. Updated by MainFrame when opening a game directory.
-     * Set to the last game dir before MainFrame is launched.
+     * Set to the last saved game dir before MainFrame is launched.
      */
     public static String curGameDir = Preferences.userRoot().get("lastGameDir", null);
     
@@ -119,7 +119,7 @@ public class Whitehole {
                         
                         // Slow thread down
                         try {
-                            Thread.sleep(3000);
+                            Thread.sleep(1000);
                         } catch (InterruptedException ignore) {}
                     }
                 }

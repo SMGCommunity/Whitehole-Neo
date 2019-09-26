@@ -17,53 +17,29 @@ package com.thesuncat.whitehole.swing;
 
 import com.sun.glass.events.KeyEvent;
 import com.thesuncat.whitehole.Whitehole;
-import com.thesuncat.whitehole.io.MsbfFile;
 import com.thesuncat.whitehole.io.MsbfFile.Flow;
 import com.thesuncat.whitehole.io.MsbfFile.FlowEntry;
-import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.io.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JFormattedTextField;
-import javax.swing.JOptionPane;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingUtilities;
+import java.util.*;
+import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 
 public class MsbfEditorForm extends javax.swing.JFrame {
     
     public MsbfEditorForm(String arcName, String fileName) throws IOException {
-        try {
-            arc = new RarcFilesystem(Whitehole.game.filesystem.openFile(arcName));
-            msbf = new MsbfFile(arc.openFile(fileName));
-        } catch(IOException e) {
-            throw new IOException("a");
-        }
-        initComponents();
-        String[] charModel = new String[msbf.chars.size()];
-        for(int i = 0; i < msbf.chars.size(); i++)
-            charModel[i] = Integer.toString(msbf.chars.get(i));
-        cbxCharChooser.setModel(new DefaultComboBoxModel<>(charModel));
-        cbxCharChooser.setSelectedIndex(0);
-        txtChar.setText(Integer.toString(msbf.chars.get(0)));
+        arc = new RarcFilesystem(Whitehole.game.filesystem.openFile(arcName));
+        msbf = new MsbfFile(arc.openFile(fileName));
         
-        String[] msgMdl = new String[msbf.flowList.size()];
-        for(int i = 0; i < msbf.flowList.size(); i++) {
-            Object e = msbf.flowList.get(i);
-            if(e instanceof FlowEntry)
-                msgMdl[i] = ((FlowEntry) e).label;
-            else
-                msgMdl[i] = Integer.toString(i);
-        }
-        cbxEntryChooser.setModel(new DefaultComboBoxModel<>(msgMdl));
+        setTitle("Msbf Editor - Editing " + fileName);
+        
+        // ********
+        // UI setup
+        // ********
+        
+        initComponents();
         
         ArrayList<JSpinner> spnList = new ArrayList<>(Arrays.asList(spnUnk0, spnUnk1, spnUnk2, spnUnk3, spnUnk4, spnUnk5, spnIndex));
         for(JSpinner s : spnList) {
@@ -72,159 +48,115 @@ public class MsbfEditorForm extends javax.swing.JFrame {
             JFormattedTextField txt = ((JSpinner.NumberEditor) s.getEditor()).getTextField();
             ((NumberFormatter) txt.getFormatter()).setAllowsInvalid(false);
         }
-        Object o = msbf.flowList.get(0);
-        if(o instanceof Flow) {
-            Flow flow = (Flow) o;
-            spnUnk0.setValue(flow.unk0);
-            spnUnk1.setValue(flow.unk1);
-            spnUnk2.setValue(flow.unk2);
-            spnUnk3.setValue(flow.unk3);
-            spnUnk4.setValue(flow.unk4);
-            spnUnk5.setValue(flow.unk5);
-            txtName.setText("No entry here!");
-            txtName.setEditable(false);
-            lblIndex.setVisible(false);
-            spnIndex.setVisible(false);
-        } else {
-            Flow flow = ((FlowEntry) o).flow;
-            spnUnk0.setValue(flow.unk0);
-            spnUnk1.setValue(flow.unk1);
-            spnUnk2.setValue(flow.unk2);
-            spnUnk3.setValue(flow.unk3);
-            spnUnk4.setValue(flow.unk4);
-            spnUnk5.setValue(flow.unk5);
-            txtName.setText(((FlowEntry) o).label);
-            txtName.setEditable(true);
-            lblIndex.setVisible(true);
-            spnIndex.setVisible(true);
-            spnIndex.setValue(((FlowEntry) o).index);
-        }
-        cbxEntryChooser.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateValues();
-            }
+        
+        cbxEntryChooser.addActionListener((ActionEvent e) -> {
+            reloadEditor(cbxEntryChooser.getSelectedIndex(), false);
         });
-        pack();
         
         setLocationRelativeTo(null);
         setIconImage(Whitehole.ICON);
+        
+        reloadChars(msbf.chars.size() - 1, false);
+        reloadEditor(msbf.flowList.size() - 1, false);
     }
     
-    private void reloadEditor(int index) {
-        String[] msgMdl = new String[msbf.flowList.size()];
-        for(int i = 0; i < msbf.flowList.size(); i++) {
-            Object e = msbf.flowList.get(i);
-            if(e instanceof FlowEntry)
-                msgMdl[i] = ((FlowEntry) e).label;
-            else
-                msgMdl[i] = Integer.toString(i);
-        }
-        cbxEntryChooser.setModel(new DefaultComboBoxModel<>(msgMdl));
-        cbxEntryChooser.setSelectedIndex(index);
+    private void reloadEditor(int newIndex, boolean deleting) {
         
-        if(msbf.flowList.get(index) instanceof FlowEntry) {
-            FlowEntry entry = (FlowEntry) msbf.flowList.get(index);
-            spnUnk0.setValue(entry.flow.unk0);
-            spnUnk1.setValue(entry.flow.unk1);
-            spnUnk2.setValue(entry.flow.unk2);
-            spnUnk3.setValue(entry.flow.unk3);
-            spnUnk4.setValue(entry.flow.unk4);
-            spnUnk5.setValue(entry.flow.unk5);
-            if(!updating)
-                txtName.setText(entry.label);
-            else
-                updating = false;
-            txtName.setEditable(true);
-            lblIndex.setVisible(true);
-            spnIndex.setVisible(true);
-            spnIndex.setValue(entry.index);
-        } else {
-            Flow flow = (Flow) msbf.flowList.get(index);
-            spnUnk0.setValue(flow.unk0);
-            spnUnk1.setValue(flow.unk1);
-            spnUnk2.setValue(flow.unk2);
-            spnUnk3.setValue(flow.unk3);
-            spnUnk4.setValue(flow.unk4);
-            spnUnk5.setValue(flow.unk5);
-            txtName.setText("No entry here!");
+         if(msbf.flowList.isEmpty()) { // just deleted last flow/entry, no need to save
+            cbxEntryChooser.setModel(new DefaultComboBoxModel<>(new String[] {"<empty>"}));
+            cbxEntryChooser.setEnabled(false);
+            
+            txtName.setText("<nothing here>");
             txtName.setEditable(false);
             lblIndex.setVisible(false);
             spnIndex.setVisible(false);
-        }
-        
-        cbxEntryChooser.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateValues();
-            }
-        });
-        pack();
-    }
-    
-    private void reloadChars(int index) {
-        msbf.chars.set(prevChar, (char) Integer.parseInt(txtChar.getText()));
-        String[] charModel = new String[msbf.chars.size()];
-        for(int i = 0; i < msbf.chars.size(); i++)
-            charModel[i] = Integer.toString(msbf.chars.get(i));
-        cbxCharChooser.setModel(new DefaultComboBoxModel<>(charModel));
-        cbxCharChooser.setSelectedIndex(index);
-        
-        prevChar = index;
-        txtChar.setText(Integer.toString((int) msbf.chars.get(index)));
-    }
-    
-    private void updateValues() {
-        try {
-            spnUnk0.commitEdit();
-            spnUnk1.commitEdit();
-            spnUnk2.commitEdit();
-            spnUnk3.commitEdit();
-            spnUnk4.commitEdit();
-            spnUnk5.commitEdit();
-            spnIndex.commitEdit();
-            Object o = msbf.flowList.get(pastIndex);
-            if(o instanceof FlowEntry) {
-                FlowEntry pastEntry = (FlowEntry) o;
-                pastEntry.flow.unk0 = (int) spnUnk0.getValue();
-                pastEntry.flow.unk1 = (int) spnUnk1.getValue();
-                pastEntry.flow.unk2 = (int) spnUnk2.getValue();
-                pastEntry.flow.unk3 = (int) spnUnk3.getValue();
-                pastEntry.flow.unk4 = (int) spnUnk4.getValue();
-                pastEntry.flow.unk5 = (int) spnUnk5.getValue();
-                pastEntry.label = txtName.getText();
-                pastEntry.index = (int) spnIndex.getValue();
-                msbf.flowList.set(pastIndex, pastEntry);
-            } else {
-                Flow pastFlow = (Flow) o;
-                pastFlow.unk0 = (int) spnUnk0.getValue();
-                pastFlow.unk1 = (int) spnUnk1.getValue();
-                pastFlow.unk2 = (int) spnUnk2.getValue();
-                pastFlow.unk3 = (int) spnUnk3.getValue();
-                pastFlow.unk4 = (int) spnUnk4.getValue();
-                pastFlow.unk5 = (int) spnUnk5.getValue();
-            }
-            pastIndex = cbxEntryChooser.getSelectedIndex();
             
-            Object o2 = msbf.flowList.get(pastIndex);
-            if(o2 instanceof FlowEntry) {
-                FlowEntry entry = (FlowEntry) o2;
+            spnUnk0.setEnabled(false);
+            spnUnk1.setEnabled(false);
+            spnUnk2.setEnabled(false);
+            spnUnk3.setEnabled(false);
+            spnUnk4.setEnabled(false);
+            spnUnk5.setEnabled(false);
+        } else {
+            if(prevIndex == -2)
+                prevIndex = msbf.flowList.size() - 1;
+            
+            cbxEntryChooser.setEnabled(true);
+            spnUnk0.setEnabled(true);
+            spnUnk1.setEnabled(true);
+            spnUnk2.setEnabled(true);
+            spnUnk3.setEnabled(true);
+            spnUnk4.setEnabled(true);
+            spnUnk5.setEnabled(true);
+            
+            // populate the model - has name ? name : index
+            String[] msgMdl = new String[msbf.flowList.size()];
+            for(int i = 0; i < msbf.flowList.size(); i++) {
+                Object e = msbf.flowList.get(i);
+                if(e instanceof FlowEntry)
+                    msgMdl[i] = "[" + i + "] " + ((FlowEntry) e).label;
+                else
+                    msgMdl[i] = Integer.toString(i);
+            }
+
+            cbxEntryChooser.setModel(new DefaultComboBoxModel<>(msgMdl));
+            cbxEntryChooser.setSelectedIndex(newIndex);
+            
+            if(!deleting) {
+                try {
+                    spnUnk0.commitEdit();
+                    spnUnk1.commitEdit();
+                    spnUnk2.commitEdit();
+                    spnUnk3.commitEdit();
+                    spnUnk4.commitEdit();
+                    spnUnk5.commitEdit();
+                    spnIndex.commitEdit();
+                } catch(ParseException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                
+                Object o = msbf.flowList.get(prevIndex); // TODO del all
+                if(o instanceof FlowEntry) {
+                    FlowEntry pastEntry = (FlowEntry) o;
+                    pastEntry.flow.unk0 = (int) spnUnk0.getValue();
+                    pastEntry.flow.unk1 = (int) spnUnk1.getValue();
+                    pastEntry.flow.unk2 = (int) spnUnk2.getValue();
+                    pastEntry.flow.unk3 = (int) spnUnk3.getValue();
+                    pastEntry.flow.unk4 = (int) spnUnk4.getValue();
+                    pastEntry.flow.unk5 = (int) spnUnk5.getValue();
+                    pastEntry.label = txtName.getText();
+                    pastEntry.index = (int) spnIndex.getValue();
+                    msbf.flowList.set(prevIndex, pastEntry);
+                } else {
+                    Flow pastFlow = (Flow) o;
+                    pastFlow.unk0 = (int) spnUnk0.getValue();
+                    pastFlow.unk1 = (int) spnUnk1.getValue();
+                    pastFlow.unk2 = (int) spnUnk2.getValue();
+                    pastFlow.unk3 = (int) spnUnk3.getValue();
+                    pastFlow.unk4 = (int) spnUnk4.getValue();
+                    pastFlow.unk5 = (int) spnUnk5.getValue();
+                }
+            }
+
+            if(msbf.flowList.get(newIndex) instanceof FlowEntry) {
+                FlowEntry entry = (FlowEntry) msbf.flowList.get(newIndex);
                 spnUnk0.setValue(entry.flow.unk0);
                 spnUnk1.setValue(entry.flow.unk1);
                 spnUnk2.setValue(entry.flow.unk2);
                 spnUnk3.setValue(entry.flow.unk3);
                 spnUnk4.setValue(entry.flow.unk4);
                 spnUnk5.setValue(entry.flow.unk5);
-                if(!updating) {
+                if(!updating)
                     txtName.setText(entry.label);
-                    txtName.setEditable(true);
-                } else
+                else
                     updating = false;
+                txtName.setEditable(true);
                 lblIndex.setVisible(true);
                 spnIndex.setVisible(true);
                 spnIndex.setValue(entry.index);
             } else {
-                Flow flow = (Flow) o2;
+                Flow flow = (Flow) msbf.flowList.get(newIndex);
                 spnUnk0.setValue(flow.unk0);
                 spnUnk1.setValue(flow.unk1);
                 spnUnk2.setValue(flow.unk2);
@@ -236,9 +168,58 @@ public class MsbfEditorForm extends javax.swing.JFrame {
                 lblIndex.setVisible(false);
                 spnIndex.setVisible(false);
             }
-        } catch (ParseException e) {
             
+            prevIndex = newIndex;
         }
+        pack();
+    }
+    
+    private void reloadChars(int index, boolean deleting) {
+        if(prevChar == -2 && !msbf.chars.isEmpty())
+            prevChar = msbf.chars.size() - 1;
+        
+        if(!deleting && !msbf.chars.isEmpty()) {
+            if(txtChar.getText().length() != 0)
+                msbf.chars.set(prevChar, (char) Integer.parseInt(txtChar.getText()));
+            else
+                msbf.chars.set(prevChar, (char) 0);
+        }
+        
+        for(int i = 0; i < msbf.chars.size(); i++) {
+            if(msbf.chars.get(i) > 255)
+                msbf.chars.set(i, (char) 255);
+        }
+        
+        // Set model
+        if(msbf.chars.isEmpty()) {
+            cbxCharChooser.setModel(new DefaultComboBoxModel<>(new String[]{"<empty>"}));
+            
+            txtChar.setText("");
+            txtChar.setEnabled(false);
+            
+            cbxCharChooser.setEnabled(false);
+            btnDelChar.setEnabled(false);
+            
+            index = 0;
+        } else {
+            txtChar.setEnabled(true);
+            
+            cbxCharChooser.setEnabled(true);
+            btnDelChar.setEnabled(true);
+            
+            // Char value to string
+            String[] charModel = new String[msbf.chars.size()];
+            for(int i = 0; i < msbf.chars.size(); i++)
+                charModel[i] = "[" + i + "] " + Integer.toString(msbf.chars.get(i));
+            
+            cbxCharChooser.setModel(new DefaultComboBoxModel<>(charModel));
+            
+            prevChar = index;
+            txtChar.setText(Integer.toString(msbf.chars.get(index)));
+        }
+        cbxCharChooser.setSelectedIndex(index);
+        
+        txtChar.requestFocus();
     }
 
     @SuppressWarnings("unchecked")
@@ -415,7 +396,7 @@ public class MsbfEditorForm extends javax.swing.JFrame {
 
         jLabel8.setText("Chars:");
 
-        cbxCharChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "aaa" }));
+        cbxCharChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "<not initialized>" }));
         cbxCharChooser.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cbxCharChooserActionPerformed(evt);
@@ -458,13 +439,12 @@ public class MsbfEditorForm extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btnAddChar))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(txtChar, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(cbxCharChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(txtChar)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnDelChar)))
+                        .addComponent(btnDelChar))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(cbxCharChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -475,11 +455,11 @@ public class MsbfEditorForm extends javax.swing.JFrame {
                     .addComponent(jLabel8)
                     .addComponent(btnAddChar, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cbxCharChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDelChar, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(cbxCharChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtChar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtChar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDelChar, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -490,7 +470,7 @@ public class MsbfEditorForm extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -508,43 +488,13 @@ public class MsbfEditorForm extends javax.swing.JFrame {
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         try {
-            spnUnk0.commitEdit();
-            spnUnk1.commitEdit();
-            spnUnk2.commitEdit();
-            spnUnk3.commitEdit();
-            spnUnk4.commitEdit();
-            spnUnk5.commitEdit();
-            spnIndex.commitEdit();
-            Object o = msbf.flowList.get(cbxEntryChooser.getSelectedIndex());
-            if(o instanceof FlowEntry) {
-                FlowEntry e = (FlowEntry) o;
-                e.flow.unk0 = (int) spnUnk0.getValue();
-                e.flow.unk1 = (int) spnUnk1.getValue();
-                e.flow.unk2 = (int) spnUnk2.getValue();
-                e.flow.unk3 = (int) spnUnk3.getValue();
-                e.flow.unk4 = (int) spnUnk4.getValue();
-                e.flow.unk5 = (int) spnUnk5.getValue();
-                e.label = txtName.getText();
-                e.index = (int) (spnIndex.getValue());
-                msbf.flowList.set(cbxEntryChooser.getSelectedIndex(), e);
-            } else {
-                Flow f = (Flow) o;
-                f.unk0 = (int) spnUnk0.getValue();
-                f.unk1 = (int) spnUnk1.getValue();
-                f.unk2 = (int) spnUnk2.getValue();
-                f.unk3 = (int) spnUnk3.getValue();
-                f.unk4 = (int) spnUnk4.getValue();
-                f.unk5 = (int) spnUnk5.getValue();
-            }
             msbf.save();
             arc.save();
             arc.close();
             setVisible(false);
             dispose();
         } catch (IOException ex) {
-            
-        } catch (ParseException ex) {
-            Logger.getLogger(MsbfEditorForm.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
     }//GEN-LAST:event_btnSaveActionPerformed
 
@@ -556,90 +506,93 @@ public class MsbfEditorForm extends javax.swing.JFrame {
             msbf.addEmptyEntry(false);
         else
             msbf.addEmptyEntry(true);
-        reloadEditor(msbf.flowList.size() - 1);
+        reloadEditor(msbf.flowList.size() - 1, false);
+        
+        btnDelEntry.setEnabled(true);
     }//GEN-LAST:event_btnAddEntryActionPerformed
 
     private void btnDelEntryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDelEntryActionPerformed
+        if(msbf.flowList.isEmpty())
+            return;
+        
         msbf.flowList.remove(cbxEntryChooser.getSelectedIndex());
-        reloadEditor(msbf.flowList.size() - 1);
+        reloadEditor(msbf.flowList.size() - 1, true);
+        
+        if(msbf.flowList.isEmpty())
+            btnDelEntry.setEnabled(false);
     }//GEN-LAST:event_btnDelEntryActionPerformed
 
     private void txtNameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNameKeyTyped
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                final int curPos = txtName.getCaretPosition();
-                updating = true;
-                int index = cbxEntryChooser.getSelectedIndex();
-                String[] msgMdl = new String[msbf.flowList.size()];
-                for(int i = 0; i < msbf.flowList.size(); i++) {
-                    Object e = msbf.flowList.get(i);
-                    if(i == index) {
-                        msgMdl[i] = txtName.getText();
-                        continue;
-                    }
-                    if(e instanceof FlowEntry)
-                        msgMdl[i] = ((FlowEntry) e).label;
-                    else
-                        msgMdl[i] = Integer.toString(i);
+        SwingUtilities.invokeLater(() -> {
+            final int curPos = txtName.getCaretPosition();
+
+            updating = true;
+            int index = cbxEntryChooser.getSelectedIndex();
+            String[] msgMdl = new String[msbf.flowList.size()];
+            for(int i = 0; i < msbf.flowList.size(); i++) {
+                Object e = msbf.flowList.get(i);
+                if(i == index) {
+                    msgMdl[i] = txtName.getText();
+                    continue;
                 }
-                cbxEntryChooser.setModel(new DefaultComboBoxModel<>(msgMdl));
-                cbxEntryChooser.setSelectedIndex(index);
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        txtName.setCaretPosition(curPos);
-                    }
-                });
+                if(e instanceof FlowEntry)
+                    msgMdl[i] = ((FlowEntry) e).label;
+                else
+                    msgMdl[i] = Integer.toString(i);
             }
+            cbxEntryChooser.setModel(new DefaultComboBoxModel<>(msgMdl));
+            cbxEntryChooser.setSelectedIndex(index);
+            SwingUtilities.invokeLater(() -> {
+                txtName.setCaretPosition(curPos == -1 ? 0 : curPos);
+            });
         });
     }//GEN-LAST:event_txtNameKeyTyped
 
     private void txtCharKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtCharKeyPressed
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    reloadChars(cbxCharChooser.getSelectedIndex());
-                } catch(NumberFormatException e) {
-
-                }
-            }
+        SwingUtilities.invokeLater(() -> {
+            System.out.println(evt.getKeyCode());
+            
+            int index = txtChar.getCaretPosition();
+            
+            reloadChars(cbxCharChooser.getSelectedIndex(), false);
+            
+            String txt = txtChar.getText();
+            
+            if(!txt.equals("0") && index <= txt.length())
+                txtChar.setCaretPosition(index);
+            else
+                txtChar.setCaretPosition(txt.length());
         });
     }//GEN-LAST:event_txtCharKeyPressed
 
     private void cbxCharChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxCharChooserActionPerformed
-        txtChar.setText(Integer.toString(msbf.chars.get(cbxCharChooser.getSelectedIndex())));
+        reloadChars(cbxCharChooser.getSelectedIndex(), false);
     }//GEN-LAST:event_cbxCharChooserActionPerformed
 
     private void txtCharKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtCharKeyTyped
-        if(!(Character.isDigit(evt.getKeyChar()) || evt.getKeyCode() == KeyEvent.VK_BACKSPACE) || txtChar.getText().length() >= 3)
+        if(!(Character.isDigit(evt.getKeyChar())
+                || evt.getKeyCode() == KeyEvent.VK_BACKSPACE || evt.getKeyCode() == KeyEvent.VK_LEFT
+                || evt.getKeyCode() == KeyEvent.VK_RIGHT))
             evt.consume();
     }//GEN-LAST:event_txtCharKeyTyped
 
     private void btnAddCharActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCharActionPerformed
-        msbf.chars.add((char) 0x00);
-        String[] charModel = new String[msbf.chars.size()];
-        for(int i = 0; i < msbf.chars.size(); i++)
-            charModel[i] = Integer.toString(msbf.chars.get(i));
-        cbxCharChooser.setModel(new DefaultComboBoxModel<>(charModel));
-        cbxCharChooser.setSelectedIndex(msbf.chars.size() - 1);
-        txtChar.setText("0");
+        int index = cbxCharChooser.getSelectedIndex();
+        
+        msbf.chars.add(index, (char) 0x00);
+        
+        reloadChars(index + (msbf.chars.size() == 1 ? 0 : 1), false); // if first char was just added, index is 0
     }//GEN-LAST:event_btnAddCharActionPerformed
 
     private void btnDelCharActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDelCharActionPerformed
-        if(msbf.chars.size() == 1)
+        if(msbf.chars.isEmpty())
             return;
+        
         msbf.chars.remove(cbxCharChooser.getSelectedIndex());
-        int index = cbxCharChooser.getSelectedIndex() - 1;
-        String[] charModel = new String[msbf.chars.size()];
-        for(int i = 0; i < msbf.chars.size(); i++)
-            charModel[i] = Integer.toString(msbf.chars.get(i));
-        cbxCharChooser.setModel(new DefaultComboBoxModel<>(charModel));
-        if(index == -1)
-            index = 0;
-        cbxCharChooser.setSelectedIndex(index);
-        txtChar.setText(Integer.toString(msbf.chars.get(index)));
+        
+        int index = cbxCharChooser.getSelectedIndex();
+        
+        reloadChars(index - (index == 0 ? 0 : 1), true);
     }//GEN-LAST:event_btnDelCharActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
@@ -647,7 +600,7 @@ public class MsbfEditorForm extends javax.swing.JFrame {
             msbf.close();
             arc.close();
         } catch(IOException ex) {
-            
+            ex.printStackTrace();
         }
     }//GEN-LAST:event_formWindowClosing
 
@@ -681,6 +634,6 @@ public class MsbfEditorForm extends javax.swing.JFrame {
     private javax.swing.JTextField txtName;
     // End of variables declaration//GEN-END:variables
     public MsbfFile msbf; RarcFilesystem arc;
-    private int pastIndex, prevChar;
+    private int prevIndex = -2, prevChar = -2;
     private boolean updating = false;
 }

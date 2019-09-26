@@ -15,34 +15,37 @@
 
 package com.thesuncat.whitehole.swing;
 
-import java.io.*;
-import java.nio.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import java.util.Map.*;
-import javax.swing.*;
-import javax.media.opengl.*;
-import javax.swing.plaf.basic.*;
-import java.awt.image.BufferedImage;
-import javax.media.opengl.awt.GLCanvas;
-import javax.swing.tree.*;
 import com.jogamp.opengl.util.awt.Screenshot;
-import com.thesuncat.whitehole.Whitehole;
-import com.thesuncat.whitehole.Settings;
-import com.thesuncat.whitehole.swing.DarkThemeRenderers.*;
-import com.thesuncat.whitehole.smg.*;
-import com.thesuncat.whitehole.smg.object.*;
-import com.thesuncat.whitehole.vectors.*;
-import com.thesuncat.whitehole.worldmapObject.*;
+import com.thesuncat.whitehole.*;
 import com.thesuncat.whitehole.io.RarcFilesystem;
-import com.thesuncat.whitehole.rendering.BmdRenderer;
-import com.thesuncat.whitehole.rendering.GLRenderer;
+import com.thesuncat.whitehole.rendering.*;
 import com.thesuncat.whitehole.rendering.GLRenderer.RenderMode;
 import com.thesuncat.whitehole.rendering.cache.RendererCache;
 import com.thesuncat.whitehole.smg.Bcsv.Field;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
+import com.thesuncat.whitehole.smg.*;
+import com.thesuncat.whitehole.smg.object.*;
+import com.thesuncat.whitehole.swing.DarkThemeRenderers.ColorTabbedPaneLayout;
+import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkJMenuBar;
+import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkScrollBarUI;
+import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkSplitPaneUI;
+import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkTableCellRenderer;
+import com.thesuncat.whitehole.swing.TreeCellRenderer;
+import com.thesuncat.whitehole.vectors.*;
+import com.thesuncat.whitehole.worldmapObject.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.nio.*;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.*;
+import javax.media.opengl.*;
+import javax.media.opengl.awt.GLCanvas;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.plaf.basic.BasicToolBarUI;
+import javax.swing.tree.*;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     
@@ -53,6 +56,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public GalaxyEditorForm(String galaxy) {
         initComponents();
         initVariables();
+        
+        tpLeftPanel.remove(1);
         
         if(Settings.dark)
             initDarkTheme();
@@ -182,9 +187,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 root.add(worldmapEntryPointsNode);
 
                 populateWorldmapObjectList();
-            } else // Remove World Map tab
+            } else { // Remove World Map tab
                 tpLeftPanel.remove(2);
-            
+            }
         } catch(IOException ex) {
             // Thrown if files are missing or there is a duplicate Zone
             JOptionPane.showMessageDialog(null, "Failed to open the galaxy: " + ex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
@@ -267,6 +272,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         lbLayersList.setListData(cblayers);
         
         populateObjectList(zoneModeLayerBitmask);
+        
+        tpLeftPanel.remove(2);
     }
     
     /**
@@ -313,7 +320,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         btnDeleteScenario.setVisible(false);
         btnAddZone.setVisible(false);
         btnDeleteZone.setVisible(false);
-        tpLeftPanel.remove(1);
     }
     
     /**

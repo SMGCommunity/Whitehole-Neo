@@ -85,6 +85,17 @@ public class DarkThemeRenderers {
             thumbColor = new Color(32, 34, 37);
             trackColor = new Color(47, 49, 54);
         }
+        
+        @Override
+        public void layoutContainer(Container scrollbarContainer) {
+            if(decrButton == null)
+                decrButton = new JButton();
+            
+            if(incrButton == null)
+                incrButton = new JButton();
+            
+            super.layoutContainer(scrollbarContainer);
+        }
     }
     
     public static class DarkToolBarUI extends BasicToolBarUI {

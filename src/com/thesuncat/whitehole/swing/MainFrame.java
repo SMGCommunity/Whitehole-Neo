@@ -68,7 +68,7 @@ public class MainFrame extends javax.swing.JFrame {
             public void mouseExited(MouseEvent e) {}
         });
         
-        for(String name : new String[] {"BCSV Editor", "MSBT Editor", "CANM Editor"}) {
+        for(String name : new String[] {"BCSV Editor", "MSBT Editor", "BCSV Search"}) {
             JMenuItem mnuitem = new JMenuItem(name);
             mnuitem.setUI(new BasicMenuItemUI() {
                 @Override
@@ -199,8 +199,8 @@ public class MainFrame extends javax.swing.JFrame {
             case "MSBT Editor":
                 new MsbtEditorForm().setVisible(true);
                 break;
-            case "CANM Editor":
-                Parser.main(null);
+            case "BCSV Search":
+                new BcsvSearch().setVisible(true);
         }
     }
     
