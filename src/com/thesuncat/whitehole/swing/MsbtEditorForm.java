@@ -78,6 +78,7 @@ public class MsbtEditorForm extends javax.swing.JFrame {
             for(MsbtCommand com : badCommands)
                 commands.remove(com);
         }
+        
         System.out.println(commands);
         editorPane.setStyledDocument(doc);
     }
@@ -160,6 +161,7 @@ public class MsbtEditorForm extends javax.swing.JFrame {
                 }
             }
         }
+        
         if(curColor == null)
             curColor = "none";
         if(curSize == null)
@@ -799,11 +801,8 @@ public class MsbtEditorForm extends javax.swing.JFrame {
             public void keyReleased(KeyEvent e) {}
         });
        
-        editorPane.addCaretListener(new CaretListener() {
-            @Override
-            public void caretUpdate(CaretEvent e) {
-                SwingUtilities.invokeLater(doStyle);
-            }
+        editorPane.addCaretListener((CaretEvent e) -> {
+            SwingUtilities.invokeLater(doStyle);
         });
        
         // Add actions for all the buttons
@@ -816,65 +815,53 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         btnAddIcon.addMouseListener(new PopupButtonMouseListener());
         btnAddSpecialCommand.addMouseListener(new PopupButtonMouseListener());
         
-        btnAddEntry.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                switching = true;
-                inited = false;
-                String s = (String)JOptionPane.showInputDialog((JToggleButton) e.getSource(),
-                        "Enter entry name: ",
-                        Whitehole.NAME, JOptionPane.PLAIN_MESSAGE, new ImageIcon(Whitehole.ICON), null, null);
-                for(char c : s.toCharArray()) {
-                    if((c < '0' || c > '9') && (c < 'A' || c > 'Z') && (c < 'a' || c > 'z')) {
-                        JOptionPane.showMessageDialog(btnSave, "Please enter only letters and numbers!",
-                                "Error adding msbt entry!", JOptionPane.PLAIN_MESSAGE);
-                        ((JToggleButton) e.getSource()).setSelected(false);
-                        return;
-                    }
+        btnAddEntry.addActionListener((ActionEvent e) -> {
+            switching = true;
+            inited = false;
+            String s = (String)JOptionPane.showInputDialog((JToggleButton) e.getSource(),
+                    "Enter entry name: ",
+                    Whitehole.NAME, JOptionPane.PLAIN_MESSAGE, new ImageIcon(Whitehole.ICON), null, null);
+            for(char c : s.toUpperCase().toCharArray()) {
+                if((c < '0' || c > '9') && (c < 'A' || c > 'Z') && (c != '_')) {
+                    JOptionPane.showMessageDialog(btnSave, "Please enter only letters, numbers, and underscores!",
+                            "Error adding msbt entry!", JOptionPane.PLAIN_MESSAGE);
+                    ((JToggleButton) e.getSource()).setSelected(false);
+                    return;
                 }
-                
-                
-                msbt.addEmptyEntry(s);
-
-                // Re-populate entry selection
-                String[] entries = new String[msbt.messages.size()];
-                for(MsbtMessage entry : msbt.messages)
-                    entries[(int)entry.label.index] = entry.label.label;
-                entries[msbt.messages.size() - 1] = s;
-                cbxSelectEntry.setModel(new DefaultComboBoxModel<>(entries));
-                if(inited) {
-                    msbt.messages.get(cbxSelectEntry.getSelectedIndex()).string.messageText = editorPane.getText();
-                    msbt.messages.get(cbxSelectEntry.getSelectedIndex()).string.commands = (ArrayList<MsbtCommand>) commands.clone();
-                }
-                cbxSelectEntry.setSelectedIndex(msbt.messages.size() - 1);
-                editorPane.setText("");
-                commands.clear();
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        switching = false;
-                        inited = true;
-                    }
-                });
-                ((JToggleButton) e.getSource()).setSelected(false);
             }
+            
+            
+            msbt.addEmptyEntry(s);
+            
+            // Re-populate entry selection
+            String[] entries = new String[msbt.messages.size()];
+            for(MsbtMessage entry : msbt.messages)
+                entries[(int)entry.label.index] = entry.label.label;
+            entries[msbt.messages.size() - 1] = s;
+            cbxSelectEntry.setModel(new DefaultComboBoxModel<>(entries));
+            if(inited) {
+                msbt.messages.get(cbxSelectEntry.getSelectedIndex()).string.messageText = editorPane.getText();
+                msbt.messages.get(cbxSelectEntry.getSelectedIndex()).string.commands = (ArrayList<MsbtCommand>) commands.clone();
+            }
+            cbxSelectEntry.setSelectedIndex(msbt.messages.size() - 1);
+            editorPane.setText("");
+            commands.clear();
+            SwingUtilities.invokeLater(() -> {
+                switching = false;
+                inited = true;
+            });
+            ((JToggleButton) e.getSource()).setSelected(false);
         });
         
-        btnEditEntry.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                switching = true;
-                inited = false;
-                btnEditEntry.setSelected(false);
-                new MsbtEntryEditorForm((MsbtEditorForm) SwingUtilities.getWindowAncestor(btnEditEntry), msbt.messages.get(cbxSelectEntry.getSelectedIndex())).setVisible(true);
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        switching = false;
-                        inited = true;
-                    }
-                });
-            }
+        btnEditEntry.addActionListener((ActionEvent e) -> {
+            switching = true;
+            inited = false;
+            btnEditEntry.setSelected(false);
+            new MsbtEntryEditorForm((MsbtEditorForm) SwingUtilities.getWindowAncestor(btnEditEntry), msbt.messages.get(cbxSelectEntry.getSelectedIndex())).setVisible(true);
+            SwingUtilities.invokeLater(() -> {
+                switching = false;
+                inited = true;
+            });
         });
         
         cbxSelectEntry.addPopupMenuListener(new PopupMenuListener() {
@@ -926,12 +913,9 @@ public class MsbtEditorForm extends javax.swing.JFrame {
                             }
                         }
                     }
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            switching = false;
-                            inited = true;
-                        }
+                    SwingUtilities.invokeLater(() -> {
+                        switching = false;
+                        inited = true;
                     });
                 }
             }
@@ -1009,12 +993,9 @@ public class MsbtEditorForm extends javax.swing.JFrame {
                 }
             }
         }
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                switching = false;
-                inited = true;
-            }
+        SwingUtilities.invokeLater(() -> {
+            switching = false;
+            inited = true;
         });
     }
     
@@ -1030,12 +1011,9 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         cbxSelectEntry.setModel(new DefaultComboBoxModel<>(model));
         cbxSelectEntry.setSelectedIndex(selIndex);
         
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                switching = false;
-                inited = true;
-            }
+        SwingUtilities.invokeLater(() -> {
+            switching = false;
+            inited = true;
         });
     }
  
@@ -1045,13 +1023,13 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         try {
             ArrayList<ArrayList<MsbtCommand>> comSave = new ArrayList<>();
             ArrayList<String> strSave = new ArrayList<>();
-            for(Iterator<MsbtMessage> msgIt = msbt.messages.iterator(); msgIt.hasNext();) {
-                MsbtMessage msg = msgIt.next();
+            for(MsbtMessage msg : (ArrayList<MsbtMessage>) msbt.messages.clone()) {
                 for(Iterator<MsbtCommand> it = msg.string.commands.iterator(); it.hasNext();) {
                     MsbtCommand com = it.next();
                     if(com.index < 0 || com.index > msg.string.messageText.length())
                         msg.string.commands.remove(com);
-                }                
+                }
+                
                 if(msg.label.label.isEmpty() || msg.string.messageText.isEmpty())
                     msbt.messages.remove(msg);
                 else {

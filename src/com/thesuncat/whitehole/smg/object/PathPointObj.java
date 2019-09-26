@@ -137,11 +137,11 @@ public class PathPointObj extends AbstractObj {
         panel.addField("[P]name", "Name", "text", null, path.data.get("name"), "Default");
         //Field names by Froggo <3
         panel.addCategory("path_args", "Path arguments");
-        panel.addField("[P]path_arg0", "End Wait", "int", null, path.data.get("path_arg0"), "Default");
-        panel.addField("[P]path_arg1", "Repeat Count", "int", null, path.data.get("path_arg1"), "Default");
-        panel.addField("[P]path_arg2", "Orange Outline?", "int", null, path.data.get("path_arg2"), "Default");
+        panel.addField("[P]path_arg0", "Posture Type", "int", null, path.data.get("path_arg0"), "Default");
+        panel.addField("[P]path_arg1", "Stop Motion Type", "int", null, path.data.get("path_arg1"), "Default");
+        panel.addField("[P]path_arg2", "Guide Type", "int", null, path.data.get("path_arg2"), "Default");
         panel.addField("[P]path_arg3", "path_arg3", "int", null, path.data.get("path_arg3"), "Default");
-        panel.addField("[P]path_arg4", "path_arg4", "int", null, path.data.get("path_arg4"), "Default");
+        panel.addField("[P]path_arg4", "Initial Position Type", "int", null, path.data.get("path_arg4"), "Default");
         panel.addField("[P]path_arg5", "path_arg5", "int", null, path.data.get("path_arg5"), "Default");
         panel.addField("[P]path_arg6", "path_arg6", "int", null, path.data.get("path_arg6"), "Default");
         panel.addField("[P]path_arg7", "path_arg7", "int", null, path.data.get("path_arg7"), "Default");

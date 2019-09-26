@@ -42,7 +42,8 @@ public class MsbtFile {
         labels = new LabelSection();
         attributes = new AttributeSection();
         strings = new TextSection();
-        for (int i = 0; i < strings.strings.size(); i++)
+        
+        for(int i = 0; i < strings.strings.size(); i++)
             messages.add(new MsbtMessage(strings.strings.get(i), labels.entries.get(i), attributes.attributeEntries.get(i)));
     }
     
@@ -327,13 +328,13 @@ public class MsbtFile {
         int txt2Size = 0x4 * (messages.size());
         txt2Size += 0x4;
         for(MsbtMessage msg : messages) {
-            int l = 0;
+            int len = 0;
             for(char c : msg.string.messageText.toCharArray()) {
                 if(c != (char) 0x0482)
-                    l++;
+                    len++;
             }
             
-            txt2Size += (l * 2);
+            txt2Size += (len * 2);
             for(MsbtCommand com : msg.string.commands) {
                 txt2Size += 0x8;
                 if((com.name.equals("font") && com.type.equals("color")) || (com.name.equals("wait")) || com.name.equals("sound") ||
@@ -519,7 +520,7 @@ public class MsbtFile {
         ArrayList<MsbtCommand> coms = (ArrayList<MsbtCommand>) msg.commands.clone();
 	for(int i = 0; i < curLength; i++) {
             char c = msg.messageText.charAt(i);
-            //System.out.println(c + " (" + (int) c + ")");
+            
             switch (c) {
                 case 0x0482:
                     for(int comIndex = 0; comIndex < coms.size(); comIndex++) {
