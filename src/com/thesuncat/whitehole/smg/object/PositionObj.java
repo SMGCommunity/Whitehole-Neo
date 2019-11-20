@@ -69,7 +69,7 @@ public class PositionObj extends AbstractObj {
         data.put("dir_x", rotation.x); data.put("dir_y", rotation.y); data.put("dir_z", rotation.z);
         data.put("PosName", "undefined");
         data.put("Obj_ID", (short)-1);
-        if (ZoneArchive.game == 2)
+        if (ZoneArchive.game == 1)
             data.put("ChildObjId", (short)-1);
     }
     
