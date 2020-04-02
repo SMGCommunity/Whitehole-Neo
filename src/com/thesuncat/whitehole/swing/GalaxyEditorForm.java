@@ -29,7 +29,6 @@ import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkJMenuBar;
 import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkScrollBarUI;
 import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkSplitPaneUI;
 import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkTableCellRenderer;
-import com.thesuncat.whitehole.swing.TreeCellRenderer;
 import com.thesuncat.whitehole.vectors.*;
 import com.thesuncat.whitehole.worldmapObject.*;
 import java.awt.*;
@@ -234,11 +233,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         tpLeftPanel.remove(0);
         
         lbLayersList = new CheckBoxList();
-        lbLayersList.setEventListener(new CheckBoxList.EventListener() {
-            @Override
-            public void checkBoxStatusChanged(int index, boolean status) {
-                layerSelectChange(index, status);
-            }
+        lbLayersList.setEventListener((int index, boolean status) -> {
+            layerSelectChange(index, status);
         });
         
         scpLayersList.setViewportView(lbLayersList);
@@ -2894,38 +2890,56 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             return;
         
         UndoEntry change = undoList.get(undoIndex);
-        switch(change.type) {
-            case "changeObj":
-                AbstractObj obj = globalObjList.get(change.id);
-                obj.data = (Bcsv.Entry) change.data.clone();
-                obj.position = (Vector3) change.position.clone();
-                obj.rotation = (Vector3) change.rotation.clone();
-                obj.scale = (Vector3) change.scale.clone();
-                pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
-                pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
-                pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
-                pnlObjectSettings.repaint();
-                addRerenderTask("zone:"+obj.zone.zoneName);
-                break;
-            case "deleteObj":
-                addingObject = change.objType + "|" + change.name;
-                addingObjectOnLayer = change.layer;
-                addObject(change.position);
-                addingObject = "";
+        
+        if(change.objType.equals("pathpoint")) {
+            lbStatusLabel.setText("Undoing path points is currently not supported, sorry!");
+        } else {
+            switch(change.type) {
+                case "changeObj":
+                    AbstractObj obj = globalObjList.get(change.id);
+                    obj.data = (Bcsv.Entry) change.data.clone();
+                    obj.position = (Vector3) change.position.clone();
+                    obj.rotation = (Vector3) change.rotation.clone();
+                    obj.scale = (Vector3) change.scale.clone();
+                    pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
+                    pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
+                    pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
+                    pnlObjectSettings.repaint();
+                    addRerenderTask("zone:"+obj.zone.zoneName);
+                    break;
+                case "deleteObj":
+                    addingObject = change.objType + "|" + change.name;
+                    addingObjectOnLayer = change.layer;
 
-                newobj.data =(Bcsv.Entry) change.data.clone();
-                newobj.position =(Vector3) change.position.clone();
-                newobj.rotation =(Vector3) change.rotation.clone();
-                newobj.scale =(Vector3) change.scale.clone();
-                addRerenderTask("zone:"+newobj.zone.zoneName);
-                
-                // TODO: fix a bug where moving the supermassive pipes, deleting one, and undoing sometimes deletes half the data. please, send help
-                if(!newobj.data.containsKey("MessageId"))
-                    System.err.println("aw peck, I did a dumb"); // epic breakpoint statement
-                break;
-            case "addObj":
-                deleteObject(change.id);
+    //                if("pathpoint".equals(change.objType)) {
+    //                    PathPointObj parentPath = globalPathPointList.get(change.parentPathId);
+    //                    
+    //                    selectedPath.put(change.parentPathId, parentPath);
+    //                }
+
+                    addObject(change.position);
+                    addingObject = "";
+
+                    newobj.data =(Bcsv.Entry) change.data.clone();
+                    newobj.position =(Vector3) change.position.clone();
+
+                    if(change.rotation != null)
+                        newobj.rotation =(Vector3) change.rotation.clone();
+
+                    if(change.scale != null)
+                        newobj.scale =(Vector3) change.scale.clone();
+
+                    addRerenderTask("zone:" + newobj.zone.zoneName);
+
+                    // TODO: fix a bug where moving the supermassive pipes, deleting one, and undoing sometimes deletes half the data. please, send help
+    //                if(!newobj.data.containsKey("MessageId"))
+    //                    System.err.println("aw peck, I did a dumb"); // epic breakpoint statement
+                    break;
+                case "addObj":
+                    deleteObject(change.id);
+            }
         }
+        
         undoList.remove(change);
     }
     
@@ -2961,9 +2975,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * Attempt to apply rotation/translation of the current zone to {@code delta}.
      * @param delta the position to change
      */
-    public void applySubzoneRotation(Vector3 delta) {
+    public Vector3 applySubzoneRotation(Vector3 delta) {
         if(!galaxyMode)
-            return;
+            return new Vector3();
 
         String szkey = String.format("%1$d/%2$s", curScenarioID, curZone);
         if(subZoneData.containsKey(szkey)) {
@@ -2992,6 +3006,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         } else {
             // zone not found??;
         }
+        
+        return delta;
     }
     
     private Point get2DCoords(Vector3 position, float depth) { // broken
@@ -5206,7 +5222,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                 }
                 else {
-                    // left click: places/deletes objects or selects excrement
+                    // left click: places/deletes objects or selects
 
                     if(!addingObject.isEmpty()) {
                         addObject(lastMouseMove);
@@ -5440,6 +5456,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             lbStatusLabel.setText("Unhid all objects.");
                         }
                     }
+                    glCanvas.repaint();
                 } else {
                     ArrayList<AbstractObj> hidingObjs = new ArrayList();
                     for(Map.Entry<Integer, AbstractObj> entry : selectedObjs.entrySet())
@@ -5447,7 +5464,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     for(AbstractObj curObj : hidingObjs) {
                         curObj.isHidden = !curObj.isHidden;
                         rerenderTasks.add("zone:" + curObj.zone.zoneName);
-                        lbStatusLabel.setText("Hid/unhid objects.");
+                        lbStatusLabel.setText("Hid/unhid selection.");
                     }
                     glCanvas.repaint();
                 }
@@ -5551,13 +5568,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         selectedObjs.get((int)keyset.get(0)).position.x,
                         selectedObjs.get((int)keyset.get(0)).position.y,
                         selectedObjs.get((int)keyset.get(0)).position.z);
-                applySubzoneRotation(camTarg);
-                String szkey = String.format("%1$d/%2$s", curScenarioID, curZone);
-                if(subZoneData.containsKey(szkey)) {
-                    StageObj szdata = subZoneData.get(szkey);
-                    Vector3.subtract(camTarg, szdata.position, camTarg);
-                    System.out.println(szdata.position);
-                }
+                //applySubzoneRotation(camTarg);
+//                String szkey = String.format("%1$d/%2$s", curScenarioID, curZone);
+//                if(subZoneData.containsKey(szkey)) {
+//                    StageObj szdata = subZoneData.get(szkey);
+//                    Vector3.subtract(camTarg, szdata.position, camTarg);
+//                    System.out.println(szdata.position);
+//                }
                 
                 camTarget = (Vector3) camTarg.clone();
                 
@@ -5568,7 +5585,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 
                 camRotation.y = (float) Math.PI / 8f;
 
-                applySubzoneRotation(camTarget);
+                camTarget = applySubzoneRotation(camTarget);
 
                 updateCamera();
                 glCanvas.repaint();
@@ -5960,23 +5977,42 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             name = obj.name;
             objType = obj.type;
         }
+        
         public UndoEntry(String editType, AbstractObj obj) {
             position =(Vector3) obj.position.clone();
-            rotation =(Vector3) obj.rotation.clone();
-            scale =(Vector3) obj.scale.clone();
+            
+            if(obj.rotation == null)
+                rotation = new Vector3();
+            else
+                rotation =(Vector3) obj.rotation.clone();
+            
+            if(obj.scale == null)
+                rotation = new Vector3();
+            else
+                scale =(Vector3) obj.scale.clone();
+            
             data =(Bcsv.Entry) obj.data.clone();
             id = obj.uniqueID;
             type = editType;
             layer = obj.layer;
             name = obj.name;
-            objType = obj.type;
+            
+            if(obj instanceof PathPointObj) {
+                objType = "pathpoint";
+                parentPathId = ((PathPointObj) obj).path.pathID;
+            } else {
+                objType = obj.type;
+            }
         }
+        
         public Vector3 position;
         public Vector3 rotation;
         public Vector3 scale;
         public Bcsv.Entry data;
         public String type, layer, name, objType;
         public int id;
+        
+        public int parentPathId;
     }
     
     // GUI stuff under here
@@ -5999,26 +6035,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         for(String item : items) {
             JMenuItem menuitem = new JMenuItem(item);
-            menuitem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    JMenuItem foo =(JMenuItem) e.getSource();
-                    switch(foo.getText()) {
-                        case "Normal": setObjectBeingAdded("general"); break;
-                        case "Spawn": setObjectBeingAdded("start"); break;
-                        case "Gravity": setObjectBeingAdded("gravity"); break;
-                        case "Area": setObjectBeingAdded("area"); break;
-                        case "Camera": setObjectBeingAdded("camera"); break;
-                        case "Sound": setObjectBeingAdded("sound"); break;
-                        case "Child": setObjectBeingAdded("child"); break;
-                        case "MapPart": setObjectBeingAdded("mappart"); break;
-                        case "Cutscene": setObjectBeingAdded("cutscene"); break;
-                        case "Position": setObjectBeingAdded("position"); break;
-                        case "Changer": setObjectBeingAdded("change"); break;
-                        case "Debug": setObjectBeingAdded("debug"); break;
-                        case "Path": setObjectBeingAdded("path"); break;
-                        case "Path point": setObjectBeingAdded("pathpoint"); break;
-                    }
+            menuitem.addActionListener((ActionEvent e) -> {
+                JMenuItem foo =(JMenuItem) e.getSource();
+                switch(foo.getText()) {
+                    case "Normal": setObjectBeingAdded("general"); break;
+                    case "Spawn": setObjectBeingAdded("start"); break;
+                    case "Gravity": setObjectBeingAdded("gravity"); break;
+                    case "Area": setObjectBeingAdded("area"); break;
+                    case "Camera": setObjectBeingAdded("camera"); break;
+                    case "Sound": setObjectBeingAdded("sound"); break;
+                    case "Child": setObjectBeingAdded("child"); break;
+                    case "MapPart": setObjectBeingAdded("mappart"); break;
+                    case "Cutscene": setObjectBeingAdded("cutscene"); break;
+                    case "Position": setObjectBeingAdded("position"); break;
+                    case "Changer": setObjectBeingAdded("change"); break;
+                    case "Debug": setObjectBeingAdded("debug"); break;
+                    case "Path": setObjectBeingAdded("path"); break;
+                    case "Path point": setObjectBeingAdded("pathpoint"); break;
                 }
             });
             pmnAddObjects.add(menuitem);
@@ -6056,12 +6089,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         ArrayList<String> items2 = worldmapObjTypes;
         for(String item : items2) {
             JMenuItem menuitem = new JMenuItem(item);
-            menuitem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    JMenuItem foo =(JMenuItem) e.getSource();
-                    addWorldmapPoint(foo.getText());
-                }
+            menuitem.addActionListener((ActionEvent e) -> {
+                JMenuItem foo =(JMenuItem) e.getSource();
+                addWorldmapPoint(foo.getText());
             });
             pmnAddWorldmapObjs.add(menuitem);
         }
@@ -6123,21 +6153,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         pnlObjectSettings = new PropertyGrid(this);
         scpObjSettingsContainer.setViewportView(pnlObjectSettings);
         scpObjSettingsContainer.getVerticalScrollBar().setUnitIncrement(16);
-        pnlObjectSettings.setEventListener(new PropertyGrid.EventListener() {
-            @Override
-            public void propertyChanged(String propname, Object value) {
-                propertyPanelPropertyChanged(propname, value);
-            }
+        pnlObjectSettings.setEventListener((String propname, Object value) -> {
+            propertyPanelPropertyChanged(propname, value);
         });
         
         pnlWorldmapObjectSettings = new PropertyGrid(this);
         scpWorldmapObjSettingsContainer.setViewportView(pnlWorldmapObjectSettings);
         scpWorldmapObjSettingsContainer.getVerticalScrollBar().setUnitIncrement(16);
-        pnlWorldmapObjectSettings.setEventListener(new PropertyGrid.EventListener() {
-            @Override
-            public void propertyChanged(String propname, Object value) {
-                worldmapObjPropertyPanelPropertyChanged(propname, value);
-            }
+        pnlWorldmapObjectSettings.setEventListener((String propname, Object value) -> {
+            worldmapObjPropertyPanelPropertyChanged(propname, value);
         });
         
         if(worldmapId != -1)
@@ -6554,13 +6578,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         for(String item : items) {
             JMenuItem menuitem = new JMenuItem(item);
-            menuitem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    JMenuItem foo =(JMenuItem) e.getSource();
-                    quickWorldmapAction(foo);
-                    
-                }
+            menuitem.addActionListener((ActionEvent e) -> {
+                JMenuItem foo =(JMenuItem) e.getSource();
+                quickWorldmapAction(foo);
             });
             pmnWorldmapQuickActions.add(menuitem);
         }
