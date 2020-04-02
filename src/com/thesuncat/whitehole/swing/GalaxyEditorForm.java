@@ -2949,6 +2949,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @param obj the object that the action was performed on
      */
     public void addUndoEntry(String type, AbstractObj obj) {
+        if(obj instanceof PathPointObj)
+            return; // we don't support path points
+        
         if(undoIndex != undoList.size())
             undoList.subList(0, undoIndex);
         if(undoIndex > 0) {
@@ -5227,8 +5230,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     if(!addingObject.isEmpty()) {
                         addObject(lastMouseMove);
 
-                        undoList.add(new UndoEntry("addObj", newobj));
-                        undoIndex++;
+                        if(!addingObject.startsWith("path")) {
+                            undoList.add(new UndoEntry("addObj", newobj));
+                            undoIndex++;
+                        }
         
                         if(!shiftpressed) {
                             addingObject = "";
