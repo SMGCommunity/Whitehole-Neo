@@ -417,16 +417,6 @@ public class MainFrame extends javax.swing.JFrame {
             lbStatusBar.setText("開始");
         else
             lbStatusBar.setText("Started!");
-
-        if (Settings.objectDB_update) {
-            
-            if(Settings.japanese)
-                lbStatusBar.setText("objectdbの更新を確認しています...");
-            else
-                lbStatusBar.setText("Checking for object database updates...");
-            ObjectDBUpdater updater = new ObjectDBUpdater(lbStatusBar);
-            updater.start();
-        }
     }//GEN-LAST:event_formWindowOpened
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed

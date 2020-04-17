@@ -289,13 +289,13 @@ public class RarcEditorForm extends javax.swing.JFrame {
     
     public static void setTreeExpandedState(JTree tree) {
       DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getModel().getRoot();
-      setNodeExpandedState(tree, node);
+      setNodeExpandedState(tree, (DefaultMutableTreeNode) node);
     }
 
     private static void setNodeExpandedState(JTree tree, DefaultMutableTreeNode node) {
-        ArrayList<DefaultMutableTreeNode> list = Collections.list(node.children());
-        for (DefaultMutableTreeNode treeNode : list)
-            setNodeExpandedState(tree, treeNode);
+        ArrayList<TreeNode> list = Collections.list(node.children());
+        for (TreeNode treeNode : list)
+            setNodeExpandedState(tree, (DefaultMutableTreeNode) treeNode);
         
         TreePath path = new TreePath(node.getPath());
         tree.expandPath(path);
