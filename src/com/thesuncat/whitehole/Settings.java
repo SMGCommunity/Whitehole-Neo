@@ -20,8 +20,6 @@ import java.util.prefs.Preferences;
 public class Settings {
     public static void init() {
         Preferences prefs = Preferences.userRoot();
-        objectDB_url = prefs.get("objectDB.url", "http://neomariogalaxy.bplaced.net/objectdb/smg_download.php");
-        objectDB_update = prefs.getBoolean("objectDB.update", true);
         arc_enc = prefs.getBoolean("arc.enc", true);
         editor_shaders = prefs.getBoolean("editor.shaders", true);
         editor_fastDrag = prefs.getBoolean("editor.fastDrag", false);
@@ -44,8 +42,6 @@ public class Settings {
     
     public static void save() {
         Preferences prefs = Preferences.userRoot();
-        prefs.put("objectDB.url", objectDB_url);
-        prefs.putBoolean("objectDB.update", objectDB_update);
         prefs.putBoolean("arc.enc", arc_enc);
         prefs.putBoolean("editor.shaders", editor_shaders);
         prefs.putBoolean("editor.fastDrag", editor_fastDrag);
@@ -71,9 +67,8 @@ public class Settings {
         init();
     }
     
-    public static String objectDB_url;
     public static boolean associated;
-    public static boolean objectDB_update, arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy, japanese, fileNames;
+    public static boolean arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy, japanese, fileNames;
     public static boolean editor_shaders, editor_fastDrag;
     public static boolean showAreas, showCameras, showGravity, showPaths, showAxis;
 }

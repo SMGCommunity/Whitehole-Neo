@@ -15,7 +15,7 @@
 
 package com.thesuncat.whitehole.swing;
 
-import com.sun.glass.events.KeyEvent;
+import java.awt.event.KeyEvent;
 import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.io.MsbfFile.Flow;
 import com.thesuncat.whitehole.io.MsbfFile.FlowEntry;
@@ -571,7 +571,7 @@ public class MsbfEditorForm extends javax.swing.JFrame {
 
     private void txtCharKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtCharKeyTyped
         if(!(Character.isDigit(evt.getKeyChar())
-                || evt.getKeyCode() == KeyEvent.VK_BACKSPACE || evt.getKeyCode() == KeyEvent.VK_LEFT
+                || evt.getKeyCode() == KeyEvent.VK_BACK_SPACE || evt.getKeyCode() == KeyEvent.VK_LEFT
                 || evt.getKeyCode() == KeyEvent.VK_RIGHT))
             evt.consume();
     }//GEN-LAST:event_txtCharKeyTyped

@@ -68,6 +68,7 @@ public class AboutForm extends javax.swing.JFrame {
         jLabel14 = new javax.swing.JLabel();
         jLabel20 = new javax.swing.JLabel();
         jLabel21 = new javax.swing.JLabel();
+        jLabel22 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("About " + Whitehole.NAME);
@@ -119,6 +120,8 @@ public class AboutForm extends javax.swing.JFrame {
 
         jLabel21.setText("OcelotGaming");
 
+        jLabel22.setText("Bussun");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -148,7 +151,8 @@ public class AboutForm extends javax.swing.JFrame {
                                                 .addComponent(jLabel7)
                                                 .addComponent(jLabel9)
                                                 .addComponent(jLabel13)
-                                                .addComponent(jLabel17))))
+                                                .addComponent(jLabel17)
+                                                .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))))
                                     .addComponent(jLabel11)
                                     .addComponent(jLabel16)
                                     .addComponent(jLabel20))
@@ -200,7 +204,9 @@ public class AboutForm extends javax.swing.JFrame {
                     .addComponent(jLabel17)
                     .addComponent(jLabel18))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel20)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel20)
+                    .addComponent(jLabel22))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel14)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -229,6 +235,7 @@ public class AboutForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
+    private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
