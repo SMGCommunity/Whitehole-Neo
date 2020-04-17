@@ -36,15 +36,13 @@ public class SettingsForm extends javax.swing.JDialog {
             initDarkTheme();
         if(Settings.japanese)
             initJapanese();
-        txtObjectDBUrl.setText(Settings.objectDB_url);
-        chkObjectDBUpdate.setSelected(Settings.objectDB_update);
+
         chkUseShaders.setSelected(Settings.editor_shaders);
         chkFastDrag.setSelected(Settings.editor_fastDrag);
         chkGameDir.setSelected(Settings.gameDir);
         chkDarkTheme.setSelected(Settings.dark);
         chkRichPresence.setSelected(Settings.richPresence);
         chkAntiAlias.setSelected(Settings.aa);
-        txtObjectDBUrl.setCaretPosition(0);
         chkFakeCol.setSelected(Settings.fakeCol);
         chkNoShaderRender.setSelected(Settings.legacy);
         chkJapanese.setSelected(Settings.japanese);
@@ -60,9 +58,6 @@ public class SettingsForm extends javax.swing.JDialog {
         chkUseShaders.setText("3Dレンダリングにシェーダーを使用する(推奨)");
         chkFastDrag.setText("右クリック&ドラックでワイヤーフレームで描写");
         chkFakeCol.setText("すべてが青でレンダリングされ軽量化できます(低スペック向け)");
-        lblObjectDatabase.setFont(chkUseShaders.getFont());
-        lblObjectDatabase.setText("オブジェクトデータベース");
-        lblUpdateUrl.setText("更新用URL");
         lblMisc.setFont(chkAntiAlias.getFont());
         lblMisc.setText("その他");
         chkDarkTheme.setText("ダークテーマ");
@@ -79,7 +74,7 @@ public class SettingsForm extends javax.swing.JDialog {
     private void initDarkTheme() {
         ArrayList<JCheckBox> chkArray = new ArrayList<>();
         chkArray.addAll(Arrays.asList(chkAntiAlias, chkDarkTheme, chkFakeCol, chkFastDrag, chkGameDir, chkJapanese, chkNoShaderRender,
-                chkObjectDBUpdate, chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames, chkAssoc));
+                chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames, chkAssoc));
         for (int i = 0; i < chkArray.size(); i++){
             chkArray.get(i).setBackground(new Color(32,34,37));
             chkArray.get(i).setForeground(new Color(157,158,161));
@@ -87,10 +82,7 @@ public class SettingsForm extends javax.swing.JDialog {
         
         this.getContentPane().setBackground(new Color(32,34,37));
         lblMisc.setForeground(new Color(157,158,161));
-        lblUpdateUrl.setForeground(new Color(157,158,161));
         lblRendering.setForeground(new Color(157,158,161));
-        lblObjectDatabase.setForeground(new Color(157,158,161));
-        txtObjectDBUrl.setBackground(new Color(177,178,181));
     }
     
     private void installAssoc() {
@@ -130,16 +122,12 @@ public class SettingsForm extends javax.swing.JDialog {
     private void initComponents() {
 
         jCheckBox1 = new javax.swing.JCheckBox();
-        chkObjectDBUpdate = new javax.swing.JCheckBox();
         chkUseShaders = new javax.swing.JCheckBox();
         chkFastDrag = new javax.swing.JCheckBox();
         btnCancel = new javax.swing.JButton();
         btnOk = new javax.swing.JButton();
-        lblObjectDatabase = new javax.swing.JLabel();
         lblRendering = new javax.swing.JLabel();
         lblMisc = new javax.swing.JLabel();
-        lblUpdateUrl = new javax.swing.JLabel();
-        txtObjectDBUrl = new javax.swing.JTextField();
         chkGameDir = new javax.swing.JCheckBox();
         chkDarkTheme = new javax.swing.JCheckBox();
         chkRichPresence = new javax.swing.JCheckBox();
@@ -157,9 +145,6 @@ public class SettingsForm extends javax.swing.JDialog {
         setTitle("Settings");
         setIconImage(Whitehole.ICON);
         setMinimumSize(new java.awt.Dimension(598, 235));
-
-        chkObjectDBUpdate.setText("Check for object database updates on startup");
-        chkObjectDBUpdate.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
 
         chkUseShaders.setSelected(true);
         chkUseShaders.setText("Use shaders for 3D rendering");
@@ -180,16 +165,11 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
 
-        lblObjectDatabase.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        lblObjectDatabase.setText("Object database");
-
         lblRendering.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblRendering.setText("Rendering");
 
         lblMisc.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblMisc.setText("Misc");
-
-        lblUpdateUrl.setText("Update URL:");
 
         chkGameDir.setText("Automatically reopen game directory");
         chkGameDir.setActionCommand("Automatically reopen game folder");
@@ -225,9 +205,10 @@ public class SettingsForm extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(chkNoShaderRender)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(chkAntiAlias)
@@ -238,18 +219,11 @@ public class SettingsForm extends javax.swing.JDialog {
                             .addComponent(chkFakeCol))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblObjectDatabase)
                             .addComponent(lblMisc)
                             .addComponent(chkGameDir)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                    .addComponent(lblUpdateUrl)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txtObjectDBUrl))
-                                .addComponent(chkObjectDBUpdate))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(chkDarkTheme)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(chkJapanese)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(chkAssoc))
@@ -260,56 +234,42 @@ public class SettingsForm extends javax.swing.JDialog {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btnOk)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnCancel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(chkNoShaderRender)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(btnCancel)))
+                .addContainerGap(12, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(lblObjectDatabase)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(lblUpdateUrl)
-                            .addComponent(txtObjectDBUrl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(3, 3, 3)
-                        .addComponent(chkObjectDBUpdate)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(lblMisc)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(chkDarkTheme)
-                            .addComponent(chkJapanese)
-                            .addComponent(chkAssoc))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(chkGameDir)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(chkRichPresence)
-                            .addComponent(chkFileNames))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(chkNoShaderRender)
-                            .addComponent(btnCancel)
-                            .addComponent(btnOk)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(17, 17, 17)
-                        .addComponent(lblRendering)
-                        .addGap(5, 5, 5)
-                        .addComponent(chkAntiAlias)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(chkUseShaders, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(chkFastDrag)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(chkReverseRot)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(chkFakeCol)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(17, 17, 17)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblRendering)
+                    .addComponent(lblMisc))
+                .addGap(5, 5, 5)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(chkAntiAlias)
+                    .addComponent(chkDarkTheme)
+                    .addComponent(chkJapanese)
+                    .addComponent(chkAssoc))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(chkUseShaders, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(chkGameDir))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(chkFastDrag)
+                    .addComponent(chkRichPresence)
+                    .addComponent(chkFileNames))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkReverseRot)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkFakeCol)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkNoShaderRender)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnCancel)
+                    .addComponent(btnOk))
+                .addGap(0, 11, Short.MAX_VALUE))
         );
 
         pack();
@@ -323,8 +283,7 @@ public class SettingsForm extends javax.swing.JDialog {
 
     private void btnOkActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnOkActionPerformed
     {//GEN-HEADEREND:event_btnOkActionPerformed
-        Settings.objectDB_url = txtObjectDBUrl.getText();
-        Settings.objectDB_update = chkObjectDBUpdate.isSelected();
+
         Settings.editor_shaders = chkUseShaders.isSelected();
         Settings.editor_fastDrag = chkFastDrag.isSelected();
         Settings.gameDir = chkGameDir.isSelected();
@@ -364,16 +323,12 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JCheckBox chkGameDir;
     private javax.swing.JCheckBox chkJapanese;
     private javax.swing.JCheckBox chkNoShaderRender;
-    private javax.swing.JCheckBox chkObjectDBUpdate;
     private javax.swing.JCheckBox chkReverseRot;
     private javax.swing.JCheckBox chkRichPresence;
     private javax.swing.JCheckBox chkUseShaders;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel lblMisc;
-    private javax.swing.JLabel lblObjectDatabase;
     private javax.swing.JLabel lblRendering;
-    private javax.swing.JLabel lblUpdateUrl;
-    private javax.swing.JTextField txtObjectDBUrl;
     // End of variables declaration//GEN-END:variables
     private boolean assocUpdate = false;
 }
