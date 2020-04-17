@@ -452,6 +452,7 @@ public class RarcFilesystem implements FilesystemBase {
      * Rename a file inside the RARC
      * @param file full path to file
      * @param newname new name of file (not including path)
+     * @throws java.io.FileNotFoundException
      */
     @Override
     public void renameFile(String file, String newname) throws FileNotFoundException {

@@ -44,7 +44,9 @@ public class GalaxyArchive {
     public void close() {}
     
     public ZoneArchive openZone(String name) {
-        if (!zoneList.contains(name)) return null;
+        if (!zoneList.contains(name))
+            return null;
+        
         return new ZoneArchive(this, name);
     }
     

@@ -24,7 +24,9 @@ public class PoleRenderer extends BmdRenderer {
     public PoleRenderer(RenderInfo info, Vector3 scale, String type) throws IOException {
         super(info, type);
         this.scale = scale;
-        model.joints[1].finalMatrix.m[13] = 100f * scale.y / scale.x;
+        
+        if(model != null)
+            model.joints[1].finalMatrix.m[13] = 100f * scale.y / scale.x;
     }
     
     @Override

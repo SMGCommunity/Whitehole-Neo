@@ -21,6 +21,7 @@ public class Settings {
     public static void init() {
         Preferences prefs = Preferences.userRoot();
         objectDB_url = prefs.get("objectDB.url", "http://neomariogalaxy.bplaced.net/objectdb/smg_download.php");
+        modFolder_dir = prefs.get("mod.dir", "");
         objectDB_update = prefs.getBoolean("objectDB.update", true);
         arc_enc = prefs.getBoolean("arc.enc", true);
         editor_shaders = prefs.getBoolean("editor.shaders", true);
@@ -45,6 +46,7 @@ public class Settings {
     public static void save() {
         Preferences prefs = Preferences.userRoot();
         prefs.put("objectDB.url", objectDB_url);
+        prefs.put("mod.dir", modFolder_dir);
         prefs.putBoolean("objectDB.update", objectDB_update);
         prefs.putBoolean("arc.enc", arc_enc);
         prefs.putBoolean("editor.shaders", editor_shaders);
@@ -72,6 +74,7 @@ public class Settings {
     }
     
     public static String objectDB_url;
+    public static String modFolder_dir;
     public static boolean associated;
     public static boolean objectDB_update, arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy, japanese, fileNames;
     public static boolean editor_shaders, editor_fastDrag;

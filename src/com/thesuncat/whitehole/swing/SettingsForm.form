@@ -37,135 +37,65 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="1" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="0" attributes="0">
+                  <Component id="jPanel2" max="32767" attributes="0"/>
+                  <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="chkAntiAlias" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="chkFastDrag" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="chkUseShaders" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="lblRendering" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="chkReverseRot" min="-2" max="-2" attributes="0"/>
-                          <Component id="chkFakeCol" alignment="0" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="lblObjectDatabase" min="-2" max="-2" attributes="0"/>
-                          <Component id="lblMisc" min="-2" max="-2" attributes="0"/>
-                          <Component id="chkGameDir" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="0" attributes="0">
-                              <Group type="102" alignment="1" attributes="0">
-                                  <Component id="lblUpdateUrl" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="txtObjectDBUrl" max="32767" attributes="0"/>
-                              </Group>
-                              <Component id="chkObjectDBUpdate" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="chkDarkTheme" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                              <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                              <Component id="chkJapanese" min="-2" max="-2" attributes="0"/>
+                              <Component id="txtModFolderDir" min="-2" pref="451" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="chkAssoc" min="-2" max="-2" attributes="0"/>
+                              <Component id="jButton1" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="chkRichPresence" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="chkFileNames" min="-2" max="-2" attributes="0"/>
+                              <Component id="btnOk" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                              <Component id="btnCancel" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="jPanel3" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                              <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="btnOk" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="btnCancel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="chkNoShaderRender" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
               </Group>
-              <EmptySpace max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="lblObjectDatabase" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="lblUpdateUrl" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="txtObjectDBUrl" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace min="-2" pref="3" max="-2" attributes="0"/>
-                      <Component id="chkObjectDBUpdate" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="lblMisc" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="chkDarkTheme" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="chkJapanese" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="chkAssoc" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="chkGameDir" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="chkRichPresence" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="chkFileNames" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="chkNoShaderRender" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="btnCancel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="btnOk" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="17" max="-2" attributes="0"/>
-                      <Component id="lblRendering" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
-                      <Component id="chkAntiAlias" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="chkUseShaders" min="-2" pref="20" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="chkFastDrag" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="chkReverseRot" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="chkFakeCol" min="-2" max="-2" attributes="0"/>
-                  </Group>
+                  <Component id="jPanel3" pref="0" max="32767" attributes="0"/>
+                  <Component id="jPanel1" max="32767" attributes="0"/>
               </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="txtModFolderDir" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jButton1" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="btnCancel" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnOk" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="javax.swing.JCheckBox" name="chkObjectDBUpdate">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Check for object database updates on startup"/>
-        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-          <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder/>
-          </Border>
-        </Property>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkUseShaders">
-      <Properties>
-        <Property name="selected" type="boolean" value="true"/>
-        <Property name="text" type="java.lang.String" value="Use shaders for 3D rendering"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkFastDrag">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Render wireframes when dragging"/>
-      </Properties>
-    </Component>
     <Component class="javax.swing.JButton" name="btnCancel">
       <Properties>
         <Property name="text" type="java.lang.String" value="Cancel"/>
@@ -182,93 +112,282 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnOkActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JLabel" name="lblObjectDatabase">
+    <Container class="javax.swing.JPanel" name="jPanel1">
+
+      <Layout>
+        <DimensionLayout dim="0">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="102" attributes="0">
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="lblMisc" min="-2" max="-2" attributes="0"/>
+                      <Component id="chkGameDir" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="chkDarkTheme" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                          <Component id="chkJapanese" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="chkAssoc" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="chkRichPresence" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="chkFileNames" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+                  <EmptySpace max="32767" attributes="0"/>
+              </Group>
+              <Group type="102" alignment="1" attributes="0">
+                  <EmptySpace max="32767" attributes="0"/>
+                  <Component id="chkNoShaderRender" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+              </Group>
+          </Group>
+        </DimensionLayout>
+        <DimensionLayout dim="1">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="102" alignment="0" attributes="0">
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="lblMisc" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="chkDarkTheme" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="chkJapanese" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="chkAssoc" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="chkGameDir" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="chkRichPresence" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="chkFileNames" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="chkNoShaderRender" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace pref="33" max="32767" attributes="0"/>
+              </Group>
+          </Group>
+        </DimensionLayout>
+      </Layout>
+      <SubComponents>
+        <Component class="javax.swing.JLabel" name="lblMisc">
+          <Properties>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+              <Font name="Tahoma" size="11" style="1"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Misc"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkDarkTheme">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Dark theme"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkGameDir">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Automatically reopen game directory"/>
+            <Property name="actionCommand" type="java.lang.String" value="Automatically reopen game folder"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkRichPresence">
+          <Properties>
+            <Property name="selected" type="boolean" value="true"/>
+            <Property name="text" type="java.lang.String" value="Discord Rich Presence"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkFileNames">
+          <Properties>
+            <Property name="selected" type="boolean" value="true"/>
+            <Property name="text" type="java.lang.String" value="Show opened files"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkJapanese">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Japanese"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkAssoc">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Associate .ARC Files"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkAssocActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkNoShaderRender">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Ignore important rendering functions (for outdated OpenGL)"/>
+            <Property name="actionCommand" type="java.lang.String" value="Black and white"/>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Container class="javax.swing.JPanel" name="jPanel2">
+
+      <Layout>
+        <DimensionLayout dim="0">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="102" alignment="0" attributes="0">
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" attributes="0">
+                          <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                          <Component id="lblUpdateUrl" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="txtObjectDBUrl" max="32767" attributes="0"/>
+                      </Group>
+                      <Group type="102" attributes="0">
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="chkObjectDBUpdate" min="-2" max="-2" attributes="0"/>
+                              <Component id="lblObjectDatabase" alignment="0" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      </Group>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
+              </Group>
+          </Group>
+        </DimensionLayout>
+        <DimensionLayout dim="1">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="102" alignment="0" attributes="0">
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="lblObjectDatabase" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="lblUpdateUrl" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="txtObjectDBUrl" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace min="-2" pref="3" max="-2" attributes="0"/>
+                  <Component id="chkObjectDBUpdate" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
+              </Group>
+          </Group>
+        </DimensionLayout>
+      </Layout>
+      <SubComponents>
+        <Component class="javax.swing.JLabel" name="lblObjectDatabase">
+          <Properties>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+              <Font name="Tahoma" size="11" style="1"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Object database"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="lblUpdateUrl">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Update URL:"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JTextField" name="txtObjectDBUrl">
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkObjectDBUpdate">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Check for object database updates on startup"/>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
+                <TitledBorder/>
+              </Border>
+            </Property>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Container class="javax.swing.JPanel" name="jPanel3">
+
+      <Layout>
+        <DimensionLayout dim="0">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="102" alignment="0" attributes="0">
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" attributes="0">
+                          <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="chkReverseRot" min="-2" max="-2" attributes="0"/>
+                              <Component id="chkFakeCol" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="chkAntiAlias" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="chkFastDrag" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="chkUseShaders" alignment="0" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
+                      <Component id="lblRendering" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace max="32767" attributes="0"/>
+              </Group>
+          </Group>
+        </DimensionLayout>
+        <DimensionLayout dim="1">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="102" alignment="1" attributes="0">
+                  <EmptySpace max="32767" attributes="0"/>
+                  <Component id="lblRendering" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="chkAntiAlias" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="chkUseShaders" min="-2" pref="20" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="chkFastDrag" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="chkReverseRot" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="chkFakeCol" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="47" max="-2" attributes="0"/>
+              </Group>
+          </Group>
+        </DimensionLayout>
+      </Layout>
+      <SubComponents>
+        <Component class="javax.swing.JCheckBox" name="chkFakeCol">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Render &apos;picking&apos; colors (debugging)"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkReverseRot">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Reverse editor camera rotation"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkFastDrag">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Render wireframes when dragging"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkUseShaders">
+          <Properties>
+            <Property name="selected" type="boolean" value="true"/>
+            <Property name="text" type="java.lang.String" value="Use shaders for 3D rendering"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="chkAntiAlias">
+          <Properties>
+            <Property name="selected" type="boolean" value="true"/>
+            <Property name="text" type="java.lang.String" value="Use Anti-Aliasing"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="lblRendering">
+          <Properties>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+              <Font name="Tahoma" size="11" style="1"/>
+            </Property>
+            <Property name="text" type="java.lang.String" value="Rendering"/>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JTextField" name="txtModFolderDir">
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
-        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-          <Font name="Tahoma" size="11" style="1"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="Object database"/>
+        <Property name="text" type="java.lang.String" value="Mod Folder:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="lblRendering">
+    <Component class="javax.swing.JButton" name="jButton1">
       <Properties>
-        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-          <Font name="Tahoma" size="11" style="1"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="Rendering"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JLabel" name="lblMisc">
-      <Properties>
-        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-          <Font name="Tahoma" size="11" style="1"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="Misc"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JLabel" name="lblUpdateUrl">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Update URL:"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JTextField" name="txtObjectDBUrl">
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkGameDir">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Automatically reopen game directory"/>
-        <Property name="actionCommand" type="java.lang.String" value="Automatically reopen game folder"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkDarkTheme">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Dark theme"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkRichPresence">
-      <Properties>
-        <Property name="selected" type="boolean" value="true"/>
-        <Property name="text" type="java.lang.String" value="Discord Rich Presence"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkAntiAlias">
-      <Properties>
-        <Property name="selected" type="boolean" value="true"/>
-        <Property name="text" type="java.lang.String" value="Use Anti-Aliasing"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkFakeCol">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Render &apos;picking&apos; colors (debugging)"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkNoShaderRender">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Ignore important rendering functions (for outdated OpenGL)"/>
-        <Property name="actionCommand" type="java.lang.String" value="Black and white"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkJapanese">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Japanese"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkReverseRot">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Reverse editor camera rotation"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkFileNames">
-      <Properties>
-        <Property name="selected" type="boolean" value="true"/>
-        <Property name="text" type="java.lang.String" value="Show opened files"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="chkAssoc">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Associate .ARC Files"/>
+        <Property name="text" type="java.lang.String" value="..."/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkAssocActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

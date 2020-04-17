@@ -19,6 +19,8 @@ import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.swing.MainFrame;
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ExternalFilesystem implements FilesystemBase {
     public ExternalFilesystem(String basedir) throws IOException {
@@ -45,7 +47,12 @@ public class ExternalFilesystem implements FilesystemBase {
         List<String> ret = new ArrayList<>();
         try {
             for (File file: files) {
-                if (!file.isDirectory()) continue;
+                // file might be part of mod folder
+                file = new File(getFileName(file.getAbsolutePath().substring(baseDirectory.getAbsolutePath().length())));
+                
+                if (!file.isDirectory())
+                    continue;
+                
                 ret.add(file.getName());
             }
         } catch(Exception ex) {
@@ -62,7 +69,8 @@ public class ExternalFilesystem implements FilesystemBase {
     public boolean directoryExists(String directory) {
         directory = directory.substring(1);
         
-        File dir = new File(baseDirectory, directory);
+        File dir = new File(getFileName(directory));
+        
         return dir.exists() && dir.isDirectory();
     }
 
@@ -76,7 +84,12 @@ public class ExternalFilesystem implements FilesystemBase {
 
         for (File file: files)
         {
-            if (!file.isFile()) continue;
+            // file might be part of mod folder
+            file = new File(getFileName(file.getAbsolutePath().substring(baseDirectory.getAbsolutePath().length())));
+            
+            if (!file.isFile())
+                continue;
+            
             ret.add(file.getName());
         }
 
@@ -85,16 +98,35 @@ public class ExternalFilesystem implements FilesystemBase {
 
     @Override
     public boolean fileExists(String filename) { 
-        filename = filename.substring(1);
+        //filename = filename.substring(1);
         
-        File file = new File(baseDirectory, filename);
+        File file = new File(getFileName(filename));
         return file.exists() && file.isFile();
     }
 
     @Override
     public FileBase openFile(String filename) throws FileNotFoundException {
-        if (!fileExists(filename)) throw new FileNotFoundException("File '" + filename + "' doesn't exist");
-        return new ExternalFile(baseDirectory.getPath() + filename);
+        if (!fileExists(filename))
+            throw new FileNotFoundException("File '" + filename + "' doesn't exist");
+        
+        if(Settings.modFolder_dir.equals(""))
+            return new ExternalFile(baseDirectory.getAbsolutePath() + filename);
+        
+        String modFileName = Settings.modFolder_dir + filename;
+        boolean modFileExists = new File(modFileName).exists();
+        
+        if(modFileExists)
+            return new ExternalFile(modFileName);
+        
+        String savefilename = modFileName;
+        String datafilename = baseDirectory.getAbsolutePath() + filename;
+        
+        try {
+            new File(modFileName).createNewFile(); // create the file so it can be opened w/o errors
+            return new ExternalFile(savefilename, datafilename);
+        } catch (IOException ex) {
+            return new ExternalFile(datafilename);
+        }
     }
     
     @Override
@@ -113,7 +145,7 @@ public class ExternalFilesystem implements FilesystemBase {
     }
 
 
-    private File baseDirectory;
+    private final File baseDirectory;
 
     @Override
     public void createDirectory(String parent, String newdir) {
@@ -128,5 +160,14 @@ public class ExternalFilesystem implements FilesystemBase {
     @Override
     public void deleteDirectory(String dir) {
         throw new UnsupportedOperationException("not done lol");
+    }
+    
+    private String getFileName(String file) {
+        File modfile = new File(Settings.modFolder_dir, file);
+        
+        if(modfile.exists())
+            return modfile.getAbsolutePath();
+        else
+            return baseDirectory.getAbsolutePath() + file;
     }
 }

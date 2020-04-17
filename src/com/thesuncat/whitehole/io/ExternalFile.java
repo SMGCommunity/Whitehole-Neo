@@ -20,19 +20,36 @@ import java.nio.*;
 import java.nio.charset.*;
 
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class ExternalFile implements FileBase
 {
     public ExternalFile(String path) throws FileNotFoundException
     {
         file = new RandomAccessFile(path, "rw");
+        
         bigEndian = false;
     }
     
     
+    public ExternalFile(String savePath, String dataPath) throws FileNotFoundException, IOException
+    {
+        this(savePath);
+        
+        saveFile = new File(savePath);
+        saveFile.delete(); // it was created before calling the ctor to avoid failing to open it
+        
+        // write data from dataPath to our file
+        byte[] data = Files.readAllBytes(new File(dataPath).toPath());
+        file.write(data, 0, data.length);
+    }
+    
     @Override
     public void save() throws IOException
     {
+        if(saveFile != null) // we're creating a file in the mod folder to save it
+            saveFile.createNewFile();
+        
         file.getChannel().force(true);
     }
 
@@ -292,5 +309,6 @@ public class ExternalFile implements FileBase
     
     
     protected RandomAccessFile file;
+    protected File saveFile; // file to save to
     private boolean bigEndian;
 }

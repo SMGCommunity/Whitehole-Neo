@@ -141,7 +141,9 @@ public class MainFrame extends javax.swing.JFrame {
         try {
             Whitehole.game = new GameArchive(new ExternalFilesystem(dir));
         } catch (IOException ex) {
-            System.exit(1);
+            System.err.println(ex.getLocalizedMessage());
+            lbStatusBar.setText(ex.getLocalizedMessage());
+            return;
         }
         
         Whitehole.curGameDir = dir;

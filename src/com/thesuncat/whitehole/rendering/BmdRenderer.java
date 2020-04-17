@@ -72,6 +72,11 @@ public class BmdRenderer extends GLRenderer {
     private int shaderHash(int matid) {
         byte[] sigarray = new byte[200];
         ByteBuffer sig = ByteBuffer.wrap(sigarray);
+        
+        if(model == null || model.materials.length - 1 < matid) { // avoid nullpointer exception
+            return -1;
+        }
+        
         Bmd.Material mat = model.materials[matid];
         
         sig.put((byte)mat.numTexgens);
@@ -162,6 +167,9 @@ public class BmdRenderer extends GLRenderer {
 
     // Huge performance eater. rewrite will never happen :c
     public void generateShaders(GL2 gl, int matid, int...customColors) throws GLException {
+        if(model == null)
+            return;
+        
         if(shaders == null)
             shaders = new Shader[1];
         shaders[matid] = new Shader();
@@ -224,6 +232,7 @@ public class BmdRenderer extends GLRenderer {
         // retarded.
 
         int success;
+        
         Bmd.Material mat = model.materials[matid];
         
         //---------------------------------------------------------------------------------VertexShader----------------------------------------------------------------
