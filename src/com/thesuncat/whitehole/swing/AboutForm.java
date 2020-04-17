@@ -32,7 +32,7 @@ public class AboutForm extends javax.swing.JFrame {
         }
         if(Settings.dark) {
             ArrayList<JLabel> btnArray = new ArrayList<>();
-            btnArray.addAll(Arrays.asList(jLabel1, jLabel10,jLabel11,jLabel12,jLabel13,jLabel15,jLabel16,jLabel17,jLabel18,jLabel2,jLabel3,jLabel4,jLabel5,jLabel6,jLabel7,jLabel8,jLabel9,jLabel19, jLabel14, jLabel20, jLabel21));
+            btnArray.addAll(Arrays.asList(jLabel1, jLabel10,jLabel11,jLabel12,jLabel13,jLabel15,jLabel16,jLabel17,jLabel18,jLabel2,jLabel3,jLabel4,jLabel5,jLabel6,jLabel7,jLabel8,jLabel9,jLabel19, jLabel14, jLabel20, jLabel21, jLabel22));
             this.getContentPane().setBackground(new Color(54,57,63));
             this.getContentPane().setForeground(new Color(157,158,161));
             for (int i = 0; i < btnArray.size(); i++) {
@@ -151,8 +151,7 @@ public class AboutForm extends javax.swing.JFrame {
                                                 .addComponent(jLabel7)
                                                 .addComponent(jLabel9)
                                                 .addComponent(jLabel13)
-                                                .addComponent(jLabel17)
-                                                .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                                .addComponent(jLabel17))))
                                     .addComponent(jLabel11)
                                     .addComponent(jLabel16)
                                     .addComponent(jLabel20))
@@ -162,12 +161,14 @@ public class AboutForm extends javax.swing.JFrame {
                                     .addComponent(jLabel8)
                                     .addComponent(jLabel15)
                                     .addComponent(jLabel18)))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel19)
-                            .addComponent(jLabel14))
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel21)))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(jLabel19)
+                                .addComponent(jLabel14))
+                            .addGap(18, 18, 18)
+                            .addComponent(jLabel21))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
