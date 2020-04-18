@@ -155,71 +155,71 @@ public class ZoneArchive {
         }
         
         try {
-            Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/Jmp/" + filepath));
+            BcsvFile bcsv = new BcsvFile(mapArc.openFile("/Stage/Jmp/" + filepath));
             
             switch (file) {
                 case "stageobjinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         zones.get(layer).add(new StageObj(this, filepath, entry));
                     }
                     break;
                 case "mappartsinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new MapPartObj(this, filepath, entry));
                     }
                     break;
                 case "childobjinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new ChildObj(this, filepath, entry));
                     }
                     break;
                 case "objinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new LevelObj(this, filepath, entry));
                     }
                     break;
                 case "startinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new StartObj(this, filepath, entry));
                     }
                     break;
                 case "planetobjinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new GravityObj(this, filepath, entry));
                     }
                     break;
                 case "soundinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new SoundObj(this, filepath, entry));
                     }
                     break;
                 case "areaobjinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new AreaObj(this, filepath, entry));
                     }
                     break;
                 case "cameracubeinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new CameraObj(this, filepath, entry));
                     }
                     break;
                 case "demoobjinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new CutsceneObj(this, filepath, entry));
                     }
                     break;
                 case "generalposinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new PositionObj(this, filepath, entry));
                     }
                     break;
                 case "debugmoveinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new DebugObj(this, filepath, entry));
                     }
                     break; 
                 case "changeobjinfo":
-                    for (Bcsv.Entry entry : bcsv.entries) {
+                    for (BcsvFile.Entry entry : bcsv.entries) {
                         objects.get(layer).add(new ChangeObj(this, filepath, entry));
                     }
                     break;
@@ -240,7 +240,7 @@ public class ZoneArchive {
             return 0;
         
         try {
-            Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/Jmp/" + filepath));
+            BcsvFile bcsv = new BcsvFile(mapArc.openFile("/Stage/Jmp/" + filepath));
             bcsv.entries.clear();
             for (AbstractObj obj : objects.get(layer)) {
                 if (!dir.equals(obj.directory) || !file.equals(obj.file))
@@ -263,9 +263,9 @@ public class ZoneArchive {
     
     private void loadPaths() {
         try {
-            Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/jmp/Path/CommonPathInfo"));
+            BcsvFile bcsv = new BcsvFile(mapArc.openFile("/Stage/jmp/Path/CommonPathInfo"));
             paths = new ArrayList<>(bcsv.entries.size());
-            for (Bcsv.Entry entry : bcsv.entries)
+            for (BcsvFile.Entry entry : bcsv.entries)
                 paths.add(new PathObj(this, entry));
             bcsv.close();
         }
@@ -276,7 +276,7 @@ public class ZoneArchive {
     
     private void savePaths() {
         try {
-            Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/jmp/Path/CommonPathInfo"));
+            BcsvFile bcsv = new BcsvFile(mapArc.openFile("/Stage/jmp/Path/CommonPathInfo"));
 
             bcsv.entries.clear();
             for (PathObj pobj : paths) {

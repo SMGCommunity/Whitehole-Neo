@@ -17,14 +17,14 @@ package com.thesuncat.whitehole.smg.object;
 
 import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.swing.PropertyGrid;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.smg.ZoneArchive;
 import com.thesuncat.whitehole.vectors.Vector3;
 import java.util.List;
 import java.util.ArrayList;
 
 public class PositionObj extends AbstractObj {
-    public PositionObj(ZoneArchive zone, String filepath, Bcsv.Entry entry) {
+    public PositionObj(ZoneArchive zone, String filepath, BcsvFile.Entry entry) {
         this.type = "position";
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -52,7 +52,7 @@ public class PositionObj extends AbstractObj {
         layer = stuff[1].toLowerCase();
         file = stuff[2];
         
-        data = new Bcsv.Entry();
+        data = new BcsvFile.Entry();
         
         name = "GeneralPos";
         renderer = null;

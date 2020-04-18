@@ -17,7 +17,7 @@ package com.thesuncat.whitehole;
 
 import club.minnced.discord.rpc.*;
 import com.thesuncat.whitehole.rendering.cache.*;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.smg.GameArchive;
 import com.thesuncat.whitehole.swing.*;
 import java.awt.Image;
@@ -87,7 +87,7 @@ public class Whitehole {
         TextureCache.init();
         ShaderCache.init();
         RendererCache.init();
-        Bcsv.populateHashTable();
+        BcsvFile.populateHashTable();
 
         if(Settings.richPresence) {
             Thread discord = new Thread(new Runnable() {

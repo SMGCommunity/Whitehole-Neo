@@ -21,7 +21,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import java.awt.Color;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -175,13 +175,13 @@ public class HashForm extends javax.swing.JFrame {
         }
         else {
             lblSpaces.setVisible(false);
-            txtOutput.setText(String.format("%1$08X", Bcsv.fieldNameToHash(txtInput.getText())));
+            txtOutput.setText(String.format("%1$08X", BcsvFile.fieldNameToHash(txtInput.getText())));
         }
     }//GEN-LAST:event_txtInputKeyReleased
 
     private void btnAddToActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddToActionPerformed
         try {
-            File file = Bcsv.LOOKUPFILE;
+            File file = BcsvFile.LOOKUPFILE;
             if (!file.exists())
                 file.createNewFile();
             

@@ -3,7 +3,7 @@ package com.thesuncat.whitehole.rendering;
 import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.rendering.cache.RendererCache;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.smg.GalaxyArchive;
 import com.thesuncat.whitehole.smg.ZoneArchive;
 import com.thesuncat.whitehole.smg.object.AbstractObj;
@@ -331,7 +331,7 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
             }
             gl.glNewList(dl, GL2.GL_COMPILE);
 
-            Bcsv.Entry scenario = galaxyArc.scenarioData.get(s);
+            BcsvFile.Entry scenario = galaxyArc.scenarioData.get(s);
             renderZone(gl, scenario, galaxyName,(int)scenario.get(galaxyName), 0);
 
             gl.glEndList();
@@ -369,7 +369,7 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
         gl.glEndList();
     }
     
-    private void renderZone(GL2 gl, Bcsv.Entry scenario, String zone, int layermask, int level) {
+    private void renderZone(GL2 gl, BcsvFile.Entry scenario, String zone, int layermask, int level) {
         String alphabet = "abcdefghijklmnop";
         int mode = -1;
         switch(renderinfo.renderMode) {

@@ -2,7 +2,7 @@ package com.thesuncat.whitehole.swing;
 
 import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.io.*;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.logging.*;
@@ -154,8 +154,8 @@ public class BcsvSearch extends javax.swing.JFrame {
         
         ArrayList<String> found = new ArrayList<>();
         for(FileBase f : bcsvList) {
-            Bcsv b = new Bcsv(f);
-            for(Bcsv.Entry e : b.entries) {
+            BcsvFile b = new BcsvFile(f);
+            for(BcsvFile.Entry e : b.entries) {
                 for(Object o : e.values()) {
                     boolean match = false;
                     if(!cbxMatchCase.isSelected() && o.toString().toLowerCase().contains(searchStr.toLowerCase()))

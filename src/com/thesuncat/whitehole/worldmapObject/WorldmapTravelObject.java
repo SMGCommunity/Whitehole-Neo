@@ -1,6 +1,6 @@
 package com.thesuncat.whitehole.worldmapObject;
 
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 
 /**
  *
@@ -8,7 +8,7 @@ import com.thesuncat.whitehole.smg.Bcsv;
  * 
  */
 public class WorldmapTravelObject extends MiscWorldmapObject {
-    public WorldmapTravelObject(Bcsv.Entry entry, Bcsv.Entry pointEntry, int worldId) {
+    public WorldmapTravelObject(BcsvFile.Entry entry, BcsvFile.Entry pointEntry, int worldId) {
         super(entry,pointEntry);
         worldmapId = worldId;
     }

@@ -20,7 +20,7 @@ import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.swing.PropertyGrid;
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.rendering.cache.RendererCache;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.smg.ZoneArchive;
 import com.thesuncat.whitehole.vectors.Vector3;
 import javax.media.opengl.*;
@@ -147,7 +147,7 @@ public abstract class AbstractObj {
     
     public String directory, layer, file;
     public String name, oldname, type = "general";
-    public Bcsv.Entry data;
+    public BcsvFile.Entry data;
     public ObjectDB.Object dbInfo;
     public Vector3 position, rotation, scale;
     public GLRenderer renderer;

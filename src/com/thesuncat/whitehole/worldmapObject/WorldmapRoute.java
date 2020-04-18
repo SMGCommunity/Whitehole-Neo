@@ -2,7 +2,7 @@ package com.thesuncat.whitehole.worldmapObject;
 
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer.RenderInfo;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import javax.media.opengl.GL2;
 
 /**
@@ -10,7 +10,7 @@ import javax.media.opengl.GL2;
  * @author jupah
  */
 public class WorldmapRoute {
-    public WorldmapRoute(Bcsv.Entry entry){
+    public WorldmapRoute(BcsvFile.Entry entry){
         this.entry = entry;
     }
     
@@ -35,5 +35,5 @@ public class WorldmapRoute {
         return "route " + entry.get("PointIndexA") + " to " + entry.get("PointIndexB");
     }
     
-    public Bcsv.Entry entry;
+    public BcsvFile.Entry entry;
 }

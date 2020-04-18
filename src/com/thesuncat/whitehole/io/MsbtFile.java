@@ -37,6 +37,8 @@ public class MsbtFile {
         else
             byteStream.order(ByteOrder.BIG_ENDIAN);
         
+        System.out.println("yes = " + (int) byteStream.getChar(0xE));
+        
         //Skip past header
         currentPosition = 32;
         labels = new LabelSection();
@@ -632,6 +634,32 @@ public class MsbtFile {
 	saveBuffer.put(curPos += 3, (byte) parameter);
 	saveBuffer.put(curPos + 2, (byte) length);
     }
+    public void dumpData()
+    {
+        for(MsbtMessage msg : messages)
+        {
+            System.out.println("label = " + msg.label + "\n"
+                    + "str = " + msg.string.messageText.replace("\n", "\\n"));
+            
+            for(MsbtCommand c : msg.string.commands)
+            {
+                System.out.println("com.type = " + c.type + "\n"
+                        + "com.name = " + c.name + "\n"
+                        + "com.arg = " + c.arg + "\n"
+                        + "com.index = " + c.index);
+            }
+            
+            System.out.println("trigger = " + msg.trigger
+                    + "unk0 = " + msg.unknown0 + "\n"
+                    + "unk1 = " + msg.unknown1 + "\n"
+                    + "unk2 = " + msg.unknown2 + "\n"
+                    + "unk3 = " + msg.unknown3 + "\n"
+                    + "unk4 = " + msg.unknown4 + "\n"
+                    + "unk5 = " + msg.unknown5 + "\n"
+                    + "unk6 = " + msg.unknown6 + "\n\n");
+        }
+    }
+    
     
     public class MsbtMessage {
         public MsbtString string;
@@ -657,15 +685,6 @@ public class MsbtFile {
             unknown4 = atr.unknown4;
             unknown5 = atr.unknown5;
             unknown6 = atr.unknown6;
-            System.out.println("Reading str w/ value of " + string.messageText + 
-                    "\nunk0=" + unknown0 +
-                    "\nunk1=" + unknown1 +
-                    "\nunk2=" + unknown2 +
-                    "\nunk3=" + unknown3 +
-                    "\nunk4=" + unknown4 +
-                    "\nunk5=" + unknown5 +
-                    "\nunk6=" + unknown6 +
-                    "\ntrigger=" + trigger);
         }
     }
     

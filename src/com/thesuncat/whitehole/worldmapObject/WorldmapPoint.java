@@ -2,7 +2,7 @@ package com.thesuncat.whitehole.worldmapObject;
 
 import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import javax.media.opengl.GL2;
 
 /**
@@ -14,7 +14,7 @@ public class WorldmapPoint {
         
     }
     
-    public WorldmapPoint(Bcsv.Entry entry){
+    public WorldmapPoint(BcsvFile.Entry entry){
         this.entry = entry;
     }
     
@@ -42,6 +42,6 @@ public class WorldmapPoint {
         return "["+entry.get(70793394)+"] Point";
     }
     
-    public Bcsv.Entry entry;
+    public BcsvFile.Entry entry;
     public int pickingId;
 }

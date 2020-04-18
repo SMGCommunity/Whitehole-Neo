@@ -63,7 +63,7 @@ public class GameArchive {
         getGameType(stages.get(0));
         
         for (String stage : stages) {
-            Bcsv.addHash(stage);
+            BcsvFile.addHash(stage);
             
             // Main slowdown caused by file reading in galaxyExists, not sure anything can be done.
             if(!galaxyExists(stage))

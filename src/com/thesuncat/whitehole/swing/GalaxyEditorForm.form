@@ -14,8 +14,8 @@
           <SubComponents>
             <MenuItem class="javax.swing.JMenuItem" name="itemSave">
               <Properties>
-                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
-                  <KeyStroke key="Ctrl+S"/>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="Settings.useWASD ? null : KeyStroke.getKeyStroke&#xd;&#xa;&#xd;&#xa;(KeyEvent.VK_S, ActionEvent.CTRL_MASK)&#xd;&#xa;" type="code"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Save"/>
               </Properties>
@@ -45,6 +45,9 @@
               <SubComponents>
                 <MenuItem class="javax.swing.JMenuItem" name="itmPositionCopy">
                   <Properties>
+                    <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="KeyStroke.getKeyStroke&#xd;&#xa;&#xd;&#xa;(Settings.keyPos, ActionEvent.ALT_MASK)&#xd;&#xa;" type="code"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Position"/>
                   </Properties>
                   <Events>
@@ -53,6 +56,9 @@
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="itmRotationCopy">
                   <Properties>
+                    <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="KeyStroke.getKeyStroke&#xd;&#xa;&#xd;&#xa;(Settings.keyRot, ActionEvent.ALT_MASK)" type="code"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Rotation"/>
                   </Properties>
                   <Events>
@@ -61,6 +67,9 @@
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="itmScaleCopy">
                   <Properties>
+                    <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="KeyStroke.getKeyStroke&#xd;&#xa;&#xd;&#xa;(Settings.keyScl, ActionEvent.ALT_MASK)" type="code"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Scale"/>
                   </Properties>
                   <Events>
@@ -76,6 +85,9 @@
               <SubComponents>
                 <MenuItem class="javax.swing.JMenuItem" name="itmPositionPaste">
                   <Properties>
+                    <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="KeyStroke.getKeyStroke&#xd;&#xa;&#xd;&#xa;(Settings.keyPos, ActionEvent.SHIFT_MASK)" type="code"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Position (0.0, 0.0, 0.0)"/>
                   </Properties>
                   <Events>
@@ -84,6 +96,9 @@
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="itmRotationPaste">
                   <Properties>
+                    <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="KeyStroke.getKeyStroke&#xd;&#xa;&#xd;&#xa;(Settings.keyRot, ActionEvent.SHIFT_MASK)" type="code"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Rotation (0.0, 0.0, 0.0)"/>
                   </Properties>
                   <Events>
@@ -92,6 +107,9 @@
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="itmScalePaste">
                   <Properties>
+                    <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="KeyStroke.getKeyStroke&#xd;&#xa;&#xd;&#xa;(Settings.keyScl, ActionEvent.SHIFT_MASK)" type="code"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Scale (1.0, 1.0, 1.0)"/>
                     <Property name="toolTipText" type="java.lang.String" value=""/>
                   </Properties>
@@ -103,8 +121,8 @@
             </Menu>
             <MenuItem class="javax.swing.JMenuItem" name="itmScreenshot">
               <Properties>
-                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
-                  <KeyStroke key="Ctrl+Alt+E"/>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="KeyStroke.getKeyStroke(Settings.keyScrn, 0)" type="code"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Screenshot"/>
               </Properties>

@@ -15,6 +15,7 @@
 
 package com.thesuncat.whitehole;
 
+import java.awt.event.KeyEvent;
 import java.util.prefs.Preferences;
 
 public class Settings {
@@ -23,7 +24,7 @@ public class Settings {
         modFolder_dir = prefs.get("mod.dir", "");
         arc_enc = prefs.getBoolean("arc.enc", true);
         editor_shaders = prefs.getBoolean("editor.shaders", true);
-        editor_fastDrag = prefs.getBoolean("editor.fastDrag", false);
+        editor_fastDrag = prefs.getBoolean("editor.fastdrag", false);
         gameDir = prefs.getBoolean("game.dir", true);
         dark = prefs.getBoolean("theme.dark", false);
         aa = prefs.getBoolean("anti.alias", true);
@@ -39,6 +40,11 @@ public class Settings {
         richPresence = prefs.getBoolean("discord.presence", true);
         fileNames = prefs.getBoolean("discord.filenames", false);
         associated = prefs.getBoolean("arc.associated", false);
+        useWASD = prefs.getBoolean("editor.usewasd", false);
+        keyPos = prefs.getInt("key.position", KeyEvent.VK_G);
+        keyRot = prefs.getInt("key.rotation", KeyEvent.VK_R);
+        keyScl = prefs.getInt("key.scale", KeyEvent.VK_S);
+        keyScrn = prefs.getInt("key.screenshot", KeyEvent.VK_F2);
     }
     
     public static void save() {
@@ -46,7 +52,7 @@ public class Settings {
         prefs.put("mod.dir", modFolder_dir);
         prefs.putBoolean("arc.enc", arc_enc);
         prefs.putBoolean("editor.shaders", editor_shaders);
-        prefs.putBoolean("editor.fastDrag", editor_fastDrag);
+        prefs.putBoolean("editor.fastdrag", editor_fastDrag);
         prefs.putBoolean("game.dir", gameDir);
         prefs.putBoolean("theme.dark", dark);
         prefs.putBoolean("anti.alias", aa);
@@ -57,6 +63,11 @@ public class Settings {
         prefs.putBoolean("discord.presence", richPresence);
         prefs.putBoolean("discord.filenames", fileNames);
         prefs.putBoolean("arc.associated", associated);
+        prefs.putBoolean("editor.usewasd", useWASD);
+        prefs.putInt("key.position", keyPos);
+        prefs.putInt("key.rotation", keyRot);
+        prefs.putInt("key.scale", keyScl);
+        prefs.putInt("key.screenshot", keyScrn);
     }
     
     public static void saveEditorPrefs(boolean area, boolean gravity, boolean cameras, boolean paths, boolean axis) {
@@ -74,4 +85,6 @@ public class Settings {
     public static boolean arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy, japanese, fileNames;
     public static boolean editor_shaders, editor_fastDrag;
     public static boolean showAreas, showCameras, showGravity, showPaths, showAxis;
+    public static boolean useWASD;
+    public static int keyPos, keyRot, keyScl, keyScrn;
 }

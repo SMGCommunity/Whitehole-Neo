@@ -18,7 +18,7 @@ package com.thesuncat.whitehole.smg.object;
 import com.thesuncat.whitehole.swing.PropertyGrid;
 import com.thesuncat.whitehole.rendering.ColorCubeRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.vectors.Color4;
 import com.thesuncat.whitehole.vectors.Vector3;
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public class PathPointObj extends AbstractObj {
         zone = path.zone;
         layer = "common";
         
-        data = new Bcsv.Entry();
+        data = new BcsvFile.Entry();
         uniqueID = -1;
         
         position = pos;
@@ -59,7 +59,7 @@ public class PathPointObj extends AbstractObj {
         data.put("id", (short)index);
     }
     
-    public PathPointObj(PathObj path, Bcsv.Entry entry) {
+    public PathPointObj(PathObj path, BcsvFile.Entry entry) {
         this.path = path;
         
         zone = path.zone;

@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import com.thesuncat.whitehole.rendering.GLRenderer;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.smg.ZoneArchive;
 import com.thesuncat.whitehole.vectors.Color4;
 import com.thesuncat.whitehole.vectors.Vector3;
@@ -30,7 +30,7 @@ public class PathObj {
     public PathObj(ZoneArchive zone, int idx) {
         this.zone = zone;
         
-        data = new Bcsv.Entry();
+        data = new BcsvFile.Entry();
         uniqueID = -1;
         
         index = idx;
@@ -60,7 +60,7 @@ public class PathObj {
         data.put("Path_ID", (short)-1);
     }
 
-    public PathObj(ZoneArchive zone, Bcsv.Entry entry) {
+    public PathObj(ZoneArchive zone, BcsvFile.Entry entry) {
         this.zone = zone;
 
         data = entry;
@@ -73,11 +73,11 @@ public class PathObj {
         generateColor();
         
         try {
-            Bcsv pointsfile = new Bcsv(zone.mapArc.openFile(String.format("/Stage/Jmp/Path/CommonPathPointInfo.%1$d", index)));
+            BcsvFile pointsfile = new BcsvFile(zone.mapArc.openFile(String.format("/Stage/Jmp/Path/CommonPathPointInfo.%1$d", index)));
 
             points = new LinkedHashMap();
 
-            for (Bcsv.Entry pt : pointsfile.entries) {
+            for (BcsvFile.Entry pt : pointsfile.entries) {
                 PathPointObj ptobj = new PathPointObj(this, pt);
                 points.put(ptobj.index, ptobj);
             }
@@ -101,7 +101,7 @@ public class PathObj {
         try {
             deleteStorage();
             createStorage();
-            Bcsv pointsfile = new Bcsv(zone.mapArc.openFile(String.format("/Stage/Jmp/Path/CommonPathPointInfo.%1$d", index)));
+            BcsvFile pointsfile = new BcsvFile(zone.mapArc.openFile(String.format("/Stage/Jmp/Path/CommonPathPointInfo.%1$d", index)));
             pointsfile.entries.clear();
             for (PathPointObj ptobj : points.values()) {
                 ptobj.save();
@@ -122,7 +122,7 @@ public class PathObj {
         
         try {
             zone.mapArc.createFile(filename.substring(0, filename.lastIndexOf("/")), filename.substring(filename.lastIndexOf("/") + 1));
-            Bcsv pointsfile = new Bcsv(zone.mapArc.openFile(filename));
+            BcsvFile pointsfile = new BcsvFile(zone.mapArc.openFile(filename));
 
             pointsfile.addField("point_arg0", 36, 0, -1, 0, 0);
             pointsfile.addField("point_arg1", 40, 0, -1, 0, 0);
@@ -289,7 +289,7 @@ public class PathObj {
     
     private Color4 color;
     public ZoneArchive zone;
-    public Bcsv.Entry data;
+    public BcsvFile.Entry data;
     public int[] displayLists;
     public int uniqueID, index, pathID;
     public String name;

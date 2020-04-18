@@ -21,10 +21,10 @@ import com.thesuncat.whitehole.io.RarcFilesystem;
 import com.thesuncat.whitehole.rendering.*;
 import com.thesuncat.whitehole.rendering.GLRenderer.RenderMode;
 import com.thesuncat.whitehole.rendering.cache.RendererCache;
-import com.thesuncat.whitehole.smg.Bcsv.Field;
+import com.thesuncat.whitehole.smg.BcsvFile.Field;
 import com.thesuncat.whitehole.smg.*;
 import com.thesuncat.whitehole.smg.object.*;
-import com.thesuncat.whitehole.swing.DarkThemeRenderers.ColorTabbedPaneLayout;
+import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkTabbedPaneUI;
 import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkJMenuBar;
 import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkScrollBarUI;
 import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkSplitPaneUI;
@@ -113,14 +113,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     allWorldArchives.add(arc);
                 }
 
-                bcsvWorldMapPoints = new Bcsv(worldmapArchive.openFile("/WorldMap0" + worldmapId + "/ActorInfo/PointPos.bcsv"));
+                bcsvWorldMapPoints = new BcsvFile(worldmapArchive.openFile("/WorldMap0" + worldmapId + "/ActorInfo/PointPos.bcsv"));
 
-                for(Bcsv.Entry entry : bcsvWorldMapPoints.entries)
+                for(BcsvFile.Entry entry : bcsvWorldMapPoints.entries)
                     globalWorldmapPointList.add(new WorldmapPoint(entry));
 
-                bcsvWorldMapLinks = new Bcsv(worldmapArchive.openFile("/WorldMap0" + worldmapId + "/ActorInfo/PointLink.bcsv"));
+                bcsvWorldMapLinks = new BcsvFile(worldmapArchive.openFile("/WorldMap0" + worldmapId + "/ActorInfo/PointLink.bcsv"));
 
-                for(Bcsv.Entry entry : bcsvWorldMapLinks.entries)
+                for(BcsvFile.Entry entry : bcsvWorldMapLinks.entries)
                     globalWorldmapRouteList.add(new WorldmapRoute(entry));
 
 
@@ -138,9 +138,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
                 // Gotta be honest, no clue what this code here does. TODO
                 if(worldmapId != 8) {
-                    bcsvWorldMapGalaxies = new Bcsv(worldmapArchive.openFile("/WorldMap0" + worldmapId + "/ActorInfo/Galaxy.bcsv"));
+                    bcsvWorldMapGalaxies = new BcsvFile(worldmapArchive.openFile("/WorldMap0" + worldmapId + "/ActorInfo/Galaxy.bcsv"));
 
-                    for(Bcsv.Entry entry : bcsvWorldMapGalaxies.entries) {
+                    for(BcsvFile.Entry entry : bcsvWorldMapGalaxies.entries) {
                         int index = (int) entry.get("PointPosIndex");
                         globalWorldmapPointList.add(index,new GalaxyPreview(entry, globalWorldmapPointList.get(index)));
                         globalWorldmapPointList.remove(index + 1);
@@ -148,22 +148,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
 
                 for(int i = 1; i <= 8; i++) {
-                    Bcsv bcsv;
+                    BcsvFile bcsv;
                     if(allWorldArchives.get(i-1).fileExists("/WorldMap0" + i + "/PointParts.bcsv"))
-                        bcsv = new Bcsv(allWorldArchives.get(i - 1).openFile("/WorldMap0" + i + "/PointParts.bcsv"));
+                        bcsv = new BcsvFile(allWorldArchives.get(i - 1).openFile("/WorldMap0" + i + "/PointParts.bcsv"));
                     else
-                        bcsv = new Bcsv(allWorldArchives.get(i - 1).openFile("/WorldMap0" + i + "/ActorInfo/PointParts.bcsv"));
+                        bcsv = new BcsvFile(allWorldArchives.get(i - 1).openFile("/WorldMap0" + i + "/ActorInfo/PointParts.bcsv"));
 
                     if(i == worldmapId) {
                         bcsvWorldMapMiscObjects = bcsv;
-                        for(Bcsv.Entry entry : bcsv.entries) {
+                        for(BcsvFile.Entry entry : bcsv.entries) {
                             int index =(int)entry.get("PointIndex");
                             globalWorldmapPointList.add(index,new MiscWorldmapObject(entry,globalWorldmapPointList.get(index)));
                             globalWorldmapPointList.remove(index+1);
                         }
                     } else {
                         System.out.println("world" + i);
-                        for(Bcsv.Entry entry : bcsv.entries) {
+                        for(BcsvFile.Entry entry : bcsv.entries) {
                             if((entry.get("PartsTypeName").equals("WorldWarpPoint") ||
                                     entry.get("PartsTypeName").equals("StarRoadWarpPoint")) && (int) entry.get("Param00") == worldmapId) {
                                 int index = (int) entry.get("Param01");
@@ -289,8 +289,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         treeNodeList = new HashMap();
         
         unsavedChanges = false;
-        keyMask = 0;
-        keyDelta = 0;
         
         closing = false;
         zoneEditors = new HashMap();
@@ -1043,7 +1041,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         mnuSave.setText("File");
 
-        itemSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        itemSave.setAccelerator(Settings.useWASD ? null : KeyStroke.getKeyStroke
+
+            (KeyEvent.VK_S, ActionEvent.CTRL_MASK)
+        );
         itemSave.setText("Save");
         itemSave.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1066,6 +1067,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         subCopy.setText("Copy");
 
+        itmPositionCopy.setAccelerator(KeyStroke.getKeyStroke
+
+            (Settings.keyPos, ActionEvent.ALT_MASK)
+        );
         itmPositionCopy.setText("Position");
         itmPositionCopy.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1074,6 +1079,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         });
         subCopy.add(itmPositionCopy);
 
+        itmRotationCopy.setAccelerator(KeyStroke.getKeyStroke
+
+            (Settings.keyRot, ActionEvent.ALT_MASK));
         itmRotationCopy.setText("Rotation");
         itmRotationCopy.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1082,6 +1090,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         });
         subCopy.add(itmRotationCopy);
 
+        itmScaleCopy.setAccelerator(KeyStroke.getKeyStroke
+
+            (Settings.keyScl, ActionEvent.ALT_MASK));
         itmScaleCopy.setText("Scale");
         itmScaleCopy.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1094,6 +1105,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         subPaste.setText("Paste");
 
+        itmPositionPaste.setAccelerator(KeyStroke.getKeyStroke
+
+            (Settings.keyPos, ActionEvent.SHIFT_MASK));
         itmPositionPaste.setText("Position (0.0, 0.0, 0.0)");
         itmPositionPaste.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1102,6 +1116,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         });
         subPaste.add(itmPositionPaste);
 
+        itmRotationPaste.setAccelerator(KeyStroke.getKeyStroke
+
+            (Settings.keyRot, ActionEvent.SHIFT_MASK));
         itmRotationPaste.setText("Rotation (0.0, 0.0, 0.0)");
         itmRotationPaste.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1110,6 +1127,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         });
         subPaste.add(itmRotationPaste);
 
+        itmScalePaste.setAccelerator(KeyStroke.getKeyStroke
+
+            (Settings.keyScl, ActionEvent.SHIFT_MASK));
         itmScalePaste.setText("Scale (1.0, 1.0, 1.0)");
         itmScalePaste.setToolTipText("");
         itmScalePaste.addActionListener(new java.awt.event.ActionListener() {
@@ -1121,7 +1141,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         mnuEdit.add(subPaste);
 
-        itmScreenshot.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.ALT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+        itmScreenshot.setAccelerator(KeyStroke.getKeyStroke(Settings.keyScrn, 0));
         itmScreenshot.setText("Screenshot");
         itmScreenshot.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1155,7 +1175,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if(galaxyMode) {
             DefaultListModel scenlist = new DefaultListModel();
             lbScenarioList.setModel(scenlist);
-            for(Bcsv.Entry scen : galaxyArc.scenarioData)
+            for(BcsvFile.Entry scen : galaxyArc.scenarioData)
                 scenlist.addElement(String.format("[%1$d] %2$s",(int)scen.get("ScenarioNo"),(String)scen.get("ScenarioName")));
 
             lbScenarioList.setSelectedIndex(0);
@@ -1776,14 +1796,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             int res = JOptionPane.showConfirmDialog(this, "Save your changes?", Whitehole.NAME,
                     JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
             
-            if(res == JOptionPane.CANCEL_OPTION)
+            if(res == JOptionPane.CANCEL_OPTION) {
+                setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
                 return;
-            else {
+            } else {
                 setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 if(res == JOptionPane.YES_OPTION)
                     saveChanges();
             }
         }
+        
         closing = true;
         Settings.saveEditorPrefs(btnShowAreas.isSelected(), btnShowGravity.isSelected(),
                 btnShowCameras.isSelected(), btnShowPaths.isSelected(), tgbShowAxis.isSelected());
@@ -1801,9 +1823,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             int res = JOptionPane.showConfirmDialog(this, "Save your changes?", Whitehole.NAME,
                     JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
             
-            if(res == JOptionPane.CANCEL_OPTION)
+            if(res == JOptionPane.CANCEL_OPTION) {
+                setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
                 return;
-            else {
+            } else {
                 setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 if(res == JOptionPane.YES_OPTION)
                     saveChanges();
@@ -1811,6 +1834,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         Settings.saveEditorPrefs(btnShowAreas.isSelected(), btnShowGravity.isSelected(),
                 btnShowCameras.isSelected(), btnShowPaths.isSelected(), tgbShowAxis.isSelected());
+        
+        dispose();
     }//GEN-LAST:event_itemCloseActionPerformed
 
     private void itmPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionCopyActionPerformed
@@ -2164,7 +2189,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             bcsvWorldMapMiscObjects.save();
             
             int i = 1;
-            for(Bcsv bcsv : worldWideMiscObjects) {
+            for(BcsvFile bcsv : worldWideMiscObjects) {
                 if(i != worldmapId) //Means the own map was already saved
                     bcsv.save();
                 i++;
@@ -2421,9 +2446,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @param id the ID of the camera to look for in the cam BCSV.
      */
     public void viewCamera(int id) {
-        Bcsv camBcsv;
+        BcsvFile camBcsv;
         try {
-            camBcsv = new Bcsv(curZoneArc.mapArc.openFile("/Stage/camera/CameraParam.bcam"));
+            camBcsv = new BcsvFile(curZoneArc.mapArc.openFile("/Stage/camera/CameraParam.bcam"));
         } catch(IOException ex) {
             lbStatusLabel.setText("Could not open camera BCSV!");
             return;
@@ -2459,13 +2484,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         else
             idString = "c:" + formatted;
         
-        Bcsv.Entry cameraInQuestion = null;
+        BcsvFile.Entry cameraInQuestion = null;
         for(int i = 0; i < camBcsv.entries.size(); i++) {
-            Bcsv.Entry curEntry = camBcsv.entries.get(i);
+            BcsvFile.Entry curEntry = camBcsv.entries.get(i);
             ArrayList keys = new ArrayList(curEntry.keySet());
             String curIdString =(String) curEntry.get((Integer)keys.get(idColumn));
             if(curIdString.contains("c:") && Integer.parseInt(curIdString.substring(2), 16) == id) {
-                cameraInQuestion =(Bcsv.Entry) curEntry.clone();
+                cameraInQuestion =(BcsvFile.Entry) curEntry.clone();
                 break;
             }
         }
@@ -2512,21 +2537,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @throws FileNotFoundException 
      */
     public void generateCameraFromView() throws FileNotFoundException{
-        Bcsv camBcsv;
+        BcsvFile camBcsv;
         try {
-            camBcsv = new Bcsv(curZoneArc.mapArc.openFile("/Stage/camera/CameraParam.bcam"));
+            camBcsv = new BcsvFile(curZoneArc.mapArc.openFile("/Stage/camera/CameraParam.bcam"));
         } catch(IOException ex) {
             lbStatusLabel.setText("Could not open camera BCSV!");
             return;
         }
         
         if(camBcsv.entries.size() >= 2)
-            camBcsv.entries.add((Bcsv.Entry) camBcsv.entries.get(camBcsv.entries.size() - 1).clone());
+            camBcsv.entries.add((BcsvFile.Entry) camBcsv.entries.get(camBcsv.entries.size() - 1).clone());
         else {
-            Bcsv.Entry entry = new Bcsv.Entry();
+            BcsvFile.Entry entry = new BcsvFile.Entry();
             
             int c = 0;
-            for(Bcsv.Field field : camBcsv.fields.values()) {
+            for(BcsvFile.Field field : camBcsv.fields.values()) {
                 String val = "0";
                 try {
                     switch(field.type) {
@@ -2586,7 +2611,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         int row = camBcsv.entries.size();
         for(int i = 0; i < row - 1; i++) {
             //String camId = editor.tblBcsv.getValueAt(i, idColumn).toString();
-            Bcsv.Entry list = camBcsv.entries.get(i);
+            BcsvFile.Entry list = camBcsv.entries.get(i);
             ArrayList keys = new ArrayList(list.keySet());
             //System.out.println(keys);
             String camId =(String) list.get((int) keys.get(idColumn));
@@ -2640,7 +2665,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             ArrayList keys = new ArrayList(camBcsv.fields.keySet());
             String name = camBcsv.fields.get((int) keys.get(i)).name;
             
-            Bcsv.Entry curEntry = camBcsv.entries.get(row - 1);
+            BcsvFile.Entry curEntry = camBcsv.entries.get(row - 1);
             switch(name) {
                 case "version":
                     curEntry.put((int) keys.get(i), 196631);    
@@ -2897,7 +2922,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             switch(change.type) {
                 case "changeObj":
                     AbstractObj obj = globalObjList.get(change.id);
-                    obj.data = (Bcsv.Entry) change.data.clone();
+                    obj.data = (BcsvFile.Entry) change.data.clone();
                     obj.position = (Vector3) change.position.clone();
                     obj.rotation = (Vector3) change.rotation.clone();
                     obj.scale = (Vector3) change.scale.clone();
@@ -2920,7 +2945,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     addObject(change.position);
                     addingObject = "";
 
-                    newobj.data =(Bcsv.Entry) change.data.clone();
+                    newobj.data =(BcsvFile.Entry) change.data.clone();
                     newobj.position =(Vector3) change.position.clone();
 
                     if(change.rotation != null)
@@ -3072,6 +3097,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @param delta the distance to move the selection by
      */
     private void offsetSelectionBy(Vector3 delta) {
+        unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof PathPointObj) {
                 PathPointObj selectedPathPoint =(PathPointObj)selectedObj;
@@ -3136,6 +3162,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @param delta the amount to rotate by
      */
     private void rotateSelectionBy(Vector3 delta) {
+        unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
                 return;
@@ -3161,6 +3188,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @param delta the amount to scale by
      */
     private void scaleSelectionBy(Vector3 delta) {
+        unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
                 return;
@@ -3404,12 +3432,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         glCanvas.repaint();
     }
     
-    private WorldmapPoint createWorldmapPoint(String type, Bcsv.Entry baseEntry) throws IllegalArgumentException, IllegalAccessException {
+    private WorldmapPoint createWorldmapPoint(String type, BcsvFile.Entry baseEntry) throws IllegalArgumentException, IllegalAccessException {
         switch(type) {
             case "NormalPoint":
                 return new WorldmapPoint(baseEntry);
             case "GalaxyIcon":
-                Bcsv.Entry newEntryGP = new Bcsv.Entry();
+                BcsvFile.Entry newEntryGP = new BcsvFile.Entry();
                 newEntryGP.put("StageName", "RedBlueExGalaxy");
                 newEntryGP.put("MiniatureName", "MiniRedBlueExGalaxy");
                 newEntryGP.put("PointPosIndex", baseEntry.get(70793394));
@@ -3428,7 +3456,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 gp.initRenderer(renderinfo);
                 return gp;
             default:
-                Bcsv.Entry newEntryMO = new Bcsv.Entry();
+                BcsvFile.Entry newEntryMO = new BcsvFile.Entry();
                 newEntryMO.put("PointIndex", "WorldWarpPoint");
                 newEntryMO.put("PartsIndex", 0);
                 newEntryMO.put("Param02", -1);
@@ -3472,8 +3500,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
-    private Bcsv.Entry createPointEntry(float x, float y, float z, String colorChange) {
-        Bcsv.Entry newEntry = new Bcsv.Entry();
+    private BcsvFile.Entry createPointEntry(float x, float y, float z, String colorChange) {
+        BcsvFile.Entry newEntry = new BcsvFile.Entry();
         newEntry.put(70793394, globalWorldmapPointList.size());
         newEntry.put("Valid", "o");
         newEntry.put("SubPoint", "x");
@@ -3518,7 +3546,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     private WorldmapRoute createWorldmapRoute(int indexA, int indexB, boolean secret) {
-        Bcsv.Entry newEntry = new Bcsv.Entry();
+        BcsvFile.Entry newEntry = new BcsvFile.Entry();
         newEntry.put("PointIndexA", indexA);
         newEntry.put("PointIndexB", indexB);
         newEntry.put("CloseStageName", "");
@@ -3542,7 +3570,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     int portalToTheRightIndex = 0;
                     
                     
-                    for(Bcsv.Entry entry : bcsvWorldMapMiscObjects.entries) {
+                    for(BcsvFile.Entry entry : bcsvWorldMapMiscObjects.entries) {
                         if(entry.get("PartsTypeName").equals("WorldWarpPoint")) {
                             if((int)entry.get("Param00")>worldmapId) {
                                 portalToTheRightWorld =(int)entry.get("Param00");
@@ -3605,12 +3633,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 try {
                     WorldmapRoute route = globalWorldmapRouteList.get(currentWorldmapRouteIndex);
                     
-                    Bcsv.Entry firstRoute = new Bcsv.Entry();
-                    Bcsv.Entry secondRoute = new Bcsv.Entry();
+                    BcsvFile.Entry firstRoute = new BcsvFile.Entry();
+                    BcsvFile.Entry secondRoute = new BcsvFile.Entry();
                     
 
-                    Bcsv.Entry pointEntryA = globalWorldmapPointList.get((int)route.entry.get("PointIndexA")).entry;
-                    Bcsv.Entry pointEntryB = globalWorldmapPointList.get((int)route.entry.get("PointIndexB")).entry;
+                    BcsvFile.Entry pointEntryA = globalWorldmapPointList.get((int)route.entry.get("PointIndexA")).entry;
+                    BcsvFile.Entry pointEntryB = globalWorldmapPointList.get((int)route.entry.get("PointIndexB")).entry;
                     
                     for(String prop : new String[]{"PointIndexA","PointIndexB","CloseStageName","CloseStageScenarioNo",
                                                     "CloseGameFlag","IsSubRoute","IsColorChange"}) {
@@ -3640,7 +3668,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 return;
             case "Add connected Point":
                 try {
-                    Bcsv.Entry pointEntry = globalWorldmapPointList.get(currentWorldmapPointIndex).entry;
+                    BcsvFile.Entry pointEntry = globalWorldmapPointList.get(currentWorldmapPointIndex).entry;
                     
                     globalWorldmapRouteList.add(createWorldmapRoute(currentWorldmapPointIndex, globalWorldmapPointList.size(), false));
                     globalWorldmapPointList.add(new WorldmapPoint(createPointEntry(
@@ -3655,7 +3683,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             case "Add connected SecretGalaxy":
                 try {
                     MiscWorldmapObject current =(MiscWorldmapObject)globalWorldmapPointList.get(currentWorldmapPointIndex);
-                    Bcsv.Entry pointEntry = globalWorldmapPointList.get(currentWorldmapPointIndex).entry;
+                    BcsvFile.Entry pointEntry = globalWorldmapPointList.get(currentWorldmapPointIndex).entry;
                     
                     globalWorldmapRouteList.add(createWorldmapRoute(currentWorldmapPointIndex, globalWorldmapPointList.size(), true));
                     GalaxyPreview gp =(GalaxyPreview)createWorldmapPoint("GalaxyIcon",createPointEntry(
@@ -3675,7 +3703,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             case "Add connected Pipe":
                 try {
                     MiscWorldmapObject current =(MiscWorldmapObject)globalWorldmapPointList.get(currentWorldmapPointIndex);
-                    Bcsv.Entry pointEntry = globalWorldmapPointList.get(currentWorldmapPointIndex).entry;
+                    BcsvFile.Entry pointEntry = globalWorldmapPointList.get(currentWorldmapPointIndex).entry;
                     
                     MiscWorldmapObject mo =(MiscWorldmapObject)createWorldmapPoint("WarpPipe",createPointEntry(
                            (float)pointEntry.get(-726582764),
@@ -3866,7 +3894,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * for the selected objects.
      */
     
-    public void propertyChanged(String propname, Object value, Bcsv.Entry data) {
+    public void propertyChanged(String propname, Object value, BcsvFile.Entry data) {
         Object oldval = data.get(propname);
         if(oldval.getClass() == String.class) data.put(propname, value);
         else if(oldval.getClass() == Integer.class) data.put(propname,(int)value);
@@ -4435,7 +4463,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     gl.glNewList(dl, GL2.GL_COMPILE);
                     
-                    Bcsv.Entry scenario = galaxyArc.scenarioData.get(s);
+                    BcsvFile.Entry scenario = galaxyArc.scenarioData.get(s);
                     renderZone(gl, scenario, galaxyName,(int)scenario.get(galaxyName), 0);
 
                     gl.glEndList();
@@ -4549,7 +4577,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         }
         
-        private void renderZone(GL2 gl, Bcsv.Entry scenario, String zone, int layermask, int level) {
+        private void renderZone(GL2 gl, BcsvFile.Entry scenario, String zone, int layermask, int level) {
             String alphabet = "abcdefghijklmnop";
             int mode = -1;
             switch(renderinfo.renderMode) {
@@ -5411,45 +5439,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public void keyPressed(KeyEvent e) {
             if(!glCanvas.isFocusOwner())
                 return;
-            int oldmask = keyMask;
             
-            switch(e.getKeyCode()) {
-                case KeyEvent.VK_LEFT:
-                case KeyEvent.VK_NUMPAD4:
-                    keyMask |= 1;
-                    break;
-                case KeyEvent.VK_RIGHT:
-                case KeyEvent.VK_NUMPAD6:
-                    keyMask |=(1 << 1);
-                    break;
-                case KeyEvent.VK_UP:
-                case KeyEvent.VK_NUMPAD8:
-                    keyMask |=(1 << 2);
-                    break;
-                case KeyEvent.VK_DOWN:
-                case KeyEvent.VK_NUMPAD2:
-                    keyMask |=(1 << 3);
-                    break;
-                case KeyEvent.VK_PAGE_UP:
-                case KeyEvent.VK_NUMPAD9:
-                    keyMask |=(1 << 4);
-                    break;
-                case KeyEvent.VK_PAGE_DOWN:
-                case KeyEvent.VK_NUMPAD3:
-                    keyMask |=(1 << 5);
-                    break;
-                case KeyEvent.VK_P:
-                    keyMask |=(1 << 6);
-                    break;
-                case KeyEvent.VK_R:
-                    keyMask |=(1 << 7);
-                    break;
-                case KeyEvent.VK_S:
-                    keyMask |=(1 << 8);
-                    break;
-                case KeyEvent.VK_DELETE:
-                    tgbDeleteObject.doClick();
-            }
+            if(e.getKeyCode() == Settings.keyPos)
+                posDown = true;
+            
+            if(e.getKeyCode() == Settings.keyRot)
+                posDown = true;
+            
+            if(e.getKeyCode() == Settings.keyScl)
+                sclDown = true;
+            
+            if(e.getKeyCode() == KeyEvent.VK_DELETE)
+                tgbDeleteObject.doClick();
             
             // Hide an object
             if(e.getKeyCode() == KeyEvent.VK_H) {
@@ -5482,52 +5483,48 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 glCanvas.repaint();
             }
             
-            // Scale/Move/Rotate With Mouse Shortcuts
-            if(!e.isControlDown() && !e.isAltDown() && !e.isShiftDown()) {
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_S: // Scale
-                        startingMousePos = lastMouseMove;
-                        ArrayList<AbstractObj> scalingObjs = new ArrayList();
-                        
-                        for(AbstractObj obj : selectedObjs.values())
-                            scalingObjs.add(obj);
-                        
-                        for(AbstractObj currentChangeObj : scalingObjs) {
-                            startingObjScale.x = currentChangeObj.scale.x;
-                            startingObjScale.y = currentChangeObj.scale.y;
-                            startingObjScale.z = currentChangeObj.scale.z;
-                            startingObjPos.x = currentChangeObj.position.x;
-                            startingObjPos.y = currentChangeObj.position.y;
-                            startingObjPos.z = currentChangeObj.position.z;
-                        }   keyScaling = true;
-                        break;
-                    case KeyEvent.VK_G: // Move
-                        startingMousePos = lastMouseMove;
-                        keyTranslating = true;
-                        break;
-                    case KeyEvent.VK_R: // Rotate
-                        keyRotating = true;
-                        startingMousePos = lastMouseMove;
-                        break;
-                }
-            }
-            
-            // Set rotation axis
-            if(keyRotating || keyScaling || keyTranslating) {
-                switch(e.getKeyCode()) {
-                    case KeyEvent.VK_X:
-                        keyAxis = "x";
-                        break;
-                    case KeyEvent.VK_Y:
-                        keyAxis = "y";
-                        break;
-                    case KeyEvent.VK_Z:
-                        keyAxis = "z";
-                        break;
-                    default:
-                        break;
-                }
-            }
+//            // Scale/Move/Rotate With Mouse Shortcuts
+//            if(!e.isControlDown() && !e.isAltDown() && !e.isShiftDown()) {
+//                if(sclDown) { // scale
+//                    startingMousePos = lastMouseMove;
+//                    ArrayList<AbstractObj> scalingObjs = new ArrayList();
+//
+//                    for(AbstractObj obj : selectedObjs.values())
+//                        scalingObjs.add(obj);
+//
+//                    for(AbstractObj currentChangeObj : scalingObjs) {
+//                        startingObjScale.x = currentChangeObj.scale.x;
+//                        startingObjScale.y = currentChangeObj.scale.y;
+//                        startingObjScale.z = currentChangeObj.scale.z;
+//                        startingObjPos.x = currentChangeObj.position.x;
+//                        startingObjPos.y = currentChangeObj.position.y;
+//                        startingObjPos.z = currentChangeObj.position.z;
+//                    }   keyScaling = true;
+//                } else if (posDown) { // Move
+//                        startingMousePos = lastMouseMove;
+//                        keyTranslating = true;
+//                } else if (rotDown) { // Rotate
+//                        keyRotating = true;
+//                        startingMousePos = lastMouseMove;
+//                }
+//            }
+//            
+//            // Set rotation axis
+//            if(keyRotating || keyScaling || keyTranslating) {
+//                switch(e.getKeyCode()) {
+//                    case KeyEvent.VK_X:
+//                        keyAxis = "x";
+//                        break;
+//                    case KeyEvent.VK_Y:
+//                        keyAxis = "y";
+//                        break;
+//                    case KeyEvent.VK_Z:
+//                        keyAxis = "z";
+//                        break;
+//                    default:
+//                        break;
+//                }
+//            }
             
             // Pull Up Add menu
             if(e.isShiftDown() && e.getKeyCode() == KeyEvent.VK_A) {
@@ -5573,13 +5570,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         selectedObjs.get((int)keyset.get(0)).position.x,
                         selectedObjs.get((int)keyset.get(0)).position.y,
                         selectedObjs.get((int)keyset.get(0)).position.z);
-                //applySubzoneRotation(camTarg);
-//                String szkey = String.format("%1$d/%2$s", curScenarioID, curZone);
-//                if(subZoneData.containsKey(szkey)) {
-//                    StageObj szdata = subZoneData.get(szkey);
-//                    Vector3.subtract(camTarg, szdata.position, camTarg);
-//                    System.out.println(szdata.position);
-//                }
                 
                 camTarget = (Vector3) camTarg.clone();
                 
@@ -5610,68 +5600,59 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
             }
             
-            // Arrow Key Shortcuts
-            if((keyMask & 0x3F) != 0) {
+            if(e.isControlDown()) {
+                // Arrow Key Shortcuts
                 Vector3 delta = new Vector3();
                 Vector3 deltaPos = new Vector3();
                 Vector3 deltaDir = new Vector3();
                 Vector3 deltaSize = new Vector3();
                 Vector3 finaldelta = new Vector3();
-                int disp;
-                
-                if(oldmask != keyMask)
-                    keyDelta = 0;
-                
-                if(keyDelta > 50)
-                    disp = 10;
-                else
-                    disp = 1;
-                
-                if((keyMask & 1) != 0) {
+                int disp = 1;
+
+                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_A : e.getKeyCode() == KeyEvent.VK_LEFT) {
                     delta.x = disp;
                     deltaPos.x += 100;
                     deltaDir.x += 5;
                     deltaSize.x += 1;
                 }
-                else if((keyMask &(1 << 1)) != 0) {
+                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_D : e.getKeyCode() == KeyEvent.VK_RIGHT) {
                     delta.x = -disp;
                     deltaPos.x += -100;
                     deltaDir.x += -5;
                     deltaSize.x += -1;
                 }
-                if((keyMask &(1 << 2)) != 0) {
+                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_E : e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
                     delta.y = disp;
                     deltaPos.y += 100;
                     deltaDir.y += 5;
                     deltaSize.y += 1;
                 }
-                else if((keyMask &(1 << 3)) != 0) {
+                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_Q : e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
                     delta.y = -disp;
                     deltaPos.y += -100;
                     deltaDir.y += -5;
                     deltaSize.y += -1;
                 }
-                if((keyMask &(1 << 4)) != 0) {
+                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_W : e.getKeyCode() == KeyEvent.VK_UP) {
                     delta.z = -disp;
                     deltaPos.z += -100;
                     deltaDir.z += -5;
                     deltaSize.z += -1;
                 }
-                else if((keyMask &(1 << 5)) != 0) {
+                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_S : e.getKeyCode() == KeyEvent.VK_DOWN) {
                     delta.z = disp;
                     deltaPos.z += 100;
                     deltaDir.z += 5;
                     deltaSize.z += 1;
                 }
-                
-                
-                if(!selectedObjs.isEmpty()) {
-                    unsavedChanges = true;
-                    if((keyMask &(1 << 6)) != 0)
+
+
+                if(!selectedObjs.isEmpty() && e.isControlDown()) {
+                    if(posDown)
                         offsetSelectionBy(deltaPos);
-                    else if((keyMask &(1 << 7)) != 0)
+                    else if(rotDown)
                         rotateSelectionBy(deltaDir);
-                    else if((keyMask &(1 << 8)) != 0)
+                    else if(sclDown)
                         scaleSelectionBy(deltaSize);
                 } else {
                     finaldelta.x =(float)(-(delta.x * Math.sin(camRotation.x)) - (delta.y * Math.cos(camRotation.x) * Math.sin(camRotation.y)) +
@@ -5685,50 +5666,60 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     updateCamera();
                     e.getComponent().repaint();
                 }
-                keyDelta += disp;
+                
+            //    keyDelta += disp;
             }
         }
 
         @Override
         public void keyReleased(KeyEvent e) {
-            switch(e.getKeyCode()) {
-                case KeyEvent.VK_LEFT:
-                case KeyEvent.VK_NUMPAD4:
-                    keyMask &= ~1;
-                    break;
-                case KeyEvent.VK_RIGHT:
-                case KeyEvent.VK_NUMPAD6:
-                    keyMask &= ~(1 << 1);
-                    break;
-                case KeyEvent.VK_UP:
-                case KeyEvent.VK_NUMPAD8:
-                    keyMask &= ~(1 << 2);
-                    break;
-                case KeyEvent.VK_DOWN:
-                case KeyEvent.VK_NUMPAD2:
-                    keyMask &= ~(1 << 3);
-                    break;
-                case KeyEvent.VK_PAGE_UP:
-                case KeyEvent.VK_NUMPAD9:
-                    keyMask &= ~(1 << 4);
-                    break;
-                case KeyEvent.VK_PAGE_DOWN:
-                case KeyEvent.VK_NUMPAD3:
-                    keyMask &= ~(1 << 5);
-                    break;
-                case KeyEvent.VK_P:
-                    keyMask &= ~(1 << 6);
-                    break;
-                case KeyEvent.VK_R:
-                    keyMask &= ~(1 << 7);
-                    break;
-                case KeyEvent.VK_S:
-                    keyMask &= ~(1 << 8);
-                    break;
-            }
+            if(e.getKeyCode() == Settings.keyPos)
+                posDown = false;
             
-            if((keyMask & 0x3F) == 0)
-                keyDelta = 0;
+            if(e.getKeyCode() == Settings.keyRot)
+                rotDown = false;
+            
+            if(e.getKeyCode() == Settings.keyScl)
+                sclDown = false;
+            
+//            switch(e.getKeyCode()) {
+//                case KeyEvent.VK_LEFT:
+//                case KeyEvent.VK_NUMPAD4:
+//                    keyMask &= ~1;
+//                    break;
+//                case KeyEvent.VK_RIGHT:
+//                case KeyEvent.VK_NUMPAD6:
+//                    keyMask &= ~(1 << 1);
+//                    break;
+//                case KeyEvent.VK_UP:
+//                case KeyEvent.VK_NUMPAD8:
+//                    keyMask &= ~(1 << 2);
+//                    break;
+//                case KeyEvent.VK_DOWN:
+//                case KeyEvent.VK_NUMPAD2:
+//                    keyMask &= ~(1 << 3);
+//                    break;
+//                case KeyEvent.VK_PAGE_UP:
+//                case KeyEvent.VK_NUMPAD9:
+//                    keyMask &= ~(1 << 4);
+//                    break;
+//                case KeyEvent.VK_PAGE_DOWN:
+//                case KeyEvent.VK_NUMPAD3:
+//                    keyMask &= ~(1 << 5);
+//                    break;
+//                case KeyEvent.VK_P:
+//                    keyMask &= ~(1 << 6);
+//                    break;
+//                case KeyEvent.VK_R:
+//                    keyMask &= ~(1 << 7);
+//                    break;
+//                case KeyEvent.VK_S:
+//                    keyMask &= ~(1 << 8);
+//                    break;
+//            }
+//            
+//            if((keyMask & 0x3F) == 0)
+//                keyDelta = 0;
         }
         
         
@@ -5760,8 +5751,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     ArrayList<RarcFilesystem> allWorldArchives = new ArrayList<>();
     RarcFilesystem worldmapArchive;
-    ArrayList<Bcsv> worldWideMiscObjects = new ArrayList<>();
-    private Bcsv bcsvWorldMapPoints, bcsvWorldMapGalaxies, bcsvWorldMapMiscObjects, bcsvWorldMapLinks;
+    ArrayList<BcsvFile> worldWideMiscObjects = new ArrayList<>();
+    private BcsvFile bcsvWorldMapPoints, bcsvWorldMapGalaxies, bcsvWorldMapMiscObjects, bcsvWorldMapLinks;
     //private ArrayList<Bcsv.Entry> pointingObjectsFromOtherWorlds; //objects like portals in other worlds which point to a point in this world
     private BmdRenderer worldSelectSkyboxRenderer;
     private BmdRenderer yellowPointRenderer, pinkPointRenderer;
@@ -5771,7 +5762,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private int currentWorldmapPointIndex = -1, currentWorldmapRouteIndex = -1, currentWorldmapEntryPointIndex = -1;
     
     private int curScenarioID;
-    private Bcsv.Entry curScenario;
+    private BcsvFile.Entry curScenario;
     private String curZone;
     public ZoneArchive curZoneArc;
     
@@ -5830,7 +5821,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private int mouseButton;
     private Point lastMouseMove;
     private boolean isDragging;
-    private int keyMask, keyDelta;
+    private boolean posDown, rotDown, sclDown;
     private boolean pickingCapture;
     private IntBuffer pickingFrameBuffer;
     private FloatBuffer pickingDepthBuffer;
@@ -5955,7 +5946,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
     public LinkedHashMap<Integer, AbstractObj> copyObj;
     public AbstractObj currentObj, newobj; 
-    public ArrayList<Bcsv> camBcsvs = new ArrayList<>();
+    public ArrayList<BcsvFile> camBcsvs = new ArrayList<>();
     public Point curMouseRelative, startingMousePos, objCenter, firstMoveDir = new Point(1, 1);
     public int counter;
     public static long lastMove;
@@ -5975,7 +5966,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             position =(Vector3) obj.position.clone();
             rotation =(Vector3) obj.rotation.clone();
             scale =(Vector3) obj.scale.clone();
-            data =(Bcsv.Entry) obj.data.clone();
+            data =(BcsvFile.Entry) obj.data.clone();
             id = obj.uniqueID;
             type = "changeObj";
             layer = obj.layer;
@@ -5996,7 +5987,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             else
                 scale =(Vector3) obj.scale.clone();
             
-            data =(Bcsv.Entry) obj.data.clone();
+            data =(BcsvFile.Entry) obj.data.clone();
             id = obj.uniqueID;
             type = editType;
             layer = obj.layer;
@@ -6013,7 +6004,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public Vector3 position;
         public Vector3 rotation;
         public Vector3 scale;
-        public Bcsv.Entry data;
+        public BcsvFile.Entry data;
         public String type, layer, name, objType;
         public int id;
         
@@ -6291,7 +6282,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         UIManager.put("TabbedPane.tabAreaBackground", null);
         UIManager.put("TabbedPane.shadow", Color.darkGray.darker());
         UIManager.put("TabbedPane.background", new Color(47,49,54));
-        tpLeftPanel.setUI(new ColorTabbedPaneLayout());
+        tpLeftPanel.setUI(new DarkTabbedPaneUI());
         
         tpLeftPanel.setOpaque(true);
         

@@ -391,7 +391,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void btnSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnSettingsActionPerformed
     {//GEN-HEADEREND:event_btnSettingsActionPerformed
-        new SettingsForm(this, true).setVisible(true);
+        new SettingsForm().setVisible(true);
     }//GEN-LAST:event_btnSettingsActionPerformed
 
     private void btnAboutActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnAboutActionPerformed

@@ -26,7 +26,7 @@ import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.rendering.object.PlanetRenderer;
 import com.thesuncat.whitehole.rendering.Substitutor;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.smg.object.AbstractObj;
 import javax.media.opengl.*;
 
@@ -66,10 +66,10 @@ public class RendererCache {
         
         try {
             RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/PlanetMapDataTable.arc"));
-            Bcsv planetmap = new Bcsv(arc.openFile("/PlanetMapDataTable/PlanetMapDataTable.bcsv"));
+            BcsvFile planetmap = new BcsvFile(arc.openFile("/PlanetMapDataTable/PlanetMapDataTable.bcsv"));
             
             planetList = new ArrayList(planetmap.entries.size());
-            for (Bcsv.Entry entry : planetmap.entries) {
+            for (BcsvFile.Entry entry : planetmap.entries) {
                 if((int) entry.get("WaterFlag") != 0)
                     planetList.add((String) entry.get("PlanetName"));
             }

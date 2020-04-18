@@ -2,16 +2,16 @@ package com.thesuncat.whitehole.worldmapObject;
 
 import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import javax.media.opengl.GL2;
 
 public class GalaxyPreview extends WorldmapPoint {
-    public GalaxyPreview(Bcsv.Entry entry, WorldmapPoint base) {
+    public GalaxyPreview(BcsvFile.Entry entry, WorldmapPoint base) {
         super(base.entry);
         entryGP = entry;
     }
     
-    public GalaxyPreview(Bcsv.Entry entry, Bcsv.Entry pointEntry) {
+    public GalaxyPreview(BcsvFile.Entry entry, BcsvFile.Entry pointEntry) {
         super(pointEntry);
         entryGP = entry;
     }
@@ -55,5 +55,5 @@ public class GalaxyPreview extends WorldmapPoint {
     }
     
     BmdRenderer modelRenderer;
-    public Bcsv.Entry entryGP;
+    public BcsvFile.Entry entryGP;
 }

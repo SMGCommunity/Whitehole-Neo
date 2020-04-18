@@ -2,7 +2,7 @@ package com.thesuncat.whitehole.worldmapObject;
 
 import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLException;
 
@@ -11,13 +11,13 @@ import javax.media.opengl.GLException;
  * @author jupah
  */
 public class MiscWorldmapObject extends WorldmapPoint {
-    public MiscWorldmapObject(Bcsv.Entry entry, WorldmapPoint base) {
+    public MiscWorldmapObject(BcsvFile.Entry entry, WorldmapPoint base) {
         super(base.entry);
         
         entryMO = entry;
     }
     
-    public MiscWorldmapObject(Bcsv.Entry entry, Bcsv.Entry pointEntry) {
+    public MiscWorldmapObject(BcsvFile.Entry entry, BcsvFile.Entry pointEntry) {
         super(pointEntry);
         entryMO = entry;
     }
@@ -86,5 +86,5 @@ public class MiscWorldmapObject extends WorldmapPoint {
         }
     }
     BmdRenderer modelRenderer;
-    public Bcsv.Entry entryMO;
+    public BcsvFile.Entry entryMO;
 }

@@ -25,7 +25,7 @@ import java.io.PrintWriter;
 import java.util.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.*;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.swing.DarkThemeRenderers.*;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -221,7 +221,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
             archive = null; bcsv = null;
             
             archive = new RarcFilesystem(Whitehole.game.filesystem.openFile(tbArchiveName.getText()));
-            bcsv = new Bcsv(archive.openFile(tbFileName.getText()));
+            bcsv = new BcsvFile(archive.openFile(tbFileName.getText()));
             
             fileArchive = tbArchiveName.getText();
             fileBcsv = tbFileName.getText();
@@ -238,12 +238,12 @@ public class BcsvEditorForm extends javax.swing.JFrame
         table.setRowCount(0);
         table.setColumnCount(0);
         
-        for (Bcsv.Field field : bcsv.fields.values())
+        for (BcsvFile.Field field : bcsv.fields.values())
             table.addColumn(field.name);
         
-        for (Bcsv.Entry entry : bcsv.entries) {
+        for (BcsvFile.Entry entry : bcsv.entries) {
             ArrayList<Object> row = new ArrayList(bcsv.fields.size());
-            for (Bcsv.Field field : bcsv.fields.values()) {
+            for (BcsvFile.Field field : bcsv.fields.values()) {
                 Object val = entry.get(field.nameHash);
                     row.add(val);
             }
@@ -264,10 +264,10 @@ public class BcsvEditorForm extends javax.swing.JFrame
         bcsv.entries.clear();
         
         for (int r = 0; r < tblBcsv.getRowCount(); r++) {
-            Bcsv.Entry entry = new Bcsv.Entry();
+            BcsvFile.Entry entry = new BcsvFile.Entry();
             
             int c = 0;
-            for (Bcsv.Field field : bcsv.fields.values()) {
+            for (BcsvFile.Field field : bcsv.fields.values()) {
                 Object valobj = tblBcsv.getValueAt(r, c);
                 String val = (valobj == null) ? "" : valobj.toString();
                 
@@ -1649,7 +1649,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subURsound3ActionPerformed
 
     private FilesystemBase archive;
-    private Bcsv bcsv;
+    private BcsvFile bcsv;
     private String zoneName;
     private String fileArchive;
     private String fileBcsv;

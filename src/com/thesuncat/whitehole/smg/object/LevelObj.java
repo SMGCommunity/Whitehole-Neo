@@ -16,13 +16,13 @@ package com.thesuncat.whitehole.smg.object;
 
 import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.swing.PropertyGrid;
-import com.thesuncat.whitehole.smg.Bcsv;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.smg.ZoneArchive;
 import com.thesuncat.whitehole.vectors.Vector3;
 import javax.swing.JOptionPane;
 
 public class LevelObj extends AbstractObj {
-    public LevelObj(ZoneArchive zone, String filepath, Bcsv.Entry entry) {
+    public LevelObj(ZoneArchive zone, String filepath, BcsvFile.Entry entry) {
         this.type = "general";
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -50,7 +50,7 @@ public class LevelObj extends AbstractObj {
         layer = stuff[1].toLowerCase();
         file = stuff[2];
         
-        data = new Bcsv.Entry();
+        data = new BcsvFile.Entry();
         
         name = objname;
         renderer = null;

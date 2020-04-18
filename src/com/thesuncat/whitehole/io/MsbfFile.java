@@ -34,6 +34,8 @@ public class MsbfFile {
         else
             byteStream.order(ByteOrder.BIG_ENDIAN);
         
+        System.out.println("yes = " + (int) byteStream.getChar(0xE));
+        
         FlowSection flow = new FlowSection();
         flows = flow.flowList;
         FenSection fen = new FenSection();
@@ -272,6 +274,30 @@ public class MsbfFile {
     
     public void close() throws IOException {
         file.close();
+    }
+    
+    public void dumpData()
+    {
+        for(Object o : flowList)
+        {
+            Flow f;
+            
+            if(o instanceof FlowEntry)
+            {
+                System.out.println("label = " + ((FlowEntry) o).label);
+                
+                f = ((FlowEntry) o).flow;
+            } else {
+                f = (Flow) o;
+            }
+            
+            System.out.println("unk0 = " + f.unk0 + "\n"
+                    + "unk1 = " + f.unk1 + "\n"
+                    + "unk2 = " + f.unk2 + "\n"
+                    + "unk3 = " + f.unk3 + "\n"
+                    + "unk4 = " + f.unk4 + "\n"
+                    + "unk5 = " + f.unk5 + "\n\n");
+        }
     }
     
     private List<Flow> flows;
