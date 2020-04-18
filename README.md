@@ -7,6 +7,7 @@ Whitehole is a level editor for Super Mario Galaxy 1 and 2.<br>
 Now introducing exciting features like... an improved PowerStarLight renderer... and... copy and paste!
 <h3>Key new features:</h3>
 -Select a mod folder to save any modified files to<br>
+-Remap main editor keybinds in the Settings menu<br>
 -RARC file association and editor<br>
 -A visual MSBT editor<br>
 -An MSBF editor (will be updated once the format is properly documented)<br>
