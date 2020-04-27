@@ -460,7 +460,7 @@ public class MsbtEditorForm extends javax.swing.JFrame {
             if(tbFileName.getText().endsWith("msbf"))
                 new MsbfEditorForm(tbArchiveName.getText(), tbFileName.getText()).setVisible(true);
             else if(tbFileName.getText().endsWith("canm")) {
-                RarcFilesystem f = new RarcFilesystem(Whitehole.game.filesystem.openFile(tbArchiveName.getText()));
+                RarcFile f = new RarcFile(Whitehole.game.filesystem.openFile(tbArchiveName.getText()));
                 new CanmFile(f.openFile(tbFileName.getText())).save();
                 f.save();
             } else
@@ -1111,7 +1111,7 @@ public class MsbtEditorForm extends javax.swing.JFrame {
 
     public void msbtOpen() throws FileNotFoundException, IOException {
         inited = false;
-        archive = new RarcFilesystem(Whitehole.game.filesystem.openFile(tbArchiveName.getText()));
+        archive = new RarcFile(Whitehole.game.filesystem.openFile(tbArchiveName.getText()));
         msbt = new MsbtFile(archive.openFile(tbFileName.getText()));
         editorPane.setText(msbt.messages.get(0).string.messageText);
         commands = (ArrayList<MsbtCommand>) msbt.messages.get(0).string.commands.clone();
@@ -1246,5 +1246,5 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         }
     };
     public MsbtFile msbt;
-    public RarcFilesystem archive;
+    public RarcFile archive;
 }

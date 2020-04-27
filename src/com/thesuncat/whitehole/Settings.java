@@ -21,7 +21,10 @@ import java.util.prefs.Preferences;
 public class Settings {
     public static void init() {
         Preferences prefs = Preferences.userRoot();
-        modFolder_dir = prefs.get("mod.dir", "");
+        modFolder_dir = prefs.get("mod.dir", "").replace('\\', '/');
+        superBMD_dir = prefs.get("superbmd.dir", "").replace('\\', '/');
+        KCLcreate_dir = prefs.get("kclcreate.dir", "").replace('\\', '/');
+        
         arc_enc = prefs.getBoolean("arc.enc", true);
         editor_shaders = prefs.getBoolean("editor.shaders", true);
         editor_fastDrag = prefs.getBoolean("editor.fastdrag", false);
@@ -49,7 +52,9 @@ public class Settings {
     
     public static void save() {
         Preferences prefs = Preferences.userRoot();
-        prefs.put("mod.dir", modFolder_dir);
+        prefs.put("mod.dir", modFolder_dir.replace('\\', '/'));
+        prefs.put("superbmd.dir", superBMD_dir.replace('\\', '/'));
+        prefs.put("kclcreate.dir", KCLcreate_dir.replace('\\', '/'));
         prefs.putBoolean("arc.enc", arc_enc);
         prefs.putBoolean("editor.shaders", editor_shaders);
         prefs.putBoolean("editor.fastdrag", editor_fastDrag);
@@ -80,7 +85,7 @@ public class Settings {
         init();
     }
     
-    public static String modFolder_dir;
+    public static String modFolder_dir, superBMD_dir, KCLcreate_dir;
     public static boolean associated;
     public static boolean arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy, japanese, fileNames;
     public static boolean editor_shaders, editor_fastDrag;

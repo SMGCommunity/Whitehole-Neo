@@ -144,7 +144,7 @@ public class BcsvSearch extends javax.swing.JFrame {
         String searchStr = txtSearch.getText();
         if(searchStr.isEmpty())
             return;
-        RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile(relPath));
+        RarcFile arc = new RarcFile(Whitehole.game.filesystem.openFile(relPath));
         
         ArrayList<FileBase> bcsvList = new ArrayList<>();
         for(String f : arc.getAllFileDirs()) {
@@ -163,7 +163,7 @@ public class BcsvSearch extends javax.swing.JFrame {
                     else if(o.toString().contains(searchStr))
                         match = true;
                     if(match)
-                        found.add(o.toString() + " (" + relPath.replace('\\', '/') + " : " + ((RarcFile) f).fileName + ")");
+                        found.add(o.toString() + " (" + relPath.replace('\\', '/') + " : " + ((InRarcFile) f).fileName + ")");
                 }
             }
             b.close();

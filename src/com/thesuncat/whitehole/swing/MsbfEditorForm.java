@@ -30,7 +30,7 @@ import javax.swing.text.NumberFormatter;
 public class MsbfEditorForm extends javax.swing.JFrame {
     
     public MsbfEditorForm(String arcName, String fileName) throws IOException {
-        arc = new RarcFilesystem(Whitehole.game.filesystem.openFile(arcName));
+        arc = new RarcFile(Whitehole.game.filesystem.openFile(arcName));
         msbf = new MsbfFile(arc.openFile(fileName));
         
         setTitle("Msbf Editor - Editing " + fileName);
@@ -633,7 +633,7 @@ public class MsbfEditorForm extends javax.swing.JFrame {
     private javax.swing.JTextField txtChar;
     private javax.swing.JTextField txtName;
     // End of variables declaration//GEN-END:variables
-    public MsbfFile msbf; RarcFilesystem arc;
+    public MsbfFile msbf; RarcFile arc;
     private int prevIndex = -2, prevChar = -2;
     private boolean updating = false;
 }

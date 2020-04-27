@@ -21,18 +21,12 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class SettingsForm extends javax.swing.JFrame {
@@ -44,6 +38,8 @@ public class SettingsForm extends javax.swing.JFrame {
             initJapanese();
         
         txtModFolderDir.setText(Settings.modFolder_dir);
+        txtSuperBMDDir.setText(Settings.superBMD_dir);
+        txtKCLcreateDir.setText(Settings.KCLcreate_dir);
         chkUseShaders.setSelected(Settings.editor_shaders);
         chkFastDrag.setSelected(Settings.editor_fastDrag);
         chkGameDir.setSelected(Settings.gameDir);
@@ -96,50 +92,32 @@ public class SettingsForm extends javax.swing.JFrame {
         }
         
         ArrayList<JPanel> pnlArray = new ArrayList();
-        pnlArray.addAll(Arrays.asList(jPanel1, jPanel3, pnlCommon, pnlKeybinds, pnlKeybindsButtons));
+        pnlArray.addAll(Arrays.asList(jPanel1, jPanel3, pnlCommon, pnlKeybinds, pnlKeybindsButtons, pnlPaths));
         for(JPanel p : pnlArray)
             p.setBackground(new Color(32,34,37));
         
         ArrayList<JLabel> lblArray = new ArrayList();
-        lblArray.addAll(Arrays.asList(lblMisc, lblRendering, jLabel1, jLabel2, jLabel3, jLabel4, jLabel8));
+        lblArray.addAll(Arrays.asList(lblMisc, lblRendering, jLabel1, jLabel2, jLabel3, jLabel4, jLabel8, jLabel5, jLabel6));
         for(JLabel lbl : lblArray)
             lbl.setForeground(new Color(157,158,161));
         
         this.getContentPane().setBackground(new Color(32,34,37));
         txtModFolderDir.setBackground(new Color(177,178,181));
+        txtSuperBMDDir.setBackground(new Color(177,178,181));
+        txtKCLcreateDir.setBackground(new Color(177,178,181));
     }
     
     private void installAssoc() {
         String command = "\\\"" + System.getProperty("java.home") + "\\bin\\javaw.exe\\\" -jar \\\""
                 + Whitehole.class.getProtectionDomain().getCodeSource().getLocation().getPath().substring(1).replace("/", "\\") + "\\\" \\\"%1\\\"";
         
-        execCommand("reg add HKCU\\SOFTWARE\\Classes\\.arc /t REG_SZ /d ArcFileNintendo /f");
-        execCommand("reg add HKCU\\SOFTWARE\\Classes\\ArcFileNintendo\\shell\\open\\command /t REG_SZ /d \"" + command + "\" /f");
+        Whitehole.execCommand("reg add HKCU\\SOFTWARE\\Classes\\.arc /t REG_SZ /d ArcFileNintendo /f");
+        Whitehole.execCommand("reg add HKCU\\SOFTWARE\\Classes\\ArcFileNintendo\\shell\\open\\command /t REG_SZ /d \"" + command + "\" /f");
     }
     
     private void uninstallAssoc() {
-        execCommand("reg delete HKCU\\SOFTWARE\\Classes\\.arc /f");
-        execCommand("reg delete HKCU\\SOFTWARE\\Classes\\ArcFileNintendo /f");
-    }
-    
-    private void execCommand(String com) {
-        try {
-            System.out.println("Trying to execute " + com);
-            ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", com);
-            pb.redirectErrorStream(true);
-            Process p = pb.start();
-            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            
-            String line;
-            while((line = in.readLine()) != null)
-                System.out.println("cmd.exe> " + line);
-            
-            System.out.println("Exited with exit code " + p.waitFor());
-            p.destroy();
-        } catch (IOException | InterruptedException ex) {
-            JOptionPane.showMessageDialog(this, "well im dumb");
-            Logger.getLogger(SettingsForm.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        Whitehole.execCommand("reg delete HKCU\\SOFTWARE\\Classes\\.arc /f");
+        Whitehole.execCommand("reg delete HKCU\\SOFTWARE\\Classes\\ArcFileNintendo /f");
     }
     
     @SuppressWarnings("unchecked")
@@ -167,9 +145,16 @@ public class SettingsForm extends javax.swing.JFrame {
         chkJapanese = new javax.swing.JCheckBox();
         chkAssoc = new javax.swing.JCheckBox();
         chkNoShaderRender = new javax.swing.JCheckBox();
+        pnlPaths = new javax.swing.JPanel();
+        btnModFolder = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         txtModFolderDir = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        txtSuperBMDDir = new javax.swing.JTextField();
+        btnSuperBMD = new javax.swing.JButton();
+        jLabel6 = new javax.swing.JLabel();
+        txtKCLcreateDir = new javax.swing.JTextField();
+        btnKCLcreate = new javax.swing.JButton();
         pnlKeybinds = new javax.swing.JPanel();
         pnlKeybindsButtons = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
@@ -326,33 +311,16 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addContainerGap(34, Short.MAX_VALUE))
         );
 
-        jLabel1.setText("Mod Folder:");
-
-        jButton1.setText("...");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout pnlCommonLayout = new javax.swing.GroupLayout(pnlCommon);
         pnlCommon.setLayout(pnlCommonLayout);
         pnlCommonLayout.setHorizontalGroup(
             pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlCommonLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlCommonLayout.createSequentialGroup()
-                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(pnlCommonLayout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtModFolderDir, javax.swing.GroupLayout.PREFERRED_SIZE, 451, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1)))
-                .addContainerGap(10, Short.MAX_VALUE))
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlCommonLayout.setVerticalGroup(
             pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -361,15 +329,87 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtModFolderDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1)
-                    .addComponent(jButton1))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jTabbedPane2.addTab("General", pnlCommon);
+
+        btnModFolder.setText("...");
+        btnModFolder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnModFolderActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setText("Mod Folder:");
+
+        jLabel5.setText("SuperBMD.exe:");
+
+        btnSuperBMD.setText("...");
+        btnSuperBMD.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSuperBMDActionPerformed(evt);
+            }
+        });
+
+        jLabel6.setText("KCL Create.exe:");
+
+        btnKCLcreate.setText("...");
+        btnKCLcreate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnKCLcreateActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout pnlPathsLayout = new javax.swing.GroupLayout(pnlPaths);
+        pnlPaths.setLayout(pnlPathsLayout);
+        pnlPathsLayout.setHorizontalGroup(
+            pnlPathsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlPathsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnlPathsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlPathsLayout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtModFolderDir)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnModFolder))
+                    .addGroup(pnlPathsLayout.createSequentialGroup()
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtSuperBMDDir, javax.swing.GroupLayout.DEFAULT_SIZE, 512, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnSuperBMD))
+                    .addGroup(pnlPathsLayout.createSequentialGroup()
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtKCLcreateDir, javax.swing.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnKCLcreate)))
+                .addContainerGap())
+        );
+        pnlPathsLayout.setVerticalGroup(
+            pnlPathsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlPathsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnlPathsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtModFolderDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1)
+                    .addComponent(btnModFolder))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pnlPathsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtSuperBMDDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5)
+                    .addComponent(btnSuperBMD))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pnlPathsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtKCLcreateDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6)
+                    .addComponent(btnKCLcreate))
+                .addContainerGap(72, Short.MAX_VALUE))
+        );
+
+        jTabbedPane2.addTab("Paths", pnlPaths);
 
         jLabel2.setText("Position:");
 
@@ -404,7 +444,7 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addComponent(btnPosition)
                     .addComponent(btnRotation)
                     .addComponent(btnScale))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 285, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 309, Short.MAX_VALUE)
                 .addGroup(pnlKeybindsButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnlKeybindsButtonsLayout.createSequentialGroup()
                         .addComponent(chkWASD)
@@ -449,7 +489,7 @@ public class SettingsForm extends javax.swing.JFrame {
             .addGroup(pnlKeybindsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(pnlKeybindsButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(133, Short.MAX_VALUE))
+                .addContainerGap(86, Short.MAX_VALUE))
         );
 
         jTabbedPane2.addTab("Keybinds", pnlKeybinds);
@@ -461,18 +501,18 @@ public class SettingsForm extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPane2)
+                    .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btnOk)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnCancel)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addComponent(btnCancel)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
@@ -491,7 +531,10 @@ public class SettingsForm extends javax.swing.JFrame {
 
     private void btnOkActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnOkActionPerformed
     {//GEN-HEADEREND:event_btnOkActionPerformed
-        Settings.modFolder_dir = txtModFolderDir.getText();
+        Settings.modFolder_dir = txtModFolderDir.getText().replace('\\', '/');
+        Settings.superBMD_dir = txtSuperBMDDir.getText().replace('\\', '/');
+        Settings.KCLcreate_dir = txtKCLcreateDir.getText().replace('\\', '/');
+        
         Settings.editor_shaders = chkUseShaders.isSelected();
         Settings.editor_fastDrag = chkFastDrag.isSelected();
         Settings.gameDir = chkGameDir.isSelected();
@@ -525,7 +568,7 @@ public class SettingsForm extends javax.swing.JFrame {
         assocUpdate = true;
     }//GEN-LAST:event_chkAssocActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btnModFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModFolderActionPerformed
         JFileChooser fc = new JFileChooser(Settings.modFolder_dir.isEmpty() ? Whitehole.curGameDir : Settings.modFolder_dir);
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         
@@ -537,15 +580,46 @@ public class SettingsForm extends javax.swing.JFrame {
         if(file.exists() && file.isDirectory())
             txtModFolderDir.setText(file.getAbsolutePath());
         
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_btnModFolderActionPerformed
+
+    private void btnSuperBMDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSuperBMDActionPerformed
+        JFileChooser fc = new JFileChooser(Settings.superBMD_dir.isEmpty() ? Whitehole.curGameDir : Settings.superBMD_dir);
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        
+        if(fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+            return;
+        
+        File file = fc.getSelectedFile();
+        
+        if(file.exists() && file.isFile())
+            txtSuperBMDDir.setText(file.getAbsolutePath());
+        
+    }//GEN-LAST:event_btnSuperBMDActionPerformed
+
+    private void btnKCLcreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKCLcreateActionPerformed
+        JFileChooser fc = new JFileChooser(Settings.KCLcreate_dir.isEmpty() ? Whitehole.curGameDir : Settings.KCLcreate_dir);
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        
+        if(fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+            return;
+        
+        File file = fc.getSelectedFile();
+        
+        if(file.exists() && file.isFile())
+            txtKCLcreateDir.setText(file.getAbsolutePath());
+        
+    }//GEN-LAST:event_btnKCLcreateActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;
+    private javax.swing.JButton btnKCLcreate;
+    private javax.swing.JButton btnModFolder;
     private javax.swing.JButton btnOk;
     private javax.swing.JButton btnPosition;
     private javax.swing.JButton btnRotation;
     private javax.swing.JButton btnScale;
     private javax.swing.JButton btnScreenshot;
+    private javax.swing.JButton btnSuperBMD;
     private javax.swing.JCheckBox chkAntiAlias;
     private javax.swing.JCheckBox chkAssoc;
     private javax.swing.JCheckBox chkDarkTheme;
@@ -559,12 +633,13 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JCheckBox chkRichPresence;
     private javax.swing.JCheckBox chkUseShaders;
     private javax.swing.JCheckBox chkWASD;
-    private javax.swing.JButton jButton1;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
@@ -574,7 +649,10 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JPanel pnlCommon;
     private javax.swing.JPanel pnlKeybinds;
     private javax.swing.JPanel pnlKeybindsButtons;
+    private javax.swing.JPanel pnlPaths;
+    private javax.swing.JTextField txtKCLcreateDir;
     private javax.swing.JTextField txtModFolderDir;
+    private javax.swing.JTextField txtSuperBMDDir;
     // End of variables declaration//GEN-END:variables
     private boolean assocUpdate = false;
 }

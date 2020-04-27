@@ -45,7 +45,7 @@ public class RarcEditorForm extends javax.swing.JFrame {
         setIconImage(Whitehole.ICON);
         setLocationRelativeTo(null);
         
-        openRarc(new RarcFilesystem(new ExternalFile(filePath)));
+        openRarc(new RarcFile(new ExternalFile(filePath)));
         
         fileView.setTransferHandler(new TransferHandler() {
             @Override
@@ -77,7 +77,7 @@ public class RarcEditorForm extends javax.swing.JFrame {
                 if(inFile.getName().endsWith(".arc")) {
                     try {
                         filePath = inFile.getAbsolutePath();
-                        openRarc(new RarcFilesystem(new ExternalFile(filePath)));
+                        openRarc(new RarcFile(new ExternalFile(filePath)));
                     } catch(IOException ex) {
                         return false;
                     }
@@ -98,7 +98,7 @@ public class RarcEditorForm extends javax.swing.JFrame {
                         String newPath = dir + inFile.getName();
                         System.out.println("importing file at " + newPath);
                         
-                        RarcFile f = (RarcFile) fs.openFile(oldPath.toLowerCase());
+                        InRarcFile f = (InRarcFile) fs.openFile(oldPath.toLowerCase());
                         f.setContents(Files.readAllBytes(inFile.toPath()));
                         f.save();
                         f.close();
@@ -253,7 +253,7 @@ public class RarcEditorForm extends javax.swing.JFrame {
 //        }
 //    }
     
-    private void openRarc(RarcFilesystem filesystem) throws IOException {
+    private void openRarc(RarcFile filesystem) throws IOException {
         fs = filesystem;
         
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(fs.getRoot());
@@ -328,7 +328,7 @@ public class RarcEditorForm extends javax.swing.JFrame {
         // trySave();
     }
     
-    private RarcFilesystem fs;
+    private RarcFile fs;
     private String fileName;
     private String filePath;
     private String selectedPath = "";
@@ -453,7 +453,7 @@ public class RarcEditorForm extends javax.swing.JFrame {
         
         try {
             filePath = chooser.getSelectedFile().getAbsolutePath();
-            openRarc(new RarcFilesystem(new ExternalFile(filePath)));
+            openRarc(new RarcFile(new ExternalFile(filePath)));
         } catch(IOException ex) {
             JOptionPane.showMessageDialog(this, "Unable to open ARC file: " + ex.getLocalizedMessage());
         }

@@ -18,7 +18,7 @@ package com.thesuncat.whitehole.swing;
 import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.io.FilesystemBase;
-import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.io.RarcFile;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -220,7 +220,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
             if (bcsv != null) bcsv.close();
             archive = null; bcsv = null;
             
-            archive = new RarcFilesystem(Whitehole.game.filesystem.openFile(tbArchiveName.getText()));
+            archive = new RarcFile(Whitehole.game.filesystem.openFile(tbArchiveName.getText()));
             bcsv = new BcsvFile(archive.openFile(tbFileName.getText()));
             
             fileArchive = tbArchiveName.getText();

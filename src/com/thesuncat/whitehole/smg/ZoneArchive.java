@@ -30,7 +30,7 @@ import com.thesuncat.whitehole.smg.object.DebugObj;
 import com.thesuncat.whitehole.smg.object.CutsceneObj;
 import com.thesuncat.whitehole.smg.object.StartObj;
 import com.thesuncat.whitehole.smg.object.AbstractObj;
-import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.io.RarcFile;
 import com.thesuncat.whitehole.io.FilesystemBase;
 import java.io.*;
 import java.util.*;
@@ -93,7 +93,7 @@ public class ZoneArchive {
         try {
             objects = new HashMap();
             zones = new HashMap();
-            mapArc = new RarcFilesystem(filesystem.openFile(zoneFile));
+            mapArc = new RarcFile(filesystem.openFile(zoneFile));
             loadObjects("Placement", "StageObjInfo");
             loadObjects("MapParts", "MapPartsInfo");
             loadObjects("Placement", "ObjInfo");
@@ -294,7 +294,7 @@ public class ZoneArchive {
     public GalaxyArchive galaxy;
     public GameArchive gameArc;
     public FilesystemBase filesystem;
-    public RarcFilesystem mapArc;
+    public RarcFile mapArc;
     public String zoneFile;
     public String zoneName;
     

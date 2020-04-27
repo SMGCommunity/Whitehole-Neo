@@ -19,9 +19,6 @@ import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.swing.MainFrame;
 import java.io.*;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class ExternalFilesystem implements FilesystemBase {
     public ExternalFilesystem(String basedir) throws IOException {
         if (basedir.endsWith("/") || basedir.endsWith("\\"))
@@ -130,8 +127,13 @@ public class ExternalFilesystem implements FilesystemBase {
     }
     
     @Override
-    public void createFile(String parent, String newfile) {
-        throw new UnsupportedOperationException("not done lol");
+    public void createFile(String parent, String newfile) throws IOException {
+        if(!parent.endsWith("/") && !parent.startsWith("/"))
+            parent += "/";
+        
+        new File(parent).mkdir();
+        
+        new File(parent + newfile).createNewFile();
     }
 
     @Override

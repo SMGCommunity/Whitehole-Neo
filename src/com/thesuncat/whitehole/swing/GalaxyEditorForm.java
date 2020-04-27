@@ -17,7 +17,7 @@ package com.thesuncat.whitehole.swing;
 
 import com.jogamp.opengl.util.awt.Screenshot;
 import com.thesuncat.whitehole.*;
-import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.io.RarcFile;
 import com.thesuncat.whitehole.rendering.*;
 import com.thesuncat.whitehole.rendering.GLRenderer.RenderMode;
 import com.thesuncat.whitehole.rendering.cache.RendererCache;
@@ -105,7 +105,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 // Get integer value of the world map number (9th character in name)
                 worldmapId = galaxyName.charAt(9) - 0x30;
                 for(int i = 1; i <= 8; i++) {
-                    RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/WorldMap0" + i + ".arc"));
+                    RarcFile arc = new RarcFile(Whitehole.game.filesystem.openFile("/ObjectData/WorldMap0" + i + ".arc"));
 
                     if(i == worldmapId)
                         worldmapArchive = arc;
@@ -123,18 +123,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 for(BcsvFile.Entry entry : bcsvWorldMapLinks.entries)
                     globalWorldmapRouteList.add(new WorldmapRoute(entry));
 
-
-                worldmapObjTypes.add("Point");
-                worldmapObjTypes.add("Portal");
-                worldmapObjTypes.add("Star Gate");
-                worldmapObjTypes.add("Hungry Luma");
-                worldmapObjTypes.add("Warp Pipe");
-                worldmapObjTypes.add("Giant Starbit");
-
+                worldmapObjTypes.add("NormalPoint");
                 if(worldmapId!=8)
-                    worldmapObjTypes.add("Galaxy Icon");
-                else
-                    worldmapObjTypes.add("World Map Icon");
+                    worldmapObjTypes.add("GalaxyIcon");
+                worldmapObjTypes.add("WorldPortal");
+                worldmapObjTypes.add("StarGate");
+                worldmapObjTypes.add("Hungry Luma");
+                worldmapObjTypes.add("WarpPipe");
+                if(worldmapId==8)
+                    worldmapObjTypes.add("WorldmapIcon");
+                worldmapObjTypes.add("Giant StarBit");
 
                 // Gotta be honest, no clue what this code here does. TODO
                 if(worldmapId != 8) {
@@ -1325,7 +1323,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     /**
-     * Called when worldmap object selection is changed. No idea what it does. TODO
+     * Called when worldmap object selection is changed. TODO
      */
     public void selectedWorldmapObjChanged() {
         pnlWorldmapObjectSettings.clear();
@@ -1755,9 +1753,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void saveChanges() {
         lbStatusLabel.setText("Saving changes...");
         try {
+            // Save worldmap
+            if(worldmapId != -1) {
+                btnSaveWorldmap.doClick();
+            }
+            
             for(ZoneArchive zonearc : zoneArcs.values()) {
                 if(zonearc.save() != 0) {
-                    lbStatusLabel.setText("Failed to save the zone " + zonearc.zoneName + ".");
+                    String err = "Failed to save the zone " + zonearc.zoneName + ".";
+                    
+                    System.err.println(err);
+                    lbStatusLabel.setText(err);
                     return;
                 }
             }
@@ -1780,6 +1786,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 lbStatusLabel.setText("変更を保存できませんでした: " + ex.getMessage());
             else
                 lbStatusLabel.setText("Failed to save changes: " + ex.getMessage() + ".");
+            
+            System.err.println(ex.getLocalizedMessage());
         }
     }
     
@@ -2160,6 +2168,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         currentWorldmapRouteIndex = worldmapConnectionsNode.getIndex((MutableTreeNode)evt.getPath().getLastPathComponent());
         currentWorldmapEntryPointIndex = worldmapEntryPointsNode.getIndex((MutableTreeNode)evt.getPath().getLastPathComponent());
         selectedWorldmapObjChanged();
+        
+        unsavedChanges = true;
+        
         glCanvas.repaint();
     }//GEN-LAST:event_tvWorldmapObjectListValueChanged
 
@@ -2200,7 +2211,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 bcsvWorldMapLinks.entries.add(route.entry);
             bcsvWorldMapLinks.save();
             
-            for(RarcFilesystem arc : allWorldArchives)
+            for(RarcFile arc : allWorldArchives)
                 arc.save();
             
             lbStatusLabel.setText("Worldmap saved!");
@@ -5749,8 +5760,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private WorldmapPoint defaultPoint;
     
-    ArrayList<RarcFilesystem> allWorldArchives = new ArrayList<>();
-    RarcFilesystem worldmapArchive;
+    ArrayList<RarcFile> allWorldArchives = new ArrayList<>();
+    RarcFile worldmapArchive;
     ArrayList<BcsvFile> worldWideMiscObjects = new ArrayList<>();
     private BcsvFile bcsvWorldMapPoints, bcsvWorldMapGalaxies, bcsvWorldMapMiscObjects, bcsvWorldMapLinks;
     //private ArrayList<Bcsv.Entry> pointingObjectsFromOtherWorlds; //objects like portals in other worlds which point to a point in this world

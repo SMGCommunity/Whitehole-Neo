@@ -16,7 +16,7 @@
 package com.thesuncat.whitehole.rendering;
 
 import com.thesuncat.whitehole.*;
-import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.io.RarcFile;
 import com.thesuncat.whitehole.rendering.cache.*;
 import com.thesuncat.whitehole.smg.*;
 import com.thesuncat.whitehole.smg.ImageUtils.FilterMode;
@@ -558,7 +558,7 @@ public class BmdRenderer extends GLRenderer {
         // Load the BMD / BDL file
         try {
             String filepath = "/ObjectData/" + modelname + ".arc";
-            container = new RarcFilesystem(Whitehole.game.filesystem.openFile(filepath));
+            container = new RarcFile(Whitehole.game.filesystem.openFile(filepath));
             if(container.fileExists("/" + modelname + "/" + modelname + ".bdl"))
                 model = new Bmd(container.openFile("/" + modelname + "/" + modelname + ".bdl"));
             else if(container.fileExists("/" + modelname + "/" + modelname + ".bmd"))
@@ -971,7 +971,7 @@ public class BmdRenderer extends GLRenderer {
         public int program, vertexShader, fragmentShader, cacheKey;
     }
 
-    private RarcFilesystem container;
+    private RarcFile container;
     protected ColorCubeRenderer fallback;
     protected Bmd model;
     protected Bva visible;

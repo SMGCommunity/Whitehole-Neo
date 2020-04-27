@@ -18,8 +18,8 @@ package com.thesuncat.whitehole;
 import com.thesuncat.whitehole.io.ExternalFile;
 import com.thesuncat.whitehole.io.MsbfFile;
 import com.thesuncat.whitehole.io.MsbtFile;
+import com.thesuncat.whitehole.io.InRarcFile;
 import com.thesuncat.whitehole.io.RarcFile;
-import com.thesuncat.whitehole.io.RarcFilesystem;
 import com.thesuncat.whitehole.smg.BcsvFile;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,13 +40,13 @@ public class Scraper
         File gameDir = new File(dir);
         
         for(File f : gameDir.listFiles()) {
-            RarcFilesystem rfs = new RarcFilesystem(new ExternalFile(f.getAbsolutePath()));
+            RarcFile rfs = new RarcFile(new ExternalFile(f.getAbsolutePath()));
             
             for(String s : rfs.getAllFileDirs()) {
                 if(!s.endsWith(wantedFile))
                     continue;
                 
-                RarcFile rf = (RarcFile) rfs.openFile(s);
+                InRarcFile rf = (InRarcFile) rfs.openFile(s);
                 
                 switch(wantedFile) {
                     case "msbf":

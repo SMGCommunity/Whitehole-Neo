@@ -18,7 +18,7 @@ package com.thesuncat.whitehole.rendering;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import com.thesuncat.whitehole.Whitehole;
-import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.io.RarcFile;
 import com.thesuncat.whitehole.smg.Bti;
 import com.thesuncat.whitehole.smg.ImageUtils.FilterMode;
 import com.thesuncat.whitehole.smg.ImageUtils.WrapMode;
@@ -30,7 +30,7 @@ public class BtiRenderer extends GLRenderer {
         GL2 gl = info.drawable.getGL().getGL2();
         
         try {
-            container = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/" + name + ".arc"));
+            container = new RarcFile(Whitehole.game.filesystem.openFile("/ObjectData/" + name + ".arc"));
             if (container.fileExists("/" + name + "/" + name + ".bti"))
                 bti = new Bti(container.openFile("/" + name + "/" + name + ".bti"));
             else
@@ -173,7 +173,7 @@ public class BtiRenderer extends GLRenderer {
         gl.glEnd();
     }
     
-    private RarcFilesystem container;
+    private RarcFile container;
     private Bti bti;
     private Vector3 pt1, pt2;
     private int texID;

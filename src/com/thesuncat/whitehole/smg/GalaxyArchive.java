@@ -15,7 +15,7 @@
 
 package com.thesuncat.whitehole.smg;
 
-import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.io.RarcFile;
 import com.thesuncat.whitehole.io.FilesystemBase;
 import java.util.*;
 import java.io.*;
@@ -26,7 +26,7 @@ public class GalaxyArchive {
         filesystem = arc.filesystem;
         galaxyName = name;
         zoneList = new ArrayList();
-        RarcFilesystem scenario = new RarcFilesystem(filesystem.openFile("/StageData/"+galaxyName+"/"+galaxyName+"Scenario.arc"));
+        RarcFile scenario = new RarcFile(filesystem.openFile("/StageData/"+galaxyName+"/"+galaxyName+"Scenario.arc"));
 
         BcsvFile zonesbcsv = new BcsvFile(scenario.openFile(String.format("/%1$sScenario/ZoneList.bcsv", galaxyName)));
         for (BcsvFile.Entry entry : zonesbcsv.entries) {

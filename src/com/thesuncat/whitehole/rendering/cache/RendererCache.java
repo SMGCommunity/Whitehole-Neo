@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import com.thesuncat.whitehole.Whitehole;
-import com.thesuncat.whitehole.io.RarcFilesystem;
+import com.thesuncat.whitehole.io.RarcFile;
 import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.rendering.object.PlanetRenderer;
@@ -65,7 +65,7 @@ public class RendererCache {
             return;
         
         try {
-            RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/PlanetMapDataTable.arc"));
+            RarcFile arc = new RarcFile(Whitehole.game.filesystem.openFile("/ObjectData/PlanetMapDataTable.arc"));
             BcsvFile planetmap = new BcsvFile(arc.openFile("/PlanetMapDataTable/PlanetMapDataTable.bcsv"));
             
             planetList = new ArrayList(planetmap.entries.size());
