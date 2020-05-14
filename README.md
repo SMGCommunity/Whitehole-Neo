@@ -2,8 +2,8 @@
 Whitehole is a level editor for Super Mario Galaxy 1 and 2.  
 All downloads can be found on the release page.  
   
-<h2>Changelog:</h2>
-<h3>version 1.5.5</h3>
+## Changelog:  
+### Version 1.5.5
 
 **Added:**
 - *Work in progress* Obj importer
@@ -16,7 +16,7 @@ All downloads can be found on the release page.
 **Deleted:**
 - Deleted the object database updater since there isn't a download source anymore. But don't worry, the db is included with this download!
 
-<h3>version 1.5.4</h3>
+### Version 1.5.4
 
 Now introducing exciting features like... an improved PowerStarLight renderer... and... copy and paste!
 
@@ -52,6 +52,7 @@ Now introducing exciting features like... an improved PowerStarLight renderer...
 - Made all error messages clearer and handled better (and with punctuation!!)
 
 **Controls:**  
+  
 Pan Camera: Left-mouse drag or arrow keys/numpad  
 Rotate Camera: Right-mouse drag  
 Zoom: Mousewheel or PageUp/Down or Numpad 3/9  
