@@ -32,7 +32,7 @@ import java.util.prefs.Preferences;
 import javax.swing.*;
 
 public class Whitehole {
-    public static final String NAME = "Whitehole v1.5.4 BETA";
+    public static final String NAME = "Whitehole v1.5.5 BETA";
     public static final String WEBURL = "http:discord.gg/xWCFAMA";
     public static final String CRASHURL = "TheSunCat#1007";
     public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
