@@ -248,7 +248,7 @@ public class ModelImporterForm extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+  
     private void btnImportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImportActionPerformed
         if(Settings.superBMD_dir.trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please select SuperBMD.exe.");
@@ -412,7 +412,7 @@ public class ModelImporterForm extends javax.swing.JFrame {
 
             rf.createFile(modelName, modelName + ".kcl");
             InRarcFile kcl = (InRarcFile) rf.openFile(modelName + "/" + modelName + ".kcl");
-            kcl.setContents(Files.readAllBytes(kclFile.toPath()));
+            //kcl.setContents(Files.readAllBytes(kclFile.toPath()));
             rf.reinsertFile(kcl);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, ex.getLocalizedMessage());
@@ -420,7 +420,7 @@ public class ModelImporterForm extends javax.swing.JFrame {
             return;
         }
         
-        cleanup();
+        cleanup(); 
     }//GEN-LAST:event_btnImportActionPerformed
 
     private void btnBrowseModelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseModelActionPerformed
