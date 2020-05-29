@@ -73,7 +73,7 @@ public class PathObj {
         generateColor();
         
         try {
-            BcsvFile pointsfile = new BcsvFile(zone.mapArc.openFile(String.format("/Stage/Jmp/Path/CommonPathPointInfo.%1$d", index)));
+            BcsvFile pointsfile = new BcsvFile(zone.mapArc.openFile("/Stage/Jmp/Path/CommonPathPointInfo." + index));
 
             points = new LinkedHashMap();
 
