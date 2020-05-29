@@ -32,7 +32,7 @@ import java.util.prefs.Preferences;
 import javax.swing.*;
 
 public class Whitehole {
-    public static final String NAME = "Whitehole v1.5.5 BETA ";
+    public static final String NAME = "Whitehole v1.6";
     public static final String WEBURL = "http:discord.gg/xWCFAMA";
     public static final String CRASHURL = "TheSunCat#1007";
     public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
@@ -92,38 +92,35 @@ public class Whitehole {
         BcsvFile.populateHashTable();
 
         if(Settings.richPresence) {
-            Thread discord = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    final DiscordRPC lib = DiscordRPC.INSTANCE;
-                    String applicationId = "523605143480958998";
-                    DiscordEventHandlers handlers = new DiscordEventHandlers();
-                    lib.Discord_Initialize(applicationId, handlers, true, "");
-                    final DiscordRichPresence presence = new DiscordRichPresence();
-                    presence.startTimestamp = System.currentTimeMillis() / 1000;
-                    presence.details = "Working on a mod";
-                    presence.largeImageKey = "icon";
-                    presence.state = "Idle";
-                    presence.largeImageText = "Super Mario Galaxy 2 Level Editor";
+            Thread discord = new Thread(() -> {
+                final DiscordRPC lib = DiscordRPC.INSTANCE;
+                String applicationId = "523605143480958998";
+                DiscordEventHandlers handlers = new DiscordEventHandlers();
+                lib.Discord_Initialize(applicationId, handlers, true, "");
+                final DiscordRichPresence presence = new DiscordRichPresence();
+                presence.startTimestamp = System.currentTimeMillis() / 1000;
+                presence.details = "Working on a mod";
+                presence.largeImageKey = "icon";
+                presence.state = "Idle";
+                presence.largeImageText = "Super Mario Galaxy 2 Level Editor";
+                lib.Discord_UpdatePresence(presence);
+                
+                while (!Thread.currentThread().isInterrupted()) {
+                    if(GalaxyEditorForm.closing || GalaxyEditorForm.lastMove >= 60)
+                        currentTask = "Idle";
+                    GalaxyEditorForm.closing = false;
+                    
+                    lib.Discord_RunCallbacks();
+                    presence.state = currentTask;
                     lib.Discord_UpdatePresence(presence);
                     
-                    while (!Thread.currentThread().isInterrupted()) {
-                        if(GalaxyEditorForm.closing || GalaxyEditorForm.lastMove >= 60)
-                            currentTask = "Idle";
-                        GalaxyEditorForm.closing = false;
-                        
-                        lib.Discord_RunCallbacks();
-                        presence.state = currentTask;
-                        lib.Discord_UpdatePresence(presence);
-                        
-                        if(closing)
-                            return;
-                        
-                        // Slow thread down
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException ignore) {}
-                    }
+                    if(closing)
+                        return;
+                    
+                    // Slow thread down
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignore) {}
                 }
             }, "RichPresence");
             discord.start();
@@ -165,13 +162,10 @@ public class Whitehole {
     /**
      * ObjectDB init thread
      */
-    private static final Thread ODB_THREAD = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ObjectDB.init();
-                stopObjectDBThread();
-            }
-        }, "ObjectDB Loader");
+    private static final Thread ODB_THREAD = new Thread(() -> {
+        ObjectDB.init();
+        stopObjectDBThread();
+    }, "ObjectDB Loader");
     
     // Rich presence stuff
     public static boolean closing = false;
