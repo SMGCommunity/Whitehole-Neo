@@ -37,7 +37,7 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="pnlImporter" max="32767" attributes="0"/>
+              <Component id="pnlImporter" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -83,45 +83,36 @@
                       <Group type="102" alignment="1" attributes="0">
                           <Group type="103" groupAlignment="1" attributes="0">
                               <Group type="102" attributes="0">
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Group type="102" alignment="0" attributes="0">
-                                          <Component id="lblNote" min="-2" max="-2" attributes="0"/>
-                                          <EmptySpace max="32767" attributes="0"/>
-                                      </Group>
-                                      <Group type="102" alignment="0" attributes="0">
-                                          <Component id="chkAddToBCSV" min="-2" max="-2" attributes="0"/>
-                                          <EmptySpace max="32767" attributes="0"/>
-                                      </Group>
-                                  </Group>
-                                  <EmptySpace min="-2" pref="201" max="-2" attributes="0"/>
+                                  <Component id="lblNote" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
                                   <Component id="btnImport" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Group type="102" attributes="0">
+                                  <Component id="chkAddToBCSV" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
+                                  <Component id="lblObjType" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                  <Component id="cbxObjectType" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Group type="102" attributes="0">
                                   <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                                   <Group type="103" groupAlignment="1" attributes="0">
-                                      <Group type="102" attributes="0">
-                                          <Component id="lblObjType" min="-2" max="-2" attributes="0"/>
-                                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                          <Component id="cbxObjectType" min="-2" max="-2" attributes="0"/>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Component id="lblModelName" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="txtModelName" min="-2" pref="450" max="-2" attributes="0"/>
                                       </Group>
-                                      <Group type="103" groupAlignment="1" attributes="0">
-                                          <Group type="102" alignment="0" attributes="0">
-                                              <Component id="lblModelName" min="-2" max="-2" attributes="0"/>
-                                              <EmptySpace max="-2" attributes="0"/>
-                                              <Component id="txtModelName" min="-2" pref="450" max="-2" attributes="0"/>
-                                          </Group>
-                                          <Group type="102" alignment="0" attributes="0">
-                                              <Component id="lblModelName1" min="-2" max="-2" attributes="0"/>
-                                              <EmptySpace min="-2" pref="404" max="-2" attributes="0"/>
-                                              <Component id="btnBrowseCollision" min="-2" pref="55" max="-2" attributes="0"/>
-                                          </Group>
-                                          <Group type="102" alignment="0" attributes="0">
-                                              <Component id="lblModelName2" min="-2" max="-2" attributes="0"/>
-                                              <EmptySpace max="-2" attributes="0"/>
-                                              <Component id="txtModelFile" min="-2" pref="403" max="-2" attributes="0"/>
-                                              <EmptySpace max="-2" attributes="0"/>
-                                              <Component id="btnBrowseModel" min="-2" pref="55" max="-2" attributes="0"/>
-                                          </Group>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Component id="lblColFile" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace min="-2" pref="404" max="-2" attributes="0"/>
+                                          <Component id="btnBrowseCollision" min="-2" pref="55" max="-2" attributes="0"/>
+                                      </Group>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Component id="lblModelFile" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="txtModelFile" min="-2" pref="403" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="btnBrowseModel" min="-2" pref="55" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
                               </Group>
@@ -137,13 +128,13 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="-2" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="lblModelName2" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblModelFile" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="txtModelFile" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="btnBrowseModel" alignment="3" min="-2" pref="24" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="lblModelName1" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblColFile" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="txtCollisionFile" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="btnBrowseCollision" alignment="3" min="-2" pref="24" max="-2" attributes="0"/>
                   </Group>
@@ -153,7 +144,7 @@
                       <Component id="txtMatFile" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="btnBrowseMats" alignment="3" min="-2" pref="24" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace max="32767" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="lblTexHeaders" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="txtTexHeadersFile" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -213,22 +204,25 @@
             <Property name="selected" type="boolean" value="true"/>
             <Property name="text" type="java.lang.String" value="Add to BCSV"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkAddToBCSVActionPerformed"/>
+          </Events>
         </Component>
-        <Component class="javax.swing.JLabel" name="lblModelName1">
+        <Component class="javax.swing.JLabel" name="lblColFile">
           <Properties>
             <Property name="text" type="java.lang.String" value="Collision File:"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="txtCollisionFile">
         </Component>
-        <Component class="javax.swing.JLabel" name="lblModelName2">
+        <Component class="javax.swing.JLabel" name="lblModelFile">
           <Properties>
             <Property name="text" type="java.lang.String" value="Model File:"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="txtModelFile">
           <Properties>
-            <Property name="text" type="java.lang.String" value="D:\u005cSMGO\u005cmodels\u005cFaceShip\u005cHomeInsideFinal\u005cHomeInside.fbx" containsInvalidXMLChars="true"/>
+            <Property name="text" type="java.lang.String" value="E:\u005cDelfino\u005cDelfino5\u005cmodel\u005cdelfino_modelobj.obj" containsInvalidXMLChars="true"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JButton" name="btnBrowseModel">
@@ -249,7 +243,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="lblNote">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Leave Collision File &amp; Model Name black for auto."/>
+            <Property name="text" type="java.lang.String" value="Note: leave anything but Model File blank for auto."/>
           </Properties>
         </Component>
         <Component class="javax.swing.JButton" name="btnImport">

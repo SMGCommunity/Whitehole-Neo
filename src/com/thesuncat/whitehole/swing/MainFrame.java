@@ -68,7 +68,7 @@ public class MainFrame extends javax.swing.JFrame {
             public void mouseExited(MouseEvent e) {}
         });
         
-        for(String name : new String[] {"BCSV Editor", "MSBT Editor", "BCSV Search"}) {
+        for(String name : new String[] {"BCSV Editor", "MSBT Editor", "BCSV Search", "Model Importer"}) {
             JMenuItem mnuitem = new JMenuItem(name);
             mnuitem.setUI(new BasicMenuItemUI() {
                 @Override
@@ -176,6 +176,14 @@ public class MainFrame extends javax.swing.JFrame {
     }
     
     private void initDarkTheme() {
+        if(Settings.dark)
+        {
+            UIManager.put("ComboBox.foreground", new Color(157, 158, 161));
+            UIManager.put("ComboBox.buttonBackground", Color.darkGray);
+            UIManager.put("ComboBox.selectionBackground", Color.darkGray.brighter());
+            UIManager.put("ComboBox.buttonHighlight", Color.darkGray.brighter());
+        }
+        
         jScrollPane1.getVerticalScrollBar().setUI(new DarkScrollBarUI());
         jScrollPane1.getHorizontalScrollBar().setUI(new DarkScrollBarUI());
         

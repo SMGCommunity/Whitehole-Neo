@@ -106,7 +106,7 @@ public class ExternalFilesystem implements FilesystemBase {
         if (!fileExists(filename))
             throw new FileNotFoundException("File '" + filename + "' doesn't exist");
         
-        if(Settings.modFolder_dir.equals(""))
+        if(Settings.modFolder_dir.isEmpty())
             return new ExternalFile(baseDirectory.getAbsolutePath() + filename);
         
         String modFileName = Settings.modFolder_dir + filename;
@@ -128,6 +128,15 @@ public class ExternalFilesystem implements FilesystemBase {
     
     @Override
     public void createFile(String parent, String newfile) throws IOException {
+        if(Settings.modFolder_dir.isEmpty())
+        {
+            if(!parent.startsWith(baseDirectory.getAbsolutePath()))
+                parent = baseDirectory.getAbsolutePath() + parent;
+        } else {
+            if(!parent.startsWith(Settings.modFolder_dir))
+                parent = Settings.modFolder_dir + parent;
+        }
+        
         if(!parent.endsWith("/") && !parent.startsWith("/"))
             parent += "/";
         

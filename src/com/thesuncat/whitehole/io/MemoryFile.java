@@ -256,6 +256,7 @@ public class MemoryFile implements FileBase {
     @Override
     public void setContents(byte[] buf) throws IOException {
         buffer = buf;
+        setLength(buf.length);
     }
     
     

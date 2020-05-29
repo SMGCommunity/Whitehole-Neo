@@ -608,10 +608,6 @@ public class PropertyGrid extends JTable {
             
             combo = new JComboBox(f.choices.toArray());
             if(Settings.dark) {
-                UIManager.put("ComboBox.foreground", new Color(157, 158, 161));
-                UIManager.put("ComboBox.buttonBackground", Color.darkGray);
-                UIManager.put("ComboBox.selectionBackground", Color.darkGray.brighter());
-                UIManager.put("ComboBox.buttonHighlight", Color.darkGray.brighter());
                 combo.setBackground(new Color(47, 49, 54));
                 combo.setUI(new DarkComboBoxUI());
                 combo.setOpaque(true);

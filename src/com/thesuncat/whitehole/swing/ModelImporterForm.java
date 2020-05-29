@@ -17,14 +17,14 @@ package com.thesuncat.whitehole.swing;
 
 import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.Whitehole;
-import com.thesuncat.whitehole.io.ExternalFile;
 import com.thesuncat.whitehole.io.InRarcFile;
 import com.thesuncat.whitehole.io.RarcFile;
+import com.thesuncat.whitehole.smg.BcsvFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Arrays;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -33,6 +33,9 @@ public class ModelImporterForm extends javax.swing.JFrame {
 
     public ModelImporterForm() {
         initComponents();
+        
+        if(Settings.dark)
+            initDarkTheme();
         
         setLocationRelativeTo(null);
     }
@@ -47,9 +50,9 @@ public class ModelImporterForm extends javax.swing.JFrame {
         cbxObjectType = new javax.swing.JComboBox<>();
         lblObjType = new javax.swing.JLabel();
         chkAddToBCSV = new javax.swing.JCheckBox();
-        lblModelName1 = new javax.swing.JLabel();
+        lblColFile = new javax.swing.JLabel();
         txtCollisionFile = new javax.swing.JTextField();
-        lblModelName2 = new javax.swing.JLabel();
+        lblModelFile = new javax.swing.JLabel();
         txtModelFile = new javax.swing.JTextField();
         btnBrowseModel = new javax.swing.JButton();
         btnBrowseCollision = new javax.swing.JButton();
@@ -74,12 +77,17 @@ public class ModelImporterForm extends javax.swing.JFrame {
 
         chkAddToBCSV.setSelected(true);
         chkAddToBCSV.setText("Add to BCSV");
+        chkAddToBCSV.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chkAddToBCSVActionPerformed(evt);
+            }
+        });
 
-        lblModelName1.setText("Collision File:");
+        lblColFile.setText("Collision File:");
 
-        lblModelName2.setText("Model File:");
+        lblModelFile.setText("Model File:");
 
-        txtModelFile.setText("D:\\SMGO\\models\\FaceShip\\HomeInsideFinal\\HomeInside.fbx");
+        txtModelFile.setText("E:\\Delfino\\Delfino5\\model\\delfino_modelobj.obj");
 
         btnBrowseModel.setText("...");
         btnBrowseModel.addActionListener(new java.awt.event.ActionListener() {
@@ -95,7 +103,7 @@ public class ModelImporterForm extends javax.swing.JFrame {
             }
         });
 
-        lblNote.setText("Leave Collision File & Model Name black for auto.");
+        lblNote.setText("Note: leave anything but Model File blank for auto.");
 
         btnImport.setText("Import");
         btnImport.addActionListener(new java.awt.event.ActionListener() {
@@ -155,37 +163,32 @@ public class ModelImporterForm extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlImporterLayout.createSequentialGroup()
                         .addGroup(pnlImporterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(pnlImporterLayout.createSequentialGroup()
-                                .addGroup(pnlImporterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(pnlImporterLayout.createSequentialGroup()
-                                        .addComponent(lblNote)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                    .addGroup(pnlImporterLayout.createSequentialGroup()
-                                        .addComponent(chkAddToBCSV)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                .addGap(201, 201, 201)
+                                .addComponent(lblNote)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(btnImport))
+                            .addGroup(pnlImporterLayout.createSequentialGroup()
+                                .addComponent(chkAddToBCSV)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblObjType)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(cbxObjectType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(pnlImporterLayout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addGroup(pnlImporterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(pnlImporterLayout.createSequentialGroup()
-                                        .addComponent(lblObjType)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(cbxObjectType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(pnlImporterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlImporterLayout.createSequentialGroup()
-                                            .addComponent(lblModelName)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                            .addComponent(txtModelName, javax.swing.GroupLayout.PREFERRED_SIZE, 450, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlImporterLayout.createSequentialGroup()
-                                            .addComponent(lblModelName1)
-                                            .addGap(404, 404, 404)
-                                            .addComponent(btnBrowseCollision, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlImporterLayout.createSequentialGroup()
-                                            .addComponent(lblModelName2)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                            .addComponent(txtModelFile, javax.swing.GroupLayout.PREFERRED_SIZE, 403, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                            .addComponent(btnBrowseModel, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlImporterLayout.createSequentialGroup()
+                                        .addComponent(lblModelName)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(txtModelName, javax.swing.GroupLayout.PREFERRED_SIZE, 450, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlImporterLayout.createSequentialGroup()
+                                        .addComponent(lblColFile)
+                                        .addGap(404, 404, 404)
+                                        .addComponent(btnBrowseCollision, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlImporterLayout.createSequentialGroup()
+                                        .addComponent(lblModelFile)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(txtModelFile, javax.swing.GroupLayout.PREFERRED_SIZE, 403, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btnBrowseModel, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                         .addGap(12, 12, 12))))
         );
         pnlImporterLayout.setVerticalGroup(
@@ -193,12 +196,12 @@ public class ModelImporterForm extends javax.swing.JFrame {
             .addGroup(pnlImporterLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnlImporterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblModelName2)
+                    .addComponent(lblModelFile)
                     .addComponent(txtModelFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnBrowseModel, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnlImporterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblModelName1)
+                    .addComponent(lblColFile)
                     .addComponent(txtCollisionFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnBrowseCollision, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -206,7 +209,7 @@ public class ModelImporterForm extends javax.swing.JFrame {
                     .addComponent(lblMats)
                     .addComponent(txtMatFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnBrowseMats, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnlImporterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblTexHeaders)
                     .addComponent(txtTexHeadersFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -242,7 +245,7 @@ public class ModelImporterForm extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(pnlImporter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(pnlImporter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -283,7 +286,7 @@ public class ModelImporterForm extends javax.swing.JFrame {
             modelName = modelFile.getName();
             
             if(modelName.indexOf('.') != -1) // trim extension
-                modelName = modelName.substring(modelName.indexOf('.'));
+                modelName = modelName.substring(0, modelName.indexOf('.'));
             
             txtModelName.setText(modelName);
         }
@@ -376,26 +379,82 @@ public class ModelImporterForm extends javax.swing.JFrame {
             return;
         }
         
+        File kclFile = new File((tempFolderPath + modelName + ".kcl").replace('\\', '/'));
+        File paFile = new File((tempFolderPath + modelName + ".pa").replace('\\', '/'));
+        
         // CREATE KCL
         if(chkMakeKCL.isSelected()) {
-            String objPath = Settings.modFolder_dir + "/temp/" + modelName + ".obj";
+            File colFile = new File(txtCollisionFile.getText());
             
-            String objCommand = Settings.superBMD_dir + " \"" + (Settings.modFolder_dir + "/temp/" + modelName + "/" + modelName + ".bdl").replace('\\', '/') + "\" "
-                    + "\"" + objPath.replace('\\', '/') + "\" --exportobj";
-            
-            // export OBJ from the BDL we made
-            if(!Whitehole.execCommand(objCommand)) {
-                JOptionPane.showMessageDialog(this, "Failed executing " + objCommand);
-                cleanup();
-                return;
+            if(!colFile.exists() || colFile.isDirectory())
+            {
+                if(!kclFile.exists() || kclFile.isDirectory())
+                {
+                    if(JOptionPane.showConfirmDialog(this, "Collision file not specified or found! Generate one?", Whitehole.NAME, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+                    {
+                        String objPath = Settings.modFolder_dir + "/temp/" + modelName + ".obj";
+
+                        String objCommand = Settings.superBMD_dir + " \"" + (Settings.modFolder_dir + "/temp/" + modelName + ".bdl").replace('\\', '/') + "\" "
+                                + "\"" + objPath.replace('\\', '/') + "\" --exportobj";
+
+                        // export OBJ from the BDL we made
+                        if(!Whitehole.execCommand(objCommand)) {
+                            JOptionPane.showMessageDialog(this, "Failed executing " + objCommand);
+                            cleanup();
+                            return;
+                        }
+
+                        // make KCL from OBJ
+                        if(!Whitehole.execCommand(Settings.KCLcreate_dir + " \"" + objPath.replace('\\', '/') + "\"")) {
+                            JOptionPane.showMessageDialog(this, "Failed executing KCLCreate!");
+                            cleanup();
+                            return;
+                        }
+                    }
+                }
+            } else {
+                kclFile = colFile;
             }
             
             
-            // make KCL from OBJ
-            if(!Whitehole.execCommand(Settings.KCLcreate_dir + " \"" + objPath.replace('\\', '/') + "\"")) {
-                JOptionPane.showMessageDialog(this, "Failed executing KCLCreate!");
-                cleanup();
-                return;
+            while(!kclFile.exists() || kclFile.isDirectory())
+            {
+                JOptionPane.showMessageDialog(this, "KCL File not found. Please select the KCL file.");
+                JFileChooser fc = new JFileChooser(Settings.modFolder_dir.isEmpty() ? Whitehole.curGameDir : Settings.modFolder_dir);
+                fc.setFileFilter(new FileNameExtensionFilter("KCL File", "kcl"));
+                fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+                if(fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+                {
+                    cleanup();
+                    return;
+                }
+                
+                if(!fc.getSelectedFile().isFile())
+                    continue;
+                
+                kclFile = fc.getSelectedFile();
+                break;
+            }
+            
+            while(!paFile.exists() || paFile.isDirectory())
+            {
+                JOptionPane.showMessageDialog(this, "PA File not found. Please select the PA file.");
+                JFileChooser fc = new JFileChooser(Settings.modFolder_dir.isEmpty() ? Whitehole.curGameDir : Settings.modFolder_dir);
+                fc.setFileFilter(new FileNameExtensionFilter("PA File", "pa"));
+                fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+                if(fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+                {
+                    cleanup();
+                    return;
+                }
+                
+                if(!fc.getSelectedFile().isFile())
+                    continue;
+                
+                paFile = fc.getSelectedFile();
+                break;
             }
         }
         
@@ -403,22 +462,122 @@ public class ModelImporterForm extends javax.swing.JFrame {
         try {
             Whitehole.game.filesystem.createFile("/ObjectData/", modelName + ".arc");
 
-            RarcFile rf = new RarcFile(Whitehole.game.filesystem.openFile("/ObjectData/" + modelName), modelName);
+            RarcFile rf = new RarcFile(Whitehole.game.filesystem.openFile("/ObjectData/" + modelName + ".arc"), modelName);
 
             rf.createFile(modelName, modelName + ".bdl");
             InRarcFile bdl = (InRarcFile) rf.openFile(modelName + "/" + modelName + ".bdl");
             bdl.setContents(Files.readAllBytes(bdlFile.toPath()));
             rf.reinsertFile(bdl);
 
-            rf.createFile(modelName, modelName + ".kcl");
-            InRarcFile kcl = (InRarcFile) rf.openFile(modelName + "/" + modelName + ".kcl");
-            //kcl.setContents(Files.readAllBytes(kclFile.toPath()));
-            rf.reinsertFile(kcl);
+            // Add KCL files
+            if(chkMakeKCL.isSelected())
+            {
+                rf.createFile(modelName, modelName + ".kcl");
+                InRarcFile kcl = (InRarcFile) rf.openFile(modelName + "/" + modelName + ".kcl");
+                kcl.setContents(Files.readAllBytes(kclFile.toPath()));
+                rf.reinsertFile(kcl);
+
+                rf.createFile(modelName, modelName + ".pa");
+                InRarcFile pa = (InRarcFile) rf.openFile(modelName + "/" + modelName + ".pa");
+                pa.setContents(Files.readAllBytes(paFile.toPath()));
+                rf.reinsertFile(pa);
+            }
+            
+            rf.save();
+            rf.close();
+            
+            if(chkAddToBCSV.isSelected())
+            {
+                String tableName = "";
+                switch(cbxObjectType.getSelectedIndex())
+                {
+                    case 0: // Object
+                        tableName = "ProductMapObjDataTable";
+                        break;
+                    case 1: // Planet
+                        tableName = "PlanetMapDataTable";
+                        break;
+                }
+                
+                RarcFile bcsvArcFile = new RarcFile(Whitehole.game.filesystem.openFile("/ObjectData/" + tableName + ".arc"));
+                BcsvFile bcsv = new BcsvFile(bcsvArcFile.openFile(tableName + "/" + tableName + ".bcsv"));
+                
+                
+                BcsvFile.Entry ourEntry = new BcsvFile.Entry();
+                for(BcsvFile.Field field : bcsv.fields.values())
+                {
+                    String val;
+                    
+                    switch (field.name)
+                    {
+                        case "PlanetName":
+                        case "ModelName":
+                            val = modelName;
+                            break;
+                        case "ClassName":
+                            val = "SimpleMapObj";
+                            break;
+                        case "LowFlag":
+                        case "MiddleFlag":
+                        case "BloomFlag":
+                        case "WaterFlag":
+                        case "IndirectFlag":
+                            val = "0";
+                            break;
+                        default:
+                            val = "";
+                            break;
+                    }
+                    
+                    try {
+                        switch (field.type) {
+                            case 0:
+                            case 3:
+                                ourEntry.put(field.nameHash, Integer.parseInt(val));
+                                break;
+
+                            case 4:
+                                ourEntry.put(field.nameHash, Short.parseShort(val));
+                                break;
+
+                            case 5:
+                                ourEntry.put(field.nameHash, Byte.parseByte(val));
+                                break;
+
+                            case 2:
+                                ourEntry.put(field.nameHash, Float.parseFloat(val));
+                                break;
+
+                            case 6:
+                                ourEntry.put(field.nameHash, val);
+                                break;
+                        }
+                    }
+                    catch (NumberFormatException ex) {
+                        switch (field.type) {
+                            case 0:
+                            case 3: ourEntry.put(field.nameHash, (int)0); break;
+                            case 4: ourEntry.put(field.nameHash, (short)0); break;
+                            case 5: ourEntry.put(field.nameHash, (byte)0); break;
+                            case 2: ourEntry.put(field.nameHash, 0f); break;
+                            case 6: ourEntry.put(field.nameHash, ""); break;
+                        }
+                    }
+                }
+                
+                bcsv.entries.add(ourEntry);
+                
+                bcsv.save();
+                bcsvArcFile.save();
+                bcsvArcFile.close();
+            }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, ex.getLocalizedMessage());
             cleanup();
             return;
         }
+        
+        JOptionPane.showMessageDialog(this, "Imported model " + modelName + " successfully!");
         
         cleanup(); 
     }//GEN-LAST:event_btnImportActionPerformed
@@ -478,9 +637,21 @@ public class ModelImporterForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnBrowseTexHeadersActionPerformed
 
+    private void chkAddToBCSVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkAddToBCSVActionPerformed
+        cbxObjectType.setVisible(chkAddToBCSV.isSelected());
+        lblObjType.setVisible(chkAddToBCSV.isSelected());
+    }//GEN-LAST:event_chkAddToBCSVActionPerformed
+
     private void cleanup()
     {
         File tempFolder = new File(Settings.modFolder_dir + "/temp/");
+        
+        if(!tempFolder.exists())
+            return;
+        
+        for(File f : tempFolder.listFiles())
+            f.delete();
+        
         tempFolder.delete();
     }
     
@@ -493,10 +664,10 @@ public class ModelImporterForm extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> cbxObjectType;
     private javax.swing.JCheckBox chkAddToBCSV;
     private javax.swing.JCheckBox chkMakeKCL;
+    private javax.swing.JLabel lblColFile;
     private javax.swing.JLabel lblMats;
+    private javax.swing.JLabel lblModelFile;
     private javax.swing.JLabel lblModelName;
-    private javax.swing.JLabel lblModelName1;
-    private javax.swing.JLabel lblModelName2;
     private javax.swing.JLabel lblNote;
     private javax.swing.JLabel lblObjType;
     private javax.swing.JLabel lblTexHeaders;
@@ -507,4 +678,36 @@ public class ModelImporterForm extends javax.swing.JFrame {
     private javax.swing.JTextField txtModelName;
     private javax.swing.JTextField txtTexHeadersFile;
     // End of variables declaration//GEN-END:variables
+    
+    private void initDarkTheme()
+    {
+        ArrayList<javax.swing.JLabel> lblArray = new ArrayList(Arrays.asList(lblColFile, lblMats, lblModelFile, lblModelName, lblNote, lblObjType, lblTexHeaders));
+        for(javax.swing.JLabel lbl : lblArray)
+            lbl.setForeground(new java.awt.Color(157,158,161));
+        
+        ArrayList<javax.swing.JTextField> txtArray = new ArrayList(Arrays.asList(txtCollisionFile, txtMatFile, txtModelFile, txtModelName, txtTexHeadersFile));
+        for(javax.swing.JTextField txt : txtArray)
+            txt.setBackground(new java.awt.Color(177,178,181));
+        
+//        ArrayList<javax.swing.JButton> btnArray = new ArrayList(Arrays.asList(btnBrowseCollision, btnBrowseMats, btnBrowseModel, btnBrowseTexHeaders, btnImport));
+//        for(javax.swing.JButton btn : btnArray)
+//        {
+//            btn.setOpaque(true);
+//            btn.setBackground(new java.awt.Color(32,34,37));
+//            btn.setForeground(new java.awt.Color(157,158,161));
+//        }
+        
+        pnlImporter.setBackground(new java.awt.Color(32,34,37));
+        this.getContentPane().setBackground(new java.awt.Color(32,34,37));
+        
+        chkAddToBCSV.setBackground(new java.awt.Color(32,34,37));
+        chkAddToBCSV.setForeground(new java.awt.Color(157,158,161));
+        chkMakeKCL.setBackground(new java.awt.Color(32,34,37));
+        chkMakeKCL.setForeground(new java.awt.Color(157,158,161));
+        
+        cbxObjectType.setBackground(new java.awt.Color(47, 49, 54));
+        cbxObjectType.setUI(new DarkThemeRenderers.DarkComboBoxUI());
+        cbxObjectType.setOpaque(true);
+        cbxObjectType.setBorder(null);
+    }
 }

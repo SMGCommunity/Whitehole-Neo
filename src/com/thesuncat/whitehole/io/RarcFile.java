@@ -108,9 +108,11 @@ public class RarcFile implements FilesystemBase {
         }
     }
     
-    public RarcFile(FileBase f, String name)
+    public RarcFile(FileBase f, String name) throws IOException
     {
-        file = f;
+        file = new Yaz0File(f);
+        file.setBigEndian(true);
+        
         dirEntries = new LinkedHashMap();
         fileEntries = new LinkedHashMap();
 
