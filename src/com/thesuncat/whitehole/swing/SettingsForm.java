@@ -58,6 +58,12 @@ public class SettingsForm extends javax.swing.JFrame {
         ((KeybindButton) btnScale).setKeybind(Settings.keyScl);
         ((KeybindButton) btnScreenshot).setKeybind(Settings.keyScrn);
         chkWASD.setSelected(Settings.useWASD);
+        
+        if(!System.getProperty("os.name").startsWith("Windows"))
+        {
+            chkAssoc.setVisible(false);
+            chkAssoc.setEnabled(false);
+        }
     }
     
     private void initJapanese() {
