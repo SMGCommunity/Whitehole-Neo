@@ -113,7 +113,7 @@ public class BcsvSearch extends javax.swing.JFrame {
         File allFiles = new File(gameDir);
         for(File f : allFiles.listFiles()) {
             if(f.isDirectory())
-                found.addAll(scanForArcsIn(f));
+                scanForArcsIn(f);
             else {
                 if(f.getName().toLowerCase().endsWith(".arc")) {
                     try {
@@ -124,8 +124,11 @@ public class BcsvSearch extends javax.swing.JFrame {
                 }
             }
         }
+        
         SwingUtilities.invokeLater(() -> {
             DefaultListModel<String> mdl = (DefaultListModel<String>) lisResults.getModel();
+            
+            mdl.clear();
             
             for(String s : found)
                 mdl.addElement(s);
@@ -137,23 +140,49 @@ public class BcsvSearch extends javax.swing.JFrame {
         txtSearch.setEditable(true);
     });
     
-    private ArrayList<String> scanForArcsIn(File dir) {
-        ArrayList<String> ret = new ArrayList<>();
-        
+    private void scanForArcsIn(File dir) {
         for(File f : dir.listFiles()) {
             if(f.isDirectory())
                 scanForArcsIn(f);
             else if(f.getName().endsWith(".arc")) {
                 try {
                     if(f.length() != 0)
-                        ret.addAll(searchArc(f.getAbsolutePath().substring(gameDir.length())));
+                        searchArc(f.getAbsolutePath().substring(gameDir.length()));
                 } catch (IOException ex) {
                     System.err.println(f.getName() + " not an ARC...?");
                 }
             }
         }
+    }
+    
+    private void searchArc(String relPath) throws FileNotFoundException, IOException {
+        String searchStr = txtSearch.getText();
+        if(searchStr.isEmpty())
+            return;
+        RarcFile arc = new RarcFile(Whitehole.game.filesystem.openFile(relPath));
         
-        return ret;
+        ArrayList<FileBase> bcsvList = new ArrayList<>();
+        for(String f : arc.getAllFileDirs()) {
+            if(f.toLowerCase().endsWith(".bcsv"))
+                bcsvList.add(arc.openFile(f));
+        }
+        
+        for(FileBase f : bcsvList) {
+            BcsvFile b = new BcsvFile(f);
+            for(BcsvFile.Entry e : b.entries) {
+                for(Object o : e.values()) {
+                    boolean match = false;
+                    if(!cbxMatchCase.isSelected() && o.toString().toLowerCase().contains(searchStr.toLowerCase()))
+                        match = true;
+                    else if(o.toString().contains(searchStr))
+                        match = true;
+                    if(match)
+                        found.add(o.toString() + " (" + relPath.replace('\\', '/') + " : " + ((InRarcFile) f).fileName + ")");
+                }
+            }
+            b.close();
+        }
+        arc.close();
     }
     
     private ArrayList<String> searchArc(String relPath) throws FileNotFoundException, IOException {
