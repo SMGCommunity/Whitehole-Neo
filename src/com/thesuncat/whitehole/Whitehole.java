@@ -148,7 +148,7 @@ public class Whitehole {
             
             return exitCode == 0;
         } catch (IOException | InterruptedException ex) {
-            JOptionPane.showMessageDialog(null, "well im dumb, cmd failed");
+            JOptionPane.showMessageDialog(null, "cmd.exe failed with the following error:\n" + ex.getLocalizedMessage());
             Logger.getLogger(SettingsForm.class.getName()).log(Level.SEVERE, null, ex);
             
             return false;

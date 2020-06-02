@@ -6,13 +6,13 @@ import com.thesuncat.whitehole.smg.BcsvFile;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.logging.*;
-import java.util.prefs.Preferences;
 import javax.swing.*;
 
 public class BcsvSearch extends javax.swing.JFrame {
 
     public BcsvSearch() {
         initComponents();
+        setResizable(false);
     }
 
     @SuppressWarnings("unchecked")
@@ -34,10 +34,10 @@ public class BcsvSearch extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         btnSearch.addActionListener(new java.awt.event.ActionListener() {
             @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {                                       
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSearch.setEnabled(false);
                 txtSearch.setEditable(false);
-                new Thread(search).start();
+                search.start();
             }
         });
 
@@ -95,7 +95,10 @@ public class BcsvSearch extends javax.swing.JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         pack();
     }// </editor-fold>                                                              
-             
+    
+    ArrayList<String> found = new ArrayList<>();
+    private String gameDir = Whitehole.curGameDir;
+    
     private JButton btnSearch;
     private JLabel jLabel1;
     private JScrollPane jScrollPane2;
@@ -103,47 +106,62 @@ public class BcsvSearch extends javax.swing.JFrame {
     private JPanel pnlResults;
     private JTextField txtSearch;     
     private JCheckBox cbxMatchCase;
-    private final Runnable search = new Runnable() {
-        @Override
-        public void run() {
-            lisResults.setModel(new DefaultListModel<String>());
-            File allFiles = new File(gameDir);
-            for(File f : allFiles.listFiles()) {
-                if(f.isDirectory())
-                    scanForArcsIn(f);
-                else {
-                    if(f.getName().toLowerCase().endsWith(".arc")) {
-                        try {
-                            searchArc(f.getAbsolutePath().substring(gameDir.length()));
-                        } catch (IOException ex) {
-                            Logger.getLogger(BcsvSearch.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+    private final Thread search = new Thread(() -> {
+        found = new ArrayList<>();
+
+        lisResults.setModel(new DefaultListModel<>());
+        File allFiles = new File(gameDir);
+        for(File f : allFiles.listFiles()) {
+            if(f.isDirectory())
+                found.addAll(scanForArcsIn(f));
+            else {
+                if(f.getName().toLowerCase().endsWith(".arc")) {
+                    try {
+                        searchArc(f.getAbsolutePath().substring(gameDir.length()));
+                    } catch (IOException ex) {
+                        Logger.getLogger(BcsvSearch.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
-            btnSearch.setEnabled(true);
-            txtSearch.setEditable(true);
         }
-    };
+        SwingUtilities.invokeLater(() -> {
+            DefaultListModel<String> mdl = (DefaultListModel<String>) lisResults.getModel();
+            
+            for(String s : found)
+                mdl.addElement(s);
+            lisResults.setModel(mdl);
+            pack();
+        });
+        
+        btnSearch.setEnabled(true);
+        txtSearch.setEditable(true);
+    });
     
-    private void scanForArcsIn(File dir) {
+    private ArrayList<String> scanForArcsIn(File dir) {
+        ArrayList<String> ret = new ArrayList<>();
+        
         for(File f : dir.listFiles()) {
             if(f.isDirectory())
                 scanForArcsIn(f);
             else if(f.getName().endsWith(".arc")) {
                 try {
-                    searchArc(f.getAbsolutePath().substring(gameDir.length()));
+                    if(f.length() != 0)
+                        ret.addAll(searchArc(f.getAbsolutePath().substring(gameDir.length())));
                 } catch (IOException ex) {
                     System.err.println(f.getName() + " not an ARC...?");
                 }
             }
         }
+        
+        return ret;
     }
     
-    private void searchArc(String relPath) throws FileNotFoundException, IOException {
+    private ArrayList<String> searchArc(String relPath) throws FileNotFoundException, IOException {
+        ArrayList<String> ret = new ArrayList<>();
+        
         String searchStr = txtSearch.getText();
         if(searchStr.isEmpty())
-            return;
+            return ret;
         RarcFile arc = new RarcFile(Whitehole.game.filesystem.openFile(relPath));
         
         ArrayList<FileBase> bcsvList = new ArrayList<>();
@@ -152,7 +170,6 @@ public class BcsvSearch extends javax.swing.JFrame {
                 bcsvList.add(arc.openFile(f));
         }
         
-        ArrayList<String> found = new ArrayList<>();
         for(FileBase f : bcsvList) {
             BcsvFile b = new BcsvFile(f);
             for(BcsvFile.Entry e : b.entries) {
@@ -163,22 +180,13 @@ public class BcsvSearch extends javax.swing.JFrame {
                     else if(o.toString().contains(searchStr))
                         match = true;
                     if(match)
-                        found.add(o.toString() + " (" + relPath.replace('\\', '/') + " : " + ((InRarcFile) f).fileName + ")");
+                        ret.add(o.toString() + " (" + relPath.replace('\\', '/') + " : " + ((InRarcFile) f).fileName + ")");
                 }
             }
             b.close();
         }
         arc.close();
         
-        
-        DefaultListModel<String> mdl = (DefaultListModel<String>) lisResults.getModel();
-            
-        for(String s : found)
-            mdl.addElement(s);
-        lisResults.setModel(mdl);
-        pack();
-        
+        return ret;
     }
-    
-    String gameDir = Preferences.userRoot().get("lastGameDir", null);
 }
