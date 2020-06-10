@@ -60,7 +60,11 @@ public class GameArchive {
     public List<String> getGalaxies() {
         List<String> ret = new ArrayList();
         List<String> stages = filesystem.getDirectories("/StageData");
-        getGameType(stages.get(0));
+        
+        if(!stages.isEmpty())
+            getGameType(stages.get(0));
+        else
+            Whitehole.gameType = 0;
         
         for (String stage : stages) {
             BcsvFile.addHash(stage);
