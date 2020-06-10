@@ -131,8 +131,15 @@ public class MainFrame extends javax.swing.JFrame {
         
         pmnTools.setLightWeightPopupEnabled(true);
         
-        if(Settings.gameDir && Preferences.userRoot().get("lastGameDir", null) != null)
-            openGameDir(Preferences.userRoot().get("lastGameDir", null));
+        if(Settings.gameDir && Preferences.userRoot().get("lastGameDir", null) != null) {
+            try {
+                openGameDir(Preferences.userRoot().get("lastGameDir", null));
+            } catch (Exception e) {
+                System.err.println("Failed to open game directory!");
+                e.printStackTrace();
+                lbStatusBar.setText("Failed to open saved game directory. See console output for details.");
+            }
+        }
         
         galaxyEditors = new HashMap();
     }

@@ -24,21 +24,18 @@ public class BcsvSearch extends javax.swing.JFrame {
         pnlResults = new JPanel();
         jScrollPane2 = new JScrollPane();
         lisResults = new JList<>();
-        cbxMatchCase = new JCheckBox("Match case");
+        chkMatchCase = new JCheckBox("Match case");
         
         btnSearch.setFocusable(false);
-        cbxMatchCase.setFocusable(false);
+        chkMatchCase.setFocusable(false);
 
         setTitle("BCSV Google");
         setIconImage(Whitehole.ICON);
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        btnSearch.addActionListener(new java.awt.event.ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSearch.setEnabled(false);
-                txtSearch.setEditable(false);
-                search.start();
-            }
+        btnSearch.addActionListener((java.awt.event.ActionEvent evt) -> {
+            btnSearch.setEnabled(false);
+            txtSearch.setEditable(false);
+            new Thread(search).start();
         });
 
         javax.swing.GroupLayout pnlResultsLayout = new javax.swing.GroupLayout(pnlResults);
@@ -70,7 +67,7 @@ public class BcsvSearch extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnSearch)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cbxMatchCase))
+                        .addComponent(chkMatchCase))
                     .addComponent(jScrollPane2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(pnlResults, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -84,7 +81,7 @@ public class BcsvSearch extends javax.swing.JFrame {
                     .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1)
                     .addComponent(btnSearch))
-                    .addComponent(cbxMatchCase)
+                    .addComponent(chkMatchCase)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(pnlResults, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -105,8 +102,9 @@ public class BcsvSearch extends javax.swing.JFrame {
     private JList<String> lisResults;
     private JPanel pnlResults;
     private JTextField txtSearch;     
-    private JCheckBox cbxMatchCase;
-    private final Thread search = new Thread(() -> {
+    private JCheckBox chkMatchCase;
+    private JCheckBox chkBcsv;
+    private final Runnable search = () -> {
         found = new ArrayList<>();
 
         lisResults.setModel(new DefaultListModel<>());
@@ -117,28 +115,17 @@ public class BcsvSearch extends javax.swing.JFrame {
             else {
                 if(f.getName().toLowerCase().endsWith(".arc")) {
                     try {
-                        searchArc(f.getAbsolutePath().substring(gameDir.length()));
+                        searchArcBcsv(f.getAbsolutePath().substring(gameDir.length()));
                     } catch (IOException ex) {
                         Logger.getLogger(BcsvSearch.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
         }
-        
-        SwingUtilities.invokeLater(() -> {
-            DefaultListModel<String> mdl = (DefaultListModel<String>) lisResults.getModel();
-            
-            mdl.clear();
-            
-            for(String s : found)
-                mdl.addElement(s);
-            lisResults.setModel(mdl);
-            pack();
-        });
-        
+
         btnSearch.setEnabled(true);
         txtSearch.setEditable(true);
-    });
+    };
     
     private void scanForArcsIn(File dir) {
         for(File f : dir.listFiles()) {
@@ -146,8 +133,9 @@ public class BcsvSearch extends javax.swing.JFrame {
                 scanForArcsIn(f);
             else if(f.getName().endsWith(".arc")) {
                 try {
-                    if(f.length() != 0)
-                        searchArc(f.getAbsolutePath().substring(gameDir.length()));
+                    if(f.length() != 0) {
+                        searchArcMsbt(f.getAbsolutePath().substring(gameDir.length()));
+                    }
                 } catch (IOException ex) {
                     System.err.println(f.getName() + " not an ARC...?");
                 }
@@ -155,10 +143,9 @@ public class BcsvSearch extends javax.swing.JFrame {
         }
     }
     
-    private void searchArc(String relPath) throws FileNotFoundException, IOException {
+    private void searchArcBcsv(String relPath) throws FileNotFoundException, IOException {
         String searchStr = txtSearch.getText();
-        if(searchStr.isEmpty())
-            return;
+        
         RarcFile arc = new RarcFile(Whitehole.game.filesystem.openFile(relPath));
         
         ArrayList<FileBase> bcsvList = new ArrayList<>();
@@ -172,10 +159,11 @@ public class BcsvSearch extends javax.swing.JFrame {
             for(BcsvFile.Entry e : b.entries) {
                 for(Object o : e.values()) {
                     boolean match = false;
-                    if(!cbxMatchCase.isSelected() && o.toString().toLowerCase().contains(searchStr.toLowerCase()))
+                    if(!chkMatchCase.isSelected() && o.toString().toLowerCase().contains(searchStr.toLowerCase()))
                         match = true;
                     else if(o.toString().contains(searchStr))
                         match = true;
+                    
                     if(match)
                         found.add(o.toString() + " (" + relPath.replace('\\', '/') + " : " + ((InRarcFile) f).fileName + ")");
                 }
@@ -185,37 +173,38 @@ public class BcsvSearch extends javax.swing.JFrame {
         arc.close();
     }
     
-    private ArrayList<String> searchArc(String relPath) throws FileNotFoundException, IOException {
-        ArrayList<String> ret = new ArrayList<>();
-        
+    private void searchArcMsbt(String relPath) throws FileNotFoundException, IOException {
         String searchStr = txtSearch.getText();
-        if(searchStr.isEmpty())
-            return ret;
+        
         RarcFile arc = new RarcFile(Whitehole.game.filesystem.openFile(relPath));
         
-        ArrayList<FileBase> bcsvList = new ArrayList<>();
+        ArrayList<FileBase> msbtList = new ArrayList<>();
         for(String f : arc.getAllFileDirs()) {
-            if(f.toLowerCase().endsWith(".bcsv"))
-                bcsvList.add(arc.openFile(f));
+            if(f.toLowerCase().endsWith(".msbt"))
+                msbtList.add(arc.openFile(f));
         }
         
-        for(FileBase f : bcsvList) {
-            BcsvFile b = new BcsvFile(f);
-            for(BcsvFile.Entry e : b.entries) {
-                for(Object o : e.values()) {
-                    boolean match = false;
-                    if(!cbxMatchCase.isSelected() && o.toString().toLowerCase().contains(searchStr.toLowerCase()))
-                        match = true;
-                    else if(o.toString().contains(searchStr))
-                        match = true;
-                    if(match)
-                        ret.add(o.toString() + " (" + relPath.replace('\\', '/') + " : " + ((InRarcFile) f).fileName + ")");
-                }
+        for(FileBase f : msbtList) {
+            MsbtFile m;
+            try {
+                m = new MsbtFile(f);
+            } catch (java.lang.IndexOutOfBoundsException ex) {
+                continue; // not all MSBT files parse correctly.. hahaha
             }
-            b.close();
+            
+            for(MsbtFile.MsbtMessage s : m.messages) {
+                boolean match = false;
+                if(!chkMatchCase.isSelected() && s.string.messageText.toLowerCase().contains(searchStr.toLowerCase()))
+                    match = true;
+                else if(s.string.messageText.contains(searchStr))
+                    match = true;
+                
+                if(match)
+                    found.add(s.label.label + "=" + s.string.messageText + " (" + relPath.replace('\\', '/') + " : " + ((InRarcFile) f).fileName + ")");
+            }
+            
+            m.close();
         }
         arc.close();
-        
-        return ret;
     }
 }

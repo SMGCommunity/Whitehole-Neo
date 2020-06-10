@@ -37,8 +37,6 @@ public class MsbtFile {
         else
             byteStream.order(ByteOrder.BIG_ENDIAN);
         
-        System.out.println("yes = " + (int) byteStream.getChar(0xE));
-        
         //Skip past header
         currentPosition = 32;
         labels = new LabelSection();
