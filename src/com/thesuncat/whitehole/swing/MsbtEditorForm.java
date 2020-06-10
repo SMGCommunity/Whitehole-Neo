@@ -314,12 +314,12 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         cbxSelectEntry = new javax.swing.JComboBox<>();
         btnAddEntry = new javax.swing.JToggleButton();
         btnEditEntry = new javax.swing.JToggleButton();
+        btnMsbf = new javax.swing.JToggleButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Msbt Editor");
         setIconImage(Whitehole.ICON);
         setMinimumSize(new java.awt.Dimension(600, 290));
-        setPreferredSize(new java.awt.Dimension(690, 551));
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
@@ -373,6 +373,13 @@ public class MsbtEditorForm extends javax.swing.JFrame {
 
         btnEditEntry.setText("Edit entry...");
 
+        btnMsbf.setText("MSBF");
+        btnMsbf.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMsbfActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -403,7 +410,9 @@ public class MsbtEditorForm extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btnAddIcon)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnAddSpecialCommand)))
+                                .addComponent(btnAddSpecialCommand)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnMsbf)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(cbxSelectEntry, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -431,13 +440,15 @@ public class MsbtEditorForm extends javax.swing.JFrame {
                             .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(btnAddSpecialCommand, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnAddEntry, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(btnAddIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnFontSize, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnFontColor, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(btnMsbf, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(btnAddSpecialCommand, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(btnAddEntry, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(btnAddIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(btnFontSize, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(btnFontColor, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(2, 2, 2)
                         .addComponent(cbxSelectEntry, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -451,24 +462,8 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
     private void btnOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenActionPerformed
-        try {
-            if (archive != null) archive.close();
-            if (msbt != null) msbt.close();
-            archive = null; msbt = null;
-            editorPane.setText("");
-            cbxSelectEntry.setModel(new DefaultComboBoxModel<>(new String[] {"<no entries>"}));
-            if(tbFileName.getText().endsWith("msbf"))
-                new MsbfEditorForm(tbArchiveName.getText(), tbFileName.getText()).setVisible(true);
-            else if(tbFileName.getText().endsWith("canm")) {
-                RarcFile f = new RarcFile(Whitehole.game.filesystem.openFile(tbArchiveName.getText()));
-                new CanmFile(f.openFile(tbFileName.getText())).save();
-                f.save();
-            } else
-                msbtOpen();
-            Whitehole.currentTask = "Editing a text file";
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(btnOpen, "Failed to open " + tbArchiveName.getText() + ":" + tbFileName.getText() + ".\nDoes the file path exist?", "Failed to open file.", JOptionPane.OK_OPTION);
-        }
+        tryOpen(tbFileName.getText());
+        
         btnOpen.setSelected(false);
     }//GEN-LAST:event_btnOpenActionPerformed
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
@@ -490,6 +485,43 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         } catch (IOException ex) {
         }
     }//GEN-LAST:event_formWindowClosing
+
+    private void btnMsbfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMsbfActionPerformed
+        tryOpen(tbFileName.getText().replace(".msbt", ".msbf"));
+        
+        btnMsbf.setSelected(false);
+    }//GEN-LAST:event_btnMsbfActionPerformed
+    
+    private void tryOpen(String fileName) {
+        try {
+            inited = false;
+            
+            // reset buttons
+            ArrayList<JToggleButton> btnArray = new ArrayList<>(Arrays.asList(btnAddEntry, btnAddIcon, btnAddSpecialCommand, btnEditEntry, btnFontColor, btnFontSize, btnMsbf));
+            for(JToggleButton btn : btnArray)
+                btn.setEnabled(false);
+            
+            btnSave.setEnabled(false);
+            
+            if (archive != null) archive.close();
+            if (msbt != null) msbt.close();
+            archive = null; msbt = null;
+            
+            editorPane.setText("");
+            cbxSelectEntry.setModel(new DefaultComboBoxModel<>(new String[] {"<no entries>"}));
+            if(fileName.endsWith(".msbf"))
+                new MsbfEditorForm(tbArchiveName.getText(), fileName).setVisible(true);
+            else if(fileName.endsWith(".canm")) {
+                RarcFile f = new RarcFile(Whitehole.game.filesystem.openFile(tbArchiveName.getText()));
+                new CanmFile(f.openFile(fileName)).save();
+                f.save();
+            } else
+                msbtOpen();
+            Whitehole.currentTask = "Editing a text file";
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(btnOpen, "Failed to open " + tbArchiveName.getText() + ":" + tbFileName.getText() + ".\nDoes the file path exist?", "Failed to open file.", JOptionPane.OK_OPTION);
+        }
+    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JToggleButton btnAddEntry;
@@ -498,6 +530,7 @@ public class MsbtEditorForm extends javax.swing.JFrame {
     private javax.swing.JToggleButton btnEditEntry;
     private javax.swing.JToggleButton btnFontColor;
     private javax.swing.JToggleButton btnFontSize;
+    private javax.swing.JToggleButton btnMsbf;
     private javax.swing.JButton btnOpen;
     private javax.swing.JButton btnSave;
     private javax.swing.JComboBox<String> cbxSelectEntry;
@@ -858,6 +891,7 @@ public class MsbtEditorForm extends javax.swing.JFrame {
             inited = false;
             btnEditEntry.setSelected(false);
             new MsbtEntryEditorForm((MsbtEditorForm) SwingUtilities.getWindowAncestor(btnEditEntry), msbt.messages.get(cbxSelectEntry.getSelectedIndex())).setVisible(true);
+            
             SwingUtilities.invokeLater(() -> {
                 switching = false;
                 inited = true;
@@ -927,7 +961,7 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         scpEditorContainer.setViewportView(editorPane);
         scpEditorContainer.setFocusable(false);
         
-        ArrayList<JToggleButton> btnArray = new ArrayList<>(Arrays.asList(btnAddEntry, btnAddIcon, btnAddSpecialCommand, btnEditEntry, btnFontColor, btnFontSize));
+        ArrayList<JToggleButton> btnArray = new ArrayList<>(Arrays.asList(btnAddEntry, btnAddIcon, btnAddSpecialCommand, btnEditEntry, btnFontColor, btnFontSize, btnMsbf));
         
         for(JToggleButton btn : btnArray) {
             btn.setFocusable(false);
@@ -942,8 +976,10 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         btnSave.setFocusable(false);
         btnOpen.setFocusable(false);
         
-        tbArchiveName.setText("/LocalizeData/UsEnglish/MessageData/YosshiHomeGalaxy.arc");
-        tbFileName.setText("/YosshiHomeGalaxy/YosshiHomeGalaxy.msbt");
+        tbArchiveName.setText("/LocalizeData/UsEnglish/MessageData/BigGalaxy.arc");
+        tbFileName.setText("/BigGalaxy/BigGalaxy.msbt");
+        
+        btnMsbf.setVisible(false);
     }
     
     public void deleteCurEntry() {
@@ -1117,6 +1153,8 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         editorPane.setText(msbt.messages.get(0).string.messageText);
         commands = (ArrayList<MsbtCommand>) msbt.messages.get(0).string.commands.clone();
         
+        btnMsbf.setVisible(archive.fileExists(tbFileName.getText().replace(".msbt", ".msbf")));
+        
         // Add icons to commands that need it
         for(MsbtCommand com : commands) {
             if(com instanceof MsbtCommandSingle) {
@@ -1155,7 +1193,7 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         cbxSelectEntry.setModel(new DefaultComboBoxModel<>(entries));
         
         // Enable buttons
-        ArrayList<JToggleButton> btnArray = new ArrayList<>(Arrays.asList(btnAddEntry, btnAddIcon, btnAddSpecialCommand, btnEditEntry, btnFontColor, btnFontSize));
+        ArrayList<JToggleButton> btnArray = new ArrayList<>(Arrays.asList(btnAddEntry, btnAddIcon, btnAddSpecialCommand, btnEditEntry, btnFontColor, btnFontSize, btnMsbf));
         for(JToggleButton btn : btnArray)
             btn.setEnabled(true);
         btnSave.setEnabled(true);

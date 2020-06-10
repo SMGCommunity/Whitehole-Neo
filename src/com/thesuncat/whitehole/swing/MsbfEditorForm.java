@@ -56,7 +56,7 @@ public class MsbfEditorForm extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         setIconImage(Whitehole.ICON);
         
-        reloadChars(msbf.chars.size() - 1, false);
+        reloadShorts(msbf.shorts.size() - 1, false);
         reloadEditor(msbf.flowList.size() - 1, false);
     }
     
@@ -147,10 +147,12 @@ public class MsbfEditorForm extends javax.swing.JFrame {
                 spnUnk3.setValue(entry.flow.unk3);
                 spnUnk4.setValue(entry.flow.unk4);
                 spnUnk5.setValue(entry.flow.unk5);
+                
                 if(!updating)
                     txtName.setText(entry.label);
                 else
                     updating = false;
+                
                 txtName.setEditable(true);
                 lblIndex.setVisible(true);
                 spnIndex.setVisible(true);
@@ -167,6 +169,21 @@ public class MsbfEditorForm extends javax.swing.JFrame {
                 txtName.setEditable(false);
                 lblIndex.setVisible(false);
                 spnIndex.setVisible(false);
+                
+                System.out.println(flow.unk0);
+            }
+            
+            try {
+                spnUnk0.commitEdit();
+                spnUnk1.commitEdit();
+                spnUnk2.commitEdit();
+                spnUnk3.commitEdit();
+                spnUnk4.commitEdit();
+                spnUnk5.commitEdit();
+                spnIndex.commitEdit();
+            } catch(ParseException e) {
+                e.printStackTrace();
+                return;
             }
             
             prevIndex = newIndex;
@@ -174,52 +191,52 @@ public class MsbfEditorForm extends javax.swing.JFrame {
         pack();
     }
     
-    private void reloadChars(int index, boolean deleting) {
-        if(prevChar == -2 && !msbf.chars.isEmpty())
-            prevChar = msbf.chars.size() - 1;
+    private void reloadShorts(int index, boolean deleting) {
+        if(prevShort == -2 && !msbf.shorts.isEmpty())
+            prevShort = msbf.shorts.size() - 1;
         
-        if(!deleting && !msbf.chars.isEmpty()) {
-            if(txtChar.getText().length() != 0)
-                msbf.chars.set(prevChar, (char) Integer.parseInt(txtChar.getText()));
+        if(!deleting && !msbf.shorts.isEmpty()) {
+            if(txtShort.getText().length() != 0)
+                msbf.shorts.set(prevShort, (char) Integer.parseInt(txtShort.getText()));
             else
-                msbf.chars.set(prevChar, (char) 0);
+                msbf.shorts.set(prevShort, (char) 0);
         }
         
-        for(int i = 0; i < msbf.chars.size(); i++) {
-            if(msbf.chars.get(i) > 255)
-                msbf.chars.set(i, (char) 255);
+        for(int i = 0; i < msbf.shorts.size(); i++) {
+            if(msbf.shorts.get(i) > 255)
+                msbf.shorts.set(i, (char) 255);
         }
         
         // Set model
-        if(msbf.chars.isEmpty()) {
-            cbxCharChooser.setModel(new DefaultComboBoxModel<>(new String[]{"<empty>"}));
+        if(msbf.shorts.isEmpty()) {
+            cbxShortChooser.setModel(new DefaultComboBoxModel<>(new String[]{"<empty>"}));
             
-            txtChar.setText("");
-            txtChar.setEnabled(false);
+            txtShort.setText("");
+            txtShort.setEnabled(false);
             
-            cbxCharChooser.setEnabled(false);
-            btnDelChar.setEnabled(false);
+            cbxShortChooser.setEnabled(false);
+            btnDelShort.setEnabled(false);
             
             index = 0;
         } else {
-            txtChar.setEnabled(true);
+            txtShort.setEnabled(true);
             
-            cbxCharChooser.setEnabled(true);
-            btnDelChar.setEnabled(true);
+            cbxShortChooser.setEnabled(true);
+            btnDelShort.setEnabled(true);
             
-            // Char value to string
-            String[] charModel = new String[msbf.chars.size()];
-            for(int i = 0; i < msbf.chars.size(); i++)
-                charModel[i] = "[" + i + "] " + Integer.toString(msbf.chars.get(i));
+            // short value to string
+            String[] shortModel = new String[msbf.shorts.size()];
+            for(int i = 0; i < msbf.shorts.size(); i++)
+                shortModel[i] = "[" + i + "] " + Integer.toString(msbf.shorts.get(i));
             
-            cbxCharChooser.setModel(new DefaultComboBoxModel<>(charModel));
+            cbxShortChooser.setModel(new DefaultComboBoxModel<>(shortModel));
             
-            prevChar = index;
-            txtChar.setText(Integer.toString(msbf.chars.get(index)));
+            prevShort = index;
+            txtShort.setText(Integer.toString(msbf.shorts.get(index)));
         }
-        cbxCharChooser.setSelectedIndex(index);
+        cbxShortChooser.setSelectedIndex(index);
         
-        txtChar.requestFocus();
+        txtShort.requestFocus();
     }
 
     @SuppressWarnings("unchecked")
@@ -249,10 +266,10 @@ public class MsbfEditorForm extends javax.swing.JFrame {
         spnIndex = new javax.swing.JSpinner();
         jPanel3 = new javax.swing.JPanel();
         jLabel8 = new javax.swing.JLabel();
-        cbxCharChooser = new javax.swing.JComboBox<>();
-        txtChar = new javax.swing.JTextField();
-        btnAddChar = new javax.swing.JButton();
-        btnDelChar = new javax.swing.JButton();
+        cbxShortChooser = new javax.swing.JComboBox<>();
+        txtShort = new javax.swing.JTextField();
+        btnAddShort = new javax.swing.JButton();
+        btnDelShort = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Msbf Editor");
@@ -394,36 +411,36 @@ public class MsbfEditorForm extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jLabel8.setText("Chars:");
+        jLabel8.setText("Shorts:");
 
-        cbxCharChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "<not initialized>" }));
-        cbxCharChooser.addActionListener(new java.awt.event.ActionListener() {
+        cbxShortChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "<not initialized>" }));
+        cbxShortChooser.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cbxCharChooserActionPerformed(evt);
+                cbxShortChooserActionPerformed(evt);
             }
         });
 
-        txtChar.setText("0");
-        txtChar.addKeyListener(new java.awt.event.KeyAdapter() {
+        txtShort.setText("0");
+        txtShort.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
-                txtCharKeyPressed(evt);
+                txtShortKeyPressed(evt);
             }
             public void keyTyped(java.awt.event.KeyEvent evt) {
-                txtCharKeyTyped(evt);
+                txtShortKeyTyped(evt);
             }
         });
 
-        btnAddChar.setText("Add");
-        btnAddChar.addActionListener(new java.awt.event.ActionListener() {
+        btnAddShort.setText("Add");
+        btnAddShort.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddCharActionPerformed(evt);
+                btnAddShortActionPerformed(evt);
             }
         });
 
-        btnDelChar.setText("Delete");
-        btnDelChar.addActionListener(new java.awt.event.ActionListener() {
+        btnDelShort.setText("Delete");
+        btnDelShort.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDelCharActionPerformed(evt);
+                btnDelShortActionPerformed(evt);
             }
         });
 
@@ -437,14 +454,14 @@ public class MsbfEditorForm extends javax.swing.JFrame {
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jLabel8)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnAddChar))
+                        .addComponent(btnAddShort))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                        .addComponent(txtChar)
+                        .addComponent(txtShort)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnDelChar))
+                        .addComponent(btnDelShort))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(cbxCharChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(cbxShortChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -453,13 +470,13 @@ public class MsbfEditorForm extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
-                    .addComponent(btnAddChar, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnAddShort, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cbxCharChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(cbxShortChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtChar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDelChar, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtShort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDelShort, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -532,7 +549,7 @@ public class MsbfEditorForm extends javax.swing.JFrame {
             for(int i = 0; i < msbf.flowList.size(); i++) {
                 Object e = msbf.flowList.get(i);
                 if(i == index) {
-                    msgMdl[i] = txtName.getText();
+                    msgMdl[i] = txtName.getText() + evt.getKeyChar();
                     continue;
                 }
                 if(e instanceof FlowEntry)
@@ -542,58 +559,59 @@ public class MsbfEditorForm extends javax.swing.JFrame {
             }
             cbxEntryChooser.setModel(new DefaultComboBoxModel<>(msgMdl));
             cbxEntryChooser.setSelectedIndex(index);
+            
             SwingUtilities.invokeLater(() -> {
                 txtName.setCaretPosition(curPos == -1 ? 0 : curPos);
             });
         });
     }//GEN-LAST:event_txtNameKeyTyped
 
-    private void txtCharKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtCharKeyPressed
+    private void txtShortKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtShortKeyPressed
         SwingUtilities.invokeLater(() -> {
             System.out.println(evt.getKeyCode());
             
-            int index = txtChar.getCaretPosition();
+            int index = txtShort.getCaretPosition();
             
-            reloadChars(cbxCharChooser.getSelectedIndex(), false);
+            reloadShorts(cbxShortChooser.getSelectedIndex(), false);
             
-            String txt = txtChar.getText();
+            String txt = txtShort.getText();
             
             if(!txt.equals("0") && index <= txt.length())
-                txtChar.setCaretPosition(index);
+                txtShort.setCaretPosition(index);
             else
-                txtChar.setCaretPosition(txt.length());
+                txtShort.setCaretPosition(txt.length());
         });
-    }//GEN-LAST:event_txtCharKeyPressed
+    }//GEN-LAST:event_txtShortKeyPressed
 
-    private void cbxCharChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxCharChooserActionPerformed
-        reloadChars(cbxCharChooser.getSelectedIndex(), false);
-    }//GEN-LAST:event_cbxCharChooserActionPerformed
+    private void cbxShortChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxShortChooserActionPerformed
+        reloadShorts(cbxShortChooser.getSelectedIndex(), false);
+    }//GEN-LAST:event_cbxShortChooserActionPerformed
 
-    private void txtCharKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtCharKeyTyped
+    private void txtShortKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtShortKeyTyped
         if(!(Character.isDigit(evt.getKeyChar())
                 || evt.getKeyCode() == KeyEvent.VK_BACK_SPACE || evt.getKeyCode() == KeyEvent.VK_LEFT
                 || evt.getKeyCode() == KeyEvent.VK_RIGHT))
             evt.consume();
-    }//GEN-LAST:event_txtCharKeyTyped
+    }//GEN-LAST:event_txtShortKeyTyped
 
-    private void btnAddCharActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCharActionPerformed
-        int index = cbxCharChooser.getSelectedIndex();
+    private void btnAddShortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddShortActionPerformed
+        int index = cbxShortChooser.getSelectedIndex();
         
-        msbf.chars.add(index, (char) 0x00);
+        msbf.shorts.add(index, (char) 0x00);
         
-        reloadChars(index + (msbf.chars.size() == 1 ? 0 : 1), false); // if first char was just added, index is 0
-    }//GEN-LAST:event_btnAddCharActionPerformed
+        reloadShorts(index + (msbf.shorts.size() == 1 ? 0 : 1), false); // if first short was just added, index is 0
+    }//GEN-LAST:event_btnAddShortActionPerformed
 
-    private void btnDelCharActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDelCharActionPerformed
-        if(msbf.chars.isEmpty())
+    private void btnDelShortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDelShortActionPerformed
+        if(msbf.shorts.isEmpty())
             return;
         
-        msbf.chars.remove(cbxCharChooser.getSelectedIndex());
+        msbf.shorts.remove(cbxShortChooser.getSelectedIndex());
         
-        int index = cbxCharChooser.getSelectedIndex();
+        int index = cbxShortChooser.getSelectedIndex();
         
-        reloadChars(index - (index == 0 ? 0 : 1), true);
-    }//GEN-LAST:event_btnDelCharActionPerformed
+        reloadShorts(index - (index == 0 ? 0 : 1), true);
+    }//GEN-LAST:event_btnDelShortActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         try {
@@ -605,13 +623,13 @@ public class MsbfEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAddChar;
     private javax.swing.JButton btnAddEntry;
-    private javax.swing.JButton btnDelChar;
+    private javax.swing.JButton btnAddShort;
     private javax.swing.JButton btnDelEntry;
+    private javax.swing.JButton btnDelShort;
     private javax.swing.JButton btnSave;
-    private javax.swing.JComboBox<String> cbxCharChooser;
     private javax.swing.JComboBox<String> cbxEntryChooser;
+    private javax.swing.JComboBox<String> cbxShortChooser;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -630,10 +648,10 @@ public class MsbfEditorForm extends javax.swing.JFrame {
     private javax.swing.JSpinner spnUnk3;
     private javax.swing.JSpinner spnUnk4;
     private javax.swing.JSpinner spnUnk5;
-    private javax.swing.JTextField txtChar;
     private javax.swing.JTextField txtName;
+    private javax.swing.JTextField txtShort;
     // End of variables declaration//GEN-END:variables
     public MsbfFile msbf; RarcFile arc;
-    private int prevIndex = -2, prevChar = -2;
+    private int prevIndex = -2, prevShort = -2;
     private boolean updating = false;
 }

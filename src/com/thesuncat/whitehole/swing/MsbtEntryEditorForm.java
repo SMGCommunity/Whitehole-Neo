@@ -40,18 +40,18 @@ public class MsbtEntryEditorForm extends JDialog {
         cbxTrigger.setSelectedIndex(msg.trigger);
         cbxSound.setSelectedIndex(msg.unknown0);
         
+        ArrayList<JSpinner> spnList = new ArrayList<>(Arrays.asList(spnUnk1, spnUnk2, spnUnk3, spnUnk4, spnUnk5, spnUnk6));
+        for(JSpinner s : spnList) {
+            SpinnerModel spnMdl = new SpinnerNumberModel(0, 0, 255, 1);
+            s.setModel(spnMdl);
+        }
+        
         spnUnk1.setValue(msg.unknown1);
         spnUnk2.setValue(msg.unknown2);
         spnUnk3.setValue(msg.unknown3);
         spnUnk4.setValue(msg.unknown4);
         spnUnk5.setValue(msg.unknown5);
         spnUnk6.setValue(msg.unknown6);
-        
-        ArrayList<JSpinner> spnList = new ArrayList<>(Arrays.asList(spnUnk1, spnUnk2, spnUnk3, spnUnk4, spnUnk5, spnUnk6));
-        for(JSpinner s : spnList) {
-            SpinnerModel spnMdl = new SpinnerNumberModel(0, 0, 255, 1);
-            s.setModel(spnMdl);
-        }
         
         setTitle("Editing " + msg.label.label + "...");
         setModal(true);

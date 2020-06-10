@@ -34,11 +34,8 @@ public class MsbfFile {
         else
             byteStream.order(ByteOrder.BIG_ENDIAN);
         
-        System.out.println("yes = " + (int) byteStream.getChar(0xE));
-        
-        FlowSection flow = new FlowSection();
-        flows = flow.flowList;
-        FenSection fen = new FenSection();
+        readFlows();
+        readFen();
         
         for(int i = 0; i < flows.size(); i++) {
             flowList.add(flows.get(i));
@@ -49,40 +46,36 @@ public class MsbfFile {
         }
     }
     
-    public class FlowSection {
-        List<Flow> flowList;
-        public FlowSection() {
-            currentPosition = 0x30;
-            int nentries = byteStream.getShort(currentPosition);
-            int nchars = byteStream.getShort(currentPosition += 2);
-            currentPosition += 6;
+    public void readFlows() {
+        byteStream.position(0x30);
+        int nentries = byteStream.getShort();
+        int nchars = byteStream.getShort();
+        byteStream.position(byteStream.position() + 4);
 
-            // Flow data
-            flowList = new ArrayList(nentries);
-            for (int i = 0 ; i < nentries ; i++)
-                flowList.add(new Flow(false));
-
-            // Unknown chars
-            chars = new ArrayList(nchars);
-            for (int i = 0 ; i < nchars ; i++) {
-                chars.add(byteStream.getChar(currentPosition));
-                currentPosition += 2;
-            }
-            while(currentPosition % 0x10 != 0)
-                currentPosition++;
+        // Flow data
+        flows = new ArrayList(nentries);
+        for (int i = 0 ; i < nentries ; i++)
+            flows.add(new Flow(false));
+        
+        // unknown shorts
+        shorts = new ArrayList(nchars);
+        for (int i = 0 ; i < nchars ; i++) {
+            shorts.add(byteStream.getChar());
         }
+        
+        while(byteStream.position() % 0x10 != 0)
+            byteStream.get(); // increment
     }
     
-    public class FenSection {
-        public FenSection() {
-            currentPosition += 0x10;
-            int nbuckets = byteStream.getInt(currentPosition);
-            currentPosition += 0x4;
-            
-            currentPosition += nbuckets * 0x8;
-            while(Byte.toUnsignedInt(byteArray[currentPosition]) != 0xAB)
-                entries.add(new FlowEntry(false));
-        }
+    private void readFen() {
+        //byteStream.position(byteStream.position() + 0x10); // not sure why this is no longer needed, I think the above while % 0x10 loop is broken..
+        
+        int nbuckets = byteStream.getInt();
+        
+        byteStream.position(byteStream.position() + nbuckets * 0x8);
+        
+        while(Byte.toUnsignedInt(byteStream.get(byteStream.position())) != 0xAB)
+            entries.add(new FlowEntry(false));
     }
     
     public class FlowEntry implements Comparable {
@@ -97,13 +90,15 @@ public class MsbfFile {
                 flow = f;
                 return;
             }
-            int txtLength = Byte.toUnsignedInt(byteStream.get(currentPosition));
-            currentPosition++;
+            
+            int txtLength = Byte.toUnsignedInt(byteStream.get());
             for(int i = 0; i < txtLength; i++)
-                label += (char) Byte.toUnsignedInt(byteStream.get(currentPosition++));
-            index = byteStream.getInt(currentPosition);
+                label += (char) Byte.toUnsignedInt(byteStream.get());
+            
+            System.out.println("Read flow " + label);
+            
+            index = byteStream.getInt();
             flow = flows.get(index);
-            currentPosition += 4;
         }
 
         @Override
@@ -118,13 +113,15 @@ public class MsbfFile {
         public Flow(boolean emptyEntry) {
             if(emptyEntry)
                 return;
-            unk0 = Short.toUnsignedInt(byteStream.getShort(currentPosition));
-            unk1 = Short.toUnsignedInt(byteStream.getShort(currentPosition += 2));
-            unk2 = Short.toUnsignedInt(byteStream.getShort(currentPosition += 2));
-            unk3 = Short.toUnsignedInt(byteStream.getShort(currentPosition += 2));
-            unk4 = Short.toUnsignedInt(byteStream.getShort(currentPosition += 2));
-            unk5 = Short.toUnsignedInt(byteStream.getShort(currentPosition += 2));
-            currentPosition += 2;
+            unk0 = Short.toUnsignedInt(byteStream.getShort());
+            unk1 = Short.toUnsignedInt(byteStream.getShort());
+            unk2 = Short.toUnsignedInt(byteStream.getShort());
+            unk3 = Short.toUnsignedInt(byteStream.getShort());
+            unk4 = Short.toUnsignedInt(byteStream.getShort());
+            unk5 = Short.toUnsignedInt(byteStream.getShort());
+            
+            // skip short?
+            byteStream.getShort();
         }
     }
     
@@ -137,7 +134,7 @@ public class MsbfFile {
         
         int fileSize = 0x30;
         
-        int flw2Size = 0x8 + (0xC * flowList.size()) + (0x2 * chars.size());
+        int flw2Size = 0x8 + (0xC * flowList.size()) + (0x2 * shorts.size());
         fileSize += flw2Size;
         while(fileSize % 0x10 != 0)
             fileSize++;
@@ -165,7 +162,7 @@ public class MsbfFile {
         saveBuffer.putInt(0x24, flw2Size);
         int curPos = 0x30;
         saveBuffer.putShort(curPos, (short) flowList.size());
-        saveBuffer.putShort(curPos += 2, (short) chars.size());
+        saveBuffer.putShort(curPos += 2, (short) shorts.size());
         curPos += 4;
         for(Object o : flowList) {
             Flow f;
@@ -180,7 +177,7 @@ public class MsbfFile {
             saveBuffer.putChar(curPos += 2, (char) f.unk4);
             saveBuffer.putChar(curPos += 2, (char) f.unk5);
         }
-        for(char c : chars)
+        for(char c : shorts)
             saveBuffer.putChar(curPos += 2, c);
         curPos += 2;
         while(curPos % 0x10 != 0)
@@ -301,11 +298,11 @@ public class MsbfFile {
     }
     
     private List<Flow> flows;
-    private int currentPosition;
+    //private int currentPosition;
     private final byte[] byteArray;
     private final ByteBuffer byteStream;
     public FileBase file;
     private final List<FlowEntry> entries = new ArrayList<>();
     public ArrayList<Object> flowList = new ArrayList<>();
-    public List<Character> chars;
+    public List<Character> shorts;
 }
