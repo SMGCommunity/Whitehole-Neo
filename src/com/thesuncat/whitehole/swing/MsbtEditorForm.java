@@ -941,8 +941,9 @@ public class MsbtEditorForm extends javax.swing.JFrame {
         btnSave.setEnabled(false);
         btnSave.setFocusable(false);
         btnOpen.setFocusable(false);
-        tbArchiveName.setText("/LocalizeData/UsEnglish/MessageData/YosshiHomeGalaxy_clean.arc");
-        tbFileName.setText("/YosshiHomeGalaxy/YosshiHomeGalaxy.msbf");
+        
+        tbArchiveName.setText("/LocalizeData/UsEnglish/MessageData/YosshiHomeGalaxy.arc");
+        tbFileName.setText("/YosshiHomeGalaxy/YosshiHomeGalaxy.msbt");
     }
     
     public void deleteCurEntry() {
