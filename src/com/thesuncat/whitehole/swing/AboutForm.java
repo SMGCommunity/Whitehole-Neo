@@ -32,7 +32,7 @@ public class AboutForm extends javax.swing.JFrame {
         }
         if(Settings.dark) {
             ArrayList<JLabel> btnArray = new ArrayList<>();
-            btnArray.addAll(Arrays.asList(jLabel1, jLabel10,jLabel11,jLabel12,jLabel13,jLabel15,jLabel16,jLabel17,jLabel18,jLabel2,jLabel3,jLabel4,jLabel5,jLabel6,jLabel7,jLabel8,jLabel9,jLabel19, jLabel14, jLabel20, jLabel21, jLabel22));
+            btnArray.addAll(Arrays.asList(jLabel1, jLabel10,jLabel11,jLabel12,jLabel13,jLabel15,jLabel16,jLabel17,jLabel18,jLabel2,jLabel3,jLabel4,jLabel5,jLabel6,jLabel7,jLabel8,jLabel9,jLabel19, jLabel14, jLabel20, jLabel21, jLabel22, jLabel23));
             this.getContentPane().setBackground(new Color(54,57,63));
             this.getContentPane().setForeground(new Color(157,158,161));
             for (int i = 0; i < btnArray.size(); i++) {
@@ -69,6 +69,7 @@ public class AboutForm extends javax.swing.JFrame {
         jLabel20 = new javax.swing.JLabel();
         jLabel21 = new javax.swing.JLabel();
         jLabel22 = new javax.swing.JLabel();
+        jLabel23 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("About " + Whitehole.NAME);
@@ -122,6 +123,8 @@ public class AboutForm extends javax.swing.JFrame {
 
         jLabel22.setText("Bussun");
 
+        jLabel23.setText("Super Hackio");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -156,11 +159,12 @@ public class AboutForm extends javax.swing.JFrame {
                                     .addComponent(jLabel16)
                                     .addComponent(jLabel20))
                                 .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jLabel12)
                                     .addComponent(jLabel8)
-                                    .addComponent(jLabel15)
-                                    .addComponent(jLabel18)))))
+                                    .addComponent(jLabel15, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jLabel18)
+                                    .addComponent(jLabel23, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                         .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
@@ -207,7 +211,8 @@ public class AboutForm extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel20)
-                    .addComponent(jLabel22))
+                    .addComponent(jLabel22)
+                    .addComponent(jLabel23))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel14)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -237,6 +242,7 @@ public class AboutForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
+    private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;

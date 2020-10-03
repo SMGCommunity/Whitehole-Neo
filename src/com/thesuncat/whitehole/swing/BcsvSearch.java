@@ -107,7 +107,9 @@ public class BcsvSearch extends javax.swing.JFrame {
     private final Runnable search = () -> {
         found = new ArrayList<>();
 
-        lisResults.setModel(new DefaultListModel<>());
+        DefaultListModel model = new DefaultListModel<>();
+        
+        lisResults.setModel(model);
         File allFiles = new File(gameDir);
         for(File f : allFiles.listFiles()) {
             if(f.isDirectory())
@@ -122,7 +124,10 @@ public class BcsvSearch extends javax.swing.JFrame {
                 }
             }
         }
-
+        
+        for(String str : found)
+            model.addElement(str);
+        
         btnSearch.setEnabled(true);
         txtSearch.setEditable(true);
     };
@@ -134,7 +139,7 @@ public class BcsvSearch extends javax.swing.JFrame {
             else if(f.getName().endsWith(".arc")) {
                 try {
                     if(f.length() != 0) {
-                        searchArcMsbt(f.getAbsolutePath().substring(gameDir.length()));
+                        searchArcBcsv(f.getAbsolutePath().substring(gameDir.length()));
                     }
                 } catch (IOException ex) {
                     System.err.println(f.getName() + " not an ARC...?");

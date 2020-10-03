@@ -46,7 +46,8 @@ public class RendererCache {
         if(!Settings.legacy)
             pre_grandStar.generateShaders(gl2, 0, 254, 219, 50);
         
-        if(Whitehole.game.filesystem.fileExists("/ObjectData/MorphItemNeoFoo.arc")) {
+        if(Whitehole.game.filesystem.fileExists("/ObjectData/MorphItemNeoFoo.arc"))
+        {
             System.out.println("Trying to load Foo model");
             pre_redStar = new BmdRenderer(info, "MorphItemNeoFoo");
             if(!Settings.legacy)
@@ -91,7 +92,8 @@ public class RendererCache {
             case "GrandStar":
                 return pre_grandStar;
             case "MorphItemNeoFoo":
-                return pre_redStar;
+                if(pre_redStar != null)
+                    return pre_redStar;
         }
         
         String key = "object_" + obj.name;
@@ -109,7 +111,10 @@ public class RendererCache {
         String modelName = Substitutor.substituteModelName(obj, obj.name);
         if((entry.renderer = Substitutor.substituteRenderer(obj, info)) == null) {
             try {
-                entry.renderer = planetList.contains(modelName) ? new PlanetRenderer(info, modelName) : new BmdRenderer(info, modelName);
+                if(planetList.contains(modelName))
+                    entry.renderer = new PlanetRenderer(info, modelName);
+                else 
+                    entry.renderer = new BmdRenderer(info, modelName);
             } catch (GLException ex) {
                 System.out.println(ex);
             }

@@ -88,7 +88,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     if((mainlayermask & (1 << l)) == 0)
                         continue;
                     
-                    String layer = "layer" + ('a' + l);
+                    // Thanks to Super Hackio for figuring out this char cast was necessary
+                    // to avoid the incorrect dragging bug for every zone XP
+                    String layer = "layer" + (char) ('a' + l);
                     if(!mainzone.zones.containsKey(layer))
                         continue;
                     
