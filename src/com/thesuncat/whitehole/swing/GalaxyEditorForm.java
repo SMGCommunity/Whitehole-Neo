@@ -370,151 +370,160 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     /**
      * Called when translating through the shortcut key G
-     * @param shiftPressed will move slower if shift is pressed
+     * @param shiftDown will move slower if shift is pressed
+     * @param ctrlDown will snap to values if ctrl is pressed
      */
-    public void keyTranslating(boolean shiftPressed) {
-        if(getFocusOwner() == glCanvas) {
-            Vector3 delta = new Vector3();
-            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMousePos.x, 2) + Math.pow(startingMousePos.y - lastMousePos.y, 2));
-            if(lastDist == 0)
-                lastDist = curDist;
-            float pol = 10f;
-            
-            if(shiftPressed)
-                pol *= 0.1;
-            
-            if(curDist < lastDist)
-                pol *= -1;
-            if(startingMousePos.y < lastMousePos.y)
-                pol *= -1;
-
-            if(keyAxis != null) switch(keyAxis) {
-                case "all":
-                    float objz = depthUnderCursor;
-                    
-                    float xdelta = (startingMousePos.x - lastMousePos.x) * pixelFactorX * objz * scaledown;
-                    float ydelta = (startingMousePos.y - lastMousePos.y) * -pixelFactorY * objz * scaledown;
-                    
-                    delta = new Vector3(
-                           (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
-                            ydelta *(float)Math.cos(camRotation.y),
-                            -(xdelta *(float)Math.cos(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x)));
-                    applySubzoneRotation(delta);
-                    System.out.println(delta);
-                    break;
-                case "x":
-                    delta.x = pol * Math.abs(lastDist - curDist);
-                    break;
-                case "y":
-                    delta.y += pol * Math.abs(lastDist - curDist);
-                    break;
-                case "z":
-                    delta.z += pol * Math.abs(lastDist - curDist);
-                    break;
-                default:
-                    break;
-            }
-            
-            offsetSelectionBy(delta);
-
+    public void keyTranslating(boolean shiftDown, boolean ctrlDown) {
+        Vector3 delta = new Vector3();
+        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
+        if(lastDist == 0)
             lastDist = curDist;
-            rerenderTasks.add("zone:" + curZone);
-            pnlObjectSettings.repaint();
-            glCanvas.repaint();
-            unsavedChanges = true;
+        float pol = 10f;
+
+        if(shiftDown)
+            pol *= 0.1;
+
+        if(curDist < lastDist)
+            pol *= -1;
+        if(startingMousePos.y < mousePos.y)
+            pol *= -1;
+
+        if(keyAxis != null) switch(keyAxis) {
+            case "all":
+                float objz = depthUnderCursor;
+
+                float xdelta = (startingMousePos.x - mousePos.x) * pixelFactorX * objz * scaledown;
+                float ydelta = (startingMousePos.y - mousePos.y) * -pixelFactorY * objz * scaledown;
+
+                delta = new Vector3(
+                       (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
+                        ydelta *(float)Math.cos(camRotation.y),
+                        -(xdelta *(float)Math.cos(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x)));
+                applySubzoneRotation(delta);
+                System.out.println(delta);
+                break;
+            case "x":
+                delta.x = pol * Math.abs(lastDist - curDist);
+                break;
+            case "y":
+                delta.y += pol * Math.abs(lastDist - curDist);
+                break;
+            case "z":
+                delta.z += pol * Math.abs(lastDist - curDist);
+                break;
+            default:
+                break;
         }
+
+        offsetSelectionBy(delta);
+
+        lastDist = curDist;
+        rerenderTasks.add("zone:" + curZone);
+        pnlObjectSettings.repaint();
+        glCanvas.repaint();
+        unsavedChanges = true;
     }
     
     /**
      * Called when scaling through the shortcut key S
-     * @param shiftPressed will move slower if shift is pressed
+     * @param shiftDown will move slower if shift is pressed
+     * @param ctrlDown will snap to increments if ctrl is pressed
      */
-    public void keyScaling(boolean shiftPressed) {
-        if(getFocusOwner() == glCanvas) {
-            Vector3 delta = new Vector3();
-            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMousePos.x, 2) + Math.pow(startingMousePos.y - lastMousePos.y, 2));
-            if(lastDist == 0)
-                lastDist = curDist;
-            float pol = 0.01f;
-            
-            if(shiftPressed)
-                pol *= 0.1;
-            
-            if(curDist < lastDist)
-                pol *= -1;
-            if(startingMousePos.y < lastMousePos.y)
-                pol *= -1;
-
-            if(keyAxis != null) switch(keyAxis) {
-                case "all":
-                    delta.x += pol * Math.abs(lastDist - curDist);
-                    delta.y += pol * Math.abs(lastDist - curDist);
-                    delta.z += pol * Math.abs(lastDist - curDist);
-                    break;
-                case "x":
-                    delta.x += pol * Math.abs(lastDist - curDist);
-                    break;
-                case "y":
-                    delta.y += pol * Math.abs(lastDist - curDist);
-                    break;
-                case "z":
-                    delta.z += pol * Math.abs(lastDist - curDist);
-                    break;
-                default:
-                    break;
-            }
-
-            scaleSelectionBy(delta);
+    public void keyScaling(boolean shiftDown, boolean ctrlDown) {
+        // calculate dist from the position where we began scaling
+        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
+        if(lastDist == 0)
             lastDist = curDist;
-            rerenderTasks.add("zone:" + curZone);
-            pnlObjectSettings.repaint();
-            glCanvas.repaint();
-            unsavedChanges = true;
+        
+        int polarity = 1;
+        float speed = 0.01f;
+        
+        // raise sensitivity?
+        if(ctrlDown)
+            speed *= 5;
+        
+        if(shiftDown)
+            speed *= 0.1f;
+
+        
+        if(curDist < lastDist) // we're moving closer to object center
+            polarity *= -1;
+        if(startingMousePos.y < mousePos.y)
+            polarity *= -1;
+
+        
+        Vector3 delta = new Vector3();
+        if(keyAxis != null) switch(keyAxis) {
+            case "all":
+                delta.x += polarity * Math.abs(lastDist - curDist) * speed;
+                delta.y += polarity * Math.abs(lastDist - curDist) * speed;
+                delta.z += polarity * Math.abs(lastDist - curDist) * speed;
+                break;
+            case "x":
+                delta.x += polarity * Math.abs(lastDist - curDist) * speed;
+                break;
+            case "y":
+                delta.y += polarity * Math.abs(lastDist - curDist) * speed;
+                break;
+            case "z":
+                delta.z += polarity * Math.abs(lastDist - curDist) * speed;
+                break;
         }
+
+        
+        if(ctrlDown)
+            scaleSelectionBy(delta, 0.25f * polarity);
+        else
+            scaleSelectionBy(delta);
+        
+        lastDist = curDist;
+        rerenderTasks.add("zone:" + curZone);
+        pnlObjectSettings.repaint();
+        glCanvas.repaint();
+        unsavedChanges = true;
     }
     
     /**
      * Called when rotating through the shortcut key R
-     * @param shiftPressed will move slower if shift is pressed
+     * @param shiftDown will move slower if shift is pressed
+     * @param ctrlDown will snap if ctrl is pressed
      */
-    public void keyRotating(boolean shiftPressed) {
-        if(getFocusOwner() == glCanvas) {
-            Vector3 delta = new Vector3();
-            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMousePos.x, 2) + Math.pow(startingMousePos.y - lastMousePos.y, 2));
-            if(lastDist == 0)
-                lastDist = curDist;
-            float pol = 0.1f;
-            
-            if(shiftPressed)
-                pol *= 0.1;
-            
-            if(curDist < lastDist)
-                pol *= -1;
-            if(startingMousePos.y < lastMousePos.y)
-                pol *= -1;
-
-            if(keyAxis != null) switch(keyAxis) {
-                case "x":
-                    delta.x += pol * Math.abs(lastDist - curDist);
-                    break;
-                case "y":
-                    delta.y += pol * Math.abs(lastDist - curDist);
-                    break;
-                case "z":
-                    delta.z += pol * Math.abs(lastDist - curDist);
-                    break;
-                default:
-                    break;
-            }
-            
-            rotateSelectionBy(delta);
-
+    public void keyRotating(boolean shiftDown, boolean ctrlDown) {
+        Vector3 delta = new Vector3();
+        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
+        if(lastDist == 0)
             lastDist = curDist;
-            rerenderTasks.add("zone:" + curZone);
-            pnlObjectSettings.repaint();
-            glCanvas.repaint();
-            unsavedChanges = true;
+        float pol = 0.1f;
+
+        if(shiftDown)
+            pol *= 0.1;
+
+        if(curDist < lastDist)
+            pol *= -1;
+        if(startingMousePos.y < mousePos.y)
+            pol *= -1;
+
+        if(keyAxis != null) switch(keyAxis) {
+            case "x":
+                delta.x += pol * Math.abs(lastDist - curDist);
+                break;
+            case "y":
+                delta.y += pol * Math.abs(lastDist - curDist);
+                break;
+            case "z":
+                delta.z += pol * Math.abs(lastDist - curDist);
+                break;
+            default:
+                break;
         }
+
+        rotateSelectionBy(delta);
+
+        lastDist = curDist;
+        rerenderTasks.add("zone:" + curZone);
+        pnlObjectSettings.repaint();
+        glCanvas.repaint();
+        unsavedChanges = true;
     }
     
     /**
@@ -2869,7 +2878,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public void pasteObject(AbstractObj obj) {
         addingObject = obj.type + "|" + obj.name;
         addingObjectOnLayer = obj.layer;
-        addObject(lastMousePos);
+        addObject(mousePos);
         
         addingObject = "";
         
@@ -2949,12 +2958,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     addingObject = change.objType + "|" + change.name;
                     addingObjectOnLayer = change.layer;
 
-    //                if("pathpoint".equals(change.objType)) {
-    //                    PathPointObj parentPath = globalPathPointList.get(change.parentPathId);
-    //                    
-    //                    selectedPath.put(change.parentPathId, parentPath);
-    //                }
-
                     addObject(change.position);
                     addingObject = "";
 
@@ -2968,10 +2971,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         newobj.scale =(Vector3) change.scale.clone();
 
                     addRerenderTask("zone:" + newobj.zone.zoneName);
-
-                    // TODO: fix a bug where moving the supermassive pipes, deleting one, and undoing sometimes deletes half the data. please, send help
-    //                if(!newobj.data.containsKey("MessageId"))
-    //                    System.err.println("aw peck, I did a dumb"); // epic breakpoint statement
                     break;
                 case "addObj":
                     deleteObject(change.id);
@@ -3049,39 +3048,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         return delta;
-    }
-    
-    private Point get2DCoords(Vector3 position, float depth) { // broken
-        Point pt = new Point(
-                1,
-                1);
-        Vector3 manip = new Vector3(
-            camPosition.x / scaledown,
-            camPosition.y / scaledown,
-            camPosition.z / scaledown);
-        depth /= scaledown;
-
-        manip.x -=(depth *(float)Math.cos(camRotation.x) *(float)Math.cos(camRotation.y));
-        manip.y -=(depth *(float)Math.sin(camRotation.y));
-        manip.z -=(depth *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y));
-
-        float tempX = position.x - manip.x;
-        float tempY = position.y - manip.y;
-
-        float yVal = tempY /(float)Math.cos(camRotation.y);
-        pt.y =(int)((((yVal / depth) / pixelFactorY) * -1) +(glCanvas.getHeight() / 2f));
-
-        float xVal =((tempX +(yVal *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)))) /(float)Math.sin(camRotation.x);
-        pt.x =(int)(((xVal / depth) / pixelFactorY) +(glCanvas.getWidth() / 2f));
-
-        if(manip.x +(xVal *(float)Math.sin(camRotation.x)) -(yVal *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)) !=(int)position.x)
-            System.out.println("x has issues IDK why");
-        if(manip.y +(yVal *(float)Math.cos(camRotation.y)) !=(int)position.y)
-            System.out.println("y has issues IDK why");
-        if(manip.z +(-(xVal *(float)Math.cos(camRotation.x)) -(yVal *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x))) !=(int)position.z)
-            System.out.println("z has issues IDK why");
-
-        return pt;
     }
     
     private Vector3 get3DCoords(Point pt, float depth) {
@@ -3200,7 +3166,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * Scale the selection by {@code delta}.
      * @param delta the amount to scale by
      */
-    private void scaleSelectionBy(Vector3 delta) {
+    private void scaleSelectionBy(Vector3 delta, float snap) {
         unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
@@ -3211,6 +3177,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             selectedObj.scale.x += delta.x;
             selectedObj.scale.y += delta.y;
             selectedObj.scale.z += delta.z;
+            
+            if(snap != 0.0f)
+            {
+                selectedObj.scale.x -= selectedObj.scale.x % snap;
+                selectedObj.scale.y -= selectedObj.scale.y % snap;
+                selectedObj.scale.z -= selectedObj.scale.z % snap;
+            }
+            
             pnlObjectSettings.setFieldValue("scale_x", selectedObj.scale.x);
             pnlObjectSettings.setFieldValue("scale_y", selectedObj.scale.y);
             pnlObjectSettings.setFieldValue("scale_z", selectedObj.scale.z);
@@ -3220,6 +3194,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             addRerenderTask("object:"+selectedObj.uniqueID);
             glCanvas.repaint();
         }
+    }
+    
+    private void scaleSelectionBy(Vector3 delta)
+    {
+        scaleSelectionBy(delta, 0.0f);
     }
     
     /**
@@ -4271,6 +4250,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
+
         public class AsyncPrerenderer implements Runnable {
             public AsyncPrerenderer(GL2 gl) {
                 this.gl = gl;
@@ -4360,7 +4340,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             RendererCache.setRefContext(glad.getContext());
             
-            lastMousePos = new Point(-1, -1);
+            mousePos = new Point(-1, -1);
             pickingFrameBuffer = IntBuffer.allocate(9);
             pickingDepthBuffer = FloatBuffer.allocate(1);
             pickingDepth = 1f;
@@ -4785,9 +4765,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             gl.glFlush();
             
-            gl.glReadPixels(lastMousePos.x - 1, glad.getHeight() - lastMousePos.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV,
+            gl.glReadPixels(mousePos.x - 1, glad.getHeight() - mousePos.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV,
                                                                                                                                 pickingFrameBuffer);
-            gl.glReadPixels(lastMousePos.x, glad.getHeight() - lastMousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
+            gl.glReadPixels(mousePos.x, glad.getHeight() - mousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
             pickingDepth = -(zFar * zNear /(pickingDepthBuffer.get(0) *(zFar - zNear) - zFar));
             
             if(Settings.fakeCol) {
@@ -5083,8 +5063,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public void mouseDragged(MouseEvent e) {
             if(!inited) return;
             
-            float xdelta = e.getX() - lastMousePos.x;
-            float ydelta = e.getY() - lastMousePos.y;
+            float xdelta = e.getX() - mousePos.x;
+            float ydelta = e.getY() - mousePos.y;
             
             if(!isDragging && (Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f)) {
                 pickingCapture = true;
@@ -5100,7 +5080,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pickingCapture = false;
             }
             
-            lastMousePos = e.getPoint();
+            mousePos = e.getPoint();
             
             if(!selectedObjs.isEmpty() && selectedObjs.containsKey(underCursor >>> 3)) {
                 if(mouseButton == MouseEvent.BUTTON1) { // left click
@@ -5186,16 +5166,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     Whitehole.currentTask = "Editing a galaxy";
             }
             
-            lastMousePos = e.getPoint();
+            mousePos = e.getPoint();
             
             if(startingMousePos == null)
-                startingMousePos = new Point(1,1);
-            if(keyTranslating)
-                keyTranslating(e.isShiftDown());
-            if(keyScaling)
-                keyScaling(e.isShiftDown());
-            if(keyRotating)
-                keyRotating(e.isShiftDown());
+            {
+                System.out.println("reset startingMousePos");
+                startingMousePos = new Point(1, 1);
+            }
+            
+            if(glCanvas.isFocusOwner())
+            {
+                if(keyTranslating)
+                    keyTranslating(e.isShiftDown(), e.isControlDown());
+                if(keyScaling)
+                    keyScaling(e.isShiftDown(), e.isControlDown());
+                if(keyRotating)
+                    keyRotating(e.isShiftDown(), e.isControlDown());
+            }
         }
 
         @Override
@@ -5207,7 +5194,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(mouseButton != MouseEvent.NOBUTTON) return;
             
             mouseButton = e.getButton();
-            lastMousePos = e.getPoint();
+            mousePos = e.getPoint();
             
             isDragging = false;
             keyTranslating = false;
@@ -5223,7 +5210,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(e.getButton() != mouseButton) return;
             
             mouseButton = MouseEvent.NOBUTTON;
-            lastMousePos = e.getPoint();
+            mousePos = e.getPoint();
             boolean shiftpressed = e.isShiftDown();
             boolean ctrlpressed = e.isControlDown();
             if(keyTranslating == false && keyScaling == false && keyRotating == false) {
@@ -5269,7 +5256,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     // left click: places/deletes objects or selects
 
                     if(!addingObject.isEmpty()) {
-                        addObject(lastMousePos);
+                        addObject(mousePos);
 
                         if(!addingObject.startsWith("path")) {
                             undoList.add(new UndoEntry("addObj", newobj));
@@ -5404,8 +5391,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         delta *(float)Math.sin(camRotation.y),
                         delta *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y));
                 
-                float xdist = delta *(lastMousePos.x -(glCanvas.getWidth() / 2f)) * pixelFactorX;
-                float ydist = delta *(lastMousePos.y -(glCanvas.getHeight() / 2f)) * pixelFactorY;
+                float xdist = delta *(mousePos.x -(glCanvas.getWidth() / 2f)) * pixelFactorX;
+                float ydist = delta *(mousePos.y -(glCanvas.getHeight() / 2f)) * pixelFactorY;
                 vdelta.x += -(xdist *(float)Math.sin(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x));
                 vdelta.y += ydist *(float)Math.cos(camRotation.y);
                 vdelta.z +=(xdist *(float)Math.cos(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));
@@ -5422,8 +5409,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         delta *(float)Math.sin(camRotation.y),
                         delta *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y));
                 
-                float xdist = delta *(lastMousePos.x -(glCanvas.getWidth() / 2f)) * pixelFactorX;
-                float ydist = delta *(lastMousePos.y -(glCanvas.getHeight() / 2f)) * pixelFactorY;
+                float xdist = delta *(mousePos.x -(glCanvas.getWidth() / 2f)) * pixelFactorX;
+                float ydist = delta *(mousePos.y -(glCanvas.getHeight() / 2f)) * pixelFactorY;
                 vdelta.x += -(xdist *(float)Math.sin(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x));
                 vdelta.y += ydist *(float)Math.cos(camRotation.y);
                 vdelta.z +=(xdist *(float)Math.cos(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));
@@ -5447,6 +5434,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         @Override
         public void keyTyped(KeyEvent e) { }
+        
+        @Override
+        public void keyReleased(KeyEvent e) {}
 
         @Override
         public void keyPressed(KeyEvent e) {
@@ -5498,7 +5488,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             // Scale/Move/Rotate With Mouse Shortcuts
             if(keyCode == Settings.keyScl) { // scale
-                startingMousePos = lastMousePos;
+                startingMousePos = mousePos;
                 ArrayList<AbstractObj> scalingObjs = new ArrayList();
 
                 for(AbstractObj obj : selectedObjs.values())
@@ -5517,13 +5507,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 
                 return;
             } else if (keyCode == Settings.keyPos) { // Move
-                startingMousePos = lastMousePos;
+                startingMousePos = mousePos;
                 keyTranslating = true;
                 
                 return;
             } else if (keyCode == Settings.keyRot) { // Rotate
+                startingMousePos = mousePos;
                 keyRotating = true;
-                startingMousePos = lastMousePos;
                 
                 return;
             }
@@ -5545,7 +5535,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             // Pull Up Add menu
             if(keyCode == KeyEvent.VK_A && e.isShiftDown()) {
                 pmnAddObjects.setLightWeightPopupEnabled(false);
-                pmnAddObjects.show(pnlGLPanel, lastMousePos.x, lastMousePos.y);
+                pmnAddObjects.show(pnlGLPanel, mousePos.x, mousePos.y);
                 pmnAddObjects.setOpaque(true);
                 pmnAddObjects.setVisible(true);
                 
@@ -5671,7 +5661,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         }
         
-        
         public final float fov;
         public final float zNear = 0.001f;
         public final float zFar = 1000f;
@@ -5768,7 +5757,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private float pixelFactorX, pixelFactorY;
 
     private int mouseButton;
-    private Point lastMousePos;
+    private Point mousePos;
     private boolean isDragging;
     private boolean pickingCapture;
     private IntBuffer pickingFrameBuffer;
