@@ -472,7 +472,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         
         if(ctrlDown)
-            scaleSelectionBy(delta, 0.25f * polarity);
+            scaleSelectionBy(delta, 0.10f * polarity);
         else
             scaleSelectionBy(delta);
         
