@@ -64,6 +64,8 @@ public class BcsvEditorForm extends javax.swing.JFrame
         if(Settings.dark)
             initDarkTheme();
         
+        tblBcsv.setAutoCreateRowSorter(true);
+        
         archive = null;
         bcsv = null;
         zoneName = "";

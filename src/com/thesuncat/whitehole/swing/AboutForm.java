@@ -32,7 +32,7 @@ public class AboutForm extends javax.swing.JFrame {
         }
         if(Settings.dark) {
             ArrayList<JLabel> btnArray = new ArrayList<>();
-            btnArray.addAll(Arrays.asList(jLabel1, jLabel10,jLabel11,jLabel12,jLabel13,jLabel15,jLabel16,jLabel17,jLabel18,jLabel2,jLabel3,jLabel4,jLabel5,jLabel6,jLabel7,jLabel8,jLabel9,jLabel19, jLabel14, jLabel20, jLabel21, jLabel22, jLabel23));
+            btnArray.addAll(Arrays.asList(jLabel1, jLabel10,jLabel11,jLabel12,jLabel13,jLabel15,jLabel16,jLabel17,jLabel18,jLabel2,jLabel3,jLabel4,jLabel5,jLabel6,jLabel7,jLabel8,jLabel9, jLabel20, jLabel22, jLabel23));
             this.getContentPane().setBackground(new Color(54,57,63));
             this.getContentPane().setForeground(new Color(157,158,161));
             for (int i = 0; i < btnArray.size(); i++) {
@@ -64,10 +64,7 @@ public class AboutForm extends javax.swing.JFrame {
         jLabel16 = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
         jLabel18 = new javax.swing.JLabel();
-        jLabel19 = new javax.swing.JLabel();
-        jLabel14 = new javax.swing.JLabel();
         jLabel20 = new javax.swing.JLabel();
-        jLabel21 = new javax.swing.JLabel();
         jLabel22 = new javax.swing.JLabel();
         jLabel23 = new javax.swing.JLabel();
 
@@ -112,14 +109,7 @@ public class AboutForm extends javax.swing.JFrame {
 
         jLabel18.setText("TheSunCat");
 
-        jLabel19.setText("SmudgeDraws");
-
-        jLabel14.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jLabel14.setText("Special Thanks");
-
         jLabel20.setText("Mark Cangila");
-
-        jLabel21.setText("OcelotGaming");
 
         jLabel22.setText("Bussun");
 
@@ -154,25 +144,18 @@ public class AboutForm extends javax.swing.JFrame {
                                                 .addComponent(jLabel7)
                                                 .addComponent(jLabel9)
                                                 .addComponent(jLabel13)
-                                                .addComponent(jLabel17))))
+                                                .addComponent(jLabel17)
+                                                .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))))
                                     .addComponent(jLabel11)
                                     .addComponent(jLabel16)
                                     .addComponent(jLabel20))
-                                .addGap(18, 18, 18)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jLabel12)
                                     .addComponent(jLabel8)
                                     .addComponent(jLabel15, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(jLabel18)
-                                    .addComponent(jLabel23, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(jLabel19)
-                                .addComponent(jLabel14))
-                            .addGap(18, 18, 18)
-                            .addComponent(jLabel21))))
+                                    .addComponent(jLabel23, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -209,17 +192,12 @@ public class AboutForm extends javax.swing.JFrame {
                     .addComponent(jLabel17)
                     .addComponent(jLabel18))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel20)
-                    .addComponent(jLabel22)
-                    .addComponent(jLabel23))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel14)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel19)
-                    .addComponent(jLabel21))
-                .addGap(14, 14, 14))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel23)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel20)
+                        .addComponent(jLabel22)))
+                .addContainerGap())
         );
 
         pack();
@@ -232,15 +210,12 @@ public class AboutForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
-    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
-    private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel3;

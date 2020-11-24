@@ -49,6 +49,15 @@ public class Vector3 implements Cloneable {
         }
     }
     
+    public Vector3 multiplyScalar(float val)
+    {
+        this.x *= val;
+        this.y *= val;
+        this.z *= val;
+        
+        return this;
+    }
+    
     public static boolean roughlyEqual(Vector3 a, Vector3 b) {
         float epsilon = 0.00001f;
         if (Math.abs(a.x - b.x) > epsilon) return false;
@@ -95,4 +104,13 @@ public class Vector3 implements Cloneable {
               z = a.x * b.y - a.y * b.x;
         out.x = x; out.y = y; out.z = z;
     }
+    
+    public static void multiplyScalar(Vector3 a, float s, Vector3 out)
+    {
+        out.x = a.x * s;
+        out.y = a.y * s;
+        out.z = a.z * s;
+    }
+    
+    
 }

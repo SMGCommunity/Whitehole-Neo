@@ -375,7 +375,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public void keyTranslating(boolean shiftPressed) {
         if(getFocusOwner() == glCanvas) {
             Vector3 delta = new Vector3();
-            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
+            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMousePos.x, 2) + Math.pow(startingMousePos.y - lastMousePos.y, 2));
             if(lastDist == 0)
                 lastDist = curDist;
             float pol = 10f;
@@ -385,15 +385,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             if(curDist < lastDist)
                 pol *= -1;
-            if(startingMousePos.y < lastMouseMove.y)
+            if(startingMousePos.y < lastMousePos.y)
                 pol *= -1;
 
             if(keyAxis != null) switch(keyAxis) {
                 case "all":
                     float objz = depthUnderCursor;
                     
-                    float xdelta = (startingMousePos.x - lastMouseMove.x) * pixelFactorX * objz * scaledown;
-                    float ydelta = (startingMousePos.y - lastMouseMove.y) * -pixelFactorY * objz * scaledown;
+                    float xdelta = (startingMousePos.x - lastMousePos.x) * pixelFactorX * objz * scaledown;
+                    float ydelta = (startingMousePos.y - lastMousePos.y) * -pixelFactorY * objz * scaledown;
                     
                     delta = new Vector3(
                            (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
@@ -432,7 +432,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public void keyScaling(boolean shiftPressed) {
         if(getFocusOwner() == glCanvas) {
             Vector3 delta = new Vector3();
-            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
+            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMousePos.x, 2) + Math.pow(startingMousePos.y - lastMousePos.y, 2));
             if(lastDist == 0)
                 lastDist = curDist;
             float pol = 0.01f;
@@ -442,7 +442,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             if(curDist < lastDist)
                 pol *= -1;
-            if(startingMousePos.y < lastMouseMove.y)
+            if(startingMousePos.y < lastMousePos.y)
                 pol *= -1;
 
             if(keyAxis != null) switch(keyAxis) {
@@ -480,7 +480,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public void keyRotating(boolean shiftPressed) {
         if(getFocusOwner() == glCanvas) {
             Vector3 delta = new Vector3();
-            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMouseMove.x, 2) + Math.pow(startingMousePos.y - lastMouseMove.y, 2));
+            float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - lastMousePos.x, 2) + Math.pow(startingMousePos.y - lastMousePos.y, 2));
             if(lastDist == 0)
                 lastDist = curDist;
             float pol = 0.1f;
@@ -490,7 +490,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             if(curDist < lastDist)
                 pol *= -1;
-            if(startingMousePos.y < lastMouseMove.y)
+            if(startingMousePos.y < lastMousePos.y)
                 pol *= -1;
 
             if(keyAxis != null) switch(keyAxis) {
@@ -2869,7 +2869,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public void pasteObject(AbstractObj obj) {
         addingObject = obj.type + "|" + obj.name;
         addingObjectOnLayer = obj.layer;
-        addObject(lastMouseMove);
+        addObject(lastMousePos);
         
         addingObject = "";
         
@@ -4360,7 +4360,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             RendererCache.setRefContext(glad.getContext());
             
-            lastMouseMove = new Point(-1, -1);
+            lastMousePos = new Point(-1, -1);
             pickingFrameBuffer = IntBuffer.allocate(9);
             pickingDepthBuffer = FloatBuffer.allocate(1);
             pickingDepth = 1f;
@@ -4785,9 +4785,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             gl.glFlush();
             
-            gl.glReadPixels(lastMouseMove.x - 1, glad.getHeight() - lastMouseMove.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV,
+            gl.glReadPixels(lastMousePos.x - 1, glad.getHeight() - lastMousePos.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV,
                                                                                                                                 pickingFrameBuffer);
-            gl.glReadPixels(lastMouseMove.x, glad.getHeight() - lastMouseMove.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
+            gl.glReadPixels(lastMousePos.x, glad.getHeight() - lastMousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
             pickingDepth = -(zFar * zNear /(pickingDepthBuffer.get(0) *(zFar - zNear) - zFar));
             
             if(Settings.fakeCol) {
@@ -5083,8 +5083,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public void mouseDragged(MouseEvent e) {
             if(!inited) return;
             
-            float xdelta = e.getX() - lastMouseMove.x;
-            float ydelta = e.getY() - lastMouseMove.y;
+            float xdelta = e.getX() - lastMousePos.x;
+            float ydelta = e.getY() - lastMousePos.y;
             
             if(!isDragging && (Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f)) {
                 pickingCapture = true;
@@ -5100,7 +5100,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pickingCapture = false;
             }
             
-            lastMouseMove = e.getPoint();
+            lastMousePos = e.getPoint();
             
             if(!selectedObjs.isEmpty() && selectedObjs.containsKey(underCursor >>> 3)) {
                 if(mouseButton == MouseEvent.BUTTON1) { // left click
@@ -5186,7 +5186,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     Whitehole.currentTask = "Editing a galaxy";
             }
             
-            lastMouseMove = e.getPoint();
+            lastMousePos = e.getPoint();
             
             if(startingMousePos == null)
                 startingMousePos = new Point(1,1);
@@ -5207,7 +5207,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(mouseButton != MouseEvent.NOBUTTON) return;
             
             mouseButton = e.getButton();
-            lastMouseMove = e.getPoint();
+            lastMousePos = e.getPoint();
             
             isDragging = false;
             keyTranslating = false;
@@ -5223,7 +5223,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(e.getButton() != mouseButton) return;
             
             mouseButton = MouseEvent.NOBUTTON;
-            lastMouseMove = e.getPoint();
+            lastMousePos = e.getPoint();
             boolean shiftpressed = e.isShiftDown();
             boolean ctrlpressed = e.isControlDown();
             if(keyTranslating == false && keyScaling == false && keyRotating == false) {
@@ -5269,7 +5269,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     // left click: places/deletes objects or selects
 
                     if(!addingObject.isEmpty()) {
-                        addObject(lastMouseMove);
+                        addObject(lastMousePos);
 
                         if(!addingObject.startsWith("path")) {
                             undoList.add(new UndoEntry("addObj", newobj));
@@ -5404,8 +5404,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         delta *(float)Math.sin(camRotation.y),
                         delta *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y));
                 
-                float xdist = delta *(lastMouseMove.x -(glCanvas.getWidth() / 2f)) * pixelFactorX;
-                float ydist = delta *(lastMouseMove.y -(glCanvas.getHeight() / 2f)) * pixelFactorY;
+                float xdist = delta *(lastMousePos.x -(glCanvas.getWidth() / 2f)) * pixelFactorX;
+                float ydist = delta *(lastMousePos.y -(glCanvas.getHeight() / 2f)) * pixelFactorY;
                 vdelta.x += -(xdist *(float)Math.sin(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x));
                 vdelta.y += ydist *(float)Math.cos(camRotation.y);
                 vdelta.z +=(xdist *(float)Math.cos(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));
@@ -5422,8 +5422,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         delta *(float)Math.sin(camRotation.y),
                         delta *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y));
                 
-                float xdist = delta *(lastMouseMove.x -(glCanvas.getWidth() / 2f)) * pixelFactorX;
-                float ydist = delta *(lastMouseMove.y -(glCanvas.getHeight() / 2f)) * pixelFactorY;
+                float xdist = delta *(lastMousePos.x -(glCanvas.getWidth() / 2f)) * pixelFactorX;
+                float ydist = delta *(lastMousePos.y -(glCanvas.getHeight() / 2f)) * pixelFactorY;
                 vdelta.x += -(xdist *(float)Math.sin(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x));
                 vdelta.y += ydist *(float)Math.cos(camRotation.y);
                 vdelta.z +=(xdist *(float)Math.cos(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));
@@ -5453,20 +5453,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(!glCanvas.isFocusOwner())
                 return;
             
-            if(e.getKeyCode() == Settings.keyPos)
-                posDown = true;
+            int keyCode = e.getKeyCode();
             
-            if(e.getKeyCode() == Settings.keyRot)
-                posDown = true;
-            
-            if(e.getKeyCode() == Settings.keyScl)
-                sclDown = true;
-            
-            if(e.getKeyCode() == KeyEvent.VK_DELETE)
+            if(keyCode == KeyEvent.VK_DELETE)
+            {
                 tgbDeleteObject.doClick();
+                return;
+            }
             
             // Hide an object
-            if(e.getKeyCode() == KeyEvent.VK_H) {
+            if(keyCode == KeyEvent.VK_H) {
                 if(e.isAltDown()) {
                     for(AbstractObj obj : globalObjList.values()) {
                         if(obj.isHidden) {
@@ -5487,97 +5483,108 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     glCanvas.repaint();
                 }
+                
+                return;
             }
             
-            // Undo
-            if(e.getKeyCode() == KeyEvent.VK_Z && e.isControlDown()) {
+            // Undo - Ctrl+Z
+            if(keyCode == KeyEvent.VK_Z && e.isControlDown()) {
                 undo();
                 System.out.println("Undos left: " + undoIndex);
                 glCanvas.repaint();
+                
+                return;
             }
             
-//            // Scale/Move/Rotate With Mouse Shortcuts
-//            if(!e.isControlDown() && !e.isAltDown() && !e.isShiftDown()) {
-//                if(sclDown) { // scale
-//                    startingMousePos = lastMouseMove;
-//                    ArrayList<AbstractObj> scalingObjs = new ArrayList();
-//
-//                    for(AbstractObj obj : selectedObjs.values())
-//                        scalingObjs.add(obj);
-//
-//                    for(AbstractObj currentChangeObj : scalingObjs) {
-//                        startingObjScale.x = currentChangeObj.scale.x;
-//                        startingObjScale.y = currentChangeObj.scale.y;
-//                        startingObjScale.z = currentChangeObj.scale.z;
-//                        startingObjPos.x = currentChangeObj.position.x;
-//                        startingObjPos.y = currentChangeObj.position.y;
-//                        startingObjPos.z = currentChangeObj.position.z;
-//                    }   keyScaling = true;
-//                } else if (posDown) { // Move
-//                        startingMousePos = lastMouseMove;
-//                        keyTranslating = true;
-//                } else if (rotDown) { // Rotate
-//                        keyRotating = true;
-//                        startingMousePos = lastMouseMove;
-//                }
-//            }
-//            
-//            // Set rotation axis
-//            if(keyRotating || keyScaling || keyTranslating) {
-//                switch(e.getKeyCode()) {
-//                    case KeyEvent.VK_X:
-//                        keyAxis = "x";
-//                        break;
-//                    case KeyEvent.VK_Y:
-//                        keyAxis = "y";
-//                        break;
-//                    case KeyEvent.VK_Z:
-//                        keyAxis = "z";
-//                        break;
-//                    default:
-//                        break;
-//                }
-//            }
+            // Scale/Move/Rotate With Mouse Shortcuts
+            if(keyCode == Settings.keyScl) { // scale
+                startingMousePos = lastMousePos;
+                ArrayList<AbstractObj> scalingObjs = new ArrayList();
+
+                for(AbstractObj obj : selectedObjs.values())
+                    scalingObjs.add(obj);
+
+                for(AbstractObj currentChangeObj : scalingObjs) {
+                    startingObjScale.x = currentChangeObj.scale.x;
+                    startingObjScale.y = currentChangeObj.scale.y;
+                    startingObjScale.z = currentChangeObj.scale.z;
+                    startingObjPos.x = currentChangeObj.position.x;
+                    startingObjPos.y = currentChangeObj.position.y;
+                    startingObjPos.z = currentChangeObj.position.z;
+                }
+                
+                keyScaling = true;
+                
+                return;
+            } else if (keyCode == Settings.keyPos) { // Move
+                startingMousePos = lastMousePos;
+                keyTranslating = true;
+                
+                return;
+            } else if (keyCode == Settings.keyRot) { // Rotate
+                keyRotating = true;
+                startingMousePos = lastMousePos;
+                
+                return;
+            }
+            
+            
+            // Set rotation axis
+            switch(keyCode) {
+                case KeyEvent.VK_X:
+                    keyAxis = "x";
+                    return;
+                case KeyEvent.VK_Y:
+                    keyAxis = "y";
+                    return;
+                case KeyEvent.VK_Z:
+                    keyAxis = "z";
+                    return;
+            }
             
             // Pull Up Add menu
-            if(e.isShiftDown() && e.getKeyCode() == KeyEvent.VK_A) {
-                if(getFocusOwner() == glCanvas) {
-                    pmnAddObjects.setLightWeightPopupEnabled(false);
-                    pmnAddObjects.show(pnlGLPanel, lastMouseMove.x, lastMouseMove.y);
-                    pmnAddObjects.setOpaque(true);
-                    pmnAddObjects.setVisible(true);
-                }
+            if(keyCode == KeyEvent.VK_A && e.isShiftDown()) {
+                pmnAddObjects.setLightWeightPopupEnabled(false);
+                pmnAddObjects.show(pnlGLPanel, lastMousePos.x, lastMousePos.y);
+                pmnAddObjects.setOpaque(true);
+                pmnAddObjects.setVisible(true);
+                
+                return;
             }
             
             // Copy-Pase
             if(e.isControlDown()) {
-                if(e.getKeyCode() == KeyEvent.VK_C) { // Copy
+                if(keyCode == KeyEvent.VK_C) { // Copy
                     copyObj =(LinkedHashMap<Integer, AbstractObj>) selectedObjs.clone();
+                    
                     if(selectedObjs.size() == 1)
                         lbStatusLabel.setText("Copied " + new ArrayList<>(copyObj.values()).get(0).name + ".");
                     else
                         lbStatusLabel.setText("Copied current selection.");
+                    
+                    return;
                 }
-                else if(e.getKeyCode() == KeyEvent.VK_V) {
-                    if(copyObj != null) { 
-                        if(!copyObj.isEmpty()) {
-                            for(AbstractObj currentObj : copyObj.values())
-                                pasteObject(currentObj);
-                            
-                            if(copyObj.size() == 1)
-                                lbStatusLabel.setText("Pasted " + new ArrayList<>(copyObj.values()).get(0).name + ".");
-                            else
-                                lbStatusLabel.setText("Pasted objects.");
-                            
-                            addingObject = "";
-                            glCanvas.repaint();
-                        }
+                else if(keyCode == KeyEvent.VK_V) {
+                    if(copyObj != null && !copyObj.isEmpty()) {
+                        
+                        for(AbstractObj currentObj : copyObj.values())
+                            pasteObject(currentObj);
+
+                        if(copyObj.size() == 1)
+                            lbStatusLabel.setText("Pasted " + new ArrayList<>(copyObj.values()).get(0).name + ".");
+                        else
+                            lbStatusLabel.setText("Pasted objects.");
+
+                        addingObject = "";
+                        glCanvas.repaint();
                     }
+                    
+                    return;
                 }
             }
             
-            // Jump Camera to Object
-            if(e.getKeyCode() == KeyEvent.VK_SPACE && selectedObjs.size() == 1) {
+            // Jump Camera to Object TODO fix
+            if(keyCode == KeyEvent.VK_SPACE && selectedObjs.size() == 1) {
                 ArrayList keyset = new ArrayList(selectedObjs.keySet());
                 Vector3 camTarg = new Vector3(
                         selectedObjs.get((int)keyset.get(0)).position.x,
@@ -5597,142 +5604,71 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
                 updateCamera();
                 glCanvas.repaint();
+                
+                return;
             }
             
             // Fullscreen Toggle
-            if(e.getKeyCode() == KeyEvent.VK_F) {
-                if(glCanvas.isFocusOwner())
-                    makeFullscreen();
+            if(keyCode == KeyEvent.VK_F) {
+                makeFullscreen();
+                
                 if(fullscreen) {
                     setVisible(false);
                     fullscreen = false;
                 } else if(!fullscreen) {
+                    System.out.println("Attempting to exit fullscreen mode...");
+                    
                     fullScreen.dispatchEvent(new WindowEvent(fullScreen, WindowEvent.WINDOW_CLOSING));
                     glCanvas.requestFocusInWindow();
                     setVisible(true);
                 }
-            }
-            
-            if(e.isControlDown()) {
-                // Arrow Key Shortcuts
-                Vector3 delta = new Vector3();
-                Vector3 deltaPos = new Vector3();
-                Vector3 deltaDir = new Vector3();
-                Vector3 deltaSize = new Vector3();
-                Vector3 finaldelta = new Vector3();
-                int disp = 1;
-
-                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_A : e.getKeyCode() == KeyEvent.VK_LEFT) {
-                    delta.x = disp;
-                    deltaPos.x += 100;
-                    deltaDir.x += 5;
-                    deltaSize.x += 1;
-                }
-                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_D : e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                    delta.x = -disp;
-                    deltaPos.x += -100;
-                    deltaDir.x += -5;
-                    deltaSize.x += -1;
-                }
-                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_E : e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
-                    delta.y = disp;
-                    deltaPos.y += 100;
-                    deltaDir.y += 5;
-                    deltaSize.y += 1;
-                }
-                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_Q : e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
-                    delta.y = -disp;
-                    deltaPos.y += -100;
-                    deltaDir.y += -5;
-                    deltaSize.y += -1;
-                }
-                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_W : e.getKeyCode() == KeyEvent.VK_UP) {
-                    delta.z = -disp;
-                    deltaPos.z += -100;
-                    deltaDir.z += -5;
-                    deltaSize.z += -1;
-                }
-                if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_S : e.getKeyCode() == KeyEvent.VK_DOWN) {
-                    delta.z = disp;
-                    deltaPos.z += 100;
-                    deltaDir.z += 5;
-                    deltaSize.z += 1;
-                }
-
-
-                if(!selectedObjs.isEmpty() && e.isControlDown()) {
-                    if(posDown)
-                        offsetSelectionBy(deltaPos);
-                    else if(rotDown)
-                        rotateSelectionBy(deltaDir);
-                    else if(sclDown)
-                        scaleSelectionBy(deltaSize);
-                } else {
-                    finaldelta.x =(float)(-(delta.x * Math.sin(camRotation.x)) - (delta.y * Math.cos(camRotation.x) * Math.sin(camRotation.y)) +
-                            (delta.z * Math.cos(camRotation.x) * Math.cos(camRotation.y)));
-                    finaldelta.y =(float)((delta.y * Math.cos(camRotation.y)) + (delta.z * Math.sin(camRotation.y)));
-                    finaldelta.z =(float)((delta.x * Math.cos(camRotation.x)) - (delta.y * Math.sin(camRotation.x) * Math.sin(camRotation.y)) +
-                            (delta.z * Math.sin(camRotation.x) * Math.cos(camRotation.y)));
-                    camTarget.x += finaldelta.x * 0.005f;
-                    camTarget.y += finaldelta.y * 0.005f;
-                    camTarget.z += finaldelta.z * 0.005f;
-                    updateCamera();
-                    e.getComponent().repaint();
-                }
                 
-            //    keyDelta += disp;
+                return;
             }
-        }
+            
+            // Arrow Key Shortcuts
+            Vector3 delta = new Vector3();
+            Vector3 finaldelta = new Vector3();
 
-        @Override
-        public void keyReleased(KeyEvent e) {
-            if(e.getKeyCode() == Settings.keyPos)
-                posDown = false;
-            
-            if(e.getKeyCode() == Settings.keyRot)
-                rotDown = false;
-            
-            if(e.getKeyCode() == Settings.keyScl)
-                sclDown = false;
-            
-//            switch(e.getKeyCode()) {
-//                case KeyEvent.VK_LEFT:
-//                case KeyEvent.VK_NUMPAD4:
-//                    keyMask &= ~1;
-//                    break;
-//                case KeyEvent.VK_RIGHT:
-//                case KeyEvent.VK_NUMPAD6:
-//                    keyMask &= ~(1 << 1);
-//                    break;
-//                case KeyEvent.VK_UP:
-//                case KeyEvent.VK_NUMPAD8:
-//                    keyMask &= ~(1 << 2);
-//                    break;
-//                case KeyEvent.VK_DOWN:
-//                case KeyEvent.VK_NUMPAD2:
-//                    keyMask &= ~(1 << 3);
-//                    break;
-//                case KeyEvent.VK_PAGE_UP:
-//                case KeyEvent.VK_NUMPAD9:
-//                    keyMask &= ~(1 << 4);
-//                    break;
-//                case KeyEvent.VK_PAGE_DOWN:
-//                case KeyEvent.VK_NUMPAD3:
-//                    keyMask &= ~(1 << 5);
-//                    break;
-//                case KeyEvent.VK_P:
-//                    keyMask &= ~(1 << 6);
-//                    break;
-//                case KeyEvent.VK_R:
-//                    keyMask &= ~(1 << 7);
-//                    break;
-//                case KeyEvent.VK_S:
-//                    keyMask &= ~(1 << 8);
-//                    break;
-//            }
-//            
-//            if((keyMask & 0x3F) == 0)
-//                keyDelta = 0;
+            if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_A : e.getKeyCode() == KeyEvent.VK_LEFT) {
+                delta.x = 1;
+            }
+            if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_D : e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                delta.x = -1;
+            }
+            if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_E : e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
+                delta.y = 1;
+            }
+            if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_Q : e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
+                delta.y = -1;
+            }
+            if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_W : e.getKeyCode() == KeyEvent.VK_UP) {
+                delta.z = -1;
+            }
+            if(Settings.useWASD ? e.getKeyCode() == KeyEvent.VK_S : e.getKeyCode() == KeyEvent.VK_DOWN) {
+                delta.z = 1;
+            }
+
+
+            if(!selectedObjs.isEmpty()) {
+                if(keyCode == Settings.keyPos)
+                    offsetSelectionBy(delta.multiplyScalar(100));
+                else if(keyCode == Settings.keyRot)
+                    rotateSelectionBy(delta.multiplyScalar(5));
+                else if(keyCode == Settings.keyScl)
+                    scaleSelectionBy(delta);
+            } else {
+                finaldelta.x =(float)(-(delta.x * Math.sin(camRotation.x)) - (delta.y * Math.cos(camRotation.x) * Math.sin(camRotation.y)) +
+                        (delta.z * Math.cos(camRotation.x) * Math.cos(camRotation.y)));
+                finaldelta.y =(float)((delta.y * Math.cos(camRotation.y)) + (delta.z * Math.sin(camRotation.y)));
+                finaldelta.z =(float)((delta.x * Math.cos(camRotation.x)) - (delta.y * Math.sin(camRotation.x) * Math.sin(camRotation.y)) +
+                        (delta.z * Math.sin(camRotation.x) * Math.cos(camRotation.y)));
+                camTarget.x += finaldelta.x * 0.005f;
+                camTarget.y += finaldelta.y * 0.005f;
+                camTarget.z += finaldelta.z * 0.005f;
+                updateCamera();
+                e.getComponent().repaint();
+            }
         }
         
         
@@ -5832,9 +5768,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private float pixelFactorX, pixelFactorY;
 
     private int mouseButton;
-    private Point lastMouseMove;
+    private Point lastMousePos;
     private boolean isDragging;
-    private boolean posDown, rotDown, sclDown;
     private boolean pickingCapture;
     private IntBuffer pickingFrameBuffer;
     private FloatBuffer pickingDepthBuffer;
