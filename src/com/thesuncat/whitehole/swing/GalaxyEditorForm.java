@@ -2024,7 +2024,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             glCanvas.repaint();
             if(Settings.japanese)
-                lbStatusLabel.setText("ä½�ç½®ã�®è²¼ã‚Šä»˜ã�‘ " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
+                lbStatusLabel.setText("位置の貼り付け " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
             else
                 lbStatusLabel.setText("Pasted position " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
             unsavedChanges = true;
@@ -6786,7 +6786,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         tgbShowAxis.setText("軸を表示する");
         
         for(int i = 0; i < tpLeftPanel.getTabCount(); i++) {
-                tpLeftPanel.getComponentAt(i).setName("a" + i);
+            
+            tpLeftPanel.getComponentAt(i).setName("a" + i);
             JLabel lbl = new JLabel();
             switch(i) {
                 case 0:
@@ -6800,6 +6801,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     break;
                 case 3:
                     lbl.setText("worldmap");
+            }
         }
         
         
