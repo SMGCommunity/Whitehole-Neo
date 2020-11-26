@@ -1,5 +1,5 @@
 /*
-    © 2012 - 2019 - Whitehole Team
+    Â© 2012 - 2019 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -1200,7 +1200,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         if(selectedObjs.isEmpty()) {
             if(Settings.japanese)
-                lbStatusLabel.setText("オブジェクトの選択解除しました。");
+                lbStatusLabel.setText("ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã�®é�¸æŠžè§£é™¤ã�—ã�¾ã�—ã�Ÿã€‚");
             else
                 lbStatusLabel.setText("Object deselected.");
             btnDeselect.setEnabled(false);
@@ -1253,7 +1253,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     PathPointObj selectedPathPoint =(PathPointObj)selectedObj;
                     PathObj path = selectedPathPoint.path;
                     if(Settings.japanese)
-                        lbStatusLabel.setText(String.format("選択された [%3$d] %1$s(%2$s), ポイント %4$d",
+                        lbStatusLabel.setText(String.format("é�¸æŠžã�•ã‚Œã�Ÿ [%3$d] %1$s(%2$s), ãƒ�ã‚¤ãƒ³ãƒˆ %4$d",
                                 path.data.get("name"), path.zone.zoneName, path.pathID, selectedPathPoint.index) + ".");
                     else
                         lbStatusLabel.setText(String.format("Selected [%3$d] %1$s(%2$s), point %4$d",
@@ -1264,7 +1264,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 else {
                     String layer = selectedObj.layer.equals("common") ? "Common" : "Layer" + selectedObj.layer.substring(5).toUpperCase();
                     if(Settings.japanese)
-                        lbStatusLabel.setText("選択されたオブジェクト " + selectedObj.name + "(" + selectedObj.zone.zoneName + ", " + layer + ").");
+                        lbStatusLabel.setText("é�¸æŠžã�•ã‚Œã�Ÿã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ " + selectedObj.name + "(" + selectedObj.zone.zoneName + ", " + layer + ").");
                     else
                         lbStatusLabel.setText("Selected " + selectedObj.name + "(" + selectedObj.zone.zoneName + ", " + layer + ").");
                     btnDeselect.setEnabled(true);
@@ -1278,12 +1278,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     
                     if(selectedObj.getClass() != PathPointObj.class) {
-                        pnlObjectSettings.addCategory("obj_general", Settings.japanese ? "一般" : "General");
+                        pnlObjectSettings.addCategory("obj_general", Settings.japanese ? "ä¸€èˆ¬" : "General");
                         if(selectedObj.getClass() != StartObj.class && selectedObj.getClass() != DebugObj.class && selectedObj.getClass() != ChangeObj.class)
-                            pnlObjectSettings.addField("name", Settings.japanese ? "オブジェクト" : "Object", "objname", null, selectedObj.name, "Default");
+                            pnlObjectSettings.addField("name", Settings.japanese ? "ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ" : "Object", "objname", null, selectedObj.name, "Default");
                         if(galaxyMode)
-                            pnlObjectSettings.addField("zone", Settings.japanese ? "ゾーン" : "Zone", "list", galaxyArc.zoneList, selectedObj.zone.zoneName, "Default");
-                        pnlObjectSettings.addField("layer", Settings.japanese ? "レイヤー" : "Layer", "list", layerlist, layer, "Default");
+                            pnlObjectSettings.addField("zone", Settings.japanese ? "ã‚¾ãƒ¼ãƒ³" : "Zone", "list", galaxyArc.zoneList, selectedObj.zone.zoneName, "Default");
+                        pnlObjectSettings.addField("layer", Settings.japanese ? "ãƒ¬ã‚¤ãƒ¤ãƒ¼" : "Layer", "list", layerlist, layer, "Default");
                     }
 
                     selectedObj.getProperties(pnlObjectSettings);
@@ -1295,12 +1295,53 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pnlObjectSettings.removeField("pnt0_x"); pnlObjectSettings.removeField("pnt0_y"); pnlObjectSettings.removeField("pnt0_z");
                 pnlObjectSettings.removeField("pnt1_x"); pnlObjectSettings.removeField("pnt1_y"); pnlObjectSettings.removeField("pnt1_z");
                 pnlObjectSettings.removeField("pnt2_x"); pnlObjectSettings.removeField("pnt2_y"); pnlObjectSettings.removeField("pnt2_z");
+                
+                
+                
+                pnlObjectSettings.addCategory("Group_Move", "Group_Move");
+                pnlObjectSettings.addField("group_move_x", "Step X Pos", "float", null,0.0f, "");//adding movement input fields
+                pnlObjectSettings.addField("group_move_y", "Step Y Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_move_z", "Step Z Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_x", "Move X", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_y", "Move Y", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_z", "Move Z", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_a", "Move all", "float", null,0.0f, "");
+                
+                pnlObjectSettings.addCategory("Group_Rotate", "Group_Rotate");
+                pnlObjectSettings.addField("group_rotate_center_x", "Center X Pos", "float", null,0.0f, "");//adding rotations input fields
+                pnlObjectSettings.addField("group_rotate_center_y", "Center Y Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_center_z", "Center Z Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_angle_x", "Rotate X", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_angle_y", "Rotate Y", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_angle_z", "Rotate Z", "float", null,0.0f, "");
+                
+                pnlObjectSettings.addCategory("Group_Copy", "Group_Copy");
+                pnlObjectSettings.addField("group_copy_offset_x", "offest X", "float", null,0.0f, "");//adding copy input fields
+                pnlObjectSettings.addField("group_copy_offset_y", "offest Y", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_copy_offset_z", "offest Z", "float", null,0.0f, "");
             }
+            	this.g_center_x = 0;//reset values if selected objects changed
+            	this.g_center_y =0;
+            	this.g_center_z =0;
+            	this.g_angle_x =0;
+            	this.g_angle_y =0;
+            	this.g_angle_z =0;
+            	this.g_move_step_a =0;
+            	this.g_move_step_x =0;
+            	this.g_move_step_y =0;
+            	this.g_move_step_z =0;
+            	this.g_move_x =0;
+            	this.g_move_y =0;
+            	this.g_move_z =0;
+            	this.g_offset_x=0;
+            	this.g_offset_y=0;
+            	this.g_offset_z=0;
+            	
         }
         
         if(selectedObjs.size() > 1) {
             if(Settings.japanese)
-                lbStatusLabel.setText("複数のオブジェクト("+ selectedObjs.size() + ")");
+                lbStatusLabel.setText("è¤‡æ•°ã�®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ("+ selectedObjs.size() + ")");
             else
                 lbStatusLabel.setText("Multiple objects selected.(" + selectedObjs.size() + ").");
         }
@@ -1556,7 +1597,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void setStatusText() {
         if(Settings.japanese)
-            lbStatusLabel.setText(galaxyMode ? "シナリオ編集 " + lbScenarioList.getSelectedValue() + ", ゾーン " + curZone : "ゾーン編集 " + curZone);
+            lbStatusLabel.setText(galaxyMode ? "ã‚·ãƒŠãƒªã‚ªç·¨é›† " + lbScenarioList.getSelectedValue() + ", ã‚¾ãƒ¼ãƒ³ " + curZone : "ã‚¾ãƒ¼ãƒ³ç·¨é›† " + curZone);
         else
             lbStatusLabel.setText(galaxyMode ? "Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + curZone + "." :
                                                 "Editing zone " + curZone + ".");
@@ -1788,13 +1829,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             unsavedChanges = false;
             if(Settings.japanese)
-                lbStatusLabel.setText("変更を保存しました");
+                lbStatusLabel.setText("å¤‰æ›´ã‚’ä¿�å­˜ã�—ã�¾ã�—ã�Ÿ");
             else
                 lbStatusLabel.setText("Saved changes!");
         }
         catch(IOException ex) {
             if(Settings.japanese)
-                lbStatusLabel.setText("変更を保存できませんでした: " + ex.getMessage());
+                lbStatusLabel.setText("å¤‰æ›´ã‚’ä¿�å­˜ã�§ã��ã�¾ã�›ã‚“ã�§ã�—ã�Ÿ: " + ex.getMessage());
             else
                 lbStatusLabel.setText("Failed to save changes: " + ex.getMessage() + ".");
             
@@ -1863,7 +1904,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 copyPos =(Vector3) selectedObj.position.clone();
                 itmPositionPaste.setText("Position(" + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ")");
                 if(Settings.japanese)
-                    lbStatusLabel.setText("位置をコピー " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
+                    lbStatusLabel.setText("ä½�ç½®ã‚’ã‚³ãƒ”ãƒ¼ " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
                 else
                     lbStatusLabel.setText("Copied position " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
             }
@@ -1879,7 +1920,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 copyDir =(Vector3) selectedObj.rotation.clone();
                 itmRotationPaste.setText("Rotation(" + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ")");
                 if(Settings.japanese)
-                    lbStatusLabel.setText("回転をコピー " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
+                    lbStatusLabel.setText("å›žè»¢ã‚’ã‚³ãƒ”ãƒ¼ " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
                 else
                     lbStatusLabel.setText("Copied rotation " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
             }
@@ -1895,7 +1936,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 copyScale =(Vector3) selectedObj.scale.clone();
                 itmScalePaste.setText("Scale(" + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ")");
                 if(Settings.japanese)
-                    lbStatusLabel.setText("倍率をコピー " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
+                    lbStatusLabel.setText("å€�çŽ‡ã‚’ã‚³ãƒ”ãƒ¼ " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
                 else
                     lbStatusLabel.setText("Copied scale " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
             }
@@ -1922,7 +1963,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             glCanvas.repaint();
             if(Settings.japanese)
-                lbStatusLabel.setText("倍率の貼り付け " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
+                lbStatusLabel.setText("å€�çŽ‡ã�®è²¼ã‚Šä»˜ã�‘ " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
             else
                 lbStatusLabel.setText("Pasted scale " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
             unsavedChanges = true;
@@ -1983,7 +2024,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             glCanvas.repaint();
             if(Settings.japanese)
-                lbStatusLabel.setText("位置の貼り付け " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
+                lbStatusLabel.setText("ä½�ç½®ã�®è²¼ã‚Šä»˜ã�‘ " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
             else
                 lbStatusLabel.setText("Pasted position " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
             unsavedChanges = true;
@@ -2009,7 +2050,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             glCanvas.repaint();
             if(Settings.japanese)
-                lbStatusLabel.setText("回転の貼り付け " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
+                lbStatusLabel.setText("å›žè»¢ã�®è²¼ã‚Šä»˜ã�‘ " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
             else
                 lbStatusLabel.setText("Pasted rotation " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
             unsavedChanges = true;
@@ -2087,7 +2128,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             } else {
                 deletingObjects = true;
                 if(Settings.japanese)
-                    lbStatusLabel.setText("削除するオブジェクトをクリックします。 Shiftキーを押しながら複数のオブジェクトを削除します。 右クリックして中止します。");
+                    lbStatusLabel.setText("å‰Šé™¤ã�™ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ã‚¯ãƒªãƒƒã‚¯ã�—ã�¾ã�™ã€‚ Shiftã‚­ãƒ¼ã‚’æŠ¼ã�—ã�ªã�Œã‚‰è¤‡æ•°ã�®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å‰Šé™¤ã�—ã�¾ã�™ã€‚ å�³ã‚¯ãƒªãƒƒã‚¯ã�—ã�¦ä¸­æ­¢ã�—ã�¾ã�™ã€‚");
                 else
                     lbStatusLabel.setText("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
             }
@@ -2358,11 +2399,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             for(AbstractObj currentTempObj : copyObj.values()) {
                 addingObject = "general|" + currentTempObj.name;
                 addingObjectOnLayer = currentTempObj.layer;
-                addObject(new Point(glCanvas.getWidth() / 2, glCanvas.getHeight() / 2));
+                
+                Vector3 temppos=new Vector3();
+                temppos.x=currentTempObj.position.x+g_offset_x;
+                temppos.y=currentTempObj.position.y+g_offset_y;
+                temppos.z=currentTempObj.position.z+g_offset_z;
+                
+                Vector3 temprot=new Vector3();
+                temprot.x=currentTempObj.rotation.x;
+                temprot.y=currentTempObj.rotation.y;
+                temprot.z=currentTempObj.rotation.z;
+                
+                addObject(temppos);
+                
+                
                 
                 addUndoEntry("addObj", newobj);
-
-                newobj.rotation = currentTempObj.rotation;
+                newobj.rotation = temprot;
                 addingObject = "";
             }
             lbStatusLabel.setText("Pasted objects.");
@@ -2876,6 +2929,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     public void pasteObject(AbstractObj obj) {
+    	System.out.println("Objekt kopiert");
         addingObject = obj.type + "|" + obj.name;
         addingObjectOnLayer = obj.layer;
         addObject(mousePos);
@@ -3220,10 +3274,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 applySubzoneRotation(pos);
             }
         }
-        
         String objtype = addingObject.substring(0, addingObject.indexOf('|'));
         String objname = addingObject.substring(addingObject.indexOf('|') + 1);
         addingObjectOnLayer = addingObjectOnLayer.toLowerCase();
+ 
         
         int nodeid = -1;
         
@@ -3754,7 +3808,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 break;
         }
         if(Settings.japanese)
-            lbStatusLabel.setText("オブジェクトを配置するには、レベルビューをクリックします。 Shiftキーを押しながら複数のオブジェクトを配置します。 右クリックして中止します。");
+            lbStatusLabel.setText("ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’é…�ç½®ã�™ã‚‹ã�«ã�¯ã€�ãƒ¬ãƒ™ãƒ«ãƒ“ãƒ¥ãƒ¼ã‚’ã‚¯ãƒªãƒƒã‚¯ã�—ã�¾ã�™ã€‚ Shiftã‚­ãƒ¼ã‚’æŠ¼ã�—ã�ªã�Œã‚‰è¤‡æ•°ã�®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’é…�ç½®ã�—ã�¾ã�™ã€‚ å�³ã‚¯ãƒªãƒƒã‚¯ã�—ã�¦ä¸­æ­¢ã�—ã�¾ã�™ã€‚");
         else
             lbStatusLabel.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
     }
@@ -3888,6 +3942,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     public void propertyChanged(String propname, Object value, BcsvFile.Entry data) {
         Object oldval = data.get(propname);
+        if(oldval==null) {//the movement inputs have no value before
+        	oldval=0.0f;
+        }
         if(oldval.getClass() == String.class) data.put(propname, value);
         else if(oldval.getClass() == Integer.class) data.put(propname,(int)value);
         else if(oldval.getClass() == Short.class) data.put(propname,(short)(int)value);
@@ -3897,8 +3954,273 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     public void propertyPanelPropertyChanged(String propname, Object value) {
+    	String axis="";//rotation axis
+    	float to_rotate_x=0;//angle to rotate because of the changed value
+    	float to_rotate_y=0;
+    	float to_rotate_z=0;
+    	if(propname.startsWith("group_copy_offset_")) {
+    		axis = propname.substring(propname.length()-1);
+    		switch(axis){//setting the copy offset
+				case "x": this.g_offset_x=(float)value;break;
+				case "y": this.g_offset_y=(float)value;break;
+				case "z": this.g_offset_z=(float)value;break;
+				default:System.out.println("invalid axis");
+			}
+    	}
+    	if(propname.startsWith("group_rotate_center_")){
+    		axis = propname.substring(propname.length()-1);
+    		switch(axis){//setting the rotation point/center
+    			case "x": this.g_center_x=(float)value;break;
+    			case "y": this.g_center_y=(float)value;break;
+    			case "z": this.g_center_z=(float)value;break;
+    			default:System.out.println("invalid axis");
+    		}
+    	}
+    	if(propname.startsWith("group_rotate_angle_")) {
+    		axis = propname.substring(propname.length()-1);
+    		System.out.println(value.getClass().getName());
+    		switch(axis){
+    			case "x": to_rotate_x=(float)value-this.g_angle_x;this.g_angle_x=(float)value;break;
+    			case "y": to_rotate_y=(float)value-this.g_angle_y;this.g_angle_y=(float)value;to_rotate_y=-to_rotate_y;break;//rotate counter clockwise
+    			case "z": to_rotate_z=(float)value-this.g_angle_z;this.g_angle_z=(float)value;break;
+    			default:System.out.println("invalid axis");
+    		}
+    	}
+    	boolean moveup=false;
+    	if(propname.startsWith("groupmove_")){
+    		axis = propname.substring(propname.length()-1);
+    		switch(axis){
+    			case "x":if(this.g_move_step_x<((float)value)) {//the direction +/- in which the objects will be moved
+    						moveup=true;
+		    			}
+    					this.g_move_step_x=(float)value;
+    					break;
+    			case "y":if(this.g_move_step_y<(float)value) {
+							moveup=true;
+		    			}
+    					this.g_move_step_y=(float)value;
+						break;
+    			case "z":if(this.g_move_step_z<(float)value) {
+							moveup=true;
+		    			}
+						this.g_move_step_z=(float)value;
+						break;
+    			case "a":if(this.g_move_step_a<(float)value) {
+							moveup=true;
+		    			}
+						this.g_move_step_a=(float)value;
+						break;
+    			default:System.out.println("invalid axis");
+    		}
+    	}
         for(AbstractObj selectedObj : selectedObjs.values()) {
-            
+        	if(propname.startsWith("group_rotate_angle_")) {
+        		double newangle;
+        		double distance; //distance on the 2 other axis
+    			addUndoEntry("changeObj", selectedObj);//required for undoing
+        		switch(axis){//axis to rotate around
+	    			case "x": if(to_rotate_x!=0) {//if angele = 0 then there is noting to do
+			    				RotationMatrix a= new RotationMatrix();
+			    				a=a.yawPitchRollToMatrix(selectedObj.rotation.x*Math.PI/180,selectedObj.rotation.y*Math.PI/180,selectedObj.rotation.z*Math.PI/180);//convert the angle of the object in a rotation matrix
+			    				
+			    				double angle=to_rotate_x/180*Math.PI;//° to radians
+			    				RotationMatrix d=new RotationMatrix();//rotation matrix for rotation around x axis
+			    				d.r11=Math.cos(angle);
+			    				d.r12=-Math.sin(angle);
+			    				d.r13=0;
+			    				d.r21=Math.sin(angle);
+			    				d.r22=Math.cos(angle);
+			    				d.r23=0;
+			    				d.r31=0;
+			    				d.r32=0;
+			    				d.r33=1;
+			    				RotationMatrix c=a.multiplyMatrices(a, d);//rotate
+			    				
+			    				double[] angles=c.MatrixToYawPitchRoll(c);//get angles from matrix
+			    				selectedObj.rotation.x=(float)(180/Math.PI*angles[0]);//radians to °
+			    				selectedObj.rotation.y=(float)(180/Math.PI*angles[1]);
+			    				selectedObj.rotation.z=(float)(180/Math.PI*angles[2]);
+								if(selectedObj.position.z-this.g_center_z==0 ) {//tan has a period of pi/2; this gets the correct angle
+									if(selectedObj.position.y-this.g_center_y==0) {
+										newangle=0; //if the object is in the same place as the rotation point there is no change of it's position; this angle is only used for the position
+									}else {
+										newangle=to_rotate_x/180*Math.PI;
+									}
+								}else {
+									if(selectedObj.position.y-this.g_center_y==0) {
+										if(selectedObj.position.z-this.g_center_z>0) {
+											newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)))+Math.PI;//newangle=oldangle+arctan([object zposition-zposition rotation point]/[object yposition-yposition rotation point])
+										}else {
+											if(selectedObj.position.z-this.g_center_z<0) {
+												newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)));
+											}else {
+												newangle=0; //postion doesn't change
+											}
+										}
+									}else {
+										if(selectedObj.position.y-this.g_center_y>0) {
+											newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)));
+										}else {
+											newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)))+Math.PI;
+										}
+									}
+								}
+								distance=Math.sqrt((double)((selectedObj.position.z-this.g_center_z)*(selectedObj.position.z-this.g_center_z)+(selectedObj.position.y-this.g_center_y)*(selectedObj.position.y-this.g_center_y)));
+								selectedObj.position.z=(float)(Math.sin(newangle)*distance)+this.g_center_z;
+								selectedObj.position.y=(float)(Math.cos(newangle)*distance)+this.g_center_y;
+        					}
+							break;
+	    			case "y":if(to_rotate_y!=0) {
+			    				RotationMatrix a= new RotationMatrix();
+			    				a=a.yawPitchRollToMatrix(selectedObj.rotation.x*Math.PI/180,selectedObj.rotation.y*Math.PI/180,selectedObj.rotation.z*Math.PI/180);
+			    				double angle=-(to_rotate_y/180*Math.PI);
+			    				RotationMatrix d=new RotationMatrix();
+			    				d.r11=Math.cos(angle);//rotation matrix for rotation around y axis
+			    				d.r12=0;
+			    				d.r13=Math.sin(angle);
+			    				d.r21=0;
+			    				d.r22=1;
+			    				d.r23=0;
+			    				d.r31=-Math.sin(angle);
+			    				d.r32=0;
+			    				d.r33=Math.cos(angle);
+			    				RotationMatrix c=a.multiplyMatrices(a, d);
+			    				double[] angles=c.MatrixToYawPitchRoll(c);
+			    				selectedObj.rotation.x=(float)(180/Math.PI*angles[0]);
+			    				selectedObj.rotation.y=(float)(180/Math.PI*angles[1]);
+			    				selectedObj.rotation.z=(float)(180/Math.PI*angles[2]);
+	    				
+								if(selectedObj.position.z-this.g_center_z==0 ) {//tan has a period of pi/2; this gets the correct angle
+									if(selectedObj.position.x-this.g_center_x==0) {
+										newangle=0; //no position change
+									}else {
+										if(selectedObj.position.x-this.g_center_x>0) {
+											newangle=to_rotate_y/180*Math.PI;
+										}else {
+											newangle=to_rotate_y/180*Math.PI-Math.PI;
+										}
+									}
+								}else {
+									if(selectedObj.position.x-this.g_center_x==0) {
+										if(selectedObj.position.z-this.g_center_z>0) {
+											newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)));
+										}else {
+											if(selectedObj.position.z-this.g_center_z<0) {
+												newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)))+Math.PI;
+											}else {
+												newangle=0; //no position change
+											}
+										}
+									}else {
+										if(selectedObj.position.x-this.g_center_x>0) {
+											newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)));
+										}else {
+											newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)))+Math.PI;
+										}
+									}
+								}
+								distance=Math.sqrt((double)((selectedObj.position.z-this.g_center_z)*(selectedObj.position.z-this.g_center_z)+(selectedObj.position.x-this.g_center_x)*(selectedObj.position.x-this.g_center_x)));
+								selectedObj.position.z=(float)(Math.sin(newangle)*distance)+this.g_center_z;
+								selectedObj.position.x=(float)(Math.cos(newangle)*distance)+this.g_center_x;
+	    					}			
+							break;
+	    			case "z": if(to_rotate_z!=0) {
+	    						selectedObj.rotation.z+=to_rotate_z; //rotate around z-axis; this always works because rotation aroud z axis is done first, then y then x
+								if(selectedObj.rotation.z>360) {
+									selectedObj.rotation.z-=360;
+								}
+								if(selectedObj.rotation.z<-360) {//keep angle between -360° and 360°
+									selectedObj.rotation.z+=360;
+								}
+								if(selectedObj.position.x-this.g_center_x==0 ) {//tan has a period of pi/2; this gets the correct angle
+									if(selectedObj.position.y-this.g_center_y==0) {
+										if(selectedObj.position.x-this.g_center_x<0) {
+											newangle=to_rotate_y/180*Math.PI;
+										}else {
+											newangle=0;//no position change
+										}
+									}else {
+										if(selectedObj.position.x-this.g_center_x>0) {
+											newangle=to_rotate_z/180*Math.PI;
+										}else {
+											newangle=to_rotate_z/180*Math.PI-Math.PI;
+										}
+									}
+								}else {
+									if(selectedObj.position.x-this.g_center_x==0) {
+										if(selectedObj.position.z-this.g_center_z>0) {
+											newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)))+Math.PI;//the same as with the x axis but with the other 2 axis
+										}else {
+											if(selectedObj.position.z-this.g_center_z<0) {
+												newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)));
+											}else {
+												newangle=0;//no position change
+											}
+										}
+									}else {
+										if(selectedObj.position.x-this.g_center_x>0) {
+											newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)));
+										}else {
+											newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)))+Math.PI;
+										}
+									}
+								}
+								distance=Math.sqrt((double)((selectedObj.position.y-this.g_center_y)*(selectedObj.position.y-this.g_center_y)+(selectedObj.position.x-this.g_center_x)*(selectedObj.position.x-this.g_center_x)));
+								selectedObj.position.y=(float)(Math.sin(newangle)*distance)+this.g_center_y;
+								selectedObj.position.x=(float)(Math.cos(newangle)*distance)+this.g_center_x;
+	    					}
+							break;
+	    			default:System.out.println("Invalid axis");
+	    		}
+        		rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
+                glCanvas.repaint();//redraw the objects
+        	}
+        	if(propname.startsWith("group_move_")){
+        		axis = propname.substring(propname.length()-1);
+        		switch (axis) {
+        			case "x":this.g_move_x=(float)value;break;
+        			case "y":this.g_move_y=(float)value;break;
+        			case "z":this.g_move_z=(float)value;break;
+        			default: System.out.println("invalid axis");
+        		}
+        	}
+        	if(propname.startsWith("groupmove")){
+        		axis = propname.substring(propname.length()-1);
+    			addUndoEntry("changeObj", selectedObj);//required for undoing
+        		switch(axis){
+        			case "x":if(moveup) {
+		        				selectedObj.position.x+=this.g_move_x;//it only moves one step at a time
+							}else {
+								selectedObj.position.x-=this.g_move_x;
+							}
+        					break;
+        			case "y":if(moveup) {
+		    	        		selectedObj.position.y+=this.g_move_y;
+							}else {
+				        		selectedObj.position.y-=this.g_move_y;
+							}
+							break;
+        			case "z":if(moveup) {
+		    	        		selectedObj.position.z+=this.g_move_z;
+							}else {
+				        		selectedObj.position.z-=this.g_move_z;
+							}
+							break;
+        			case "a":if(moveup) {
+		        				selectedObj.position.x+=this.g_move_x;//moving in all direction at once
+		    	        		selectedObj.position.y+=this.g_move_y;
+		    	        		selectedObj.position.z+=this.g_move_z;
+        					}else {
+        						selectedObj.position.x-=this.g_move_x;
+        		        		selectedObj.position.y-=this.g_move_y;
+        		        		selectedObj.position.z-=this.g_move_z;
+        					}
+							break;
+        			default:System.out.println("invalid axis");
+        		}
+        		rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
+                glCanvas.repaint();
+        	}
             // Path point objects, as they work a bit differently
             if(selectedObj instanceof PathPointObj) {
                 PathPointObj selectedPathPoint =(PathPointObj) selectedObj;
@@ -4405,7 +4727,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             gl.glClearColor(0f, 0f, 0.125f, 1f);
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
             if(Settings.japanese)
-                lbStatusLabel.setText("事前レンダリング中 "+(galaxyMode?"galaxy":"zone")+", お待ちください...");
+                lbStatusLabel.setText("äº‹å‰�ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ä¸­ "+(galaxyMode?"galaxy":"zone")+", ã�Šå¾…ã�¡ã��ã� ã�•ã�„...");
             else
                 lbStatusLabel.setText("Prerendering "+(galaxyMode?"galaxy":"zone")+", please wait...");
             
@@ -5666,6 +5988,27 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public final float zFar = 1000f;
     }
     
+    
+	private float g_move_x=0;
+	private float g_move_y=0;
+	private float g_move_z=0;
+	private float g_move_step_x=0;
+	private float g_move_step_y=0;
+	private float g_move_step_z=0;
+	private float g_move_step_a=0;
+	
+	private float g_center_x=0;
+	private float g_center_y=0;
+	private float g_center_z=0;
+	private float g_angle_x=0;
+	private float g_angle_y=0;
+	private float g_angle_z=0;
+	
+	private float g_offset_x=0;
+	private float g_offset_y=0;
+	private float g_offset_z=0;
+    
+    
     private final float scaledown = 10000f;
     public static boolean closing = false;
     /**
@@ -6422,37 +6765,37 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void initJapanese() {
         String err = "err.jap";
-        mnuSave.setText("ファイル");
-            itemSave.setText("保存");
-            itemClose.setText("閉じる");
-        mnuEdit.setText("編集");
-            subCopy.setText("コピー");
-                itmPositionCopy.setText("位置");
-                itmRotationCopy.setText("回転");
-                itmScaleCopy.setText("倍率");
-            subPaste.setText("貼り付け");
-                itmPositionPaste.setText("位置(0.0, 0.0, 0.0)");
-                itmRotationPaste.setText("回転(0.0, 0.0, 0.0)");
-                itmScalePaste.setText("倍率(1.0, 1.0, 1.0)");
-        mnuHelp.setText("ヘルプ");
-            itemControls.setText("操作について");
+        mnuSave.setText("ãƒ•ã‚¡ã‚¤ãƒ«");
+            itemSave.setText("ä¿�å­˜");
+            itemClose.setText("é–‰ã�˜ã‚‹");
+        mnuEdit.setText("ç·¨é›†");
+            subCopy.setText("ã‚³ãƒ”ãƒ¼");
+                itmPositionCopy.setText("ä½�ç½®");
+                itmRotationCopy.setText("å›žè»¢");
+                itmScaleCopy.setText("å€�çŽ‡");
+            subPaste.setText("è²¼ã‚Šä»˜ã�‘");
+                itmPositionPaste.setText("ä½�ç½®(0.0, 0.0, 0.0)");
+                itmRotationPaste.setText("å›žè»¢(0.0, 0.0, 0.0)");
+                itmScalePaste.setText("å€�çŽ‡(1.0, 1.0, 1.0)");
+        mnuHelp.setText("ãƒ˜ãƒ«ãƒ—");
+            itemControls.setText("æ“�ä½œã�«ã�¤ã�„ã�¦");
         
-        btnDeselect.setText("選択解除");
-        btnShowPaths.setText("パスを見る");
-        tgbShowAxis.setText("軸を表示する");
+        btnDeselect.setText("é�¸æŠžè§£é™¤");
+        btnShowPaths.setText("ãƒ‘ã‚¹ã‚’è¦‹ã‚‹");
+        tgbShowAxis.setText("è»¸ã‚’è¡¨ç¤ºã�™ã‚‹");
         
         for(int i = 0; i < tpLeftPanel.getTabCount(); i++) {
             tpLeftPanel.getComponentAt(i).setName("a" + i);
             JLabel lbl = new JLabel();
             switch(i) {
                 case 0:
-                    lbl.setText("シナリオ/ゾーン");
+                    lbl.setText("ã‚·ãƒŠãƒªã‚ª/ã‚¾ãƒ¼ãƒ³");
                     break;
                 case 1:
                     lbl.setText("layer");
                     break;
                 case 2:
-                    lbl.setText("オブジェクト");
+                    lbl.setText("ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ");
                     break;
                 case 3:
                     lbl.setText("worldmap");
@@ -6466,26 +6809,26 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         
-        jLabel3.setText("編集中のシナリオ");
+        jLabel3.setText("ç·¨é›†ä¸­ã�®ã‚·ãƒŠãƒªã‚ª");
         btnAddScenario.setText(err);
         btnEditScenario.setText(err);
         btnDeleteScenario.setText(err);
         
-        jLabel4.setText("ゾーン");
+        jLabel4.setText("ã‚¾ãƒ¼ãƒ³");
         btnAddZone.setText(err);
-        btnEditZone.setText("個別に編集");
+        btnEditZone.setText("å€‹åˆ¥ã�«ç·¨é›†");
         btnDeleteZone.setText(err);
         
         jLabel1.setText(err);
         
-        tgbAddObject.setText("オブジェクトを追加する");
-        tgbDeleteObject.setText("消去する");
-        btnShowAreas.setText("エリアを表示");
-        btnShowCameras.setText("カメラを表示");
-        btnShowGravity.setText("重力を表示");
-        btnShowPaths.setText("パスを表示");
-        tgbCamGen.setText("作るカメラ");
-        tgbCamPrev.setText("見せる CameraArea");
+        tgbAddObject.setText("ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’è¿½åŠ ã�™ã‚‹");
+        tgbDeleteObject.setText("æ¶ˆåŽ»ã�™ã‚‹");
+        btnShowAreas.setText("ã‚¨ãƒªã‚¢ã‚’è¡¨ç¤º");
+        btnShowCameras.setText("ã‚«ãƒ¡ãƒ©ã‚’è¡¨ç¤º");
+        btnShowGravity.setText("é‡�åŠ›ã‚’è¡¨ç¤º");
+        btnShowPaths.setText("ãƒ‘ã‚¹ã‚’è¡¨ç¤º");
+        tgbCamGen.setText("ä½œã‚‹ã‚«ãƒ¡ãƒ©");
+        tgbCamPrev.setText("è¦‹ã�›ã‚‹ CameraArea");
     }
 
     private void populateQuickActions() {
