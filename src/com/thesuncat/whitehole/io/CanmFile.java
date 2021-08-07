@@ -1,5 +1,6 @@
 package com.thesuncat.whitehole.io;
 
+import com.thesuncat.whitehole.Settings;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -11,6 +12,9 @@ public class CanmFile {
         file = _file;
         byteArray = _file.getContents();
         byteStream = ByteBuffer.wrap(byteArray);
+        
+        if(Settings.littleEndian)
+            byteStream.order(ByteOrder.LITTLE_ENDIAN);
         
         header = new Header(byteArray);
         for(int i = 0; i < 8; i++)

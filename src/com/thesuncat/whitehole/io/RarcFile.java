@@ -15,6 +15,7 @@
 
 package com.thesuncat.whitehole.io;
 
+import com.thesuncat.whitehole.Settings;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
@@ -23,11 +24,14 @@ public class RarcFile implements FilesystemBase {
     public RarcFile(FileBase _file) throws IOException {
         file = new Yaz0File(_file);
         file.setBigEndian(true);
+        if(Settings.littleEndian)
+            file.setBigEndian(false);
 
         file.position(0);
         int tag = file.readInt();
         if (tag != 0x52415243) 
             throw new IOException(String.format("File isn't a RARC (tag 0x%1$08X, expected 0x52415243)", tag));
+        
 
         file.position(0xC);
         int fileDataOffset = file.readInt() + 0x20;

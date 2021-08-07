@@ -2,6 +2,7 @@ package com.thesuncat.whitehole.io;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.thesuncat.whitehole.Settings;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -30,6 +31,10 @@ public class MsbtFile {
         file = _file;
         byteArray = _file.getContents();
         byteStream = ByteBuffer.wrap(byteArray);
+        
+        if(Settings.littleEndian)
+            byteStream.order(ByteOrder.LITTLE_ENDIAN);
+        
         if(Arrays.copyOfRange(byteArray, 0, 7).equals("MsgStdBn".getBytes("UTF-8")))
             throw new IllegalArgumentException("Not an MSBT file!");
         if(byteArray[8] == 0xFE)

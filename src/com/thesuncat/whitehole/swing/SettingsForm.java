@@ -46,6 +46,7 @@ public class SettingsForm extends javax.swing.JFrame {
         chkDarkTheme.setSelected(Settings.dark);
         chkRichPresence.setSelected(Settings.richPresence);
         chkAntiAlias.setSelected(Settings.aa);
+        chkLittleEndian.setSelected(Settings.littleEndian);
         chkFakeCol.setSelected(Settings.fakeCol);
         chkNoShaderRender.setSelected(Settings.legacy);
         chkJapanese.setSelected(Settings.japanese);
@@ -91,7 +92,7 @@ public class SettingsForm extends javax.swing.JFrame {
         
         ArrayList<JCheckBox> chkArray = new ArrayList();
         chkArray.addAll(Arrays.asList(chkAntiAlias, chkDarkTheme, chkFakeCol, chkFastDrag, chkGameDir, chkJapanese, chkNoShaderRender,
-                chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames, chkAssoc, chkWASD));
+                chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames, chkAssoc, chkWASD, chkLittleEndian));
         for (JCheckBox chk : chkArray){
             chk.setBackground(new Color(32,34,37));
             chk.setForeground(new Color(157,158,161));
@@ -151,6 +152,7 @@ public class SettingsForm extends javax.swing.JFrame {
         chkJapanese = new javax.swing.JCheckBox();
         chkAssoc = new javax.swing.JCheckBox();
         chkNoShaderRender = new javax.swing.JCheckBox();
+        chkLittleEndian = new javax.swing.JCheckBox();
         pnlPaths = new javax.swing.JPanel();
         btnModFolder = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
@@ -252,6 +254,11 @@ public class SettingsForm extends javax.swing.JFrame {
 
         chkGameDir.setText("Automatically reopen game directory");
         chkGameDir.setActionCommand("Automatically reopen game folder");
+        chkGameDir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chkGameDirActionPerformed(evt);
+            }
+        });
 
         chkRichPresence.setSelected(true);
         chkRichPresence.setText("Discord Rich Presence");
@@ -271,6 +278,14 @@ public class SettingsForm extends javax.swing.JFrame {
         chkNoShaderRender.setText("Ignore important rendering functions (for outdated OpenGL)");
         chkNoShaderRender.setActionCommand("Black and white");
 
+        chkLittleEndian.setText("Little-endian");
+        chkLittleEndian.setActionCommand("Automatically reopen game folder");
+        chkLittleEndian.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chkLittleEndianActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -279,7 +294,10 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblMisc)
-                    .addComponent(chkGameDir)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(chkGameDir)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(chkLittleEndian))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(chkDarkTheme)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -307,7 +325,9 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addComponent(chkJapanese)
                     .addComponent(chkAssoc))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(chkGameDir)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(chkGameDir)
+                    .addComponent(chkLittleEndian))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(chkRichPresence)
@@ -547,6 +567,7 @@ public class SettingsForm extends javax.swing.JFrame {
         Settings.dark = chkDarkTheme.isSelected();
         Settings.richPresence = chkRichPresence.isSelected();
         Settings.aa = chkAntiAlias.isSelected();
+        Settings.littleEndian = chkLittleEndian.isSelected();
         Settings.fakeCol = chkFakeCol.isSelected();
         Settings.legacy = chkNoShaderRender.isSelected();
         Settings.japanese = chkJapanese.isSelected();
@@ -616,6 +637,14 @@ public class SettingsForm extends javax.swing.JFrame {
         
     }//GEN-LAST:event_btnKCLcreateActionPerformed
 
+    private void chkLittleEndianActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkLittleEndianActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_chkLittleEndianActionPerformed
+
+    private void chkGameDirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkGameDirActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_chkGameDirActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnKCLcreate;
@@ -634,6 +663,7 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JCheckBox chkFileNames;
     private javax.swing.JCheckBox chkGameDir;
     private javax.swing.JCheckBox chkJapanese;
+    private javax.swing.JCheckBox chkLittleEndian;
     private javax.swing.JCheckBox chkNoShaderRender;
     private javax.swing.JCheckBox chkReverseRot;
     private javax.swing.JCheckBox chkRichPresence;

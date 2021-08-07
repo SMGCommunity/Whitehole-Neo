@@ -15,6 +15,7 @@
 
 package com.thesuncat.whitehole.io;
 
+import com.thesuncat.whitehole.Settings;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
@@ -25,6 +26,10 @@ public class MsbfFile {
         file = _file;
         byteArray = _file.getContents();
         byteStream = ByteBuffer.wrap(byteArray);
+        
+        if(Settings.littleEndian)
+            byteStream.order(ByteOrder.LITTLE_ENDIAN);
+        
         if(Arrays.copyOfRange(byteArray, 0, 8).equals("MsgFlwBn".getBytes("UTF-8")))
             throw new IllegalArgumentException("Not an MSBF file! " + Arrays.toString(Arrays.copyOfRange(byteArray, 0, 8)) + " != " +
                     Arrays.toString("MsgFlwBn".getBytes("UTF-8")));
@@ -46,7 +51,7 @@ public class MsbfFile {
         }
     }
     
-    public void readFlows() {
+    public final void readFlows() {
         byteStream.position(0x30);
         int nentries = byteStream.getShort();
         int nchars = byteStream.getShort();

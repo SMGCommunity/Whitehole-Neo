@@ -213,7 +213,11 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="lblMisc" min="-2" max="-2" attributes="0"/>
-                              <Component id="chkGameDir" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Component id="chkGameDir" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                  <Component id="chkLittleEndian" min="-2" max="-2" attributes="0"/>
+                              </Group>
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="chkDarkTheme" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
@@ -248,7 +252,10 @@
                               <Component id="chkAssoc" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="chkGameDir" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="chkGameDir" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="chkLittleEndian" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="chkRichPresence" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -280,6 +287,9 @@
                     <Property name="text" type="java.lang.String" value="Automatically reopen game directory"/>
                     <Property name="actionCommand" type="java.lang.String" value="Automatically reopen game folder"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkGameDirActionPerformed"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="chkRichPresence">
                   <Properties>
@@ -311,6 +321,15 @@
                     <Property name="text" type="java.lang.String" value="Ignore important rendering functions (for outdated OpenGL)"/>
                     <Property name="actionCommand" type="java.lang.String" value="Black and white"/>
                   </Properties>
+                </Component>
+                <Component class="javax.swing.JCheckBox" name="chkLittleEndian">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Little-endian"/>
+                    <Property name="actionCommand" type="java.lang.String" value="Automatically reopen game folder"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkLittleEndianActionPerformed"/>
+                  </Events>
                 </Component>
               </SubComponents>
             </Container>

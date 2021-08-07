@@ -31,6 +31,7 @@ public class Settings {
         gameDir = prefs.getBoolean("game.dir", true);
         dark = prefs.getBoolean("theme.dark", false);
         aa = prefs.getBoolean("anti.alias", true);
+        littleEndian = prefs.getBoolean("little.endian", false);
         fakeCol = prefs.getBoolean("fake.colors", false);
         reverseRot = prefs.getBoolean("reverse.rotation", false); //fake it
         showAreas = prefs.getBoolean("show.areas", true);
@@ -61,6 +62,7 @@ public class Settings {
         prefs.putBoolean("game.dir", gameDir);
         prefs.putBoolean("theme.dark", dark);
         prefs.putBoolean("anti.alias", aa);
+        prefs.putBoolean("little.endian", littleEndian);
         prefs.putBoolean("fake.colors", fakeCol);
         prefs.putBoolean("reverse.rotation", reverseRot);
         prefs.putBoolean("legacy.mode", legacy);
@@ -92,4 +94,5 @@ public class Settings {
     public static boolean showAreas, showCameras, showGravity, showPaths, showAxis;
     public static boolean useWASD;
     public static int keyPos, keyRot, keyScl, keyScrn;
+    public static boolean littleEndian;
 }
