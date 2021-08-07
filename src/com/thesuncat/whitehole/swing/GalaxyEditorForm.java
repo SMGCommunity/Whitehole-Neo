@@ -1,5 +1,5 @@
 /*
-    Â© 2012 - 2019 - Whitehole Team
+    © 2012 - 2019 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -32,6 +32,10 @@ import com.thesuncat.whitehole.swing.DarkThemeRenderers.DarkTableCellRenderer;
 import com.thesuncat.whitehole.vectors.*;
 import com.thesuncat.whitehole.worldmapObject.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -39,6 +43,8 @@ import java.nio.*;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.media.opengl.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.*;
@@ -1901,12 +1907,37 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void itmPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionCopyActionPerformed
         if(selectedObjs.size() == 1) {
             for(AbstractObj selectedObj : selectedObjs.values()) {
-                copyPos =(Vector3) selectedObj.position.clone();
-                itmPositionPaste.setText("Position(" + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ")");
+                Vector3 posToCopy = (Vector3) selectedObj.position.clone();
+                
+                // Parse clipboard
+                Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+                String newClip = "";
+                try {
+                    String data = (String) c.getData(DataFlavor.stringFlavor);
+                    
+                    
+                    if(data.contains("pos") && data.contains("rot") && data.contains("scl"))
+                    {
+                        newClip += "pos" + posToCopy.x + "," + posToCopy.y + "," + posToCopy.z + ",\n";
+                        newClip += data.substring(data.indexOf("rot"));
+                    } else {
+                        newClip = "pos" + posToCopy.x + "," + posToCopy.y + "," + posToCopy.z + ",\nrot0,0,0\nscl0,0,0,";
+                    }
+                    
+                    // write data
+                    StringSelection contents = new StringSelection(newClip);
+                    c.setContents(contents, contents);
+                } catch (UnsupportedFlavorException | IOException ex) {
+                    Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
+                    lbStatusLabel.setText(ex.getMessage());
+                    return;
+                }
+                
+                itmPositionPaste.setText("Position(" + posToCopy.x + ", " + posToCopy.y + ", " + posToCopy.z + ")");
                 if(Settings.japanese)
-                    lbStatusLabel.setText("位置をコピー " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
+                    lbStatusLabel.setText("位置をコピー " + posToCopy.x + ", " + posToCopy.y + ", " + posToCopy.z + ".");
                 else
-                    lbStatusLabel.setText("Copied position " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
+                    lbStatusLabel.setText("Copied position " + posToCopy.x + ", " + posToCopy.y + ", " + posToCopy.z + ".");
             }
         }
     }//GEN-LAST:event_itmPositionCopyActionPerformed
@@ -1917,12 +1948,38 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 if(selectedObj instanceof PathPointObj)
                     return;
                 
-                copyDir =(Vector3) selectedObj.rotation.clone();
-                itmRotationPaste.setText("Rotation(" + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ")");
+                Vector3 rotToCopy = (Vector3) selectedObj.rotation.clone();
+                
+                // Parse clipboard
+                Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+                String newClip = "";
+                try {
+                    String data = (String) c.getData(DataFlavor.stringFlavor);
+                    
+                    
+                    if(data.contains("pos") && data.contains("rot") && data.contains("scl"))
+                    {
+                        newClip += data.substring(0, data.indexOf("rot") + 3);
+                        newClip += rotToCopy.x + "," + rotToCopy.y + "," + rotToCopy.z + ",\n";
+                        newClip += data.substring(data.indexOf("scl"));
+                    } else {
+                        newClip = "pos0,0,0,\nrot" + rotToCopy.x + "," + rotToCopy.y + "," + rotToCopy.z + ",\nscl0,0,0,";
+                    }
+                    
+                    // write data
+                    StringSelection contents = new StringSelection(newClip);
+                    c.setContents(contents, contents);
+                } catch (UnsupportedFlavorException | IOException ex) {
+                    Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
+                    lbStatusLabel.setText(ex.getMessage());
+                    return;
+                }
+                
+                itmRotationPaste.setText("Rotation(" + rotToCopy.x + ", " + rotToCopy.y + ", " + rotToCopy.z + ")");
                 if(Settings.japanese)
-                    lbStatusLabel.setText("回転をコピー " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
+                    lbStatusLabel.setText("回転をコピー " + rotToCopy.x + ", " + rotToCopy.y + ", " + rotToCopy.z + ".");
                 else
-                    lbStatusLabel.setText("Copied rotation " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
+                    lbStatusLabel.setText("Copied rotation " + rotToCopy.x + ", " + rotToCopy.y + ", " + rotToCopy.z + ".");
             }
         }
     }//GEN-LAST:event_itmRotationCopyActionPerformed
@@ -1933,24 +1990,85 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 if(selectedObj instanceof PathPointObj || selectedObj instanceof PositionObj || selectedObj instanceof StageObj)
                     return;
                 
-                copyScale =(Vector3) selectedObj.scale.clone();
-                itmScalePaste.setText("Scale(" + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ")");
+                Vector3 scaleToCopy = (Vector3) selectedObj.scale.clone();
+
+                // Parse clipboard
+                Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+                String newClip = "";
+                try {
+                    String data = (String) c.getData(DataFlavor.stringFlavor);
+                    
+                    
+                    if(data.contains("pos") && data.contains("rot") && data.contains("scl"))
+                    {
+                        newClip += data.substring(0, data.indexOf("scl") + 3);
+                        newClip += scaleToCopy.x + "," + scaleToCopy.y + "," + scaleToCopy.z + ",";
+                    } else {
+                        newClip = "pos0,0,0,\nrot0,0,0,\nscl" + scaleToCopy.x + "," + scaleToCopy.y + "," + scaleToCopy.z + ",";
+                    }
+                    
+                    // write data
+                    StringSelection contents = new StringSelection(newClip);
+                    c.setContents(contents, contents);
+                } catch (UnsupportedFlavorException | IOException ex) {
+                    Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
+                    lbStatusLabel.setText(ex.getMessage());
+                    return;
+                }
+                
+                itmScalePaste.setText("Scale(" + scaleToCopy.x + ", " + scaleToCopy.y + ", " + scaleToCopy.z + ")");
                 if(Settings.japanese)
-                    lbStatusLabel.setText("倍率をコピー " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
+                    lbStatusLabel.setText("倍率をコピー " + scaleToCopy.x + ", " + scaleToCopy.y + ", " + scaleToCopy.z + ".");
                 else
-                    lbStatusLabel.setText("Copied scale " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
+                    lbStatusLabel.setText("Copied scale " + scaleToCopy.x + ", " + scaleToCopy.y + ", " + scaleToCopy.z + ".");
             }
         }
     }//GEN-LAST:event_itmScaleCopyActionPerformed
 
     private void itmScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScalePasteActionPerformed
+        Vector3 copyScl = new Vector3(0);
+
+        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+        try {
+            String data = (String) c.getData(DataFlavor.stringFlavor);
+
+            if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
+            {
+                String sclData = "," + data.substring(data.indexOf("scl") + 3); // ,X,Y,Z
+
+                if(sclData.contains(","))
+                {
+                    int indexOfComma = sclData.indexOf(",");
+
+                    float sclX = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
+
+                    indexOfComma = sclData.indexOf(",", indexOfComma + 1);
+                    float sclY = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
+
+                    indexOfComma = sclData.indexOf(",", indexOfComma + 1);
+                    float sclZ = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
+
+                    copyScl = new Vector3(sclX, sclY, sclZ);
+                }
+
+            } else
+            {
+                lbStatusLabel.setText("Clipboard does not contain pos/rot/scl!");
+                return;
+            }
+        } catch (UnsupportedFlavorException | IOException ex) {
+            Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
+            lbStatusLabel.setText(ex.getMessage());
+            return;
+        }
+        
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof PathPointObj || selectedObj instanceof PositionObj || selectedObj instanceof StageObj)
                 return;
             
             addUndoEntry("changeObj", selectedObj);
             
-            selectedObj.scale = (Vector3) copyScale.clone();
+            selectedObj.scale = (Vector3) copyScl.clone();
             
             pnlObjectSettings.setFieldValue("scale_x", selectedObj.scale.x);
             pnlObjectSettings.setFieldValue("scale_y", selectedObj.scale.y);
@@ -1963,14 +2081,51 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             glCanvas.repaint();
             if(Settings.japanese)
-                lbStatusLabel.setText("倍率の貼り付け " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
+                lbStatusLabel.setText("倍率の貼り付け " + copyScl.x + ", " + copyScl.y + ", " + copyScl.z + ".");
             else
-                lbStatusLabel.setText("Pasted scale " + copyScale.x + ", " + copyScale.y + ", " + copyScale.z + ".");
+                lbStatusLabel.setText("Pasted scale " + copyScl.x + ", " + copyScl.y + ", " + copyScl.z + ".");
             unsavedChanges = true;
         }
     }//GEN-LAST:event_itmScalePasteActionPerformed
 
     private void itmPositionPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionPasteActionPerformed
+        Vector3 copyPos = new Vector3(0);
+        
+        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+        try {
+            String data = (String) c.getData(DataFlavor.stringFlavor);
+            
+            if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
+            {
+                String posData = "," + data.substring(data.indexOf("pos") + 3, data.indexOf("rot")); // ,X,Y,Z,\n
+                
+                if(posData.contains(","))
+                {
+                    int indexOfNumber = posData.indexOf(",") + 1;
+                    
+                    float posX = Float.parseFloat(posData.substring(indexOfNumber, posData.indexOf(",", indexOfNumber)));
+                    
+                    indexOfNumber = posData.indexOf(",", indexOfNumber) + 1;
+                    float posY = Float.parseFloat(posData.substring(indexOfNumber, posData.indexOf(",", indexOfNumber)));
+                    
+                    indexOfNumber = posData.indexOf(",", indexOfNumber) + 1;
+                    float posZ = Float.parseFloat(posData.substring(indexOfNumber, posData.indexOf(",", indexOfNumber)));
+                    
+                    copyPos = new Vector3(posX, posY, posZ);
+                }
+                
+            } else
+            {
+                lbStatusLabel.setText("Clipboard does not contain pos/rot/scl!");
+                return;
+            }
+        } catch (UnsupportedFlavorException | IOException ex) {
+            Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
+            lbStatusLabel.setText(ex.getMessage());
+            return;
+        }
+        
+        
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof StageObj)
                 return;
@@ -2032,13 +2187,48 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_itmPositionPasteActionPerformed
 
     private void itmRotationPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationPasteActionPerformed
+        Vector3 copyRot = new Vector3(0);
+
+        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+        try {
+            String data = (String) c.getData(DataFlavor.stringFlavor);
+
+            if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
+            {
+                String rotData = "," + data.substring(data.indexOf("rot") + 3, data.indexOf("scl")); // ,X,Y,Z,\n
+
+                if(rotData.contains(","))
+                {
+                    int indexOfComma = rotData.indexOf(",");
+
+                    float rotX = Float.parseFloat(rotData.substring(indexOfComma + 1, rotData.indexOf(",", indexOfComma + 1)));
+
+                    indexOfComma = rotData.indexOf(",", indexOfComma + 1);
+                    float rotY = Float.parseFloat(rotData.substring(indexOfComma + 1, rotData.indexOf(",", indexOfComma + 1)));
+
+                    indexOfComma = rotData.indexOf(",", indexOfComma + 1);
+                    float rotZ = Float.parseFloat(rotData.substring(indexOfComma + 1, rotData.indexOf(",", indexOfComma + 1)));
+
+                    copyRot = new Vector3(rotX, rotY, rotZ);
+                }
+            } else
+            {
+                lbStatusLabel.setText("Clipboard does not contain pos/rot/scl!");
+                return;
+            }
+        } catch (UnsupportedFlavorException | IOException ex) {
+            Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
+            lbStatusLabel.setText(ex.getMessage());
+            return;
+        }
+        
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj.getClass() == PathPointObj.class)
                 return;
             
             addUndoEntry("changeObj", selectedObj);
             
-            selectedObj.rotation =(Vector3) copyDir.clone();
+            selectedObj.rotation =(Vector3) copyRot.clone();
             
             pnlObjectSettings.setFieldValue("dir_x", selectedObj.rotation.x);
             pnlObjectSettings.setFieldValue("dir_y", selectedObj.rotation.y);
@@ -2050,9 +2240,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             glCanvas.repaint();
             if(Settings.japanese)
-                lbStatusLabel.setText("回転の貼り付け " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
+                lbStatusLabel.setText("回転の貼り付け " + copyRot.x + ", " + copyRot.y + ", " + copyRot.z + ".");
             else
-                lbStatusLabel.setText("Pasted rotation " + copyDir.x + ", " + copyDir.y + ", " + copyDir.z + ".");
+                lbStatusLabel.setText("Pasted rotation " + copyRot.x + ", " + copyRot.y + ", " + copyRot.z + ".");
             unsavedChanges = true;
         }
     }//GEN-LAST:event_itmRotationPasteActionPerformed
@@ -6133,10 +6323,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private DefaultMutableTreeNode worldmapConnectionsNode = new DefaultMutableTreeNode("Connections");
     private DefaultMutableTreeNode worldmapEntryPointsNode = new DefaultMutableTreeNode("EntryPoints");
     private LinkedHashMap<Integer, WorldmapPoint> worldMapPickingList = new LinkedHashMap<>();
-    
-    private Vector3 copyPos = new Vector3(0f, 0f, 0f);
-    private Vector3 copyDir = new Vector3(0f, 0f, 0f);
-    private Vector3 copyScale = new Vector3(1f, 1f, 1f);
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddScenario;

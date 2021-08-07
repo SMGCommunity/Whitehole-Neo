@@ -19,7 +19,12 @@ public class Vector3 implements Cloneable {
     public float x, y, z;
     
     public Vector3() {
-        x = y = z = 0f;
+        this(0);
+    }
+    
+    public Vector3(float val)
+    {
+        this(val, val, val);
     }
     
     public Vector3(float x, float y, float z) {
