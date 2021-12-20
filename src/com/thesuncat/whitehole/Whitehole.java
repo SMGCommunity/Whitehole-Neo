@@ -32,9 +32,9 @@ import java.util.prefs.Preferences;
 import javax.swing.*;
 
 public class Whitehole {
-    public static final String NAME = "Whitehole v1.6.1";
-    public static final String WEBURL = "https://discord.gg/NTyb4sy";
-    public static final String CRASHURL = "TheSunCat#1007";
+    public static final String NAME = "Whitehole v1.7";
+    public static final String WEBURL = "https://discord.gg/r8h5vAm2JC";
+    public static final String CRASHURL = "IonicPixels#3139";
     public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
     
     /**
@@ -102,7 +102,7 @@ public class Whitehole {
                 presence.details = "Working on a mod";
                 presence.largeImageKey = "icon";
                 presence.state = "Idle";
-                presence.largeImageText = "Super Mario Galaxy 2 Level Editor";
+                presence.largeImageText = "Super Mario Galaxy 1 & 2 Level Editor";
                 lib.Discord_UpdatePresence(presence);
                 
                 while (!Thread.currentThread().isInterrupted()) {

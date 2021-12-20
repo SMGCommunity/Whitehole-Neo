@@ -787,6 +787,30 @@
         </Component>
         <Component class="javax.swing.JToolBar$Separator" name="spr5">
         </Component>
+        <Component class="javax.swing.JButton" name="MoveUp">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Move up"/>
+            <Property name="focusable" type="boolean" value="false"/>
+            <Property name="horizontalTextPosition" type="int" value="0"/>
+            <Property name="verticalTextPosition" type="int" value="3"/>
+          </Properties>
+          <Events>
+            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="MoveUpMouseClicked"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="MoveUpActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JToolBar$Separator" name="spr8">
+        </Component>
+        <Component class="javax.swing.JButton" name="MoveDown">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Move down"/>
+            <Property name="focusable" type="boolean" value="false"/>
+            <Property name="horizontalTextPosition" type="int" value="0"/>
+            <Property name="verticalTextPosition" type="int" value="3"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JToolBar$Separator" name="spr9">
+        </Component>
         <Component class="javax.swing.JButton" name="btnDuplicateRow">
           <Properties>
             <Property name="text" type="java.lang.String" value="Duplicate row"/>

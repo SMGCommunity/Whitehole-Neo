@@ -102,9 +102,9 @@ public class BcsvEditorForm extends javax.swing.JFrame
         ArrayList<JButton> btnArray = new ArrayList<>();
         ArrayList<JMenu> mnuArray = new ArrayList<>();
         ArrayList<JMenuItem> subArray = new ArrayList<>();
-        btnArray.addAll(Arrays.asList(btnAddRow, btnClear, btnDeleteRow, btnDuplicateRow, btnExport, btnOpen, btnSave)); 
+        //btnArray.addAll(Arrays.asList(btnAddRow, btnMoveUp, btnMoveDown, btnClear, btnDeleteRow, btnDuplicateRow, btnExport, btnOpen, btnSave)); 
         mnuArray.addAll(Arrays.asList(mnuAudio,mnuEffects,mnuFile,mnuGalaxy,mnuNPCData,mnuObjects,mnuOpen,mnuOther,mnuSystem,mnuUseResource,mnuZone));
-        subArray.addAll(Arrays.asList(subActionSound,subAstroNamePlateData,subAutoEffectList,subBgmParam,subCameraParam,subCaretaker,subChangeSceneListInfo,subClose,subExport,subGalaxyDataTable,subGalaxyInfo,subGalaxyWorldOrderList,subHeapSizeExcept,subHoneyBee,subKinopio,subKinopioBank,subLightData,subLightDataZone,subMarioFaceShipEventCastTable,subMarioFaceShipEventDataTable,subMultiBgmInfo,subObjName,subOpen,subParticleNames,subPeach,subPenguinRacer,subPenguinRacerLeader,subPlanetMapData,subProductMapObjData,subSave,subScenarioBgmInfo,subScenarioData,subSoundIdToInstList,subStageBgmInfo,subStageInfo,subTicoComet,subTicoFat,subTicoFatCoin,subTicoFatStarPiece,subTicoGalaxy,subTicoShop,subTicoShopDice,subUR1,subUR2,subUR3,subURarc1,subURarc2,subURarc3,subURarcCommon,subURcommon,subURsound1,subURsound2,subURsound3,subURsoundCommon,subWorldMapCamera,subWorldMapHeapGalaxy,subWorldMapHeapResource,subZoneInfo,subZoneList));
+        //subArray.addAll(Arrays.asList(subActionSound,subAstroNamePlateData,subAutoEffectList,subBgmParam,subCameraParam,subCaretaker,subChangeSceneListInfo,subClose,subExport,subGalaxyDataTable,subGalaxyInfo,subGalaxyWorldOrderList,subHeapSizeExcept,subHoneyBee,subKinopio,subKinopioBank,subLightData,subLightDataZone,subMarioFaceShipEventCastTable,subMarioFaceShipEventDataTable,subMessageTbl,subMultiBgmInfo,subObjName,subOpen,subParticleNames,subPeach,subPenguinRacer,subPenguinRacerLeader,subPlanetMapData,subProductMapObjData,subSave,subScenarioBgmInfo,subScenarioData,subSoundIdToInstList,subStageBgmInfo,subStageInfo,subTicoComet,subTicoFat,subTicoFatCoin,subTicoFatStarPiece,subTicoGalaxy,subTicoShop,subTicoShopDice,subUR1,subUR2,subUR3,subURarc1,subURarc2,subURarc3,subURarcCommon,subURcommon,subURsound1,subURsound2,subURsound3,subURsoundCommon,subWorldMapCamera,subWorldMapHeapGalaxy,subWorldMapHeapResource,subZoneInfo,subZoneList));
         menubar.setBackground(new Color(47,49,54));
         menubar.setBorder(null);
         menubar.setOpaque(true);
@@ -202,6 +202,10 @@ public class BcsvEditorForm extends javax.swing.JFrame
             mnuOther.setText("その他");
             subLightData.setText("ライトデータ");
             subWorldMapCamera.setText("ワールドマップカメラ");
+            subMessageTbl.setText("メッセージTBL");
+            btnMoveUp.setText("上に移動");
+            btnMoveDown.setText("下に移動");
+
     }
     
     public void bcsvOpen() {
@@ -389,12 +393,16 @@ public class BcsvEditorForm extends javax.swing.JFrame
         spr4 = new javax.swing.JToolBar.Separator();
         btnAddRow = new javax.swing.JButton();
         spr5 = new javax.swing.JToolBar.Separator();
+        MoveUp = new javax.swing.JButton();
+        spr8 = new javax.swing.JToolBar.Separator();
+        MoveDown = new javax.swing.JButton();
+        spr9 = new javax.swing.JToolBar.Separator();
         btnDuplicateRow = new javax.swing.JButton();
         spr6 = new javax.swing.JToolBar.Separator();
         btnDeleteRow = new javax.swing.JButton();
         spr7 = new javax.swing.JToolBar.Separator();
         btnClear = new javax.swing.JButton();
-        menubar = new javax.swing.JMenuBar(); if(Settings.dark){menubar = new DarkJMenuBar();}//;
+        menubar = new javax.swing.JMenuBar(); if(Settings.dark){menubar = new GalaxyEditorForm.DarkJMenuBar();}//;
         mnuFile = new javax.swing.JMenu();
         subOpen = new javax.swing.JMenuItem();
         subSave = new javax.swing.JMenuItem();
@@ -561,6 +569,30 @@ public class BcsvEditorForm extends javax.swing.JFrame
         jToolBar3.add(btnAddRow);
         jToolBar3.add(spr5);
 
+        MoveUp.setText("Move up");
+        MoveUp.setFocusable(false);
+        MoveUp.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        MoveUp.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        MoveUp.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                MoveUpMouseClicked(evt);
+            }
+        });
+        MoveUp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                MoveUpActionPerformed(evt);
+            }
+        });
+        jToolBar3.add(MoveUp);
+        jToolBar3.add(spr8);
+
+        MoveDown.setText("Move down");
+        MoveDown.setFocusable(false);
+        MoveDown.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        MoveDown.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar3.add(MoveDown);
+        jToolBar3.add(spr9);
+
         btnDuplicateRow.setText("Duplicate row");
         btnDuplicateRow.setToolTipText("");
         btnDuplicateRow.setFocusable(false);
@@ -601,7 +633,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
 
         mnuFile.setText("File");
 
-        subOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+        subOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         subOpen.setText("Open");
         subOpen.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -610,7 +642,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
         });
         mnuFile.add(subOpen);
 
-        subSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        subSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         subSave.setText("Save");
         subSave.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -619,7 +651,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
         });
         mnuFile.add(subSave);
 
-        subExport.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_MASK));
+        subExport.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         subExport.setText("Export");
         subExport.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1186,6 +1218,30 @@ public class BcsvEditorForm extends javax.swing.JFrame
         }
     }//GEN-LAST:event_btnDeleteRowActionPerformed
 
+    private void btnMoveUpActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnMoveUpActionPerformed
+    {//GEN-HEADEREND:event_btnMoveUpActionPerformed
+        int[] sel = tblBcsv.getSelectedRows();
+        if (sel.length < 0)
+            return;
+        
+        DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
+        for(int i=0;i<sel.length;i++){
+            table.removeRow(sel[i]-i);
+        }
+    }//GEN-LAST:event_btnMoveUpActionPerformed
+
+    private void btnMoveDownActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnMoveDownActionPerformed
+    {//GEN-HEADEREND:event_btnMoveDownActionPerformed
+        int[] sel = tblBcsv.getSelectedRows();
+        if (sel.length < 0)
+            return;
+        
+        DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
+        for(int i=0;i<sel.length;i++){
+            table.removeRow(sel[i]-i);
+        }
+    }//GEN-LAST:event_btnMoveDownActionPerformed
+
     private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
         DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
         table.setRowCount(0);
@@ -1650,6 +1706,20 @@ public class BcsvEditorForm extends javax.swing.JFrame
         }
     }//GEN-LAST:event_subURsound3ActionPerformed
 
+    private void subMessageTblActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subMessageTblActionPerformed
+        tbArchiveName.setText("/UsEnglish/MessageData/Message.arc");
+        tbFileName.setText("/Message.arc/messageid.tbl");
+        bcsvOpen();
+    }//GEN-LAST:event_subMessageTblActionPerformed
+
+    private void MoveUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MoveUpActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_MoveUpActionPerformed
+
+    private void MoveUpMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_MoveUpMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_MoveUpMouseClicked
+
     private FilesystemBase archive;
     private BcsvFile bcsv;
     private String zoneName;
@@ -1657,6 +1727,8 @@ public class BcsvEditorForm extends javax.swing.JFrame
     private String fileBcsv;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton MoveDown;
+    private javax.swing.JButton MoveUp;
     public javax.swing.JButton btnAddRow;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDeleteRow;
@@ -1687,6 +1759,8 @@ public class BcsvEditorForm extends javax.swing.JFrame
     private javax.swing.JToolBar.Separator spr5;
     private javax.swing.JToolBar.Separator spr6;
     private javax.swing.JToolBar.Separator spr7;
+    private javax.swing.JToolBar.Separator spr8;
+    private javax.swing.JToolBar.Separator spr9;
     private javax.swing.JMenuItem subActionSound;
     private javax.swing.JMenuItem subAstroNamePlateData;
     private javax.swing.JMenuItem subAutoEffectList;
@@ -1750,4 +1824,34 @@ public class BcsvEditorForm extends javax.swing.JFrame
     public javax.swing.JTextField tbFileName;
     public javax.swing.JTable tblBcsv;
     // End of variables declaration//GEN-END:variables
+
+    private static class subMessageTbl {
+
+        private static void setText(String メッセージTBL) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public subMessageTbl() {
+        }
+    }
+
+    private static class btnMoveUp {
+
+        private static void setText(String 上に移動) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public btnMoveUp() {
+        }
+    }
+
+    private static class btnMoveDown {
+
+        private static void setText(String 下に移動) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public btnMoveDown() {
+        }
+    }
 }

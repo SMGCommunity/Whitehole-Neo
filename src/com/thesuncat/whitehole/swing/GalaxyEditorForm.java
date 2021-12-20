@@ -4718,6 +4718,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         glCanvas.repaint();
     }
+
+    static class DarkJMenuBar extends JMenuBar {
+
+        public DarkJMenuBar() {
+        }
+    }
     
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 

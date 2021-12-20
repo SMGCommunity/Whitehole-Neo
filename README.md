@@ -1,3 +1,5 @@
+[![Java CI](https://github.com/IonicPixels/Whitehole/actions/workflows/ant.yml/badge.svg)](https://github.com/IonicPixels/Whitehole/actions/workflows/ant.yml)
+
 # Whitehole is to be superseded by Takochu: a new editor developed by shibboleet.
 I will not provide support for Whitehole (besides critical bugfixes), and this repository will be archived once Takochu is stable. 
 # Takochu is in development at https://github.com/shibbo/Takochu
@@ -8,18 +10,19 @@ Whitehole is a level editor for Super Mario Galaxy 1 and 2.
 All downloads can be found on the release page.  
   
 ## Changelog:  
-### Version 1.5.5
+- Some area colors have been changed
+- "MessageID.tbl" option added in The BCSV Editor, done by Evanbowl
+- More BSCV stuff
 
 **Added:**
 - *Work in progress* Obj importer
 - *Work in progress* Keybinds customizer
 - *Work in progress* Riivolution-*like* mod opener: Open a mod on top of the vanilla game files.
 
-**Bug fixes:**
-- N/A
+**Bug Fixes:**
+- Title bar now shows "Whitehole v1.6.1" rather than "Whitehole"
+- "CollisionArea" is now a cube, as it should be
 
-**Deleted:**
-- Deleted the object database updater since there isn't a download source anymore. But don't worry, the db is included with this download!
 
 ### Version 1.5.4
 

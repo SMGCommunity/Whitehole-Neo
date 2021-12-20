@@ -446,10 +446,7 @@ public class Substitutor {
                         case "BlackHoleCube":
                         case "BloomCube":
                         case "BlueStarGuidanceCube":
-                        case "ChangeBgmCube":
-                        case "CollisionArea":
                         case "DarkMatterCube":
-                        case "DeathCube":
                         case "DepthOfFieldCube":
                         case "ExtraWallCheckArea":
                         case "FallsCube":
@@ -460,9 +457,7 @@ public class Substitutor {
                         case "HazeCube":
                         case "HeavySteeringCube":
                         case "LensFlareArea":
-                        case "LightCtrlCube":
                         case "MercatorCube":
-                        case "MessageAreaCube":
                         case "MirrorAreaCube":
                         case "NonSleepCube":
                         case "PipeModeCube":
@@ -470,23 +465,18 @@ public class Substitutor {
                         case "PlaneCollisionCube":
                         case "PlanetModeCube":
                         case "PlayerSeCube":
-                        case "PullBackCube":
                         case "QuakeEffectAreaCube":
                         case "RasterScrollCube":
-                        case "RestartCube":
                         case "ScreenBlurCube":
                         case "SimpleBloomCube":
                         case "SmokeEffectColorAreaCube":
                         case "SoundEmitterCube":
                         case "SpinGuidanceCube":
                         case "SunLightAreaBox":
-                        case "SwitchCube":
                         case "TamakoroJumpGuidanceCube":
                         case "TamakoroMoveGuidanceCube":
                         case "TicoSeedGuidanceCube":
-                        case "TripodBossStepStartArea":
-                        case "ViewGroupCtrlCube":
-                        case "WaterCube": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.CUBE);
+                        case "TripodBossStepStartArea": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.CUBE);
 
                         // AreaObj spherical
                         case "AreaMoveSphere":
@@ -495,13 +485,11 @@ public class Substitutor {
                         case "BigBubbleSwitchSphere":
                         case "BloomSphere":
                         case "CelestrialSphere":
-                        case "DeathSphere":
                         case "DepthOfFieldSphere":
                         case "PlayerSeSphere":
                         case "SimpleBloomSphere":
                         case "SoundEmitterSphere":
-                        case "ScreenBlurSphere":
-                        case "SwitchSphere": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.SPHERE);
+                        case "ScreenBlurSphere": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.SPHERE);
 
                         // AreaObj cylindrical
                         case "AstroOverlookAreaCylinder":
@@ -511,21 +499,15 @@ public class Substitutor {
                         case "BloomCylinder":
                         case "DarkMatterCylinder":
                         case "DashChargeCylinder":
-                        case "DeathCylinder":
                         case "DepthOfFieldCylinder":
                         case "DodoryuClosedCylinder":
                         case "EffectCylinder":
                         case "ExtraWallCheckCylinder":
                         case "GlaringLightAreaCylinder":
-                        case "LightCtrlCylinder":
-                        case "MessageAreaCylinder":
                         case "PlayerSeCylinder":
-                        case "PullBackCylinder":
                         case "ScreenBlurCylinder":
                         case "SimpleBloomCylinder":
-                        case "SwitchCylinder":
-                        case "TowerModeCylinder":
-                        case "WaterCylinder": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.CYLINDER);
+                        case "TowerModeCylinder": return new AreaRenderer(new Color4(0.3f, 1f, 1f), Shape.CYLINDER);
 
                         // CubeCamera cubic
                         case "BigBubbleCameraAreaBox":
@@ -541,6 +523,60 @@ public class Substitutor {
                         case "BigBubbleCameraAreaCylinder":
                         case "CameraRepulsiveCylinder":
                         case "CubeCameraCylinder": return new AreaRenderer(new Color4(0.8f, 0f, 0f), Shape.CYLINDER);
+                        
+                        //CubeDeath cubic
+                        case "DeathCube": return new AreaRenderer(new Color4(0.5f, 0f, 0f), Shape.CUBE);
+                        
+                        //CubeDeath spherical
+                        case "DeathSphere": return new AreaRenderer(new Color4(0.5f, 0f, 0f), Shape.SPHERE);
+                        
+                        //CubeDeath cylindrical
+                        case "DeathCylinder": return new AreaRenderer(new Color4(0.5f, 0f, 0f), Shape.CYLINDER);
+                        
+                        //CubeRestart cubic
+                        case "RestartCube": return new AreaRenderer(new Color4(1f, 0.937254901961f, 0f), Shape.CUBE);
+                        
+                        //CubeWater cubic
+                        case "WaterCube": return new AreaRenderer(new Color4(0f, 0f, 1f), Shape.CUBE);
+                        
+                        //CubaWater cylindrical
+                        case "WaterCylinder": return new AreaRenderer(new Color4(0f, 0f, 1f), Shape.CYLINDER);
+                        
+                        //CubeMessage cubic
+                        case "MessageAreaCube": return new AreaRenderer(new Color4(0.5f, 1f, 0.5f), Shape.CUBE);
+                        
+                        //CubeMessage cylindrical
+                        case "MessageAreaCylinder": return new AreaRenderer(new Color4(0.5f, 1f, 0.5f), Shape.CYLINDER);
+                        
+                        //CubeViewGroupCtrl cubic
+                        case "ViewGroupCtrlCube": return new AreaRenderer(new Color4(1f, 0f, 1f), Shape.CUBE);
+                        
+                        //CubeSwitch cubic
+                        case "SwitchCube": return new AreaRenderer(new Color4(0.3f, 0.3f, 0.3f), Shape.CUBE);
+                        
+                        //CubeSwitch spheric
+                        case "SwitchSphere": return new AreaRenderer(new Color4(0.3f, 0.3f, 0.3f), Shape.SPHERE);
+                        
+                        //CubeSwitch cylindrical
+                        case "SwitchCylinder": return new AreaRenderer(new Color4(0.3f, 0.3f, 0.3f), Shape.CYLINDER);
+                        
+                        //CubeLightCtrl cubic
+                        case "LightCtrlCube": return new AreaRenderer(new Color4(0, 0f, 0f), Shape.CUBE);
+                        
+                        //CubeLightCtrl 
+                        case "LightCtrlCylinder": return new AreaRenderer(new Color4(0, 0f, 0f), Shape.CYLINDER);
+                        
+                        //CubePullBack cubic
+                        case "PullBackCube": return new AreaRenderer(new Color4(1f, 0.4156862745098039f, 0f), Shape.CUBE);
+                        
+                        //CubePullBack cylindrical
+                        case "PullBackCylinder": return new AreaRenderer(new Color4(1f, 0.4156862745098039f, 0f), Shape.CYLINDER);
+                        
+                        //CubeChangeBgm cubic
+                        case "ChangeBgmCube": return new AreaRenderer(new Color4(0.7137254901960784f, 1f, 0f), Shape.CUBE);
+                        
+                        //CubeCollisionArea
+                        case "CollisionArea": return new AreaRenderer(new Color4(1f, 1f, 1f), Shape.CUBE);
                     }
                 }
             }
