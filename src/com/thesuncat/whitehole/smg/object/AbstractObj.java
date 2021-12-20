@@ -139,7 +139,7 @@ public abstract class AbstractObj {
         if(inName.equals("AreaShapeNo")) {
             if(jap)
                 return "形状番号";
-            return "Area No.";
+            return "Area Shape";
         }
         System.out.println(inName);
         return "Unknown";
