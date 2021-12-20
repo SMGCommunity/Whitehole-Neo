@@ -6551,14 +6551,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         });
         
         if(Settings.aa) {
-            GLProfile prof = GLProfile.get(GLProfile.GL2);
+            GLProfile prof = GLProfile.getMaxFixedFunc(true);
             GLCapabilities caps = new GLCapabilities(prof);
             caps.setSampleBuffers(true);
             caps.setNumSamples(8);
             caps.setHardwareAccelerated(true);
             
             glCanvas = new GLCanvas(caps);
-            glCanvas.setSharedContext(RendererCache.refContext);
+            if(RendererCache.refContext != null)
+                glCanvas.setSharedContext(RendererCache.refContext);
+            else
+                RendererCache.refContext = glCanvas.getContext();
         } else {
             glCanvas = new GLCanvas(null);
             glCanvas.setSharedContext(RendererCache.refContext);
