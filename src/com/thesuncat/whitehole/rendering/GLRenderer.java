@@ -15,7 +15,7 @@
 
 package com.thesuncat.whitehole.rendering;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class GLRenderer {
     public GLRenderer() {

@@ -23,7 +23,7 @@ import com.thesuncat.whitehole.rendering.cache.RendererCache;
 import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.smg.ZoneArchive;
 import com.thesuncat.whitehole.vectors.Vector3;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public abstract class AbstractObj {
     public final void loadDBInfo() {

@@ -17,8 +17,8 @@ package com.thesuncat.whitehole.rendering.object;
 
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.vectors.Color4;
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.glu.*;
 
 public class AreaRenderer extends GLRenderer {
     public AreaRenderer(Color4 color, Shape shape) {

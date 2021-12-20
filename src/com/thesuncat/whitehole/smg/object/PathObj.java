@@ -24,7 +24,7 @@ import com.thesuncat.whitehole.smg.ZoneArchive;
 import com.thesuncat.whitehole.vectors.Color4;
 import com.thesuncat.whitehole.vectors.Vector3;
 import java.util.Random;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class PathObj {
     public PathObj(ZoneArchive zone, int idx) {

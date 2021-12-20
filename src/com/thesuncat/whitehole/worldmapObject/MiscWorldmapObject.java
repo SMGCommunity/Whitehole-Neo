@@ -3,8 +3,8 @@ package com.thesuncat.whitehole.worldmapObject;
 import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.smg.BcsvFile;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLException;
 
 /**
  *

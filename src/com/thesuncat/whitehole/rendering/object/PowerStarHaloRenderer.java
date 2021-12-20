@@ -19,7 +19,7 @@ import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer.RenderInfo;
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 public class PowerStarHaloRenderer extends GLRenderer {
     public PowerStarHaloRenderer(RenderInfo info) {

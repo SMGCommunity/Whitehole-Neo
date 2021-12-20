@@ -16,7 +16,7 @@
 package com.thesuncat.whitehole.rendering;
 
 import com.thesuncat.whitehole.vectors.Color4;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class ColorCubeRenderer extends GLRenderer {
     public ColorCubeRenderer(float size, Color4 border, Color4 fill, boolean axes) {

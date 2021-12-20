@@ -12,9 +12,8 @@ import java.awt.Dimension;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.awt.GLCanvas;
 
 public class CanmEditorForm extends javax.swing.JFrame {
 
@@ -31,7 +30,8 @@ public class CanmEditorForm extends javax.swing.JFrame {
             caps.setNumSamples(8);
             caps.setHardwareAccelerated(true);
             
-            glCanvas = new GLCanvas(caps, RendererCache.refContext);
+            glCanvas = new GLCanvas(caps);
+            glCanvas.setSharedContext(RendererCache.refContext);
             
             glCanvas.addGLEventListener    (renderer = new SimpleGalaxyRenderer("BigGalaxy", glCanvas));
             glCanvas.addMouseListener      (renderer);

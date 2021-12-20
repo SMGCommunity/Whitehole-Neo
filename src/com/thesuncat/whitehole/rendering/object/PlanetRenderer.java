@@ -17,7 +17,7 @@ package com.thesuncat.whitehole.rendering.object;
 
 import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class PlanetRenderer extends GLRenderer {
     public PlanetRenderer(RenderInfo info, String planet) throws GLException {

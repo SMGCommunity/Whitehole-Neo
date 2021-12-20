@@ -16,7 +16,7 @@
 package com.thesuncat.whitehole.rendering.object;
 
 import com.thesuncat.whitehole.rendering.GLRenderer;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class TransparentWallRenderer extends GLRenderer {
     public TransparentWallRenderer(int wallWidthMult) {

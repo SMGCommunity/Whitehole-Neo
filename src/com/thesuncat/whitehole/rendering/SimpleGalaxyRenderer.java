@@ -28,11 +28,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.awt.GLCanvas;
 import javax.swing.SwingUtilities;
 
 // mostly from GalaxyEditorForm
@@ -278,7 +275,7 @@ public class SimpleGalaxyRenderer implements GLEventListener, MouseListener, Mou
         gl.glDisable(GL2.GL_BLEND);
         gl.glDisable(GL2.GL_ALPHA_TEST);
         
-        gl.glReadPixels(lastMouseMove.x, glad.getHeight() - lastMouseMove.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
+        gl.glReadPixels(lastMouseMove.x, glad.getSurfaceHeight() - lastMouseMove.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
         
         renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;
         

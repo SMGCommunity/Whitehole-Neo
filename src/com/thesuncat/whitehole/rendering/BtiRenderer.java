@@ -23,7 +23,7 @@ import com.thesuncat.whitehole.smg.Bti;
 import com.thesuncat.whitehole.smg.ImageUtils.FilterMode;
 import com.thesuncat.whitehole.smg.ImageUtils.WrapMode;
 import com.thesuncat.whitehole.vectors.Vector3;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class BtiRenderer extends GLRenderer {
     public BtiRenderer(RenderInfo info, String name, Vector3 _pt1, Vector3 _pt2, boolean vert) {

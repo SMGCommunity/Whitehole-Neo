@@ -23,7 +23,7 @@ import com.thesuncat.whitehole.vectors.Color4;
 import com.thesuncat.whitehole.vectors.Vector3;
 import java.util.ArrayList;
 import java.util.List;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class PathPointObj extends AbstractObj {
     public PathPointObj(PathObj path, int index, Vector3 pos) {

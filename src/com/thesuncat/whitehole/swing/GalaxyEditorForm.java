@@ -15,7 +15,6 @@
 
 package com.thesuncat.whitehole.swing;
 
-import com.jogamp.opengl.util.awt.Screenshot;
 import com.thesuncat.whitehole.*;
 import com.thesuncat.whitehole.io.RarcFile;
 import com.thesuncat.whitehole.rendering.*;
@@ -37,7 +36,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.*;
 import java.util.Map.Entry;
@@ -45,8 +43,10 @@ import java.util.Queue;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.media.opengl.*;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicToolBarUI;
@@ -620,7 +620,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         itmPositionPaste = new javax.swing.JMenuItem();
         itmRotationPaste = new javax.swing.JMenuItem();
         itmScalePaste = new javax.swing.JMenuItem();
-        itmScreenshot = new javax.swing.JMenuItem();
         mnuHelp = new javax.swing.JMenu();
         itemControls = new javax.swing.JMenuItem();
 
@@ -639,8 +638,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 formWindowOpened(evt);
             }
         });
+        getContentPane().setLayout(new java.awt.BorderLayout());
 
-        jSplitPane1.setBorder(null);
         jSplitPane1.setDividerLocation(335);
         jSplitPane1.setFocusable(false);
 
@@ -759,7 +758,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         tpLeftPanel.setMinimumSize(new java.awt.Dimension(100, 5));
         tpLeftPanel.setName(""); // NOI18N
 
-        pnlScenarioZonePanel.setBorder(null);
         pnlScenarioZonePanel.setDividerLocation(200);
         pnlScenarioZonePanel.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         pnlScenarioZonePanel.setLastDividerLocation(200);
@@ -1155,15 +1153,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         subPaste.add(itmScalePaste);
 
         mnuEdit.add(subPaste);
-
-        itmScreenshot.setAccelerator(KeyStroke.getKeyStroke(Settings.keyScrn, 0));
-        itmScreenshot.setText("Screenshot");
-        itmScreenshot.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmScreenshotActionPerformed(evt);
-            }
-        });
-        mnuEdit.add(itmScreenshot);
 
         jMenuBar1.add(mnuEdit);
 
@@ -2673,38 +2662,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void btnDeleteScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteScenarioActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnDeleteScenarioActionPerformed
-
-    private void itmScreenshotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScreenshotActionPerformed
-        saveImage();
-    }//GEN-LAST:event_itmScreenshotActionPerformed
-    
-    /**
-     * Copies the contents of the GLCanvas to the System Clipboard.<br>
-     * When I wrote this, only God and I knew the meaning.<br>
-     * Now God alone knows.
-     */
-    protected void saveImage() {
-        BufferedImage screenshot;
-        glCanvas.getGL().getContext().makeCurrent();
-        glCanvas.repaint();
-        glCanvas.getGL().glFlush();
-        screenshot = Screenshot.readToBufferedImage(glCanvas.getWidth(), glCanvas.getHeight(), false);
-        
-        // break out of loop if after 10 attempts the image is still black
-        int attempts = 0;
-        
-        // Screenshot will randomly sometimes be just black, looping here to make sure it isn't
-        while(screenshot.getRGB(1, 1) == Color.black.getRGB() && attempts < 10) {
-            screenshot = Screenshot.readToBufferedImage(glCanvas.getWidth(), glCanvas.getHeight(), false);
-            attempts++;
-        }
-        
-        if(screenshot.getRGB(1, 1) == Color.black.getRGB())
-            lbStatusLabel.setText("Failed to save screenshot: cryptic bug yay");
-        
-        CopyImage ci = new CopyImage();
-        ci.copyImage(screenshot);
-    }
     
     /**
      * Try to view the camera angle/position in whitehole.
@@ -4056,11 +4013,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         fullScreen.setExtendedState(Frame.MAXIMIZED_BOTH);
         fullScreen.setUndecorated(true);
         
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
+        
+        com.jogamp.opengl.GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
         caps.setSampleBuffers(true);
         caps.setNumSamples(8);
         caps.setHardwareAccelerated(true);
-        fullCanvas = new GLCanvas(caps, RendererCache.refContext);
+        fullCanvas = new GLCanvas(caps);
+        fullCanvas.setSharedContext(RendererCache.refContext);
         fullCanvas.addGLEventListener(renderer = new GalaxyEditorForm.GalaxyRenderer(true));
         fullCanvas.addMouseListener(renderer);
         fullCanvas.addMouseMotionListener(renderer);
@@ -5277,9 +5236,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             gl.glFlush();
             
-            gl.glReadPixels(mousePos.x - 1, glad.getHeight() - mousePos.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV,
+            gl.glReadPixels(mousePos.x - 1, glad.getSurfaceHeight() - mousePos.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV,
                                                                                                                                 pickingFrameBuffer);
-            gl.glReadPixels(mousePos.x, glad.getHeight() - mousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
+            gl.glReadPixels(mousePos.x, glad.getSurfaceHeight() - mousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
             pickingDepth = -(zFar * zNear /(pickingDepthBuffer.get(0) *(zFar - zNear) - zFar));
             
             if(Settings.fakeCol) {
@@ -6348,7 +6307,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private javax.swing.JMenuItem itmRotationPaste;
     private javax.swing.JMenuItem itmScaleCopy;
     private javax.swing.JMenuItem itmScalePaste;
-    private javax.swing.JMenuItem itmScreenshot;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -6599,9 +6557,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             caps.setNumSamples(8);
             caps.setHardwareAccelerated(true);
             
-            glCanvas = new GLCanvas(caps, RendererCache.refContext);
-        } else
-            glCanvas = new GLCanvas(null, RendererCache.refContext);
+            glCanvas = new GLCanvas(caps);
+            glCanvas.setSharedContext(RendererCache.refContext);
+        } else {
+            glCanvas = new GLCanvas(null);
+            glCanvas.setSharedContext(RendererCache.refContext);
+        }
         
         glCanvas.addGLEventListener(renderer = new GalaxyEditorForm.GalaxyRenderer());
         glCanvas.addMouseListener(renderer);
@@ -6640,7 +6601,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         btnArray.addAll(Arrays.asList(btnAddScenario, btnAddWorldmapRoute, btnAddZone, btnDeleteScenario, btnDeleteWorldmapObj,
                 btnDeleteZone, btnDeselect, btnEditScenario, btnEditZone, btnSaveWorldmap));
         itmArray.addAll(Arrays.asList(itemClose, itemControls, itmPositionCopy, itmPositionPaste, itmRotationCopy, itmRotationPaste,
-                itemSave, itmScaleCopy, itmScalePaste, itmScreenshot));
+                itemSave, itmScaleCopy, itmScalePaste));
         mnuArray.addAll(Arrays.asList(mnuEdit, mnuHelp, mnuSave));
         tbtnArray.addAll(Arrays.asList(btnShowAreas, btnShowCameras, btnShowGravity, btnShowPaths, tgbAddObject,
                 tgbAddWorldmapObj, tgbDeleteObject, tgbCamGen, tgbCamPrev, tgbCopyObj, tgbPasteObj, tgbQuickAction, tgbShowAxis));

@@ -21,7 +21,7 @@ import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer.RenderInfo;
 import com.thesuncat.whitehole.vectors.Color4;
 import com.thesuncat.whitehole.vectors.Vector3;
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 public class BlackHoleRenderer extends GLRenderer {
     public BlackHoleRenderer(RenderInfo info, int arg0, Vector3 areascale, Shape shape, boolean area) {

@@ -16,7 +16,7 @@
 package com.thesuncat.whitehole.rendering.object;
 
 import com.thesuncat.whitehole.rendering.GLRenderer;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class ClipAreaBoxRenderer extends GLRenderer {
     public ClipAreaBoxRenderer() {

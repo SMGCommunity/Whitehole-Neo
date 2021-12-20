@@ -3,7 +3,7 @@ package com.thesuncat.whitehole.worldmapObject;
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer.RenderInfo;
 import com.thesuncat.whitehole.smg.BcsvFile;
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 /**
  *

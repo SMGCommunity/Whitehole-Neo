@@ -15,14 +15,12 @@
 
 package com.thesuncat.whitehole.rendering.object;
 
-import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer.RenderInfo;
 import com.thesuncat.whitehole.rendering.object.AreaRenderer.Shape;
 import com.thesuncat.whitehole.vectors.Color4;
 import com.thesuncat.whitehole.vectors.Vector3;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.*;
 
 public class GravityRenderer extends GLRenderer {
     public GravityRenderer(Vector3 scl, float rng, Shape shape) {

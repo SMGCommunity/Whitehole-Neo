@@ -28,7 +28,7 @@ import com.thesuncat.whitehole.rendering.object.PlanetRenderer;
 import com.thesuncat.whitehole.rendering.Substitutor;
 import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.smg.object.AbstractObj;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class RendererCache {
     public static void prerender(GLRenderer.RenderInfo info){

@@ -17,7 +17,7 @@ package com.thesuncat.whitehole.smg;
 
 import java.io.IOException;
 import com.thesuncat.whitehole.io.FileBase;
-import static javax.media.opengl.GL2.*;
+import static com.jogamp.opengl.GL2.*;
 
 public class ImageUtils {
     public enum WrapMode {

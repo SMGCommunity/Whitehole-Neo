@@ -3,7 +3,7 @@ package com.thesuncat.whitehole.worldmapObject;
 import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.rendering.GLRenderer;
 import com.thesuncat.whitehole.smg.BcsvFile;
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 public class GalaxyPreview extends WorldmapPoint {
     public GalaxyPreview(BcsvFile.Entry entry, WorldmapPoint base) {

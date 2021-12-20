@@ -18,7 +18,7 @@ package com.thesuncat.whitehole.rendering.object;
 import java.io.IOException;
 import com.thesuncat.whitehole.rendering.BmdRenderer;
 import com.thesuncat.whitehole.vectors.Vector3;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class PoleRenderer extends BmdRenderer {
     public PoleRenderer(RenderInfo info, Vector3 scale, String type) throws IOException {

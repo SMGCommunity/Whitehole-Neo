@@ -17,7 +17,7 @@ package com.thesuncat.whitehole.rendering;
 
 import java.io.IOException;
 import com.thesuncat.whitehole.vectors.Vector3;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class BmdRendererSingle extends GLRenderer {
     public BmdRendererSingle(RenderInfo info, String model, Vector3 trans, Vector3 rot, Vector3 scl) throws IOException {

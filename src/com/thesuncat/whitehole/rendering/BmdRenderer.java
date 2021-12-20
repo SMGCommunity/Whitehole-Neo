@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.nio.*;
 import java.nio.charset.Charset;
 import java.util.Locale;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class BmdRenderer extends GLRenderer {
     private void uploadTexture(GL2 gl, int id) {
