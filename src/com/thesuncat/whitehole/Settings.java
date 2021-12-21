@@ -31,7 +31,7 @@ public class Settings {
         gameDir = prefs.getBoolean("game.dir", true);
         dark = prefs.getBoolean("theme.dark", false);
         aa = prefs.getBoolean("anti.alias", true);
-        littleEndian = prefs.getBoolean("little.endian", false);
+        littleEndian = false;// not working prefs.getBoolean("little.endian", false);
         fakeCol = prefs.getBoolean("fake.colors", false);
         reverseRot = prefs.getBoolean("reverse.rotation", false); //fake it
         showAreas = prefs.getBoolean("show.areas", true);

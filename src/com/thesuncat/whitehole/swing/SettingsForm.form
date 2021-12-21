@@ -40,7 +40,7 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jTabbedPane2" min="-2" max="-2" attributes="0"/>
+                  <Component id="jTabbedPane2" min="-2" pref="721" max="-2" attributes="0"/>
                   <Group type="102" attributes="0">
                       <Component id="btnOk" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
@@ -213,11 +213,7 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="lblMisc" min="-2" max="-2" attributes="0"/>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <Component id="chkGameDir" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                  <Component id="chkLittleEndian" min="-2" max="-2" attributes="0"/>
-                              </Group>
+                              <Component id="chkGameDir" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="chkDarkTheme" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
@@ -230,13 +226,10 @@
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="chkFileNames" min="-2" max="-2" attributes="0"/>
                               </Group>
+                              <Component id="chkLittleEndian" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="chkNoShaderRender" alignment="0" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="32767" attributes="0"/>
-                      </Group>
-                      <Group type="102" alignment="1" attributes="0">
-                          <EmptySpace max="32767" attributes="0"/>
-                          <Component id="chkNoShaderRender" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -252,10 +245,7 @@
                               <Component id="chkAssoc" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="chkGameDir" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="chkLittleEndian" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
+                          <Component id="chkGameDir" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="chkRichPresence" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -263,7 +253,9 @@
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="chkNoShaderRender" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace pref="34" max="32767" attributes="0"/>
+                          <EmptySpace max="32767" attributes="0"/>
+                          <Component id="chkLittleEndian" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -324,7 +316,7 @@
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="chkLittleEndian">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Little-endian"/>
+                    <Property name="text" type="java.lang.String" value="Little-endian (NOT WORKING)"/>
                     <Property name="actionCommand" type="java.lang.String" value="Automatically reopen game folder"/>
                   </Properties>
                   <Events>
@@ -360,14 +352,14 @@
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                              <Component id="txtSuperBMDDir" pref="512" max="32767" attributes="0"/>
+                              <Component id="txtSuperBMDDir" pref="571" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="btnSuperBMD" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                              <Component id="txtKCLcreateDir" pref="508" max="32767" attributes="0"/>
+                              <Component id="txtKCLcreateDir" pref="564" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="btnKCLcreate" min="-2" max="-2" attributes="0"/>
                           </Group>
@@ -498,7 +490,7 @@
                               <Component id="btnRotation" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="btnScale" alignment="0" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace pref="309" max="32767" attributes="0"/>
+                          <EmptySpace pref="335" max="32767" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Group type="102" attributes="0">
                                   <Component id="chkWASD" min="-2" max="-2" attributes="0"/>
