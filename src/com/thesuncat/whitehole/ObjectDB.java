@@ -151,7 +151,7 @@ public class ObjectDB {
             if ((games & 4) != 0) {
                 if (!ret.isEmpty())
                     ret += ", ";
-                ret += "NMG";
+                ret += "PT";
             }
             return ret;
         }

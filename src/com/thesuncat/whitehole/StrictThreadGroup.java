@@ -39,7 +39,7 @@ public class StrictThreadGroup extends ThreadGroup {
         JOptionPane.showMessageDialog(null, 
                 "An unhandled exception has occured: " + e.getMessage() + "\n"
                 + "Whitehole may be unstable. It is recommended that you close it now. You can try to save your unsaved work before doing so, but at your own risks.\n\n"
-                + "You should report this crash at EggStarGalaxy ("+Whitehole.CRASHURL+"), providing the detailed report found in \"whiteholeCrash.txt\".",
+                + "You should report this crash in Under Mario's Hat ("+Whitehole.CRASHURL+"), providing the detailed report found in \"whiteholeCrash.txt\".",
                 Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
         
         try {
@@ -48,7 +48,7 @@ public class StrictThreadGroup extends ThreadGroup {
             report.createNewFile();
             PrintStream ps = new PrintStream(report);
             ps.append(Whitehole.NAME + " crash report\r\n");
-            ps.append("Please report this at EggStarGalaxy ("+Whitehole.WEBURL+") with all the details below\r\n");
+            ps.append("Please report this in Under Mario's Hat ("+Whitehole.WEBURL+") with all the details below\r\n");
             ps.append("--------------------------------------------------------------------------------\r\n\r\n");
             e.printStackTrace(ps);
             ps.close();
