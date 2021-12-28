@@ -9,6 +9,11 @@ I will not provide support for Whitehole (besides critical bugfixes), and this r
 Whitehole is a level editor for Super Mario Galaxy 1 and 2.  
 All downloads can be found on the release page.  
   
+## Troubleshooting
+If Galaxies do not open, try this command:
+java --add-exports java.base/java.lang=ALL-UNNAMED --add-exports java.desktop/sun.awt=ALL-UNNAMED --add-exports java.desktop/sun.java2d=ALL-UNNAMED -jar Whitehole.jar
+
+If Galaxies continue to not open, I have no idea ask TheSunCat
 ## Changelog:  
 - Some area colors have been changed
 - "MessageID.tbl" option added in The BCSV Editor, done by Evanbowl
