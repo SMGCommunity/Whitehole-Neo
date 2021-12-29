@@ -1,5 +1,5 @@
 /*
-    © 2012 - 2019 - Whitehole Team
+    © 2012 - 2021 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free

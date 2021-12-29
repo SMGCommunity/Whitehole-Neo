@@ -1,5 +1,5 @@
 /*
-    © 2012 - 2019 - Whitehole Team
+    © 2012 - 2021 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -21,6 +21,8 @@ import java.util.prefs.Preferences;
 public class Settings {
     public static void init() {
         Preferences prefs = Preferences.userRoot();
+        objectDB_url = prefs.get("objectDB.url", "http://shibboleet.us.to/database/objectdb.php");
+        objectDB_update = prefs.getBoolean("objectDB.update", true);
         modFolder_dir = prefs.get("mod.dir", "").replace('\\', '/');
         superBMD_dir = prefs.get("superbmd.dir", "").replace('\\', '/');
         KCLcreate_dir = prefs.get("kclcreate.dir", "").replace('\\', '/');
@@ -53,6 +55,8 @@ public class Settings {
     
     public static void save() {
         Preferences prefs = Preferences.userRoot();
+        prefs.put("objectDB.url", objectDB_url);
+        prefs.putBoolean("objectDB.update", objectDB_update);
         prefs.put("mod.dir", modFolder_dir.replace('\\', '/'));
         prefs.put("superbmd.dir", superBMD_dir.replace('\\', '/'));
         prefs.put("kclcreate.dir", KCLcreate_dir.replace('\\', '/'));
@@ -88,8 +92,9 @@ public class Settings {
     }
     
     public static String modFolder_dir, superBMD_dir, KCLcreate_dir;
+    public static String objectDB_url;
     public static boolean associated;
-    public static boolean arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy, japanese, fileNames;
+    public static boolean objectDB_update, arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy, japanese, fileNames;
     public static boolean editor_shaders, editor_fastDrag;
     public static boolean showAreas, showCameras, showGravity, showPaths, showAxis;
     public static boolean useWASD;
