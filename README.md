@@ -1,33 +1,83 @@
-[![Java CI](https://github.com/IonicPixels/Whitehole/actions/workflows/ant.yml/badge.svg)](https://github.com/IonicPixels/Whitehole/actions/workflows/ant.yml)
-
-# Whitehole is to be superseded by Takochu: a new editor developed by shibboleet.
-I will not provide support for Whitehole (besides critical bugfixes), and this repository will be archived once Takochu is stable. 
-# Takochu is in development at https://github.com/shibbo/Takochu
-
+[![Java CI](https://github.com/RealTheSunCat/Whitehole/actions/workflows/ant.yml/badge.svg)](https://github.com/RealTheSunCat/Whitehole/actions/workflows/ant.yml)
 
 # Whitehole
 Whitehole is a level editor for Super Mario Galaxy 1 and 2.  
-All downloads can be found on the release page.  
-  
+All downloads can be found on the [release page](https://github.com/RealTheSunCat/Whitehole/releases).  
+
+## Updating Java
+With this new Whitehole version, Java requires an update.
+### How to update Java:
+
+- On Linux, install `jre-openjdk-headless`
+
+- On Windows, use a browser to navigate to https://adoptium.net/ and download the executable. Make sure you selected Java 17 (or whatever the latest version is). You can leave the default options for the installer, but make sure "set JAVA_HOME" is selected and proceed with the install. If Java apps stop opening, you may need to restart your computer to apply the registry changes.
+
 ## Troubleshooting
 If Galaxies do not open, try this command:
-java --add-exports java.base/java.lang=ALL-UNNAMED --add-exports java.desktop/sun.awt=ALL-UNNAMED --add-exports java.desktop/sun.java2d=ALL-UNNAMED -jar Whitehole.jar
+`java --add-exports java.base/java.lang=ALL-UNNAMED --add-exports java.desktop/sun.awt=ALL-UNNAMED --add-exports java.desktop/sun.java2d=ALL-UNNAMED -jar Whitehole.jar`
 
-If Galaxies continue to not open, I have no idea ask TheSunCat
-## Changelog:  
+If Galaxies continue to not open, I have no idea ask TheSunCat or Lord-Gigantucus.
+
+## Help:
+**Users:**
+- TheSunCat#1007
+- IonicPixels#3139
+- Lord-Giganticus#7111
+
+**Servers:**
+- [Under Mario's Hat](https://discord.gg/TudSfUjHcW)
+- [Luma's Workshop](https://discord.gg/k7ZKzSDsVq) (Ionic is banned here)
+- [Kokiri Village](https://discord.gg/NTyb4sy)
+- [Troller's Paradise](https://discord.gg/r8h5vAm2JC)
+
+## Controls:  
+  
+Pan Camera: Left-mouse drag or arrow keys/numpad  
+Rotate Camera: Right-mouse drag  
+Zoom: Mousewheel or PageUp/Down or Numpad 3/9  
+Select Object: Left click, hold Ctrl or Shift to select multiple  
+Move Object: Drag left click on selected object(s)  
+or: P + Arrow keys/Numpad  
+or: press G and move the mouse  
+  
+Rotate Object: R + Arrow keys/Numpad  
+or: press R and move the mouse  
+  
+Scale Object: S + Arrow keys/Numpad  
+or: press S and move the mouse  
+  
+Delete Object: Delete  
+Copy Selelction: Ctrl + C  
+Paste Selection: Ctrl + V  
+Undo: Ctrl-Z  
+Redo: Ctrl-Y  
+Screenshot: Ctrl + Shift + C  
+
+## Changelog
+### Version 1.7
+**Added:**  
 - Some area colors have been changed
 - "MessageID.tbl" option added in The BCSV Editor, done by Evanbowl
 - More BSCV stuff
+- Use proper Shaders
 
+**Bugs:**
+- Dark Mode broke in the Galaxy Editor and BCSV Editor
+- Little Endian mode does not work (forced off)
+
+**Bug Fixes:**
+- Title bar now shows "Whitehole v1.7" rather than "Whitehole"
+- "CollisionArea" is now a cube, as it should be
+- CloudSky Skybox issues no longer exist
+
+### Version 1.5.5
 **Added:**
 - *Work in progress* Obj importer
 - *Work in progress* Keybinds customizer
 - *Work in progress* Riivolution-*like* mod opener: Open a mod on top of the vanilla game files.
 
 **Bug Fixes:**
-- Title bar now shows "Whitehole v1.6.1" rather than "Whitehole"
-- "CollisionArea" is now a cube, as it should be
-
+- N/A
 
 ### Version 1.5.4
 
@@ -63,26 +113,3 @@ Now introducing exciting features like... an improved PowerStarLight renderer...
 - Fixed whitehole not rendering some custom models that will still work ingame
 - Fixed general saving bugs and added a handler for failed saving (thanks shibbo!)
 - Made all error messages clearer and handled better (and with punctuation!!)
-
-**Controls:**  
-  
-Pan Camera: Left-mouse drag or arrow keys/numpad  
-Rotate Camera: Right-mouse drag  
-Zoom: Mousewheel or PageUp/Down or Numpad 3/9  
-Select Object: Left click, hold Ctrl or Shift to select multiple  
-Move Object: Drag left click on selected object(s)  
-or: P + Arrow keys/Numpad  
-or: press G and move the mouse  
-  
-Rotate Object: R + Arrow keys/Numpad  
-or: press R and move the mouse  
-  
-Scale Object: S + Arrow keys/Numpad  
-or: press S and move the mouse  
-  
-Delete Object: Delete  
-Copy Selelction: Ctrl + C  
-Paste Selection: Ctrl + V  
-Undo: Ctrl-Z  
-Redo: Ctrl-Y  
-Screenshot: Ctrl + Shift + C  
