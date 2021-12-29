@@ -2238,26 +2238,29 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
     private void itemControlsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemControlsActionPerformed
         JOptionPane.showMessageDialog(null,
-                    "Left mouse button: De/select object\r\n" +
-                    "Right mouse button: Camera angle\r\n" +
-                    "Mouse wheel: Camera zoom\r\n" +
-                    "Arrow keys: Move camera\r\n" +
+                    "Select/Deselect Object: Left click, hold Ctrl or Shift to select multiple\r\n" +
+                    "Rotate Camera: Right-mouse drag\r\n" +
+                    "Zoom: Mousewheel or PageUp/Down or Numpad 3/9\r\n" +
+                    "Pan Camera: Left-mouse drag or arrow keys/numpad\r\n" +
+                    "Move Object: Drag left click on selected object(s)\r\n" +
                     "\r\n" +
-                    "P + arrow keys: Move position\r\n" +
-                    "R + arrow keys: Rotate object\r\n" +
-                    "S + arrow keys: Scale object\r\n" + 
+                    "Move Position: P + arrow keys\r\n" +
+                    "Rotate Object: R + arrow keys\r\n" +
+                    "Scale Object:  S + arrow keys\r\n" + 
                     "\r\n" +
-                    "ALT + P: Copy position\r\n" +
-                    "ALT + R: Copy rotation\r\n" +
-                    "ALT + S: Copy scale\r\n" +
+                    "Copy Position: ALT + P\r\n" +
+                    "Copy Rotation: ALT + R\r\n" +
+                    "Copy Scale: ALT + S\r\n" +
                     "\r\n" +
-                    "SHIFT + P: Paste position\r\n" +
-                    "SHIFT + R: Paste rotation\r\n" +
-                    "SHIFT + S: Paste scale\r\n" +
-                    "CTRL + C: Copy selection\r\n" +
-                    "CTRL + V: Paste selection\r\n" +
-                    "S/R/G: Scale/Rotate/Translate(TODO)\r\n" +
-                    "CTRL + ALT + E: Screenshot(copied to clipboard)",
+                    "Paste Position: SHIFT + P\r\n" +
+                    "Paste Rotation: SHIFT + R\r\n" +
+                    "Paste Scale: SHIFT + S\r\n" +
+                    "Copy Selelction: Ctrl + C\r\n" +
+                    "Paste Selection: Ctrl + V\r\n" +
+                    "Delete Object: Delete\r\n" +
+                    "Undo: Ctrl-Z\r\n" +
+                    "Redo: Ctrl-Y\r\n" +
+                    "Screenshot (copied to clipboard): Ctrl + Shift + C",
                     Whitehole.NAME, JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_itemControlsActionPerformed
 
