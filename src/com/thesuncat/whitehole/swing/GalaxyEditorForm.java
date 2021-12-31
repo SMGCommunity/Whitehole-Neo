@@ -6568,12 +6568,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             glCanvas = new GLCanvas(caps);
             if(RendererCache.refContext != null)
-                glCanvas.setSharedContext(RendererCache.refContext);
+                glCanvas.createContext(RendererCache.refContext);
             else
                 RendererCache.refContext = glCanvas.getContext();
         } else {
             glCanvas = new GLCanvas(null);
-            glCanvas.setSharedContext(RendererCache.refContext);
+            glCanvas.createContext(RendererCache.refContext);
         }
         
         glCanvas.addGLEventListener(renderer = new GalaxyEditorForm.GalaxyRenderer());
