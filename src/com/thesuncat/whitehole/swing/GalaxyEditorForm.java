@@ -4726,17 +4726,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             
-        }else if(propname.equals("entry_destPoint")) {
+        } else if(propname.equals("entry_destPoint")) {
             WorldmapTravelObject obj =(WorldmapTravelObject)globalWorldmapTravelObjects.get(currentWorldmapEntryPointIndex);
             obj.entryMO.put("Param01",value);
         }
         glCanvas.repaint();
-    }
-
-    static class DarkJMenuBar extends JMenuBar {
-
-        public DarkJMenuBar() {
-        }
     }
     
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
