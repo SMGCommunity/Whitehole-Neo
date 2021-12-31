@@ -47,6 +47,7 @@ import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
+import java.awt.datatransfer.Transferable;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicToolBarUI;
@@ -1902,7 +1903,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
                 String newClip = "";
                 try {
-                    String data = (String) c.getData(DataFlavor.stringFlavor);
+                    Transferable contents = c.getContents(null);
+                    boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
+                    String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
                     
                     
                     if(data.contains("pos") && data.contains("rot") && data.contains("scl"))
@@ -1914,8 +1917,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     
                     // write data
-                    StringSelection contents = new StringSelection(newClip);
-                    c.setContents(contents, contents);
+                    StringSelection selection = new StringSelection(newClip);
+                    c.setContents(selection, selection);
                 } catch (UnsupportedFlavorException | IOException ex) {
                     Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
                     lbStatusLabel.setText(ex.getMessage());
@@ -1943,8 +1946,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
                 String newClip = "";
                 try {
-                    String data = (String) c.getData(DataFlavor.stringFlavor);
-                    
+                    Transferable contents = c.getContents(null);
+                    boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
+                    String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
                     
                     if(data.contains("pos") && data.contains("rot") && data.contains("scl"))
                     {
@@ -1956,8 +1960,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     
                     // write data
-                    StringSelection contents = new StringSelection(newClip);
-                    c.setContents(contents, contents);
+                    StringSelection selection = new StringSelection(newClip);
+                    c.setContents(selection, selection);
                 } catch (UnsupportedFlavorException | IOException ex) {
                     Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
                     lbStatusLabel.setText(ex.getMessage());
@@ -1985,7 +1989,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
                 String newClip = "";
                 try {
-                    String data = (String) c.getData(DataFlavor.stringFlavor);
+                    Transferable contents = c.getContents(null);
+                    boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
+                    String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
                     
                     
                     if(data.contains("pos") && data.contains("rot") && data.contains("scl"))
@@ -1997,8 +2003,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     
                     // write data
-                    StringSelection contents = new StringSelection(newClip);
-                    c.setContents(contents, contents);
+                    StringSelection selection = new StringSelection(newClip);
+                    c.setContents(selection, selection);
                 } catch (UnsupportedFlavorException | IOException ex) {
                     Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
                     lbStatusLabel.setText(ex.getMessage());
@@ -2019,7 +2025,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
         try {
-            String data = (String) c.getData(DataFlavor.stringFlavor);
+            Transferable contents = c.getContents(null);
+            boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
+            String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
 
             if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
             {
@@ -2082,7 +2090,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
         try {
-            String data = (String) c.getData(DataFlavor.stringFlavor);
+            Transferable contents = c.getContents(null);
+            boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
+            String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
             
             if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
             {
@@ -2180,7 +2190,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
         try {
-            String data = (String) c.getData(DataFlavor.stringFlavor);
+            Transferable contents = c.getContents(null);
+            boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
+            String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
 
             if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
             {
