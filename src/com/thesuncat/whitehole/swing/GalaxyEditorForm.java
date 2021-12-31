@@ -4565,7 +4565,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public void worldmapObjPropertyPanelPropertyChanged(String propname, Object value) {
         
         System.out.println(propname+": "+value);
-        if(propname.startsWith("point_")) {//a point is selected
+        if(propname.startsWith("point_")) { //a point is selected
             WorldmapPoint point = globalWorldmapPointList.get(currentWorldmapPointIndex);
             
             switch(propname) {
@@ -4605,7 +4605,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     break;
             }
             
-        }else if(propname.startsWith("galaxy_")) {//a galaxyPreview is selected
+        } else if(propname.startsWith("galaxy_")) {//a galaxyPreview is selected
             GalaxyPreview galaxyPreview =(GalaxyPreview)globalWorldmapPointList.get(currentWorldmapPointIndex);  
             
             switch(propname) {
@@ -4655,7 +4655,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             
-        }else if(propname.startsWith("route_")) {//a galaxyPreview is selected
+        } else if(propname.startsWith("route_")) {//a galaxyPreview is selected
             WorldmapRoute route =(WorldmapRoute)globalWorldmapRouteList.get(currentWorldmapRouteIndex);
             
             switch(propname) {
@@ -4687,7 +4687,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             
-        }else if(propname.startsWith("misc_")) {
+        } else if(propname.startsWith("misc_")) {
             MiscWorldmapObject misc =(MiscWorldmapObject)globalWorldmapPointList.get(currentWorldmapPointIndex);
             
             switch(propname) {

@@ -9,7 +9,7 @@
         </Property>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JMenuBar(); if(Settings.dark){menubar = new GalaxyEditorForm.DarkJMenuBar();}//"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JMenuBar(); if(Settings.dark){menubar = new DarkJMenuBar();}//"/>
       </AuxValues>
       <SubComponents>
         <Menu class="javax.swing.JMenu" name="mnuFile">
@@ -787,7 +787,7 @@
         </Component>
         <Component class="javax.swing.JToolBar$Separator" name="spr5">
         </Component>
-        <Component class="javax.swing.JButton" name="MoveUp">
+        <Component class="javax.swing.JButton" name="btnMoveUp">
           <Properties>
             <Property name="text" type="java.lang.String" value="Move up"/>
             <Property name="focusable" type="boolean" value="false"/>
@@ -795,13 +795,12 @@
             <Property name="verticalTextPosition" type="int" value="3"/>
           </Properties>
           <Events>
-            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="MoveUpMouseClicked"/>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="MoveUpActionPerformed"/>
+            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="btnMoveUpMouseClicked"/>
           </Events>
         </Component>
         <Component class="javax.swing.JToolBar$Separator" name="spr8">
         </Component>
-        <Component class="javax.swing.JButton" name="MoveDown">
+        <Component class="javax.swing.JButton" name="btnMoveDown">
           <Properties>
             <Property name="text" type="java.lang.String" value="Move down"/>
             <Property name="focusable" type="boolean" value="false"/>
