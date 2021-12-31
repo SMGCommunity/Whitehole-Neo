@@ -150,7 +150,6 @@ public class SettingsForm extends javax.swing.JFrame {
         chkUseShaders = new javax.swing.JCheckBox();
         chkAntiAlias = new javax.swing.JCheckBox();
         lblRendering = new javax.swing.JLabel();
-        chkNoShaderRender = new javax.swing.JCheckBox();
         jPanel1 = new javax.swing.JPanel();
         lblMisc = new javax.swing.JLabel();
         chkDarkTheme = new javax.swing.JCheckBox();
@@ -188,6 +187,7 @@ public class SettingsForm extends javax.swing.JFrame {
         chkObjectDBUpdate = new javax.swing.JCheckBox();
         lblUpdateUrl = new javax.swing.JLabel();
         lblObjectDatabase = new javax.swing.JLabel();
+        chkNoShaderRender = new javax.swing.JCheckBox();
 
         jCheckBox1.setText("jCheckBox1");
 
@@ -225,9 +225,6 @@ public class SettingsForm extends javax.swing.JFrame {
         lblRendering.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblRendering.setText("Rendering");
 
-        chkNoShaderRender.setText("Ignore important rendering functions (for outdated OpenGL)");
-        chkNoShaderRender.setActionCommand("Black and white");
-
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -242,10 +239,9 @@ public class SettingsForm extends javax.swing.JFrame {
                             .addComponent(chkFakeCol)
                             .addComponent(chkAntiAlias)
                             .addComponent(chkFastDrag)
-                            .addComponent(chkUseShaders)
-                            .addComponent(chkNoShaderRender)))
+                            .addComponent(chkUseShaders)))
                     .addComponent(lblRendering))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(18, 18, 18))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -262,9 +258,7 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addComponent(chkReverseRot)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkFakeCol)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(chkNoShaderRender)
-                .addGap(21, 21, 21))
+                .addGap(49, 49, 49))
         );
 
         lblMisc.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
@@ -343,7 +337,7 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addComponent(chkFileNames))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkLittleEndian)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(57, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout pnlCommonLayout = new javax.swing.GroupLayout(pnlCommon);
@@ -353,18 +347,19 @@ public class SettingsForm extends javax.swing.JFrame {
             .addGroup(pnlCommonLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(36, Short.MAX_VALUE))
+                .addContainerGap(55, Short.MAX_VALUE))
         );
         pnlCommonLayout.setVerticalGroup(
             pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlCommonLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(pnlCommonLayout.createSequentialGroup()
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         jTabbedPane2.addTab("General", pnlCommon);
@@ -586,6 +581,9 @@ public class SettingsForm extends javax.swing.JFrame {
 
         jTabbedPane2.addTab("Object Database", jPanel2);
 
+        chkNoShaderRender.setText("Ignore important rendering functions (for outdated OpenGL)");
+        chkNoShaderRender.setActionCommand("Black and white");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -599,13 +597,19 @@ public class SettingsForm extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnCancel)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(24, 24, 24)
+                .addComponent(chkNoShaderRender, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(chkNoShaderRender)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
                     .addComponent(btnOk))
