@@ -5978,50 +5978,53 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 return;
             }
             
-            // Scale/Move/Rotate With Mouse Shortcuts
-            if(keyCode == Settings.keyScl) { // scale
-                startingMousePos = mousePos;
-                ArrayList<AbstractObj> scalingObjs = new ArrayList();
+            if(!e.isAltDown() && !e.isControlDown() && !e.isShiftDown())
+            {
+                // Scale/Move/Rotate With Mouse Shortcuts
+                if(keyCode == Settings.keyScl) { // scale
+                    startingMousePos = mousePos;
+                    ArrayList<AbstractObj> scalingObjs = new ArrayList();
 
-                for(AbstractObj obj : selectedObjs.values())
-                    scalingObjs.add(obj);
+                    for(AbstractObj obj : selectedObjs.values())
+                        scalingObjs.add(obj);
 
-                for(AbstractObj currentChangeObj : scalingObjs) {
-                    startingObjScale.x = currentChangeObj.scale.x;
-                    startingObjScale.y = currentChangeObj.scale.y;
-                    startingObjScale.z = currentChangeObj.scale.z;
-                    startingObjPos.x = currentChangeObj.position.x;
-                    startingObjPos.y = currentChangeObj.position.y;
-                    startingObjPos.z = currentChangeObj.position.z;
+                    for(AbstractObj currentChangeObj : scalingObjs) {
+                        startingObjScale.x = currentChangeObj.scale.x;
+                        startingObjScale.y = currentChangeObj.scale.y;
+                        startingObjScale.z = currentChangeObj.scale.z;
+                        startingObjPos.x = currentChangeObj.position.x;
+                        startingObjPos.y = currentChangeObj.position.y;
+                        startingObjPos.z = currentChangeObj.position.z;
+                    }
+
+                    keyScaling = true;
+
+                    return;
+                } else if (keyCode == Settings.keyPos) { // Move
+                    startingMousePos = mousePos;
+                    keyTranslating = true;
+
+                    return;
+                } else if (keyCode == Settings.keyRot) { // Rotate
+                    startingMousePos = mousePos;
+                    keyRotating = true;
+
+                    return;
                 }
-                
-                keyScaling = true;
-                
-                return;
-            } else if (keyCode == Settings.keyPos) { // Move
-                startingMousePos = mousePos;
-                keyTranslating = true;
-                
-                return;
-            } else if (keyCode == Settings.keyRot) { // Rotate
-                startingMousePos = mousePos;
-                keyRotating = true;
-                
-                return;
-            }
-            
-            
-            // Set rotation axis
-            switch(keyCode) {
-                case KeyEvent.VK_X:
-                    keyAxis = "x";
-                    return;
-                case KeyEvent.VK_Y:
-                    keyAxis = "y";
-                    return;
-                case KeyEvent.VK_Z:
-                    keyAxis = "z";
-                    return;
+
+
+                // Set rotation axis
+                switch(keyCode) {
+                    case KeyEvent.VK_X:
+                        keyAxis = "x";
+                        return;
+                    case KeyEvent.VK_Y:
+                        keyAxis = "y";
+                        return;
+                    case KeyEvent.VK_Z:
+                        keyAxis = "z";
+                        return;
+                }
             }
             
             // Pull Up Add menu
