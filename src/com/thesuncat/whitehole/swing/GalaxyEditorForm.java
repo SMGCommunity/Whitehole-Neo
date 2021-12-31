@@ -6739,6 +6739,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             btnArray.get(i).setBackground(new Color(32, 34, 37));
             btnArray.get(i).setForeground(new Color(157, 158, 161));
         }
+        
         for(JMenuItem itm : itmArray) {
             itm.setOpaque(true);
             itm.setBackground(new Color(32, 34, 37));

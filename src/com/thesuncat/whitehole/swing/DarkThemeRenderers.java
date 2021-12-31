@@ -256,28 +256,28 @@ public class DarkThemeRenderers {
                 @Override
                 protected JScrollPane createScroller() {
                     JScrollPane scrollerPane = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-                        scrollerPane.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
-                            @Override
-                            protected JButton createDecreaseButton(int orientation) {
-                                return createZeroButton();
-                            }
-                            @Override    
-                            protected JButton createIncreaseButton(int orientation) {
-                                return createZeroButton();
-                            }
-                            @Override 
-                            protected void configureScrollBarColors(){
-                                thumbColor = new Color(32,34,37);
-                                trackColor = new Color(47,49,54);
-                            }
-                        });
-                        return scrollerPane;
+                    scrollerPane.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
+                        @Override
+                        protected JButton createDecreaseButton(int orientation) {
+                            return createZeroButton();
+                        }
+                        @Override    
+                        protected JButton createIncreaseButton(int orientation) {
+                            return createZeroButton();
+                        }
+                        @Override 
+                        protected void configureScrollBarColors(){
+                            thumbColor = new Color(32,34,37);
+                            trackColor = new Color(47,49,54);
+                        }
+                    });
+                    return scrollerPane;
                 }
             };
         }
     }
     
-    private static JButton createZeroButton() {
+    public static JButton createZeroButton() {
         JButton jbutton = new JButton();
         jbutton.setPreferredSize(new Dimension(0, 0));
         jbutton.setMinimumSize(new Dimension(0, 0));

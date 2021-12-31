@@ -1,18 +1,58 @@
 package com.thesuncat.whitehole.swing;
 
+import com.thesuncat.whitehole.Settings;
 import com.thesuncat.whitehole.Whitehole;
 import com.thesuncat.whitehole.io.*;
 import com.thesuncat.whitehole.smg.BcsvFile;
+import java.awt.Color;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.logging.*;
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class BcsvSearch extends javax.swing.JFrame {
 
     public BcsvSearch() {
         initComponents();
-        setResizable(false);
+        if(Settings.dark)
+            initDarkTheme();
+    }
+    
+    private void initDarkTheme() {
+        btnSearch.setBackground(new Color(32, 34, 37));
+        btnSearch.setForeground(new Color(157, 158, 161));
+        jLabel1.setForeground(new Color(157,158,161));
+        
+        jScrollPane2.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
+            @Override
+            protected JButton createDecreaseButton(int orientation) {
+                return DarkThemeRenderers.createZeroButton();
+            }
+            @Override    
+            protected JButton createIncreaseButton(int orientation) {
+                return DarkThemeRenderers.createZeroButton();
+            }
+            @Override 
+            protected void configureScrollBarColors(){
+                thumbColor = new Color(32,34,37);
+                trackColor = new Color(47,49,54);
+            }
+        });
+        
+        lisResults.setBackground(new Color(54,57,63));
+        lisResults.setForeground(new Color(157,158,161));
+        
+        pnlResults.setBackground(new Color(32,34,37));
+        
+        txtSearch.setBackground(new Color(32,34,37).brighter());
+        txtSearch.setForeground(new Color(157,158,161));
+        
+        chkMatchCase.setBackground(new Color(32,34,37));
+        chkMatchCase.setForeground(new Color(157,158,161));
+        
+        setBackground(new Color(32,34,37));
+        setBackground(new Color(32,34,37));
     }
 
     @SuppressWarnings("unchecked")
