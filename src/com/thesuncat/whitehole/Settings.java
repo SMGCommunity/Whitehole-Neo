@@ -21,7 +21,7 @@ import java.util.prefs.Preferences;
 public class Settings {
     public static void init() {
         Preferences prefs = Preferences.userRoot();
-        objectDB_url = prefs.get("objectDB.url", "http://shibboleet.us.to/database/objectdb.php");
+        objectDB_url = prefs.get("objectDB.link", "http://shibboleet.us.to/database/objectdb.php");
         objectDB_update = prefs.getBoolean("objectDB.update", true);
         modFolder_dir = prefs.get("mod.dir", "").replace('\\', '/');
         superBMD_dir = prefs.get("superbmd.dir", "").replace('\\', '/');
@@ -55,7 +55,7 @@ public class Settings {
     
     public static void save() {
         Preferences prefs = Preferences.userRoot();
-        prefs.put("objectDB.url", objectDB_url);
+        prefs.put("objectDB.link", objectDB_url);
         prefs.putBoolean("objectDB.update", objectDB_update);
         prefs.put("mod.dir", modFolder_dir.replace('\\', '/'));
         prefs.put("superbmd.dir", superBMD_dir.replace('\\', '/'));
