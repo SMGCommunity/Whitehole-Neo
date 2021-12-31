@@ -2271,8 +2271,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     "Paste Selection: Ctrl + V\r\n" +
                     "Delete Object: Delete\r\n" +
                     "Undo: Ctrl-Z\r\n" +
-                    "Redo: Ctrl-Y\r\n" +
-                    "Screenshot (copied to clipboard): Ctrl + Shift + C",
+                    "Redo: Ctrl-Y\r\n",
                     Whitehole.NAME, JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_itemControlsActionPerformed
 

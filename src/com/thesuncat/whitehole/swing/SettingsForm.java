@@ -60,7 +60,6 @@ public class SettingsForm extends javax.swing.JFrame {
         ((KeybindButton) btnPosition).setKeybind(Settings.keyPos);
         ((KeybindButton) btnRotation).setKeybind(Settings.keyRot);
         ((KeybindButton) btnScale).setKeybind(Settings.keyScl);
-        ((KeybindButton) btnScreenshot).setKeybind(Settings.keyScrn);
         chkWASD.setSelected(Settings.useWASD);
         
         if(!System.getProperty("os.name").startsWith("Windows"))
@@ -68,6 +67,8 @@ public class SettingsForm extends javax.swing.JFrame {
             chkAssoc.setVisible(false);
             chkAssoc.setEnabled(false);
         }
+        
+        setResizable(false);
     }
     
     private void initJapanese() {
@@ -110,7 +111,7 @@ public class SettingsForm extends javax.swing.JFrame {
             p.setBackground(new Color(32,34,37));
         
         ArrayList<JLabel> lblArray = new ArrayList();
-        lblArray.addAll(Arrays.asList(lblMisc, lblRendering, jLabel1, jLabel2, jLabel3, jLabel4, jLabel8, jLabel5, jLabel6, lblObjectDatabase, lblUpdateUrl));
+        lblArray.addAll(Arrays.asList(lblMisc, lblRendering, jLabel1, jLabel2, jLabel3, jLabel4, jLabel5, jLabel6, lblObjectDatabase, lblUpdateUrl));
         for(JLabel lbl : lblArray)
             lbl.setForeground(new Color(157,158,161));
         
@@ -160,6 +161,7 @@ public class SettingsForm extends javax.swing.JFrame {
         chkJapanese = new javax.swing.JCheckBox();
         chkAssoc = new javax.swing.JCheckBox();
         chkLittleEndian = new javax.swing.JCheckBox();
+        chkNoShaderRender = new javax.swing.JCheckBox();
         pnlPaths = new javax.swing.JPanel();
         btnModFolder = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
@@ -179,8 +181,6 @@ public class SettingsForm extends javax.swing.JFrame {
         btnPosition = new KeybindButton();
         btnRotation = new KeybindButton();
         btnScale = new KeybindButton();
-        jLabel8 = new javax.swing.JLabel();
-        btnScreenshot = new KeybindButton();
         jPanel2 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -346,26 +346,35 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        chkNoShaderRender.setText("Ignore important rendering functions (for outdated OpenGL)");
+        chkNoShaderRender.setActionCommand("Black and white");
+
         javax.swing.GroupLayout pnlCommonLayout = new javax.swing.GroupLayout(pnlCommon);
         pnlCommon.setLayout(pnlCommonLayout);
         pnlCommonLayout.setHorizontalGroup(
             pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlCommonLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(24, Short.MAX_VALUE))
+               .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlCommonLayout.createSequentialGroup()
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 49, Short.MAX_VALUE))
+                    .addComponent(chkNoShaderRender, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         pnlCommonLayout.setVerticalGroup(
             pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlCommonLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(pnlCommonLayout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+               .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlCommonLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(chkNoShaderRender)
+                .addGap(19, 19, 19))
         );
 
         jTabbedPane2.addTab("General", pnlCommon);
@@ -442,7 +451,7 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addComponent(txtKCLcreateDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel6)
                     .addComponent(btnKCLcreate))
-                .addContainerGap(72, Short.MAX_VALUE))
+                .addContainerGap(116, Short.MAX_VALUE))
         );
 
         jTabbedPane2.addTab("Paths", pnlPaths);
@@ -461,10 +470,6 @@ public class SettingsForm extends javax.swing.JFrame {
 
         btnScale.setText("[not set]");
 
-        jLabel8.setText("Screenshot:");
-
-        btnScreenshot.setText("[not set]");
-
         javax.swing.GroupLayout pnlKeybindsButtonsLayout = new javax.swing.GroupLayout(pnlKeybindsButtons);
         pnlKeybindsButtons.setLayout(pnlKeybindsButtonsLayout);
         pnlKeybindsButtonsLayout.setHorizontalGroup(
@@ -481,14 +486,8 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addComponent(btnRotation)
                     .addComponent(btnScale))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 335, Short.MAX_VALUE)
-                .addGroup(pnlKeybindsButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlKeybindsButtonsLayout.createSequentialGroup()
-                        .addComponent(chkWASD)
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlKeybindsButtonsLayout.createSequentialGroup()
-                        .addComponent(jLabel8)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnScreenshot))))
+                .addComponent(chkWASD)
+                .addContainerGap())
         );
         pnlKeybindsButtonsLayout.setVerticalGroup(
             pnlKeybindsButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -505,9 +504,7 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnlKeybindsButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(btnScale, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8)
-                    .addComponent(btnScreenshot, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnScale, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -525,7 +522,7 @@ public class SettingsForm extends javax.swing.JFrame {
             .addGroup(pnlKeybindsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(pnlKeybindsButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(86, Short.MAX_VALUE))
+                .addContainerGap(107, Short.MAX_VALUE))
         );
 
         jTabbedPane2.addTab("Keybinds", pnlKeybinds);
@@ -547,13 +544,11 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addComponent(lblUpdateUrl, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblUpdateUrl, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 617, Short.MAX_VALUE))
-                    .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addComponent(lblObjectDatabase)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addGap(6, 6, 6))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 560, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(lblObjectDatabase))
+                .addContainerGap())
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addComponent(chkObjectDBUpdate)
                 .addGap(0, 0, Short.MAX_VALUE))
@@ -593,20 +588,20 @@ public class SettingsForm extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 721, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnOk)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnCancel)))
+                .addComponent(btnOk)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnCancel)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 12, Short.MAX_VALUE)
+                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 721, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE)
+               .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 239, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 54, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
                     .addComponent(btnOk))
@@ -644,7 +639,6 @@ public class SettingsForm extends javax.swing.JFrame {
         Settings.keyPos = ((KeybindButton) btnPosition).keybind;
         Settings.keyRot = ((KeybindButton) btnRotation).keybind;
         Settings.keyScl = ((KeybindButton) btnScale).keybind;
-        Settings.keyScrn = ((KeybindButton) btnScreenshot).keybind;
         Settings.useWASD = chkWASD.isSelected();
         
         if(assocUpdate) {
@@ -720,7 +714,6 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JButton btnPosition;
     private javax.swing.JButton btnRotation;
     private javax.swing.JButton btnScale;
-    private javax.swing.JButton btnScreenshot;
     private javax.swing.JButton btnSuperBMD;
     private javax.swing.JCheckBox chkAntiAlias;
     private javax.swing.JCheckBox chkAssoc;
@@ -744,7 +737,6 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
