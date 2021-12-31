@@ -28,6 +28,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
 
 public class SettingsForm extends javax.swing.JFrame {
     public SettingsForm() {
@@ -49,7 +52,6 @@ public class SettingsForm extends javax.swing.JFrame {
         chkRichPresence.setSelected(Settings.richPresence);
         chkAntiAlias.setSelected(Settings.aa);
         txtObjectDBUrl.setCaretPosition(0);
-        chkLittleEndian.setSelected(Settings.littleEndian);
         chkFakeCol.setSelected(Settings.fakeCol);
         chkNoShaderRender.setSelected(Settings.legacy);
         chkJapanese.setSelected(Settings.japanese);
@@ -99,7 +101,7 @@ public class SettingsForm extends javax.swing.JFrame {
         
         ArrayList<JCheckBox> chkArray = new ArrayList();
         chkArray.addAll(Arrays.asList(chkAntiAlias, chkDarkTheme, chkFakeCol, chkFastDrag, chkGameDir, chkJapanese, chkNoShaderRender,
-                chkObjectDBUpdate, chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames, chkAssoc, chkWASD, chkLittleEndian));
+                chkObjectDBUpdate, chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames, chkAssoc, chkWASD));
         for (JCheckBox chk : chkArray){
             chk.setBackground(new Color(32,34,37));
             chk.setForeground(new Color(157,158,161));
@@ -116,10 +118,14 @@ public class SettingsForm extends javax.swing.JFrame {
             lbl.setForeground(new Color(157,158,161));
         
         this.getContentPane().setBackground(new Color(32,34,37));
-        txtObjectDBUrl.setBackground(new Color(177,178,181));
-        txtModFolderDir.setBackground(new Color(177,178,181));
-        txtSuperBMDDir.setBackground(new Color(177,178,181));
-        txtKCLcreateDir.setBackground(new Color(177,178,181));
+        
+        ArrayList<JTextField> txtArray = new ArrayList();
+        txtArray.addAll(Arrays.asList(txtObjectDBUrl, txtModFolderDir, txtSuperBMDDir, txtKCLcreateDir));
+        for(JTextField txt : txtArray)
+        {
+            txt.setBackground(new Color(32,34,37).brighter());
+            txt.setForeground(new Color(157,158,161));
+        }
     }
     
     private void installAssoc() {
@@ -146,12 +152,10 @@ public class SettingsForm extends javax.swing.JFrame {
         pnlCommon = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
         chkFakeCol = new javax.swing.JCheckBox();
-        chkReverseRot = new javax.swing.JCheckBox();
         chkFastDrag = new javax.swing.JCheckBox();
         chkUseShaders = new javax.swing.JCheckBox();
         chkAntiAlias = new javax.swing.JCheckBox();
         lblRendering = new javax.swing.JLabel();
-        chkNoShaderRender = new javax.swing.JCheckBox();
         jPanel1 = new javax.swing.JPanel();
         lblMisc = new javax.swing.JLabel();
         chkDarkTheme = new javax.swing.JCheckBox();
@@ -160,7 +164,7 @@ public class SettingsForm extends javax.swing.JFrame {
         chkFileNames = new javax.swing.JCheckBox();
         chkJapanese = new javax.swing.JCheckBox();
         chkAssoc = new javax.swing.JCheckBox();
-        chkLittleEndian = new javax.swing.JCheckBox();
+        chkReverseRot = new javax.swing.JCheckBox();
         chkNoShaderRender = new javax.swing.JCheckBox();
         pnlPaths = new javax.swing.JPanel();
         btnModFolder = new javax.swing.JButton();
@@ -183,11 +187,10 @@ public class SettingsForm extends javax.swing.JFrame {
         btnScale = new KeybindButton();
         jPanel2 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        txtObjectDBUrl = new javax.swing.JTextPane();
         chkObjectDBUpdate = new javax.swing.JCheckBox();
         lblUpdateUrl = new javax.swing.JLabel();
         lblObjectDatabase = new javax.swing.JLabel();
+        txtObjectDBUrl = new javax.swing.JTextField();
 
         jCheckBox1.setText("jCheckBox1");
 
@@ -212,8 +215,6 @@ public class SettingsForm extends javax.swing.JFrame {
 
         chkFakeCol.setText("Render 'picking' colors (debugging)");
 
-        chkReverseRot.setText("Reverse editor camera rotation");
-
         chkFastDrag.setText("Render wireframes when dragging");
 
         chkUseShaders.setSelected(true);
@@ -225,9 +226,6 @@ public class SettingsForm extends javax.swing.JFrame {
         lblRendering.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblRendering.setText("Rendering");
 
-        chkNoShaderRender.setText("Ignore important rendering functions (for outdated OpenGL)");
-        chkNoShaderRender.setActionCommand("Black and white");
-
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -238,14 +236,12 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGap(6, 6, 6)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(chkReverseRot)
                             .addComponent(chkFakeCol)
                             .addComponent(chkAntiAlias)
                             .addComponent(chkFastDrag)
-                            .addComponent(chkUseShaders)
-                            .addComponent(chkNoShaderRender, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(chkUseShaders)))
                     .addComponent(lblRendering))
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -259,12 +255,8 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkFastDrag)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(chkReverseRot)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkFakeCol)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(chkNoShaderRender)
-                .addGap(23, 23, 23))
+                .addGap(79, 79, 79))
         );
 
         lblMisc.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
@@ -295,13 +287,7 @@ public class SettingsForm extends javax.swing.JFrame {
             }
         });
 
-        chkLittleEndian.setText("Little-endian (NOT WORKING)");
-        chkLittleEndian.setActionCommand("Automatically reopen game folder");
-        chkLittleEndian.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkLittleEndianActionPerformed(evt);
-            }
-        });
+        chkReverseRot.setText("Reverse editor camera rotation");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -315,15 +301,14 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(chkDarkTheme)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(chkJapanese)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(chkAssoc))
-                    .addComponent(chkLittleEndian)
+                        .addComponent(chkJapanese))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(chkRichPresence)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(chkFileNames)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(chkFileNames))
+                    .addComponent(chkAssoc)
+                    .addComponent(chkReverseRot))
+                .addContainerGap(124, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -333,8 +318,7 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(chkDarkTheme)
-                    .addComponent(chkJapanese)
-                    .addComponent(chkAssoc))
+                    .addComponent(chkJapanese))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkGameDir)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -342,7 +326,9 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addComponent(chkRichPresence)
                     .addComponent(chkFileNames))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(chkLittleEndian)
+                .addComponent(chkAssoc)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkReverseRot)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -355,26 +341,25 @@ public class SettingsForm extends javax.swing.JFrame {
             pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlCommonLayout.createSequentialGroup()
                 .addContainerGap()
-               .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlCommonLayout.createSequentialGroup()
+                        .addComponent(chkNoShaderRender, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())
                     .addGroup(pnlCommonLayout.createSequentialGroup()
                         .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 49, Short.MAX_VALUE))
-                    .addComponent(chkNoShaderRender, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         pnlCommonLayout.setVerticalGroup(
             pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlCommonLayout.createSequentialGroup()
-               .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlCommonLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap()
+                .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(chkNoShaderRender)
-                .addGap(19, 19, 19))
+                .addContainerGap())
         );
 
         jTabbedPane2.addTab("General", pnlCommon);
@@ -422,13 +407,13 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addGroup(pnlPathsLayout.createSequentialGroup()
                         .addComponent(jLabel5)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtSuperBMDDir, javax.swing.GroupLayout.DEFAULT_SIZE, 571, Short.MAX_VALUE)
+                        .addComponent(txtSuperBMDDir, javax.swing.GroupLayout.DEFAULT_SIZE, 574, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnSuperBMD))
                     .addGroup(pnlPathsLayout.createSequentialGroup()
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtKCLcreateDir, javax.swing.GroupLayout.DEFAULT_SIZE, 564, Short.MAX_VALUE)
+                        .addComponent(txtKCLcreateDir, javax.swing.GroupLayout.DEFAULT_SIZE, 567, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnKCLcreate)))
                 .addContainerGap())
@@ -485,7 +470,7 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addComponent(btnPosition)
                     .addComponent(btnRotation)
                     .addComponent(btnScale))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 335, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 338, Short.MAX_VALUE)
                 .addComponent(chkWASD)
                 .addContainerGap())
         );
@@ -527,14 +512,18 @@ public class SettingsForm extends javax.swing.JFrame {
 
         jTabbedPane2.addTab("Keybinds", pnlKeybinds);
 
-        txtObjectDBUrl.setEditable(false);
-        jScrollPane1.setViewportView(txtObjectDBUrl);
-
         chkObjectDBUpdate.setText("Update Objectdb");
 
         lblUpdateUrl.setText("Update URL:");
 
+        lblObjectDatabase.setFont(new java.awt.Font("Lexend Deca", 1, 13)); // NOI18N
         lblObjectDatabase.setText("Object Database");
+
+        txtObjectDBUrl.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtObjectDBUrlActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -544,25 +533,26 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addComponent(lblUpdateUrl, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)
+                        .addComponent(lblUpdateUrl, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 560, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(lblObjectDatabase))
+                        .addComponent(txtObjectDBUrl, javax.swing.GroupLayout.PREFERRED_SIZE, 605, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblObjectDatabase)
+                            .addComponent(chkObjectDBUpdate))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addComponent(chkObjectDBUpdate)
-                .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lblObjectDatabase)
-                .addGap(16, 16, 16)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblUpdateUrl, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(15, 15, 15)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblUpdateUrl, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtObjectDBUrl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(12, 12, 12)
                 .addComponent(chkObjectDBUpdate)
                 .addContainerGap(98, Short.MAX_VALUE))
         );
@@ -588,20 +578,21 @@ public class SettingsForm extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnOk)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(btnCancel)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 12, Short.MAX_VALUE)
-                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 721, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnOk)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnCancel)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jTabbedPane2))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-               .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 239, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 54, Short.MAX_VALUE)
+                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 239, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
                     .addComponent(btnOk))
@@ -623,13 +614,15 @@ public class SettingsForm extends javax.swing.JFrame {
         Settings.superBMD_dir = txtSuperBMDDir.getText().replace('\\', '/');
         Settings.KCLcreate_dir = txtKCLcreateDir.getText().replace('\\', '/');
         
+        Settings.objectDB_url = txtObjectDBUrl.getText();
+        Settings.objectDB_update = chkObjectDBUpdate.isSelected();
+        
         Settings.editor_shaders = chkUseShaders.isSelected();
         Settings.editor_fastDrag = chkFastDrag.isSelected();
         Settings.gameDir = chkGameDir.isSelected();
         Settings.dark = chkDarkTheme.isSelected();
         Settings.richPresence = chkRichPresence.isSelected();
         Settings.aa = chkAntiAlias.isSelected();
-        Settings.littleEndian = chkLittleEndian.isSelected();
         Settings.fakeCol = chkFakeCol.isSelected();
         Settings.legacy = chkNoShaderRender.isSelected();
         Settings.japanese = chkJapanese.isSelected();
@@ -698,13 +691,13 @@ public class SettingsForm extends javax.swing.JFrame {
         
     }//GEN-LAST:event_btnKCLcreateActionPerformed
 
-    private void chkLittleEndianActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkLittleEndianActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_chkLittleEndianActionPerformed
-
     private void chkGameDirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkGameDirActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_chkGameDirActionPerformed
+
+    private void txtObjectDBUrlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtObjectDBUrlActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtObjectDBUrlActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;
@@ -723,7 +716,6 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JCheckBox chkFileNames;
     private javax.swing.JCheckBox chkGameDir;
     private javax.swing.JCheckBox chkJapanese;
-    private javax.swing.JCheckBox chkLittleEndian;
     private javax.swing.JCheckBox chkNoShaderRender;
     private javax.swing.JCheckBox chkObjectDBUpdate;
     private javax.swing.JCheckBox chkReverseRot;
@@ -741,7 +733,6 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JLabel lblMisc;
     private javax.swing.JLabel lblObjectDatabase;
@@ -753,7 +744,7 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JPanel pnlPaths;
     private javax.swing.JTextField txtKCLcreateDir;
     private javax.swing.JTextField txtModFolderDir;
-    private javax.swing.JTextPane txtObjectDBUrl;
+    private javax.swing.JTextField txtObjectDBUrl;
     private javax.swing.JTextField txtSuperBMDDir;
     // End of variables declaration//GEN-END:variables
     private boolean assocUpdate = false;
