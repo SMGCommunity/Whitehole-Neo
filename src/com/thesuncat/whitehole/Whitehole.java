@@ -155,16 +155,11 @@ public class Whitehole {
         }
     }
     
-    private static void stopObjectDBThread() {
-        ODB_THREAD.interrupt();
-    }
-    
     /**
      * ObjectDB init thread
      */
     private static final Thread ODB_THREAD = new Thread(() -> {
         ObjectDB.init();
-        stopObjectDBThread();
     }, "ObjectDB Loader");
     
     // Rich presence stuff
