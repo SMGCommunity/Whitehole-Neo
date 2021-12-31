@@ -1,5 +1,5 @@
 /*
-    © 2012 - 2019 - Whitehole Team
+    © 2012 - 2021 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -36,6 +36,8 @@ public class SettingsForm extends javax.swing.JFrame {
             initDarkTheme();
         if(Settings.japanese)
             initJapanese();
+        txtObjectDBUrl.setText(Settings.objectDB_url);
+        chkObjectDBUpdate.setSelected(Settings.objectDB_update);
         
         txtModFolderDir.setText(Settings.modFolder_dir);
         txtSuperBMDDir.setText(Settings.superBMD_dir);
@@ -46,6 +48,7 @@ public class SettingsForm extends javax.swing.JFrame {
         chkDarkTheme.setSelected(Settings.dark);
         chkRichPresence.setSelected(Settings.richPresence);
         chkAntiAlias.setSelected(Settings.aa);
+        txtObjectDBUrl.setCaretPosition(0);
         chkLittleEndian.setSelected(Settings.littleEndian);
         chkFakeCol.setSelected(Settings.fakeCol);
         chkNoShaderRender.setSelected(Settings.legacy);
@@ -74,6 +77,9 @@ public class SettingsForm extends javax.swing.JFrame {
         chkUseShaders.setText("3Dレンダリングにシェーダーを使用する(推奨)");
         chkFastDrag.setText("右クリック&ドラックでワイヤーフレームで描写");
         chkFakeCol.setText("すべてが青でレンダリングされ軽量化できます(低スペック向け)");
+        lblObjectDatabase.setFont(chkUseShaders.getFont());
+        lblObjectDatabase.setText("オブジェクトデータベース");
+        lblUpdateUrl.setText("更新用URL");
         lblMisc.setFont(chkAntiAlias.getFont());
         lblMisc.setText("その他");
         chkDarkTheme.setText("ダークテーマ");
@@ -92,23 +98,24 @@ public class SettingsForm extends javax.swing.JFrame {
         
         ArrayList<JCheckBox> chkArray = new ArrayList();
         chkArray.addAll(Arrays.asList(chkAntiAlias, chkDarkTheme, chkFakeCol, chkFastDrag, chkGameDir, chkJapanese, chkNoShaderRender,
-                chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames, chkAssoc, chkWASD, chkLittleEndian));
+                chkObjectDBUpdate, chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames, chkAssoc, chkWASD, chkLittleEndian));
         for (JCheckBox chk : chkArray){
             chk.setBackground(new Color(32,34,37));
             chk.setForeground(new Color(157,158,161));
         }
         
         ArrayList<JPanel> pnlArray = new ArrayList();
-        pnlArray.addAll(Arrays.asList(jPanel1, jPanel3, pnlCommon, pnlKeybinds, pnlKeybindsButtons, pnlPaths));
+        pnlArray.addAll(Arrays.asList(jPanel1, jPanel3, pnlCommon, pnlKeybinds, pnlKeybindsButtons, pnlPaths, jPanel4));
         for(JPanel p : pnlArray)
             p.setBackground(new Color(32,34,37));
         
         ArrayList<JLabel> lblArray = new ArrayList();
-        lblArray.addAll(Arrays.asList(lblMisc, lblRendering, jLabel1, jLabel2, jLabel3, jLabel4, jLabel8, jLabel5, jLabel6));
+        lblArray.addAll(Arrays.asList(lblMisc, lblRendering, jLabel1, jLabel2, jLabel3, jLabel4, jLabel8, jLabel5, jLabel6, lblObjectDatabase, lblUpdateUrl));
         for(JLabel lbl : lblArray)
             lbl.setForeground(new Color(157,158,161));
         
         this.getContentPane().setBackground(new Color(32,34,37));
+        txtObjectDBUrl.setBackground(new Color(177,178,181));
         txtModFolderDir.setBackground(new Color(177,178,181));
         txtSuperBMDDir.setBackground(new Color(177,178,181));
         txtKCLcreateDir.setBackground(new Color(177,178,181));
@@ -143,6 +150,7 @@ public class SettingsForm extends javax.swing.JFrame {
         chkUseShaders = new javax.swing.JCheckBox();
         chkAntiAlias = new javax.swing.JCheckBox();
         lblRendering = new javax.swing.JLabel();
+        chkNoShaderRender = new javax.swing.JCheckBox();
         jPanel1 = new javax.swing.JPanel();
         lblMisc = new javax.swing.JLabel();
         chkDarkTheme = new javax.swing.JCheckBox();
@@ -151,7 +159,6 @@ public class SettingsForm extends javax.swing.JFrame {
         chkFileNames = new javax.swing.JCheckBox();
         chkJapanese = new javax.swing.JCheckBox();
         chkAssoc = new javax.swing.JCheckBox();
-        chkNoShaderRender = new javax.swing.JCheckBox();
         chkLittleEndian = new javax.swing.JCheckBox();
         pnlPaths = new javax.swing.JPanel();
         btnModFolder = new javax.swing.JButton();
@@ -174,6 +181,13 @@ public class SettingsForm extends javax.swing.JFrame {
         btnScale = new KeybindButton();
         jLabel8 = new javax.swing.JLabel();
         btnScreenshot = new KeybindButton();
+        jPanel2 = new javax.swing.JPanel();
+        jPanel4 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtObjectDBUrl = new javax.swing.JTextPane();
+        chkObjectDBUpdate = new javax.swing.JCheckBox();
+        lblUpdateUrl = new javax.swing.JLabel();
+        lblObjectDatabase = new javax.swing.JLabel();
 
         jCheckBox1.setText("jCheckBox1");
 
@@ -211,6 +225,9 @@ public class SettingsForm extends javax.swing.JFrame {
         lblRendering.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblRendering.setText("Rendering");
 
+        chkNoShaderRender.setText("Ignore important rendering functions (for outdated OpenGL)");
+        chkNoShaderRender.setActionCommand("Black and white");
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -225,7 +242,8 @@ public class SettingsForm extends javax.swing.JFrame {
                             .addComponent(chkFakeCol)
                             .addComponent(chkAntiAlias)
                             .addComponent(chkFastDrag)
-                            .addComponent(chkUseShaders)))
+                            .addComponent(chkUseShaders)
+                            .addComponent(chkNoShaderRender)))
                     .addComponent(lblRendering))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -244,7 +262,9 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addComponent(chkReverseRot)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkFakeCol)
-                .addGap(47, 47, 47))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkNoShaderRender)
+                .addGap(21, 21, 21))
         );
 
         lblMisc.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
@@ -275,9 +295,6 @@ public class SettingsForm extends javax.swing.JFrame {
             }
         });
 
-        chkNoShaderRender.setText("Ignore important rendering functions (for outdated OpenGL)");
-        chkNoShaderRender.setActionCommand("Black and white");
-
         chkLittleEndian.setText("Little-endian (NOT WORKING)");
         chkLittleEndian.setActionCommand("Automatically reopen game folder");
         chkLittleEndian.addActionListener(new java.awt.event.ActionListener() {
@@ -301,12 +318,11 @@ public class SettingsForm extends javax.swing.JFrame {
                         .addComponent(chkJapanese)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(chkAssoc))
+                    .addComponent(chkLittleEndian)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(chkRichPresence)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(chkFileNames))
-                    .addComponent(chkLittleEndian)
-                    .addComponent(chkNoShaderRender))
+                        .addComponent(chkFileNames)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -326,10 +342,8 @@ public class SettingsForm extends javax.swing.JFrame {
                     .addComponent(chkRichPresence)
                     .addComponent(chkFileNames))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(chkNoShaderRender)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(chkLittleEndian)
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout pnlCommonLayout = new javax.swing.GroupLayout(pnlCommon);
@@ -341,15 +355,15 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(36, Short.MAX_VALUE))
         );
         pnlCommonLayout.setVerticalGroup(
             pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlCommonLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -515,6 +529,63 @@ public class SettingsForm extends javax.swing.JFrame {
 
         jTabbedPane2.addTab("Keybinds", pnlKeybinds);
 
+        txtObjectDBUrl.setEditable(false);
+        jScrollPane1.setViewportView(txtObjectDBUrl);
+
+        chkObjectDBUpdate.setText("Update Objectdb");
+
+        lblUpdateUrl.setText("Update URL:");
+
+        lblObjectDatabase.setText("Object Database");
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(lblUpdateUrl, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 617, Short.MAX_VALUE))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(lblObjectDatabase)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addGap(6, 6, 6))
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addComponent(chkObjectDBUpdate)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(lblObjectDatabase)
+                .addGap(16, 16, 16)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblUpdateUrl, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(chkObjectDBUpdate)
+                .addContainerGap(98, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        jTabbedPane2.addTab("Object Database", jPanel2);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -534,7 +605,7 @@ public class SettingsForm extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
                     .addComponent(btnOk))
@@ -660,6 +731,7 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JCheckBox chkJapanese;
     private javax.swing.JCheckBox chkLittleEndian;
     private javax.swing.JCheckBox chkNoShaderRender;
+    private javax.swing.JCheckBox chkObjectDBUpdate;
     private javax.swing.JCheckBox chkReverseRot;
     private javax.swing.JCheckBox chkRichPresence;
     private javax.swing.JCheckBox chkUseShaders;
@@ -673,16 +745,22 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JLabel lblMisc;
+    private javax.swing.JLabel lblObjectDatabase;
     private javax.swing.JLabel lblRendering;
+    private javax.swing.JLabel lblUpdateUrl;
     private javax.swing.JPanel pnlCommon;
     private javax.swing.JPanel pnlKeybinds;
     private javax.swing.JPanel pnlKeybindsButtons;
     private javax.swing.JPanel pnlPaths;
     private javax.swing.JTextField txtKCLcreateDir;
     private javax.swing.JTextField txtModFolderDir;
+    private javax.swing.JTextPane txtObjectDBUrl;
     private javax.swing.JTextField txtSuperBMDDir;
     // End of variables declaration//GEN-END:variables
     private boolean assocUpdate = false;
