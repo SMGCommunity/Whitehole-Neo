@@ -1,14 +1,11 @@
 /*
-    © 2012 - 2019 - Whitehole Team
-
+    © 2012 - 2022 - Whitehole Team
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
     Software Foundation, either version 3 of the License, or (at your option)
     any later version.
-
     Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
     WARRANTY; See the GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License along 
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
@@ -103,8 +100,26 @@ public class BcsvEditorForm extends javax.swing.JFrame
         ArrayList<JMenu> mnuArray = new ArrayList<>();
         ArrayList<JMenuItem> subArray = new ArrayList<>();
         btnArray.addAll(Arrays.asList(btnAddRow, btnMoveUp, btnMoveDown, btnClear, btnDeleteRow, btnDuplicateRow, btnExport, btnOpen, btnSave)); 
-        mnuArray.addAll(Arrays.asList(mnuAudio,mnuEffects,mnuFile,mnuGalaxy,mnuNPCData,mnuObjects,mnuOpen,mnuOther,mnuSystem,mnuUseResource,mnuZone));
-        subArray.addAll(Arrays.asList(subActionSound,subAstroNamePlateData,subAutoEffectList,subBgmParam,subCameraParam,subCaretaker,subChangeSceneListInfo,subClose,subExport,subGalaxyDataTable,subGalaxyInfo,subGalaxyWorldOrderList,subHeapSizeExcept,subHoneyBee,subKinopio,subKinopioBank,subLightData,subLightDataZone,subMarioFaceShipEventCastTable,subMarioFaceShipEventDataTable,subMultiBgmInfo,subObjName,subOpen,subParticleNames,subPeach,subPenguinRacer,subPenguinRacerLeader,subPlanetMapData,subProductMapObjData,subSave,subScenarioBgmInfo,subScenarioData,subSoundIdToInstList,subStageBgmInfo,subStageInfo,subTicoComet,subTicoFat,subTicoFatCoin,subTicoFatStarPiece,subTicoGalaxy,subTicoShop,subTicoShopDice,subUR1,subUR2,subUR3,subURarc1,subURarc2,subURarc3,subURarcCommon,subURcommon,subURsound1,subURsound2,subURsound3,subURsoundCommon,subWorldMapCamera,subWorldMapHeapGalaxy,subWorldMapHeapResource,subZoneInfo,subZoneList));
+        mnuArray.addAll(Arrays.asList(mnuAudio,mnuEffects,mnuFile,mnuGalaxy,mnuNPCData,mnuObjects,mnuOpen,mnuOther,mnuSystem,mnuUseResource,mnuZone,
+        mnuSituational,
+        mnuExtra,
+        mnuSMG2PT
+        ));
+
+        subArray.addAll(Arrays.asList(subActionSound,subAstroNamePlateData,subAutoEffectList,subBgmParam,subCameraParam,subCaretaker,subChangeSceneListInfo,subClose,subExport,subGalaxyDataTable,subGalaxyInfo,subGalaxyWorldOrderList,subHeapSizeExcept,subHoneyBee,subKinopio,subKinopioBank,subLightData,subLightDataZone,subMarioFaceShipEventCastTable,subMarioFaceShipEventDataTable,subMultiBgmInfo,subObjName,subOpen,subParticleNames,subPeach,subPenguinRacer,subPenguinRacerLeader,subPlanetMapData,subProductMapObjData,subSave,subScenarioBgmInfo,subScenarioData,subSoundIdToInstList,subStageBgmInfo,subStageInfo,subTicoComet,subTicoFat,subTicoFatCoin,subTicoFatStarPiece,subTicoGalaxy,subTicoShop,subTicoShopDice,subUR1,subUR2,subUR3,subURarc1,subURarc2,subURarc3,subURarcCommon,subURcommon,subURsound1,subURsound2,subURsound3,subURsoundCommon,subWorldMapCamera,subWorldMapHeapGalaxy,subWorldMapHeapResource,subZoneInfo,subZoneList,
+        subMsgTbl,
+        subSMG1StageObj,
+        subSMG1Demo,
+        subInternalBCSVFile,
+        subActorInfo,
+        subSMG2StageObj,
+        subSMG2Demo,
+
+        subStageEventDataTable,
+        subWarpAreaStageTable
+
+
+        ));
         menubar.setBackground(new Color(47,49,54));
         menubar.setBorder(null);
         menubar.setOpaque(true);
@@ -205,6 +220,19 @@ public class BcsvEditorForm extends javax.swing.JFrame
             subMessageTbl.setText("メッセージTBL");
             btnMoveUp.setText("上に移動");
             btnMoveDown.setText("下に移動");
+            mnuSituational.setText("Sorry, don't know Japanese...");
+            subInternalBCSVFile.setText("Sorry, don't know Japanese...");
+            mnuExtra.setText("Sorry, don't know Japanese...");
+            subMsgTbl.setText("Sorry, don't know Japanese...");
+            subSMG1StageObj.setText("Sorry, don't know Japanese...");
+            subSMG2StageObj.setText("Sorry, don't know Japanese...");
+            subSMG1Demo.setText("Sorry, don't know Japanese...");
+            subSMG2Demo.setText("Sorry, don't know Japanese...");
+            btnAddField.setText("Sorry, don't know Japanese...");
+            btnDeleteField.setText("Sorry, don't know Japanese...");
+            subActorInfo.setText("Sorry, don't know Japanese...");
+            subStageEventDataTable.setText("Sorry, don't know Japanese...");
+            subWarpAreaStageTable.setText("Sorry, don't know Japanese...");
 
     }
     
@@ -361,12 +389,47 @@ public class BcsvEditorForm extends javax.swing.JFrame
 	catch (IOException e) {}
     }
 
-    private void enterZoneName() {
-        String s = (String)JOptionPane.showInputDialog(this,
-                    "Enter the name of the stage:",
-                    Whitehole.NAME,JOptionPane.PLAIN_MESSAGE,null,null,null);
-        zoneName = s;
+    private void showTextBoxWithMsg(String textid) {
+        switch (textid) {
+        case "Stage":
+        String stage = (String)JOptionPane.showInputDialog(this, "Enter the name of the stage:", Whitehole.NAME,JOptionPane.PLAIN_MESSAGE,null,null,null);
+        zoneName = stage;
+        break;
+        case "Arc":
+        String arc = (String)JOptionPane.showInputDialog(this, "Enter the name of the arc:", Whitehole.NAME,JOptionPane.PLAIN_MESSAGE,null,null,null);
+        internalArcName = arc;
+        break;
+        case "DemoArc":
+        String demoarc = (String)JOptionPane.showInputDialog(this, "Enter the name of the demo arc:", Whitehole.NAME,JOptionPane.PLAIN_MESSAGE,null,null,null);
+        demoArcName = demoarc;
+        break;
+        case "DemoName":
+        String demoname = (String)JOptionPane.showInputDialog(this, "Enter the name of the demo name:", Whitehole.NAME,JOptionPane.PLAIN_MESSAGE,null,null,null);
+        demoName = demoname;
+        break;
+        case "DemoAction":
+        String demoaction = (String)JOptionPane.showInputDialog(this, "Enter the name of the demo action:", Whitehole.NAME,JOptionPane.PLAIN_MESSAGE,null,null,null);
+        demoActionName = demoaction;
+        break;
+        case "Dome":
+        String dome = (String)JOptionPane.showInputDialog(this, "Enter the number of the dome:", Whitehole.NAME,JOptionPane.PLAIN_MESSAGE,null,null,null);
+        domeNum = dome;
+        break;
+        case "NewField":
+        String newfield = (String)JOptionPane.showInputDialog(this, "Enter the name of the new field. This will trigger an autosave.", Whitehole.NAME,JOptionPane.PLAIN_MESSAGE,null,null,null);
+        newFieldHash = newfield;
+        break;
+        case "ObjectName":
+        String objname = (String)JOptionPane.showInputDialog(this, "Enter the name of the object:", Whitehole.NAME,JOptionPane.PLAIN_MESSAGE,null,null,null);
+        ObjectName = objname;
+        break;
+        case "ActorInfoName":
+        String actorinfname = (String)JOptionPane.showInputDialog(this, "Enter the name of the ActorInfo bcsv:", Whitehole.NAME,JOptionPane.PLAIN_MESSAGE,null,null,null);
+        ActorInfoName = actorinfname;
+        break;
+
     }
+}
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -474,6 +537,26 @@ public class BcsvEditorForm extends javax.swing.JFrame
         subLightData = new javax.swing.JMenuItem();
         subWorldMapCamera = new javax.swing.JMenuItem();
 
+        //SMG1
+        mnuSituational = new javax.swing.JMenu();
+        subMsgTbl = new javax.swing.JMenuItem();
+        subSMG1StageObj = new javax.swing.JMenuItem();
+        subSMG1Demo = new javax.swing.JMenuItem();
+        subInternalBCSVFile = new javax.swing.JMenuItem();
+        subActorInfo = new javax.swing.JMenuItem();
+
+        //SMG2
+        subSMG2StageObj = new javax.swing.JMenuItem();
+        subSMG2Demo = new javax.swing.JMenuItem();
+
+        //SMG2PT
+        mnuSMG2PT = new javax.swing.JMenu();
+        subStageEventDataTable = new javax.swing.JMenuItem();
+        subWarpAreaStageTable = new javax.swing.JMenuItem();
+
+        //Both
+        mnuExtra = new javax.swing.JMenu();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("BCSV editor");
         setIconImage(Whitehole.ICON);
@@ -573,11 +656,11 @@ public class BcsvEditorForm extends javax.swing.JFrame
         btnMoveUp.setFocusable(false);
         btnMoveUp.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnMoveUp.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnMoveUp.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnMoveUpMouseClicked(evt);
-            }
-        });
+      //  btnMoveUp.addMouseListener(new java.awt.event.MouseAdapter() {
+       //     public void mouseClicked(java.awt.event.MouseEvent evt) {
+       //         btnMoveUpMouseClicked(evt);
+        //    }
+        //}); commented out because nb didn't like it
         jToolBar3.add(btnMoveUp);
         jToolBar3.add(spr8);
 
@@ -1153,6 +1236,91 @@ public class BcsvEditorForm extends javax.swing.JFrame
 
         setJMenuBar(menubar);
 
+        mnuOpen.add(mnuSituational);
+        mnuOpen.add(mnuExtra);
+
+        mnuOpen.add(mnuSMG2PT);
+
+        mnuSituational.add(subInternalBCSVFile);
+
+        mnuExtra.add(subMsgTbl);
+        mnuExtra.add(subSMG1StageObj);
+        mnuExtra.add(subSMG1Demo);
+        mnuExtra.add(subSMG2StageObj);
+        mnuExtra.add(subSMG2Demo);
+        mnuObjects.add(subActorInfo);
+
+        mnuSMG2PT.add(subStageEventDataTable);
+        mnuSMG2PT.add(subWarpAreaStageTable);
+
+        mnuSituational.setText("Situational");
+        mnuExtra.setText("Extra");
+
+        mnuSMG2PT.setText("SMG2PT");
+
+        subMsgTbl.setText("Message ID Table");
+        subMsgTbl.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subMsgTblActionPerformed(evt);
+            }
+        });
+
+        subSMG1StageObj.setText("SMG1 Zone Position List");
+        subSMG1StageObj.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subSMG1StageObjActionPerformed(evt);
+            }
+        });
+
+        subSMG2StageObj.setText("SMG2 Zone Position List");
+        subSMG2StageObj.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subSMG2StageObjActionPerformed(evt);
+            }
+        });
+
+        subInternalBCSVFile.setText("Internal BCSV File");
+        subInternalBCSVFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subInternalBCSVFileActionPerformed(evt);
+            }
+        });
+
+        subSMG1Demo.setText("SMG1 Demo Sheets");
+        subSMG1Demo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subSMG1DemoActionPerformed(evt);
+            }
+        });
+
+        subSMG2Demo.setText("SMG2 Galaxy Demo Sheets");
+        subSMG2Demo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subSMG2DemoActionPerformed(evt);
+            }
+        });
+
+        subActorInfo.setText("Object Actor Info");
+        subActorInfo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subActorInfoActionPerformed(evt);
+            }
+        });
+
+        subStageEventDataTable.setText("Stage Event Data Table");
+        subStageEventDataTable.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subStageEventDataTableActionPerformed(evt);
+            }
+        });
+
+        subWarpAreaStageTable.setText("Warp Area Stage Table");
+        subWarpAreaStageTable.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subWarpAreaStageTableActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -1493,7 +1661,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_btnSaveActionPerformed
 
     private void subScenarioDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subScenarioDataActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Scenario.arc");
             tbFileName.setText("/" + zoneName + "Scenario/ScenarioData.bcsv");
@@ -1502,7 +1670,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subScenarioDataActionPerformed
 
     private void subGalaxyInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subGalaxyInfoActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Scenario.arc");
             tbFileName.setText("/" + zoneName + "Scenario/GalaxyInfo.bcsv");
@@ -1511,7 +1679,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subGalaxyInfoActionPerformed
 
     private void subZoneListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subZoneListActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "Scenario.arc");
             tbFileName.setText("/" + zoneName + "Scenario/ZoneList.bcsv");
@@ -1520,7 +1688,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subZoneListActionPerformed
 
     private void subZoneInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subZoneInfoActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "ZoneInfo.arc");
             tbFileName.setText("/Stage/csv/InStageFlagNameTable.bcsv");
@@ -1529,7 +1697,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subZoneInfoActionPerformed
 
     private void subCameraParamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subCameraParamActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             if (Whitehole.gameType == 1)
                 tbArchiveName.setText("/StageData/" + zoneName + ".arc");
@@ -1541,7 +1709,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subCameraParamActionPerformed
 
     private void subLightDataZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subLightDataZoneActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             if (Whitehole.gameType == 1) {
                 tbArchiveName.setText("/ObjectData/LightData.arc");
@@ -1556,7 +1724,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subLightDataZoneActionPerformed
 
     private void subStageInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subStageInfoActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             if (Whitehole.gameType == 1)
                 tbArchiveName.setText("/StageData/" + zoneName + ".arc");
@@ -1569,7 +1737,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subStageInfoActionPerformed
 
     private void subChangeSceneListInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subChangeSceneListInfoActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             if (Whitehole.gameType == 1)
                 tbArchiveName.setText("/StageData/" + zoneName + ".arc");
@@ -1582,7 +1750,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subChangeSceneListInfoActionPerformed
 
     private void subURcommonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURcommonActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/common.bcsv");
@@ -1591,7 +1759,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subURcommonActionPerformed
 
     private void subUR1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subUR1ActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/scenario_1.bcsv");
@@ -1600,7 +1768,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subUR1ActionPerformed
 
     private void subUR2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subUR2ActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/scenario_2.bcsv");
@@ -1609,7 +1777,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subUR2ActionPerformed
 
     private void subUR3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subUR3ActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/scenario_3.bcsv");
@@ -1618,7 +1786,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subUR3ActionPerformed
 
     private void subURarcCommonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURarcCommonActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/wave_arc_common.bcsv");
@@ -1627,7 +1795,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subURarcCommonActionPerformed
 
     private void subURarc1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURarc1ActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/wave_arc_scenario_1.bcsv");
@@ -1636,7 +1804,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subURarc1ActionPerformed
 
     private void subURarc2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURarc2ActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/wave_arc_scenario_2.bcsv");
@@ -1645,7 +1813,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subURarc2ActionPerformed
 
     private void subURarc3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURarc3ActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/wave_arc_scenario_3.bcsv");
@@ -1654,7 +1822,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subURarc3ActionPerformed
 
     private void subURsoundCommonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURsoundCommonActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/sound_common.bcsv");
@@ -1663,7 +1831,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subURsoundCommonActionPerformed
 
     private void subURsound1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURsound1ActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/sound_scenario_1.bcsv");
@@ -1672,7 +1840,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subURsound1ActionPerformed
 
     private void subURsound2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURsound2ActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/sound_scenario_2.bcsv");
@@ -1681,7 +1849,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_subURsound2ActionPerformed
 
     private void subURsound3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subURsound3ActionPerformed
-        enterZoneName();
+        showTextBoxWithMsg("Stage");
         if (!zoneName.isEmpty()) {
             tbArchiveName.setText("/StageData/" + zoneName + "/" + zoneName + "UseResource.arc");
             tbFileName.setText("/" + zoneName + "Stage/csv/sound_scenario_3.bcsv");
@@ -1689,25 +1857,91 @@ public class BcsvEditorForm extends javax.swing.JFrame
         }
     }//GEN-LAST:event_subURsound3ActionPerformed
 
-    private void subMessageTblActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subMessageTblActionPerformed
+    private void subMsgTblActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subMsgTblActionPerformed
         tbArchiveName.setText("/UsEnglish/MessageData/Message.arc");
         tbFileName.setText("/Message.arc/messageid.tbl");
         bcsvOpen();
-    }//GEN-LAST:event_subMessageTblActionPerformed
+    }//GEN-LAST:event_subMsgTblActionPerformed
 
-    private void btnMoveUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MoveUpActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_MoveUpActionPerformed
+    private void subSMG1StageObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subSMG1StageObjActionPerformed
+        showTextBoxWithMsg("Stage");
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName + ".arc");
+            tbFileName.setText("/" + zoneName + "Stage/jmp/placement/common/stageobjinfo");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subSMG1StageObjActionPerformed
 
-    private void btnMoveUpMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnMoveUpMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnMoveUpMouseClicked
+
+    private void subSMG2StageObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subStageObjInfoSMG2ActionPerformed
+        showTextBoxWithMsg("Stage");
+        if (!zoneName.isEmpty()) {
+            tbArchiveName.setText("/StageData/" + zoneName +"/" + zoneName + "Map.arc");
+            tbFileName.setText("/" + zoneName + "Stage/jmp/placement/common/stageobjinfo");
+            bcsvOpen();
+        }
+    }//GEN-LAST:event_subStageObjInfoSMG2ActionPerformed
+
+    private void subInternalBCSVFileActionPerformed(java.awt.event.ActionEvent evt) {                                                
+        showTextBoxWithMsg("Arc");
+        if (!internalArcName.isEmpty()) {
+             tbArchiveName.setText("/"  + internalArcName + ".arc");
+             tbFileName.setText("/" + internalArcName + "/" + internalArcName + ".bin");
+             bcsvOpen();
+        }
+    }                                                   
+
+    private void subSMG1DemoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subSMG1DemoActionPerformed
+        showTextBoxWithMsg("DemoName");
+        showTextBoxWithMsg("DemoAction");
+        if (!demoArcName.isEmpty()) {
+             tbArchiveName.setText("/ObjectData/DemoSheet.arc");
+             tbFileName.setText("/DemoSheet.arc/" + demoName + "/" + demoActionName + ".bcsv");
+             bcsvOpen();
+        }
+    }//GEN-LAST:event_subSMG1DemoActionPerformed
+
+    private void subSMG2DemoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subSMG2DemoActionPerformed
+        showTextBoxWithMsg("DemoArc");
+        showTextBoxWithMsg("DemoName");
+        showTextBoxWithMsg("DemoAction");
+        if (!demoArcName.isEmpty()) {
+             tbArchiveName.setText("/StageData/"  + demoArcName + "/" + demoArcName + "Demo.arc");
+             tbFileName.setText("/" + demoArcName + "/Demo" + demoName + "/Demo" + demoName + demoActionName + ".bcsv");
+             bcsvOpen();
+        }
+    }//GEN-LAST:event_subSMG2DemoActionPerformed
+
+
+
+
+    private void subActorInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subActorInfoActionPerformed
+            showTextBoxWithMsg("ObjectName");
+            showTextBoxWithMsg("ActorInfoName");
+             tbArchiveName.setText("/ObjectData/" + ObjectName + ".arc");
+             tbFileName.setText("/" + ObjectName + ".arc/ActorInfo/" + ActorInfoName + ".bcsv");
+             bcsvOpen();
+    }//GEN-LAST:event_subActorInfoActionPerformed
+
+
+    private void subStageEventDataTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subStageEventDataTableActionPerformed
+             tbArchiveName.setText("/SystemData/PTSystemData.arc");
+             tbFileName.setText("/PTSystemData.arc/System/StageEventDataTable.bcsv");
+             bcsvOpen();
+    }//GEN-LAST:event_subStageEventDataTableActionPerformed
+
+    private void subWarpAreaStageTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subWarpAreaStageTableActionPerformed
+             tbArchiveName.setText("/SystemData/PTSystemData.arc");
+             tbFileName.setText("/PTSystemData.arc/System/WarpAreaStageTable.bcsv");
+             bcsvOpen();
+    }//GEN-LAST:event_subWarpAreaStageTableActionPerformed
 
     private FilesystemBase archive;
     private BcsvFile bcsv;
     private String zoneName;
     private String fileArchive;
     private String fileBcsv;
+    public String a;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public javax.swing.JButton btnAddRow;
@@ -1715,10 +1949,10 @@ public class BcsvEditorForm extends javax.swing.JFrame
     private javax.swing.JButton btnDeleteRow;
     private javax.swing.JButton btnDuplicateRow;
     private javax.swing.JButton btnExport;
-    private javax.swing.JButton btnMoveDown;
-    private javax.swing.JButton btnMoveUp;
     private javax.swing.JButton btnOpen;
     private javax.swing.JButton btnSave;
+    private javax.swing.JButton btnAddField;
+    private javax.swing.JButton btnDeleteField;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar3;
@@ -1803,9 +2037,47 @@ public class BcsvEditorForm extends javax.swing.JFrame
     private javax.swing.JMenuItem subWorldMapHeapResource;
     private javax.swing.JMenuItem subZoneInfo;
     private javax.swing.JMenuItem subZoneList;
+    private javax.swing.JMenu mnuSituational; //
+    private javax.swing.JMenu mnuExtra;
+    private javax.swing.JMenu mnuSMG2PT;
+    private javax.swing.JMenuItem subMsgTbl;//
+    private javax.swing.JMenuItem subSMG1StageObj;
+    private javax.swing.JMenuItem subSMG1Demo;
+    private javax.swing.JMenuItem subInternalBCSVFile;
+    private javax.swing.JMenuItem subActorInfo;
+    private javax.swing.JMenuItem subSMG2StageObj;
+    private javax.swing.JMenuItem subSMG2Demo;
+    private javax.swing.JMenuItem subStageEventDataTable;
+    private javax.swing.JMenuItem subWarpAreaStageTable;
+    private String internalArcName;//
+    private String demoArcName;
+    private String demoName;
+    private String demoActionName;
+    private String domeNum;
+    private String newFieldHash;//
+    private String newFieldTypeStr;
+    private String removeFieldHash;
+    private String InputString;
+    private String resultmsg;
+    private String textid;
+    private String ObjectName;
+    private String ActorInfoName;
+    private int newFieldType;
+    private int newFieldTypeID;
     public javax.swing.JTextField tbArchiveName;
     public javax.swing.JTextField tbFileName;
-    public javax.swing.JTable tblBcsv;
+    public javax.swing.JTable tblBcsv;//
+    public javax.swing.JTextField DemoArcName;
+    public javax.swing.JTextField DemoName;
+    public javax.swing.JTextField DemoActionName;
+    public javax.swing.JTextField CometSchedulerDomeNum;
+    public javax.swing.JTextField enterNewFieldHash;
+    public javax.swing.JTextField enterNewFieldType;
+    public javax.swing.JTextField enterNewFieldID;
+    public javax.swing.JTextField enterRemoveFieldHash;
+    public javax.swing.JTextField showTextBoxWithMsg;
+    private javax.swing.JButton btnMoveDown;
+    private javax.swing.JButton btnMoveUp;
     // End of variables declaration//GEN-END:variables
 
     private static class subMessageTbl {
