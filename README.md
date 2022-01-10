@@ -1,4 +1,4 @@
-[![Java CI](https://github.com/RealTheSunCat/Whitehole/actions/workflows/ant.yml/badge.svg)](https://github.com/RealTheSunCat/Whitehole/actions/workflows/ant.yml)
+[![Java CI](https://github.com/RealTheSunCat/Whitehole/actions/workflows/ant.yml/badge.svg)](https://github.com/RealTheSunCat/Whitehole/actions/workflows/ant.yml) ![Issues](https://img.shields.io/github/issues/RealTheSunCat/Whitehole?color=0088ff) ![Pull Requests](https://img.shields.io/github/issues-pr/RealTheSunCat/Whitehole?color=0088ff)
 
 # Whitehole
 Whitehole is a level editor for Super Mario Galaxy 1 and 2.  
