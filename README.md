@@ -26,7 +26,7 @@ If Galaxies continue to not open, I have no idea ask TheSunCat or Lord-Gigantucu
 
 **Servers:**
 - [Under Mario's Hat](https://discord.gg/TudSfUjHcW)
-- [Luma's Workshop](https://discord.gg/k7ZKzSDsVq) (Ionic is banned here)
+- [Luma's Workshop](https://discord.gg/k7ZKzSDsVq)
 - [Kokiri Village](https://discord.gg/NTyb4sy)
 - [Troller's Paradise](https://discord.gg/r8h5vAm2JC)
 
