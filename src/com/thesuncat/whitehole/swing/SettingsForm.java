@@ -52,6 +52,7 @@ public class SettingsForm extends javax.swing.JFrame {
         txtObjectDBUrl.setCaretPosition(0);
         chkFakeCol.setSelected(Settings.fakeCol);
         chkNoShaderRender.setSelected(Settings.legacy);
+        chkOldShaders.setSelected(Settings.shader);
         chkJapanese.setSelected(Settings.japanese);
         chkReverseRot.setSelected(Settings.reverseRot);
         chkFileNames.setSelected(Settings.fileNames);
@@ -87,6 +88,7 @@ public class SettingsForm extends javax.swing.JFrame {
         chkGameDir.setText("起動時に前回開いたファイルを自動的に開く");
         chkRichPresence.setText("Discord Rich Presence(Discord側の設定が必要)");
         chkNoShaderRender.setText("OpenGLが古い場合はこの設定にチェックを入れてください。（2.0以下は動作未確認）");
+        chkOldShaders.setText("古いシェーダを使用する");
         chkJapanese.setText("日本語化");
         btnOk.setText("保存");
         btnCancel.setText("キャンセル");
@@ -99,7 +101,7 @@ public class SettingsForm extends javax.swing.JFrame {
         
         ArrayList<JCheckBox> chkArray = new ArrayList();
         chkArray.addAll(Arrays.asList(chkAntiAlias, chkDarkTheme, chkFakeCol, chkFastDrag, chkGameDir, chkJapanese, chkNoShaderRender,
-                chkObjectDBUpdate, chkRichPresence, chkUseShaders, chkReverseRot, chkFileNames, chkAssoc, chkWASD));
+                chkObjectDBUpdate, chkRichPresence, chkUseShaders, chkOldShaders, chkReverseRot, chkFileNames, chkAssoc, chkWASD));
         for (JCheckBox chk : chkArray){
             chk.setBackground(new Color(32,34,37));
             chk.setForeground(new Color(157,158,161));
@@ -154,6 +156,7 @@ public class SettingsForm extends javax.swing.JFrame {
         chkUseShaders = new javax.swing.JCheckBox();
         chkAntiAlias = new javax.swing.JCheckBox();
         lblRendering = new javax.swing.JLabel();
+        chkOldShaders = new javax.swing.JCheckBox();
         jPanel1 = new javax.swing.JPanel();
         lblMisc = new javax.swing.JLabel();
         chkDarkTheme = new javax.swing.JCheckBox();
@@ -224,6 +227,8 @@ public class SettingsForm extends javax.swing.JFrame {
         lblRendering.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblRendering.setText("Rendering");
 
+        chkOldShaders.setText("Use Old Shaders");
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -237,7 +242,8 @@ public class SettingsForm extends javax.swing.JFrame {
                             .addComponent(chkFakeCol)
                             .addComponent(chkAntiAlias)
                             .addComponent(chkFastDrag)
-                            .addComponent(chkUseShaders)))
+                            .addComponent(chkUseShaders)
+                            .addComponent(chkOldShaders)))
                     .addComponent(lblRendering))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -254,7 +260,9 @@ public class SettingsForm extends javax.swing.JFrame {
                 .addComponent(chkFastDrag)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkFakeCol)
-                .addGap(79, 79, 79))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkOldShaders)
+                .addGap(53, 53, 53))
         );
 
         lblMisc.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
@@ -306,7 +314,7 @@ public class SettingsForm extends javax.swing.JFrame {
                         .addComponent(chkFileNames))
                     .addComponent(chkAssoc)
                     .addComponent(chkReverseRot))
-                .addContainerGap(124, Short.MAX_VALUE))
+                .addContainerGap(184, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -352,10 +360,10 @@ public class SettingsForm extends javax.swing.JFrame {
             pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlCommonLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(pnlCommonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
                 .addComponent(chkNoShaderRender)
                 .addContainerGap())
         );
@@ -621,6 +629,7 @@ public class SettingsForm extends javax.swing.JFrame {
         Settings.aa = chkAntiAlias.isSelected();
         Settings.fakeCol = chkFakeCol.isSelected();
         Settings.legacy = chkNoShaderRender.isSelected();
+        Settings.legacy = chkOldShaders.isSelected();
         Settings.japanese = chkJapanese.isSelected();
         Settings.reverseRot = chkReverseRot.isSelected();
         Settings.fileNames = chkFileNames.isSelected();
@@ -714,6 +723,7 @@ public class SettingsForm extends javax.swing.JFrame {
     private javax.swing.JCheckBox chkJapanese;
     private javax.swing.JCheckBox chkNoShaderRender;
     private javax.swing.JCheckBox chkObjectDBUpdate;
+    private javax.swing.JCheckBox chkOldShaders;
     private javax.swing.JCheckBox chkReverseRot;
     private javax.swing.JCheckBox chkRichPresence;
     private javax.swing.JCheckBox chkUseShaders;

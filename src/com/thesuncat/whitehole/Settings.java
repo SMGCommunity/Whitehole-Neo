@@ -42,6 +42,7 @@ public class Settings {
         showPaths = prefs.getBoolean("show.paths", true);
         showAxis = prefs.getBoolean("show.axis", false);
         legacy = prefs.getBoolean("legacy.mode", false);
+        shader = prefs.getBoolean("render.previos", false);
         japanese = prefs.getBoolean("lang.japanese", false);
         richPresence = prefs.getBoolean("discord.presence", true);
         fileNames = prefs.getBoolean("discord.filenames", false);
@@ -70,6 +71,7 @@ public class Settings {
         prefs.putBoolean("fake.colors", fakeCol);
         prefs.putBoolean("reverse.rotation", reverseRot);
         prefs.putBoolean("legacy.mode", legacy);
+        prefs.putBoolean("render.previous", shader);
         prefs.putBoolean("lang.japanese", japanese);
         prefs.putBoolean("discord.presence", richPresence);
         prefs.putBoolean("discord.filenames", fileNames);
@@ -94,7 +96,7 @@ public class Settings {
     public static String modFolder_dir, superBMD_dir, KCLcreate_dir;
     public static String objectDB_url;
     public static boolean associated;
-    public static boolean objectDB_update, arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy, japanese, fileNames;
+    public static boolean objectDB_update, arc_enc, gameDir, dark, richPresence, aa, fakeCol, reverseRot, legacy, shader, japanese, fileNames;
     public static boolean editor_shaders, editor_fastDrag;
     public static boolean showAreas, showCameras, showGravity, showPaths, showAxis;
     public static boolean useWASD;
