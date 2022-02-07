@@ -42,7 +42,7 @@ public class Settings {
         showPaths = prefs.getBoolean("show.paths", true);
         showAxis = prefs.getBoolean("show.axis", false);
         legacy = prefs.getBoolean("legacy.mode", false);
-        shader = prefs.getBoolean("render.previos", false);
+        shader = prefs.getBoolean("render.previous", false);
         japanese = prefs.getBoolean("lang.japanese", false);
         richPresence = prefs.getBoolean("discord.presence", true);
         fileNames = prefs.getBoolean("discord.filenames", false);

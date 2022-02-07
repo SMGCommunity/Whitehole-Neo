@@ -629,7 +629,7 @@ public class SettingsForm extends javax.swing.JFrame {
         Settings.aa = chkAntiAlias.isSelected();
         Settings.fakeCol = chkFakeCol.isSelected();
         Settings.legacy = chkNoShaderRender.isSelected();
-        Settings.legacy = chkOldShaders.isSelected();
+        Settings.shader = chkOldShaders.isSelected();
         Settings.japanese = chkJapanese.isSelected();
         Settings.reverseRot = chkReverseRot.isSelected();
         Settings.fileNames = chkFileNames.isSelected();
