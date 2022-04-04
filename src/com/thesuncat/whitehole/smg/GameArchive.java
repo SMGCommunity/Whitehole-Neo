@@ -39,7 +39,7 @@ public class GameArchive {
     }
     
     /**
-     * Returns a {@code GalaxyArchive} named {@code name).
+     * Returns a {@code GalaxyArchive} named {@code name}.
      * @param name the name of the {@code GalaxyArchive}
      * @return the {@code GalaxyArchive}
      * @throws IOException if a file could not be found

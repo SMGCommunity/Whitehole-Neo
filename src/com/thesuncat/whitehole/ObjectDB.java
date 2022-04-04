@@ -84,7 +84,7 @@ public class ObjectDB {
                 objects.put(entry.ID, entry);
             }
         }
-        catch (IOException | JDOMException ex) {
+        catch (Exception ex) {
             timestamp = 0;
             return;
         }

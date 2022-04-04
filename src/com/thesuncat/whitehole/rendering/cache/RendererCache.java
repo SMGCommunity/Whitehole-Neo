@@ -115,7 +115,7 @@ public class RendererCache {
                     entry.renderer = new PlanetRenderer(info, modelName);
                 else 
                     entry.renderer = new BmdRenderer(info, modelName);
-            } catch (GLException ex) {
+            } catch (Exception ex) {
                 System.out.println(ex);
             }
         }
