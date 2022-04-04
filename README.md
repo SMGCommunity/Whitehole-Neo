@@ -7,8 +7,8 @@ All downloads can be found on the [release page](https://github.com/RealTheSunCa
 ## Updating Java
 
 **WHITEHOLE REQUIRES A VERY SPECIFIC JAVA SETUP! PLEASE BE AWARE OF THIS!** <br/>
-- Java jre 8 <br/>
-- Java jdk 11 <br/>
+- Oracle Java jre 8 <br/>
+- Oracle Java jdk 11 <br/>
 **ADOPTIUM CAN BE USED, BUT IT WILL NOT FIX SOME ISSUES!** <br/>
 With this new Whitehole version, Java requires an update.
 ### How to update Java:
