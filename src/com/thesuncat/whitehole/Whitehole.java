@@ -15,7 +15,7 @@
 
 package com.thesuncat.whitehole;
 
-import club.minnced.discord.rpc.*;
+//import club.minnced.discord.rpc.*;
 import com.thesuncat.whitehole.rendering.cache.*;
 import com.thesuncat.whitehole.smg.BcsvFile;
 import com.thesuncat.whitehole.smg.GameArchive;
@@ -91,7 +91,7 @@ public class Whitehole {
         RendererCache.init();
         BcsvFile.populateHashTable();
 
-        if(Settings.richPresence) {
+        /*if(Settings.richPresence) {
             Thread discord = new Thread(() -> {
                 final DiscordRPC lib = DiscordRPC.INSTANCE;
                 String applicationId = "523605143480958998";
@@ -124,7 +124,7 @@ public class Whitehole {
                 }
             }, "RichPresence");
             discord.start();
-        }
+        }*/
         
         new MainFrame().setVisible(true);
     }
