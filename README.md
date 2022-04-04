@@ -5,6 +5,11 @@ Whitehole is a level editor for Super Mario Galaxy 1 and 2.
 All downloads can be found on the [release page](https://github.com/RealTheSunCat/Whitehole/releases).  
 
 ## Updating Java
+
+**WHITEHOLE REQUIRES A VERY SPECIFIC JAVA SETUP! PLEASE BE AWARE OF THIS!** <br/>
+- Java jre 8 <br/>
+- Java jdk 11 <br/>
+**ADOPTIUM CAN BE USED, BUT IT WILL NOT FIX SOME ISSUES!** <br/>
 With this new Whitehole version, Java requires an update.
 ### How to update Java:
 
