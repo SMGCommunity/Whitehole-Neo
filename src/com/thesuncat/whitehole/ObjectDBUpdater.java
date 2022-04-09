@@ -28,8 +28,7 @@ public class ObjectDBUpdater extends Thread {
     @Override
     public void run() {
         try {
-            String ts = String.format("&ts=%1$d", ObjectDB.timestamp);
-            URL url = new URL (Settings.objectDB_url + "?whitehole&gzip" + ts);
+            URL url = new URL (Settings.objectDB_url);
             URLConnection conn = url.openConnection();
             DataInputStream dis = new DataInputStream(conn.getInputStream());
 
@@ -65,19 +64,6 @@ public class ObjectDBUpdater extends Thread {
                 return;
             }
 
-            CRC32 crc = new CRC32();
-            crc.update(data, 9, data.length-9);
-            long crcref;
-            try { crcref = Long.parseLong(strdata, 16); }
-            catch (NumberFormatException ex) { crcref = -1; }
-            if (crc.getValue() != crcref) {
-                if(Settings.japanese)
-                    statusLabel.setText("オブジェクトデータベースを更新できませんでした。無効なデータを受信しました。");
-                else
-                    statusLabel.setText("Failed to update object database: received invalid data.");
-                return;
-            }
-
             File odbbkp = new File("objectdb.xml.bak");
             File odb = new File("objectdb.xml");
 
@@ -87,21 +73,13 @@ public class ObjectDBUpdater extends Thread {
                     odb.delete();
                 }
 
-                ByteArrayInputStream compstream = new ByteArrayInputStream(data, 9, data.length-9);
-                GZIPInputStream gzstream = new GZIPInputStream(compstream);
-
                 odb.createNewFile();
                 FileOutputStream odbstream = new FileOutputStream(odb);
 
-                int curbyte;
-                while ((curbyte = gzstream.read()) != -1)
-                    odbstream.write(curbyte);
+                odbstream.write(data);
 
                 odbstream.flush();
                 odbstream.close();
-
-                gzstream.close();
-                compstream.close();
 
                 if (odbbkp.exists())
                     odbbkp.delete();
@@ -110,8 +88,9 @@ public class ObjectDBUpdater extends Thread {
                 if(Settings.japanese)
                     statusLabel.setText("オブジェクトデータベースを保存できませんでした。正しいリンクですか？");
                 else
+                {
                     statusLabel.setText("Could not save the object database. Is the link still valid?");
-                if (odbbkp.exists())
+                }if (odbbkp.exists())
                     odbbkp.renameTo(odb);
                 return;
             }
