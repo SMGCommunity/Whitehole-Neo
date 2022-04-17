@@ -1,0 +1,53 @@
+name: Java CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 16
+      uses: actions/setup-java@v2
+      with:
+        java-version: '16'
+        distribution: 'adopt'
+    - shell: pwsh
+      working-directory: ${{ github.workspace }}
+      run: Get-ChildItem -Path .\ -Filter *.jar -Recurse -File -Name > jarfiles.txt
+    - shell: cmd
+      working-directory: ${{ github.workspace }}
+      run: ant -Dnb.internal.action.name=build jar
+    - shell: cmd
+      working-directory: ${{ github.workspace }}
+      run: |
+        mkdir dist\lib
+        for /F "tokens=*" %%A in (jarfiles.txt) do cp %%A dist\lib\%%~nxA
+        rm jarfiles.txt
+    - shell: pwsh
+      working-directory: ${{ github.workspace }}\dist
+      run: Invoke-WebRequest -Uri "https://github.com/IonicPixels/Objectdb/raw/main/objectdb.xml" -OutFile objectdb.xml
+    - uses: actions/upload-artifact@v2.2.4
+      with:
+        name: Build
+        path: |
+          ${{ github.workspace }}/dist
+    - if: github.ref == 'refs/heads/master'
+      shell: cmd
+      working-directory: ${{ github.workspace }}\dist
+      run: 7z a "${{ github.workspace }}\Whitehole.zip" *.* -r
+    - if: github.ref == 'refs/heads/master'
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "Auto"
+          prerelease: true
+          title: "Auto Build"
+          files: |
+            *.zip
