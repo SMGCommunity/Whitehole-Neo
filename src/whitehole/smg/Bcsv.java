@@ -1,18 +1,19 @@
 /*
-    © 2012 - 2019 - Whitehole Team
-
-    Whitehole is free software: you can redistribute it and/or modify it under
-    the terms of the GNU General Public License as published by the Free
-    Software Foundation, either version 3 of the License, or (at your option)
-    any later version.
-
-    Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; See the GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along 
-    with Whitehole. If not, see http://www.gnu.org/licenses/.
-*/
-
+ * Copyright (C) 2022 Whitehole Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package whitehole.smg;
 
 import java.io.IOException;
@@ -21,14 +22,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import whitehole.Whitehole;
 import whitehole.db.FieldHashes;
 import whitehole.io.FileBase;
 
 public class Bcsv {
-    private static int[] FIELD_SIZES = { 4, 32, 4, 4, 2, 1, 4 };
-    private static int[] FIELD_ORDERS = { 2, 0, 1, 3, 4, 5, 6 };
-    private static Comparator<Field> FIELD_ORDERER = (f1, f2) -> Integer.compare(FIELD_ORDERS[f1.type], FIELD_ORDERS[f2.type]);
+    private static final int[] FIELD_SIZES = { 4, 32, 4, 4, 2, 1, 4 };
+    private static final int[] FIELD_ORDERS = { 2, 0, 1, 3, 4, 5, 6 };
+    private static final Comparator<Field> FIELD_ORDERER = (f1, f2) -> Integer.compare(FIELD_ORDERS[f1.type], FIELD_ORDERS[f2.type]);
     
     public static int calcJGadgetHash(String field) {
         int ret = 0;
@@ -112,7 +112,7 @@ public class Bcsv {
                             stringBuffer[length] = b;
                         }
                         
-                        val = new String(stringBuffer, 0, length, Whitehole.getCharset());
+                        val = new String(stringBuffer, 0, length, "SJIS");
                         break;
                     // FLOAT
                     case 2:
@@ -163,7 +163,6 @@ public class Bcsv {
             }
             
             entrySize = (entrySize + 3) & ~3;
-            System.out.println(entrySize);
         }
         
         int offStrings = offData + numEntries * entrySize;
@@ -199,7 +198,7 @@ public class Bcsv {
                     // LONG and LONG_2
                     case 0:
                     case 3:
-                        file.writeInt(((int)entry.get(field.hash) << field.shift) & field.mask);
+                        file.writeInt(((int)entry.getOrDefault(field.hash, -1) << field.shift) & field.mask);
                         break;
                     // STRING
                     case 1:
@@ -207,19 +206,19 @@ public class Bcsv {
                         break;
                     // FLOAT
                     case 2:
-                        file.writeFloat((float)entry.get(field.hash));
+                        file.writeFloat((float)entry.getOrDefault(field.hash, 0.0f));
                         break;
                     // SHORT
                     case 4:
-                        file.writeShort((short)(((short)entry.get(field.hash) << field.shift) & field.mask));
+                        file.writeShort((short)(((short)entry.getOrDefault(field.hash, (short)-1) << field.shift) & field.mask));
                         break;
                     // BYTE
                     case 5:
-                        file.writeByte((byte)(((byte)entry.get(field.hash) << field.shift) & field.mask));
+                        file.writeByte((byte)(((byte)entry.getOrDefault(field.hash, (byte)-1) << field.shift) & field.mask));
                         break;
                     // STRING_OFFSET
                     case 6:
-                        String val = (String)entry.get(field.hash);
+                        String val = (String)entry.getOrDefault(field.hash, "");
                         
                         if (stringLookup.containsKey(val)) {
                             file.writeInt(stringLookup.get(val));

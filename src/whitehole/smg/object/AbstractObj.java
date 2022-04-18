@@ -24,6 +24,7 @@ import whitehole.smg.StageArchive;
 import whitehole.util.Vector3;
 import com.jogamp.opengl.*;
 import whitehole.db.ObjectDB;
+import whitehole.smg.StageHelper;
 
 public abstract class AbstractObj {
     public String name, layerKey, oldName;
@@ -76,12 +77,7 @@ public abstract class AbstractObj {
     }
     
     public final String getLayerName() {
-        if (layerKey.equals("common")) {
-            return "Common";
-        }
-        else {
-            return "Layer" + layerKey.substring(5).toUpperCase();
-        }
+        return StageHelper.layerKeyToLayer(layerKey);
     }
     
     public final void loadDBInfo() {

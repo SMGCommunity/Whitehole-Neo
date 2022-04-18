@@ -16,7 +16,48 @@
  */
 package whitehole.smg;
 
+import java.io.IOException;
+import whitehole.io.RarcFile;
+
 public class StageHelper {
+    public static String layerKeyToLayer(String layerKey) {
+        if (layerKey.equals("common")) {
+            return "Common";
+        }
+        else {
+            return "Layer" + layerKey.substring(5).toUpperCase();
+        }
+    }
+    
+    public static Bcsv getOrCreateJMapPlacementFile(RarcFile archive, String folder, String layer, String file, int game) throws IOException {
+        String basePath = "/jmp";
+        
+        if (game == 1) {
+            folder = folder.toLowerCase();
+            layer = layer.toLowerCase();
+            file = file.toLowerCase();
+            basePath = basePath.toLowerCase();
+        }
+        
+        String folderPath = String.format("%s/%s", basePath, folder);
+        String layerPath = String.format("%s/%s", folderPath, layer);
+        String filePath = String.format("%s/%s", layerPath, file);
+        
+        if (!archive.directoryExists(folderPath)) {
+            archive.createDirectory("/stage" + basePath, folder);
+        }
+        if (!archive.directoryExists(layerPath)) {
+            archive.createDirectory("/stage" + folderPath, layer);
+        }
+        if (!archive.fileExists("/stage" + filePath)) {
+            archive.createFile("/stage" + layerPath, file);
+        }
+        
+        Bcsv bcsv = new Bcsv(archive.openFile(filePath));
+        populateJMapFields(bcsv, file.toLowerCase(), game);
+        return bcsv;
+    }
+    
     public static void populateJMapFields(Bcsv bcsv, String type, int game) {
         switch(type) {
             case "stageobjinfo": populateJMapFieldsStageObjInfo(bcsv); break;

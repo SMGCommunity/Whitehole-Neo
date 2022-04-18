@@ -523,7 +523,7 @@ public class RarcFile implements FilesystemBase {
     }
 
     public void reinsertFile(InRarcFile _file) throws IOException {
-        FileEntry fe = fileEntries.get(pathToKey(_file.fileName));
+        FileEntry fe = fileEntries.get(pathToKey(_file.filePath));
         fe.data = _file.getContents();
         fe.dataSize = (int)_file.getLength();
     }

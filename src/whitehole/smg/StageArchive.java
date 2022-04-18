@@ -173,29 +173,23 @@ public class StageArchive {
         }
     }
     
-    private void loadObjects(RarcFile archive, String path, String type, String layer, List list) {
+    private void loadObjects(RarcFile archive, String path, String type, String layerKey, List list) {
         try {
             Bcsv bcsv = new Bcsv(archive.openFile(path));
             
-            System.out.println(type);
-            
-            for (Bcsv.Field field : bcsv.fields.values()) {
-                System.out.println(field.name + " " + field.type);
-            }
-            
             switch (type) {
-                case "stageobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new StageObj(this, layer, e)); } break;
-                case "objinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new LevelObj(this, layer, e)); } break;
-                case "mappartsinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new MapPartObj(this, layer, e)); } break;
-                case "areaobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new AreaObj(this, layer, e)); } break;
-                case "cameracubeinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new CameraObj(this, layer, e)); } break;
-                case "planetobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new GravityObj(this, layer, e)); } break;
-                case "demoobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new CutsceneObj(this, layer, e)); } break;
-                case "childobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new ChildObj(this, layer, e)); } break;
-                case "soundinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new SoundObj(this, layer, e)); } break;
-                case "startinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new StartObj(this, layer, e)); } break;
-                case "generalposinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new PositionObj(this, layer, e)); } break;
-                case "debugmoveinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new DebugObj(this, layer, e)); } break;
+                case "stageobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new StageObj(this, layerKey, e)); } break;
+                case "objinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new LevelObj(this, layerKey, e)); } break;
+                case "mappartsinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new MapPartObj(this, layerKey, e)); } break;
+                case "areaobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new AreaObj(this, layerKey, e)); } break;
+                case "cameracubeinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new CameraObj(this, layerKey, e)); } break;
+                case "planetobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new GravityObj(this, layerKey, e)); } break;
+                case "demoobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new CutsceneObj(this, layerKey, e)); } break;
+                case "childobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new ChildObj(this, layerKey, e)); } break;
+                case "soundinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new SoundObj(this, layerKey, e)); } break;
+                case "startinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new StartObj(this, layerKey, e)); } break;
+                case "generalposinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new PositionObj(this, layerKey, e)); } break;
+                case "debugmoveinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new DebugObj(this, layerKey, e)); } break;
             }
             
             bcsv.close();
@@ -224,7 +218,7 @@ public class StageArchive {
     // Saving
 
     public int save() throws IOException {
-        if(saveObjects("MapParts", "MapPartsInfo") != 0) return 1;
+        /*if(saveObjects("MapParts", "MapPartsInfo") != 0) return 1;
         if(saveObjects("Placement", "ObjInfo") != 0) return 1;
         if(saveObjects("Start", "StartInfo") != 0) return 1;
         if(saveObjects("Placement", "PlanetObjInfo") != 0) return 1;
@@ -244,10 +238,77 @@ public class StageArchive {
         }
         savePaths();
         mapArc.save();
+        return 0;*/
+        newsave();
         return 0;
     }
     
-    private int saveObjects(String dir, String file) {
+    public void newsave() throws IOException {
+        System.out.println(stageName);
+        saveLayeredZones();
+        savePaths();
+            
+        saveLayeredObjects(mapArc, "Placement", "ObjInfo");
+        saveLayeredObjects(mapArc, "MapParts", "MapPartsInfo");
+        saveLayeredObjects(mapArc, "Placement", "AreaObjInfo");
+        saveLayeredObjects(mapArc, "Placement", "CameraCubeInfo");
+        saveLayeredObjects(mapArc, "Placement", "PlanetObjInfo");
+        saveLayeredObjects(mapArc, "Placement", "DemoObjInfo");
+        saveLayeredObjects(mapArc, "Start", "StartInfo");
+        saveLayeredObjects(mapArc, "GeneralPos", "GeneralPosInfo");
+        saveLayeredObjects(mapArc, "Debug", "DebugMoveInfo");
+        
+        if (Whitehole.getCurrentGameType() == 1) {
+            saveLayeredObjects(mapArc, "ChildObj", "ChildObjInfo");
+            saveLayeredObjects(mapArc, "Placement", "SoundInfo");
+        }
+        
+        mapArc.save();
+    }
+    
+    private void saveLayeredObjects(RarcFile archive, String folder, String file) throws IOException {
+        int game = Whitehole.getCurrentGameType();
+        
+        for (String layerKey : objects.keySet()) {
+            List<AbstractObj> objectList = objects.get(layerKey);
+            String layer = StageHelper.layerKeyToLayer(layerKey);
+            
+            Bcsv bcsv = StageHelper.getOrCreateJMapPlacementFile(archive, folder, layer, file, game);
+            bcsv.entries.clear();
+            
+            for (AbstractObj obj : objectList) {
+                if (obj.getFileType().equalsIgnoreCase(file)) {
+                    obj.save();
+                    bcsv.entries.add(obj.data);
+                }
+            }
+            
+            bcsv.save();
+            bcsv.close();
+        }
+    }
+    
+    private void saveLayeredZones() throws IOException {
+        int game = Whitehole.getCurrentGameType();
+        
+        for (String layerKey : zones.keySet()) {
+            List<StageObj> objectList = zones.get(layerKey);
+            String layer = StageHelper.layerKeyToLayer(layerKey);
+            
+            Bcsv bcsv = StageHelper.getOrCreateJMapPlacementFile(mapArc, "Placement", layer, "StageObjInfo", game);
+            bcsv.entries.clear();
+            
+            for (StageObj obj : objectList) {
+                obj.save();
+                bcsv.entries.add(obj.data);
+            }
+            
+            bcsv.save();
+            bcsv.close();
+        }
+    }
+    
+    /*private int saveObjects(String dir, String file) {
         List<String> layers = mapArc.getDirectories("/Stage/Jmp/" + dir);
         for (String layer : layers) {
             //saveObjectList(dir + "/" + layer + "/" + file);
@@ -288,7 +349,7 @@ public class StageArchive {
             System.out.println(ex);
             return 1;
         }
-    }
+    }*/
     
     private void savePaths() {
         try {

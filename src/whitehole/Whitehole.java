@@ -23,7 +23,6 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.swing.*;
 import whitehole.db.FieldHashes;
@@ -32,10 +31,9 @@ import whitehole.db.ObjectDB;
 import whitehole.io.FilesystemBase;
 
 public class Whitehole {
-    public static final String NAME = "Whitehole v1.8 -- The Despaghettification";
+    public static final String NAME = "Whitehole Despaghettification";
     public static final String WEB_URL = "https://discord.gg/k7ZKzSDsVq";
     public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
-    private static Charset CHARSET;
     
     public static void main(String[] args) throws IOException {
         // Set look and feel if applicable
@@ -55,11 +53,6 @@ public class Whitehole {
                     + "Whitehole will default to LATIN1, which may cause certain strings to look corrupted.\n\n"
                     + "This message appears only once.", Whitehole.NAME, JOptionPane.WARNING_MESSAGE
             );
-            
-            CHARSET = StandardCharsets.ISO_8859_1;
-        }
-        else {
-            CHARSET = Charset.forName("SJIS");
         }
         
         FieldHashes.init();
@@ -68,10 +61,6 @@ public class Whitehole {
         ModelSubstitutions.init();
         
         new MainFrame().setVisible(true);
-    }
-    
-    public static Charset getCharset() {
-        return CHARSET;
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
