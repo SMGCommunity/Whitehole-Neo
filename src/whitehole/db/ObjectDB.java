@@ -80,7 +80,8 @@ public final class ObjectDB {
                 
                 JSONObject rawInfo = objectsRoot.getJSONObject(objname);
                 info.objInfo = rawInfo;
-                info.classInfo = classesRoot.getJSONObject(rawInfo.getString("ClassName"));
+                // Adjust this for SMG1 in the future
+                info.classInfo = classesRoot.getJSONObject(rawInfo.getString("ClassNameSMG2"));
             }
         }
     }
@@ -221,7 +222,7 @@ public final class ObjectDB {
         
         @Override
         public String className(int game) {
-            return objInfo.getString("ClassName");
+            return objInfo.getString(game == 1 ? "ClassNameSMG1" : "ClassNameSMG2");
         }
         
         @Override
@@ -251,7 +252,7 @@ public final class ObjectDB {
         
         @Override
         public String destFile(int game) {
-            return objInfo.getString("List");
+            return objInfo.getString(game == 1 ? "ListSMG1" : "ListSMG2");
         }
         
         @Override
