@@ -3461,7 +3461,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             // Rendering pass 1 -- fakecolor rendering
             // the results are used to determine which object is clicked
-            //maxUniqueID = 0;
+            
             gl.glClearColor(1f, 1f, 1f, 1f);
             gl.glClearDepth(1f);
             gl.glClearStencil(0);
@@ -3500,7 +3500,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             gl.glReadPixels(mousePos.x, glad.getSurfaceHeight() - mousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
             pickingDepth = -(zFar * zNear /(pickingDepthBuffer.get(0) *(zFar - zNear) - zFar));
             
-            if(Settings.getDebugFakeColor()) {
+            if (Settings.getDebugFakeColor()) {
                 glad.swapBuffers();
                 return;
             }
@@ -3561,7 +3561,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 gl.glEnd();
             }
             
-            glad.swapBuffers();
+            // Apparently this prevents the infamous flickering glitch
+            // glad.swapBuffers();
         }
 
         private RenderMode doHighLightSettings(GL2 gl) {
