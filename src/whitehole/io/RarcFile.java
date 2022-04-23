@@ -1,18 +1,19 @@
 /*
-    © 2012 - 2019 - Whitehole Team
-
-    Whitehole is free software: you can redistribute it and/or modify it under
-    the terms of the GNU General Public License as published by the Free
-    Software Foundation, either version 3 of the License, or (at your option)
-    any later version.
-
-    Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; See the GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along 
-    with Whitehole. If not, see http://www.gnu.org/licenses/.
-*/
-
+ * Copyright (C) 2022 Whitehole Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package whitehole.io;
 
 import java.io.FileNotFoundException;
@@ -20,6 +21,11 @@ import java.io.IOException;
 import java.util.*;
 
 public class RarcFile implements FilesystemBase {
+    private FileBase file;
+    private int unk38;
+    private LinkedHashMap<String, FileEntry> fileEntries;
+    private LinkedHashMap<String, DirEntry> dirEntries;
+    
     public RarcFile(FileBase _file) throws IOException {
         file = new Yaz0File(_file);
         file.setBigEndian(true);
@@ -109,8 +115,7 @@ public class RarcFile implements FilesystemBase {
         }
     }
     
-    public RarcFile(FileBase f, String name) throws IOException
-    {
+    public RarcFile(FileBase f, String name) throws IOException {
         file = new Yaz0File(f);
         file.setBigEndian(true);
         
@@ -125,45 +130,6 @@ public class RarcFile implements FilesystemBase {
         root.tempID = 0;
 
         dirEntries.put("/", root);
-    }
-    
-    // fix: ignore the root directory name in filenames
-    // SMG ignores it as well, and some RARC packers set it arbitrarily
-    private String pathToKey(String path) {
-        String ret = path.toLowerCase();
-        ret = ret.substring(1);
-        if (!ret.contains("/")) return "/";
-        ret = ret.substring(ret.indexOf("/"));
-        return ret;
-    }
-    
-    private int align32(int val) {
-        return (val + 0x1F) & ~0x1F;
-    }
-    
-    private int dirMagic(String name) {
-        String uppername = name.toUpperCase();
-        int ret = 0;
-        
-        for (int i = 0; i < 4; i++) {
-            ret <<= 8;
-            
-            if (i >= uppername.length())
-                ret += 0x20;
-            else
-                ret += uppername.charAt(i);
-        }
-        
-        return ret;
-    }
-    
-    private short nameHash(String name) {
-        short ret = 0;
-        for (char ch : name.toCharArray()) {
-            ret *= 3;
-            ret += ch;
-        }
-        return ret;
     }
     
     @Override
@@ -335,272 +301,276 @@ public class RarcFile implements FilesystemBase {
     public void close() throws IOException {
         file.close();
     }
-
-
-    @Override
-    public boolean directoryExists(String directory) {
-        return dirEntries.containsKey(pathToKey(directory));
-    }
-
-    @Override
-    public List<String> getDirectories(String directory) {
-        if (!dirEntries.containsKey(pathToKey(directory))) 
-            return null;
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Helper functions
+    
+    private String pathToKey(String path) {
+        String ret = path.toLowerCase();
         
-        DirEntry dir = dirEntries.get(pathToKey(directory));
-        
-        List<String> ret = new ArrayList<>();
-        for (DirEntry de : dir.childrenDirs)
-            ret.add(de.name);
-        
-        return ret;
-    }
-
-    @Override
-    public boolean fileExists(String filename) {
-        return fileEntries.containsKey(pathToKey(filename));
-    }
-
-    @Override
-    public List<String> getFiles(String directory) {
-        if (!dirEntries.containsKey(pathToKey(directory))) 
-            return null;
-        
-        DirEntry dir = dirEntries.get(pathToKey(directory));
-        
-        List<String> ret = new ArrayList<>();
-        for (FileEntry fe : dir.childrenFiles)
-            ret.add(fe.name);
-        
-        return ret;
-    }
-
-    @Override
-    public FileBase openFile(String filename) throws FileNotFoundException {
-        if (!fileEntries.containsKey(pathToKey(filename)))
-            throw new FileNotFoundException(filename + " not found in RARC!");
-        
-        try {
-            return new InRarcFile(this, filename);
-        } catch (IOException ex) {
-            throw new FileNotFoundException("Could not find file " + filename + ".");
+        if (ret.charAt(0) == '/') {
+            return ret.substring(1);
         }
+        
+        return ret;
+    }
+    
+    private int align32(int val) {
+        return (val + 0x1F) & ~0x1F;
+    }
+    
+    private int dirMagic(String name) {
+        name = name.toUpperCase();
+        int ret = 0;
+        
+        for (int i = 0; i < 4; i++) {
+            ret <<= 8;
+            
+            if (i >= name.length()) {
+                ret += 0x20;
+            }
+            else {
+                ret += name.charAt(i);
+            }
+        }
+        
+        return ret;
+    }
+    
+    private short nameHash(String name) {
+        int ret = 0;
+        
+        for (char ch : name.toCharArray()) {
+            ret = ret * 3 + ch;
+        }
+        
+        return (short)ret;
+    }
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Folder I/O
+
+    @Override
+    public boolean directoryExists(String dirPath) {
+        return dirEntries.containsKey(pathToKey(dirPath));
+    }
+
+    @Override
+    public List<String> getDirectories(String dirPath) {
+        String key = pathToKey(dirPath);
+        List<String> ret = new LinkedList();
+        
+        if (!dirEntries.containsKey(key)) {
+            return ret;
+        }
+        
+        DirEntry dirEntry = dirEntries.get(pathToKey(dirPath));
+        
+        for (DirEntry childDir : dirEntry.childrenDirs) {
+            ret.add(childDir.name);
+        }
+        
+        return ret;
+    }
+
+    @Override
+    public List<String> getFiles(String dirPath) {
+        String key = pathToKey(dirPath);
+        List<String> ret = new LinkedList();
+        
+        if (!dirEntries.containsKey(key)) {
+            return ret;
+        }
+        
+        DirEntry dirEntry = dirEntries.get(key);
+        
+        for (FileEntry childFile : dirEntry.childrenFiles) {
+            ret.add(childFile.name);
+        }
+        
+        return ret;
     }
     
     @Override
     public void createDirectory(String parent, String newdir) {
-        if (!dirEntries.containsKey(parent.toLowerCase()))
-            return;
+        String parentKey = pathToKey(parent);
+        String fullName = parent + "/" + newdir;
+        String dirKey = pathToKey(fullName);
         
-        if (dirEntries.containsKey((parent + "/" + newdir).toLowerCase()))
+        // Parent folder does not exist?
+        if (!dirEntries.containsKey(parentKey)) {
             return;
-        
-        DirEntry parentdir = dirEntries.get(parent.toLowerCase());
-        DirEntry de = new DirEntry();
-        de.childrenDirs = new LinkedList();
-        de.childrenFiles = new LinkedList();
-        de.fullName = parent + "/" + newdir;
-        de.name = newdir;
-        de.parentDir = parentdir;
-        parentdir.childrenDirs.add(de);
-        dirEntries.put(de.fullName.toLowerCase(), de);
-    }
-
-    @Override
-    public void renameDirectory(String directory, String newname) {
-        if (!dirEntries.containsKey(directory.toLowerCase()))
-            return;
-        
-        DirEntry de = dirEntries.get(directory.toLowerCase());
-        DirEntry parent = de.parentDir;
-        String parentpath = "";
-        if (parent != null) {
-            if (fileEntries.containsKey((parent.fullName + "/" + newname).toLowerCase())
-                    || dirEntries.containsKey((parent.fullName + "/" + newname).toLowerCase()))
-                return;
-            
-            parentpath = parent.fullName;
         }
-        dirEntries.remove(de.fullName.toLowerCase());
-        de.name = newname;
-        de.fullName = parentpath + "/" + newname;
-        dirEntries.put(de.fullName.toLowerCase(), de);
+        // File or folder at path already exists?
+        if (fileEntries.containsKey(dirKey) || dirEntries.containsKey(dirKey)) {
+            return;
+        }
+        
+        DirEntry parentDir = dirEntries.get(parentKey);
+        
+        DirEntry dirEntry = new DirEntry();
+        dirEntry.parentDir = parentDir;
+        dirEntry.name = newdir;
+        dirEntry.fullName = fullName;
+        
+        parentDir.childrenDirs.add(dirEntry);
+        dirEntries.put(dirKey, dirEntry);
     }
 
     @Override
     public void deleteDirectory(String directory) {
-        if (!this.dirEntries.containsKey(directory.toLowerCase())) {
+        String key = pathToKey(directory);
+        
+        if (!dirEntries.containsKey(key)) {
             return;
         }
-        DirEntry de = this.dirEntries.get(directory.toLowerCase());
-        DirEntry parent = de.parentDir;
-        if (parent != null) {
-            parent.childrenDirs.remove(de);
+        
+        DirEntry dirEntry = dirEntries.get(key);
+        DirEntry parentDir = dirEntry.parentDir;
+        
+        if (parentDir != null) {
+            parentDir.childrenDirs.remove(dirEntry);
         }
-        this.dirEntries.remove(directory.toLowerCase());
-        for (DirEntry cde : de.childrenDirs) {
-            this.dirEntries.remove(cde.fullName.toLowerCase());
+        
+        deleteDirectoryRecursive(dirEntry, key);
+    }
+    
+    private void deleteDirectoryRecursive(DirEntry dirEntry, String key) {
+        dirEntries.remove(key);
+        
+        for (FileEntry childFile : dirEntry.childrenFiles) {
+            childFile.data = null; // Hint for GC
+            fileEntries.remove(pathToKey(childFile.fullName));
         }
-        for (FileEntry cfe : de.childrenFiles) {
-            this.fileEntries.remove(cfe.fullName.toLowerCase());
+        
+        for (DirEntry childDir : dirEntry.childrenDirs) {
+            deleteDirectoryRecursive(childDir, pathToKey(childDir.fullName));
         }
+        
+        dirEntry.childrenFiles.clear();
+        dirEntry.childrenDirs.clear();
+    }
+
+    @Override
+    @Deprecated
+    public void renameDirectory(String directory, String newname) {
+        throw new UnsupportedOperationException();
+    }
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // File I/O
+    
+    @Override
+    public boolean fileExists(String filePath) {
+        return fileEntries.containsKey(pathToKey(filePath));
+    }
+    
+    @Override
+    public FileBase openFile(String filePath) throws IOException {
+        if (!fileEntries.containsKey(pathToKey(filePath))) {
+            throw new FileNotFoundException(filePath + " not found in RARC!");
+        }
+        
+        return new InRarcFile(this, filePath);
     }
     
     @Override
     public void createFile(String parent, String newfile) {
-        String parentkey = pathToKey(parent);
-        String fnkey = pathToKey(parent + "/" + newfile);
-        if (!dirEntries.containsKey(parentkey)) return;
-        if (fileEntries.containsKey(fnkey)) return;
-        if (dirEntries.containsKey(fnkey)) return;
-        DirEntry parentdir = dirEntries.get(parentkey);
+        String parentKey = pathToKey(parent);
+        String fullName = parent + "/" + newfile;
+        String fileKey = pathToKey(fullName);
         
-        FileEntry fe = new FileEntry();
-        fe.data = new byte[0];
+        // Parent folder does not exist?
+        if (!dirEntries.containsKey(parentKey)) {
+            return;
+        }
+        // File or folder at path already exists?
+        if (fileEntries.containsKey(fileKey) || dirEntries.containsKey(fileKey)) {
+            return;
+        }
         
-        fe.dataSize = fe.data.length;
-        fe.fullName = parent + "/" + newfile;
-        fe.name = newfile;
-        fe.parentDir = parentdir;
+        DirEntry parentDir = dirEntries.get(parentKey);
         
-        parentdir.childrenFiles.add(fe);
-        fileEntries.put(pathToKey(fe.fullName), fe);
+        FileEntry fileEntry = new FileEntry();
+        fileEntry.parentDir = parentDir;
+        fileEntry.name = newfile;
+        fileEntry.fullName = fullName;
+        fileEntry.data = new byte[0];
+        fileEntry.dataSize = 0;
+        
+        parentDir.childrenFiles.add(fileEntry);
+        fileEntries.put(fileKey, fileEntry);
     }
-
-    /**
-     * Rename a file inside the RARC
-     * @param file full path to file
-     * @param newname new name of file (not including path)
-     * @throws java.io.FileNotFoundException
-     */
-    @Override
-    public void renameFile(String file, String newname) throws FileNotFoundException {
-        file = pathToKey(file);
-        if (!fileEntries.containsKey(file)) throw new FileNotFoundException("could not find " + file);
-        FileEntry fe = fileEntries.get(file);
-        DirEntry parent = fe.parentDir;
-        
-        String parentkey = pathToKey(parent.fullName + "/" + newname);
-        if (fileEntries.containsKey(parentkey) ||
-            dirEntries.containsKey(parentkey)) 
-            throw new FileNotFoundException("error code nine million"); // temp
-        
-        String fnkey = pathToKey(fe.fullName);
-        fileEntries.remove(fnkey);
-        
-        fe.name = newname;
-        fe.fullName = parent.fullName + "/" + newname;
-        
-        fnkey = pathToKey(fe.fullName);
-        
-        fileEntries.put(fnkey, fe);
-    }
-
+    
     @Override
     public void deleteFile(String file) {
-        file = pathToKey(file);
-        if (!fileEntries.containsKey(file)) return;
+        String key = pathToKey(file);
         
-        FileEntry fe = fileEntries.get(file);
-        DirEntry parent = fe.parentDir;
+        if (!fileEntries.containsKey(key)) {
+            return;
+        }
         
-        parent.childrenFiles.remove(fe);
+        FileEntry fileEntry = fileEntries.get(key);
+        DirEntry parent = fileEntry.parentDir;
+        
+        fileEntry.data = null; // Hint for GC
+        
+        parent.childrenFiles.remove(fileEntry);
         fileEntries.remove(file);
     }
-
-
-    // support functions for InRarcFile
-    public byte[] getFileContents(String fullname) throws IOException {
-        FileEntry fe = fileEntries.get(pathToKey(fullname));
+    
+    @Override
+    @Deprecated
+    public void renameFile(String file, String newname) throws FileNotFoundException {
+        throw new UnsupportedOperationException();
+    }
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Accessors for InRarcFile
+    
+    byte[] getFileContents(String fullname) throws IOException {
+        String key = pathToKey(fullname);
+        FileEntry fileEntry = fileEntries.get(key);
         
-        if (fe.data != null){
-            byte[] thedata = Arrays.copyOf(fe.data, fe.dataSize);
-            return thedata;
+        if (fileEntry.data != null){
+            file.position(fileEntry.dataOffset);
+            fileEntry.data = file.readBytes(fileEntry.dataSize);
         }
-
-        file.position(fe.dataOffset);
-        return file.readBytes((int)fe.dataSize);
+        
+        return fileEntry.data;
     }
-
-    public void reinsertFile(InRarcFile _file) throws IOException {
-        FileEntry fe = fileEntries.get(pathToKey(_file.filePath));
-        fe.data = _file.getContents();
-        fe.dataSize = (int)_file.getLength();
+    
+    void reinsertFile(InRarcFile inFile) throws IOException {
+        String key = pathToKey(inFile.filePath);
+        FileEntry fileEntry = fileEntries.get(key);
+        
+        fileEntry.data = inFile.getContents();
+        fileEntry.dataSize = (int)inFile.getLength();
     }
-
-
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    
     private class FileEntry {
-        public FileEntry() {
-            data = null;
-        }
-        
-        public int dataOffset;
-        public int dataSize;
+        int dataOffset;
+        int dataSize;
 
-        public DirEntry parentDir;
+        DirEntry parentDir;
 
-        public String name;
-        public String fullName;
+        String name;
+        String fullName;
         
-        public byte[] data;
+        byte[] data = null;
     }
 
     private class DirEntry {
-        public DirEntry() {
-            childrenDirs = new LinkedList<>();
-            childrenFiles = new LinkedList<>();
-        }
+        DirEntry parentDir;
+        LinkedList<DirEntry> childrenDirs = new LinkedList();
+        LinkedList<FileEntry> childrenFiles = new LinkedList();
 
-        public DirEntry parentDir;
-        public LinkedList<DirEntry> childrenDirs;
-        public LinkedList<FileEntry> childrenFiles;
-
-        public String name;
-        public String fullName;
+        String name;
+        String fullName;
         
-        public int tempID;
-        public int tempNameOffset;
+        int tempID;
+        int tempNameOffset;
     }
-
-    public ArrayList<String> getAllFileDirs() {
-        ArrayList<String> ret = new ArrayList<>();
-        for(FileEntry e : fileEntries.values())
-            ret.add(e.fullName);
-        return ret;
-    }
-    
-    public ArrayList<String> getAllDirs() {
-        ArrayList<String> ret = new ArrayList<>();
-        for(DirEntry e : dirEntries.values())
-            ret.add(e.fullName);
-        return ret;
-    }
-    
-    public String getRoot() {
-        Object[] entries = dirEntries.values().toArray();
-        DirEntry curdir = (DirEntry) entries[0];
-        
-        int i = 0;
-        while (curdir.parentDir != null)
-            curdir = (DirEntry) entries[(i++)];
-        
-        return curdir.fullName.substring(1);
-    }
-    
-    public boolean isFile(String dir) {
-        dir = pathToKey(dir);
-        return fileEntries.containsKey(dir) && !dirEntries.containsKey(dir);
-    }
-    
-    public boolean isDir(String dir) {
-        dir = pathToKey(dir);
-        return dirEntries.containsKey(dir) && !fileEntries.containsKey(dir);
-    }
-
-    private FileBase file;
-
-    private int unk38;
-
-    private LinkedHashMap<String, FileEntry> fileEntries;
-    private LinkedHashMap<String, DirEntry> dirEntries;
 }

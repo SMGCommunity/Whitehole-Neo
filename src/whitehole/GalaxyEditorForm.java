@@ -1707,13 +1707,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             for(StageArchive zonearc : zoneArcs.values()) {
-                if(zonearc.save() != 0) {
-                    String err = "Failed to save the zone " + zonearc.stageName + ".";
-                    
-                    System.err.println(err);
-                    lbStatusLabel.setText(err);
-                    return;
-                }
+                zonearc.save();
             }
             
             if(!galaxyMode && parentForm != null)

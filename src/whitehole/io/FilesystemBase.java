@@ -28,7 +28,7 @@ public interface FilesystemBase {
     
     public List<String> getFiles(String directory);
     public boolean fileExists(String directory);
-    public FileBase openFile(String filename) throws FileNotFoundException;
+    public FileBase openFile(String filename) throws IOException;
     public void createDirectory(String parent, String newdir);
     public void renameDirectory(String file, String newname) throws FileNotFoundException;
     public void deleteDirectory(String dir);

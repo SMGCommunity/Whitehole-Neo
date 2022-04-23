@@ -15,7 +15,6 @@
 
 package whitehole.io;
 
-import whitehole.Settings;
 import whitehole.MainFrame;
 import java.io.*;
 import java.util.*;
@@ -99,7 +98,7 @@ public class ExternalFilesystem implements FilesystemBase {
     }
 
     @Override
-    public FileBase openFile(String filename) throws FileNotFoundException {
+    public FileBase openFile(String filename) throws IOException {
         if (!fileExists(filename))
             throw new FileNotFoundException("File '" + filename + "' doesn't exist");
         

@@ -30,7 +30,7 @@ public class StageHelper {
     }
     
     public static Bcsv getOrCreateJMapPlacementFile(RarcFile archive, String folder, String layer, String file, int game) throws IOException {
-        String basePath = "/jmp";
+        String basePath = "/Stage/jmp";
         
         if (game == 1) {
             folder = folder.toLowerCase();
@@ -44,13 +44,13 @@ public class StageHelper {
         String filePath = String.format("%s/%s", layerPath, file);
         
         if (!archive.directoryExists(folderPath)) {
-            archive.createDirectory("/stage" + basePath, folder);
+            archive.createDirectory(basePath, folder);
         }
         if (!archive.directoryExists(layerPath)) {
-            archive.createDirectory("/stage" + folderPath, layer);
+            archive.createDirectory(folderPath, layer);
         }
-        if (!archive.fileExists("/stage" + filePath)) {
-            archive.createFile("/stage" + layerPath, file);
+        if (!archive.fileExists(filePath)) {
+            archive.createFile(layerPath, file);
         }
         
         Bcsv bcsv = new Bcsv(archive.openFile(filePath));

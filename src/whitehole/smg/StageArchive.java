@@ -38,13 +38,15 @@ import whitehole.Whitehole;
 
 public class StageArchive {
     // This needs to be removed!!!!
+    @Deprecated
     public static int game;
     
     
     // IO stuff
-    public GalaxyArchive galaxy;
-    public String stageName, filePath;
-    public FilesystemBase filesystem;
+    public final GalaxyArchive galaxy;
+    public final String stageName;
+    private final FilesystemBase filesystem;
+    private final String mapPath, soundPath, designPath;
     public RarcFile mapArc, soundArc, designArc;
     
     // Object and path storages
@@ -53,17 +55,20 @@ public class StageArchive {
     public List<PathObj> paths;
     
     public StageArchive(GalaxyArchive arc, String name) {
+        game = Whitehole.getCurrentGameType();
         galaxy = arc;
         filesystem = Whitehole.getCurrentGameFileSystem();
         stageName = name;
         
         if (Whitehole.getCurrentGameType() == 1) {
-            game = 1;
-            filePath = String.format("/StageData/%s.arc", stageName);
+            mapPath = String.format("/StageData/%s.arc", stageName);
+            soundPath = null;
+            designPath = null;
         }
         else {
-            game = 2;
-            filePath = String.format("/StageData/%s/%sMap.arc", stageName, stageName);
+            mapPath = String.format("/StageData/%s/%sMap.arc", stageName, stageName);
+            soundPath = String.format("/StageData/%s/%sSound.arc", stageName, stageName);
+            designPath = String.format("/StageData/%s/%sDesign.arc", stageName, stageName);
         }
         
         objects = new LinkedHashMap(17);
@@ -108,7 +113,7 @@ public class StageArchive {
     
     private void loadZone() {
         try {
-            mapArc = new RarcFile(filesystem.openFile(filePath));
+            mapArc = new RarcFile(filesystem.openFile(mapPath));
             
             loadLayeredZones();
             loadPaths();
@@ -216,35 +221,8 @@ public class StageArchive {
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Saving
-
-    public int save() throws IOException {
-        /*if(saveObjects("MapParts", "MapPartsInfo") != 0) return 1;
-        if(saveObjects("Placement", "ObjInfo") != 0) return 1;
-        if(saveObjects("Start", "StartInfo") != 0) return 1;
-        if(saveObjects("Placement", "PlanetObjInfo") != 0) return 1;
-        if(saveObjects("Placement", "AreaObjInfo") != 0) return 1;
-        if(saveObjects("Placement", "CameraCubeInfo") != 0) return 1;
-        if(saveObjects("Placement", "DemoObjInfo") != 0) return 1;
-        if(saveObjects("GeneralPos", "GeneralPosInfo") != 0) return 1;
-        if(saveObjects("Debug", "DebugMoveInfo") != 0) return 1;
-        switch (game) {
-            case 1:
-                saveObjects("Placement", "SoundInfo");
-                saveObjects("ChildObj", "ChildObjInfo");
-                break;
-            case 2:
-                saveObjects("Placement", "ChangeObjInfo");
-                break;
-        }
-        savePaths();
-        mapArc.save();
-        return 0;*/
-        newsave();
-        return 0;
-    }
     
-    public void newsave() throws IOException {
-        System.out.println(stageName);
+    public void save() throws IOException {
         saveLayeredZones();
         savePaths();
             
@@ -308,66 +286,18 @@ public class StageArchive {
         }
     }
     
-    /*private int saveObjects(String dir, String file) {
-        List<String> layers = mapArc.getDirectories("/Stage/Jmp/" + dir);
-        for (String layer : layers) {
-            //saveObjectList(dir + "/" + layer + "/" + file);
-            int result = saveObjectList(dir + "/" + layer + "/" + file);
-            if(result != 0)
-                return 1;
-        }
-        return 0;
-    }
-    
-    private int saveObjectList(String filepath) {
-        String[] stuff = filepath.split("/");
-        String dir = stuff[0], file = stuff[2];
-        file = file.toLowerCase();
-        String layer = stuff[1].toLowerCase();
-        if (!objects.containsKey(layer))
-            return 0;
+    private void savePaths() throws IOException {
+        Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/jmp/Path/CommonPathInfo"));
+        bcsv.entries.clear();
         
-        System.out.println(filepath);
+        int fileIndex = 0;
         
-        try {
-            Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/Jmp/" + filepath));
-            bcsv.entries.clear();
-            for (AbstractObj obj : objects.get(layer)) {
-                if (!file.equals(obj.getFileType()))
-                    continue;
-                
-                int result = obj.save();
-                if(result != 0)
-                    return 1;
-                bcsv.entries.add(obj.data);
-            }
-            bcsv.save();
-            bcsv.close();
-            return 0;
+        for (PathObj pobj : paths) {
+            pobj.save(fileIndex++);
+            bcsv.entries.add(pobj.data);
         }
-        catch (IOException ex) {
-            System.out.println(ex);
-            return 1;
-        }
-    }*/
-    
-    private void savePaths() {
-        try {
-            Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/jmp/Path/CommonPathInfo"));
-
-            bcsv.entries.clear();
-            
-            int i = 0;
-            
-            for (PathObj pobj : paths) {
-                pobj.save(i++);
-                bcsv.entries.add(pobj.data);
-            }
-            bcsv.save();
-            bcsv.close();
-        }
-        catch (IOException ex) {
-            System.out.println(stageName+": Failed to save paths: "+ex.getMessage());
-        }
+        
+        bcsv.save();
+        bcsv.close();
     }
 }
