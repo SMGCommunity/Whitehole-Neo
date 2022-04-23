@@ -15,22 +15,13 @@
 
 package whitehole.editor;
 
-import whitehole.smg.worldmapObject.WorldmapTravelObject;
 import whitehole.util.Vector2;
 import whitehole.util.Vector3;
-import whitehole.smg.worldmapObject.WorldmapRoute;
-import whitehole.smg.worldmapObject.WorldmapPoint;
 import whitehole.util.Matrix4;
 import whitehole.util.RotationMatrix;
-import whitehole.smg.worldmapObject.MiscWorldmapObject;
-import whitehole.smg.worldmapObject.GalaxyPreview;
-import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
-import whitehole.io.RarcFile;
 import whitehole.rendering.GLRenderer.RenderMode;
 import whitehole.rendering.RendererCache;
-import whitehole.smg.Bcsv.Field;
-import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
@@ -38,7 +29,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.*;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.*;
 import java.util.logging.Level;
@@ -47,6 +37,11 @@ import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Frame;
+import java.awt.Point;
+import java.awt.Toolkit;
 import whitehole.smg.Bcsv;
 import whitehole.smg.GalaxyArchive;
 import whitehole.smg.StageArchive;
@@ -76,146 +71,176 @@ import whitehole.util.CheckBoxList;
 import whitehole.util.PropertyGrid;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Variables
+    
+    // Object Tree
+    private DefaultTreeModel objListModel;
+    private final DefaultMutableTreeNode objListRootNode = new DefaultMutableTreeNode("dummy");
+    private final HashMap<String, ObjListTreeNode> objListTreeNodes = new LinkedHashMap(11);
+    private final ObjListTreeNode objListPathRootNode = new ObjListTreeNode("Paths");
+    
+    private float g_move_x=0;
+    private float g_move_y=0;
+    private float g_move_z=0;
+    private float g_move_step_x=0;
+    private float g_move_step_y=0;
+    private float g_move_step_z=0;
+    private float g_move_step_a=0;
+
+    private float g_center_x=0;
+    private float g_center_y=0;
+    private float g_center_z=0;
+    private float g_angle_x=0;
+    private float g_angle_y=0;
+    private float g_angle_z=0;
+
+    private float g_offset_x=0;
+    private float g_offset_y=0;
+    private float g_offset_z=0;
+    
+    
+    private final float scaledown = 10000f;
+    public static boolean closing = false;
+    /**
+     * {@code true} if editing a galaxy, {@code false} when editing a zone.
+     */
+    private boolean isGalaxyMode;
+    public String galaxyName;
+    public HashMap<String, StageArchive> zoneArchives;
+    private HashMap<String, GalaxyEditorForm> zoneEditors;
+    private GalaxyEditorForm parentForm;
+    private GalaxyArchive galaxyArchive;
+    private GalaxyRenderer renderer;
+    
+    private int curScenarioID;
+    private Bcsv.Entry curScenario;
+    private String curZone;
+    public StageArchive curZoneArc;
+    
+    private int maxUniqueID;
+    private HashMap<Integer, AbstractObj> globalObjList;
+    private HashMap<Integer, PathObj> globalPathList;
+    private HashMap<Integer, PathPointObj> globalPathPointList;
+    private LinkedHashMap<Integer, AbstractObj> selectedObjs;
+    private LinkedHashMap<Integer, PathPointObj> displayedPaths;
+    private HashMap<String, int[]> objDisplayLists;
+    private HashMap<Integer, int[]> zoneDisplayLists;
+    
+    /**
+     * Contains a list of all currently loaded subzones (all zones except the main Zone)
+     */
+    private HashMap<String, StageObj> subZoneData;
+    private HashMap<Integer, TreeNode> treeNodeList;
+    
+    private GLCanvas glCanvas, fullCanvas;
+    private JFrame fullScreen;
+    private boolean inited;
+    private boolean unsavedChanges;
+        
+    private GLRenderer.RenderInfo renderinfo;
+    
+    private Queue<String> rerenderTasks = new LinkedList<>();
+    private int zoneModeLayerBitmask;
+
+    private Matrix4 modelViewMatrix;
+    private float camDistance;
+    /**
+     * Holds the current camera rotation, in radians.<br>
+     * X: rotation around up-down axis<br>
+     * Y: rotation around TODO, peck
+     */
+    private Vector2 camRotation;
+    
+    /**
+     * Holds the position or target of the camera,<br>
+     * in Whitehole scale (mult by {@code scaledown} to<br>
+     * get ingame units.
+     */
+    private Vector3 camPosition, camTarget;
+    
+    /**
+     * True if the camera is upside down.
+     */
+    private boolean upsideDown;
+    
+    /**
+     * Current scale of pixels to window size.<br>
+     * Used for dragging and misc.
+     */
+    private float pixelFactorX, pixelFactorY;
+
+    private int mouseButton;
+    private Point mousePos;
+    private boolean isDragging;
+    private boolean pickingCapture;
+    private IntBuffer pickingFrameBuffer;
+    private FloatBuffer pickingDepthBuffer;
+    private float pickingDepth;
+
+    private int underCursor;
+    private float depthUnderCursor;
+    private int selectionArg;
+    private String addingObject, addingObjectOnLayer;
+    private boolean deletingObjects;
+    
+    private CheckBoxList lbLayersList;
+    private JPopupMenu pmnAddObjects;
+    private PropertyGrid pnlObjectSettings;
+    
+    public LinkedHashMap<Integer, AbstractObj> copyObj;
+    public AbstractObj currentObj, newobj; 
+    public ArrayList<Bcsv> camBcsvs = new ArrayList<>();
+    public Point curMouseRelative, startingMousePos, objCenter, firstMoveDir = new Point(1, 1);
+    public int counter;
+    public static long lastMove;
+    public Vector3 startingObjScale = new Vector3(1f, 1f, 1f), startingObjPos = new Vector3(1f, 1f, 1f);
+    
+    public boolean keyScaling, keyTranslating, keyRotating, camSelected = false, fullscreen = false;
+    public String keyAxis = "all";
+    
+    public ArrayList<UndoEntry> undoList = new ArrayList<>();
+    private int undoIndex = 0;
+    private float lastDist;
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Constructors
+    
     public GalaxyEditorForm(String galaxy) {
         initComponents();
         initVariables();
         
-        tpLeftPanel.remove(1);
-        
         galaxyName = galaxy;
+        tabData.remove(1);
         
         try {
-            // Load the GalaxyArc, all zones, and all objects/paths
-            galaxyArc = Whitehole.GAME.openGalaxy(galaxyName);
-            zoneArcs = new HashMap<>(galaxyArc.zoneList.size());
-            for(String zone : galaxyArc.zoneList)
-                loadZone(zone);
+            // Preload all zones
+            galaxyArchive = Whitehole.GAME.openGalaxy(galaxyName);
+            zoneArchives = new HashMap(galaxyArchive.zoneList.size());
             
-            // Loop through all Zones inside of the main Zone, and add them to the subZoneData
-            StageArchive mainzone = zoneArcs.get(galaxyName);
-            for(int i = 0; i < galaxyArc.scenarioData.size(); i++) {
-                if(mainzone.zones.containsKey("common")) {
-                    for(StageObj subzone : mainzone.zones.get("common")) {
-                        String key = i + "/" + subzone.name;
-                        if(subZoneData.containsKey(key)) throw new IOException("Duplicate zone " + key);
-                        subZoneData.put(key, subzone);
-                    }
-                }
-                
-                int mainlayermask = (int) galaxyArc.scenarioData.get(i).get(galaxyName);
-                for(int l = 0; l < 16; l++) {
-                    if((mainlayermask & (1 << l)) == 0)
-                        continue;
-                    
-                    // Thanks to Super Hackio for figuring out this char cast was necessary
-                    // to avoid the incorrect dragging bug for every zone XP
-                    String layer = "layer" + (char) ('a' + l);
-                    if(!mainzone.zones.containsKey(layer))
-                        continue;
-                    
-                    for(StageObj subzone : mainzone.zones.get(layer)) {
-                        String key = i + "/" + subzone.name;
-                        if(subZoneData.containsKey(key)) throw new IOException("Duplicate zone " + key + ".");
-                        subZoneData.put(key, subzone);
-                    }
-                }
+            for (String zone : galaxyArchive.zoneList) {
+                loadZone(zone);
             }
-        
-        
-            if(galaxyName.startsWith("WorldMap0")) {
-                // Get integer value of the world map number (9th character in name)
-                worldmapId = galaxyName.charAt(9) - 0x30;
-                for(int i = 1; i <= 8; i++) {
-                    RarcFile arc = new RarcFile(Whitehole.getCurrentGameFileSystem().openFile("/ObjectData/WorldMap0" + i + ".arc"));
-
-                    if(i == worldmapId)
-                        worldmapArchive = arc;
-
-                    allWorldArchives.add(arc);
-                }
-
-                bcsvWorldMapPoints = new Bcsv(worldmapArchive.openFile("/WorldMap0" + worldmapId + "/ActorInfo/PointPos.bcsv"));
-
-                for(Bcsv.Entry entry : bcsvWorldMapPoints.entries)
-                    globalWorldmapPointList.add(new WorldmapPoint(entry));
-
-                bcsvWorldMapLinks = new Bcsv(worldmapArchive.openFile("/WorldMap0" + worldmapId + "/ActorInfo/PointLink.bcsv"));
-
-                for(Bcsv.Entry entry : bcsvWorldMapLinks.entries)
-                    globalWorldmapRouteList.add(new WorldmapRoute(entry));
-
-                worldmapObjTypes.add("NormalPoint");
-                if(worldmapId!=8)
-                    worldmapObjTypes.add("GalaxyIcon");
-                worldmapObjTypes.add("WorldPortal");
-                worldmapObjTypes.add("StarGate");
-                worldmapObjTypes.add("Hungry Luma");
-                worldmapObjTypes.add("WarpPipe");
-                if(worldmapId==8)
-                    worldmapObjTypes.add("WorldmapIcon");
-                worldmapObjTypes.add("Giant StarBit");
-
-                // Gotta be honest, no clue what this code here does. TODO
-                if(worldmapId != 8) {
-                    bcsvWorldMapGalaxies = new Bcsv(worldmapArchive.openFile("/WorldMap0" + worldmapId + "/ActorInfo/Galaxy.bcsv"));
-
-                    for(Bcsv.Entry entry : bcsvWorldMapGalaxies.entries) {
-                        int index = (int) entry.get("PointPosIndex");
-                        globalWorldmapPointList.add(index,new GalaxyPreview(entry, globalWorldmapPointList.get(index)));
-                        globalWorldmapPointList.remove(index + 1);
+            
+            // Collect zone placements
+            StageArchive galaxyZone = zoneArchives.get(galaxyName);
+            
+            for (List<StageObj> zonePlacements : galaxyZone.zones.values()) {
+                for (StageObj zonePlacement : zonePlacements) {
+                    if (!subZoneData.containsKey(zonePlacement.name)) {
+                        subZoneData.put(zonePlacement.name, zonePlacement);
                     }
-                }
-
-                for(int i = 1; i <= 8; i++) {
-                    Bcsv bcsv;
-                    if(allWorldArchives.get(i-1).fileExists("/WorldMap0" + i + "/PointParts.bcsv"))
-                        bcsv = new Bcsv(allWorldArchives.get(i - 1).openFile("/WorldMap0" + i + "/PointParts.bcsv"));
-                    else
-                        bcsv = new Bcsv(allWorldArchives.get(i - 1).openFile("/WorldMap0" + i + "/ActorInfo/PointParts.bcsv"));
-
-                    if(i == worldmapId) {
-                        bcsvWorldMapMiscObjects = bcsv;
-                        for(Bcsv.Entry entry : bcsv.entries) {
-                            int index =(int)entry.get("PointIndex");
-                            globalWorldmapPointList.add(index,new MiscWorldmapObject(entry,globalWorldmapPointList.get(index)));
-                            globalWorldmapPointList.remove(index+1);
-                        }
-                    } else {
-                        System.out.println("world" + i);
-                        for(Bcsv.Entry entry : bcsv.entries) {
-                            if((entry.get("PartsTypeName").equals("WorldWarpPoint") ||
-                                    entry.get("PartsTypeName").equals("StarRoadWarpPoint")) && (int) entry.get("Param00") == worldmapId) {
-                                int index = (int) entry.get("Param01");
-                                globalWorldmapTravelObjects.add(new WorldmapTravelObject(entry, globalWorldmapPointList.get(index).entry, i));
-                            }
-                        }
-                    }
-
-                    worldWideMiscObjects.add(bcsv);
-                }
-                
-                btnEditZone.setVisible(false);
-
-                DefaultTreeModel objlist = (DefaultTreeModel)tvWorldmapObjectList.getModel();
-                DefaultMutableTreeNode root = new DefaultMutableTreeNode("World " + worldmapId);
-                objlist.setRoot(root);
-                tvWorldmapObjectList.expandRow(0);
-                root.add(worldmapPointsNode);
-                root.add(worldmapConnectionsNode);
-                root.add(worldmapEntryPointsNode);
-
-                populateWorldmapObjectList();
-            } else { // Remove World Map tab
-                tpLeftPanel.remove(2);
+                } 
             }
-        } catch(IOException ex) {
-            // Thrown if files are missing or there is a duplicate Zone
+        }
+        catch(IOException ex) {
             JOptionPane.showMessageDialog(null, "Failed to open the galaxy: " + ex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
             dispose();
             return;
         }
         
+        initObjectNodeTree();
         initGUI();
     }
     
@@ -229,32 +254,33 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         initVariables();
         
         subZoneData = null;
-        galaxyArc = null;
+        galaxyArchive = null;
 
-        galaxyMode = false;
+        isGalaxyMode = false;
         parentForm = gal_parent;
         zoneEditors = null;
         galaxyName = zone.stageName; // epic hax
         
-        zoneArcs = new HashMap<>(1);
-        zoneArcs.put(galaxyName, zone);
+        zoneArchives = new HashMap(1);
+        zoneArchives.put(galaxyName, zone);
         loadZone(galaxyName);
         
         curZone = galaxyName;
-        curZoneArc = zoneArcs.get(curZone);
+        curZoneArc = zoneArchives.get(curZone);
         
+        initObjectNodeTree();
         initGUI();
         
-        tpLeftPanel.remove(0);
+        tabData.remove(0);
         
         lbLayersList = new CheckBoxList();
         lbLayersList.setEventListener((int index, boolean status) -> {
             layerSelectChange(index, status);
         });
         
-        scpLayersList.setViewportView(lbLayersList);
+        scrLayers.setViewportView(lbLayersList);
         
-        zoneModeLayerBitmask = 1;
+        zoneModeLayerBitmask = 0;
         JCheckBox[] cblayers = new JCheckBox[curZoneArc.objects.keySet().size()];
         int i = 0;
         cblayers[i] = new JCheckBox("Common");
@@ -266,16 +292,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 cblayers[i] = new JCheckBox(ls);
                 if(i == 1) {
                     cblayers[i].setSelected(true);
-                    zoneModeLayerBitmask |=(2 << l);
+                    zoneModeLayerBitmask |= (1 << l);
                 }
                 i++;
             }
         }
         lbLayersList.setListData(cblayers);
         
-        populateObjectList(zoneModeLayerBitmask);
+        populateObjectNodeTree(zoneModeLayerBitmask);
         
-        tpLeftPanel.remove(2);
+        tabData.remove(2);
     }
     
     /**
@@ -284,12 +310,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void initVariables() {
         maxUniqueID = 0;
         globalObjList = new HashMap();
-        globalWorldmapPointList = new ArrayList();
-        globalWorldmapRouteList = new ArrayList();
-        globalWorldmapTravelObjects = new ArrayList<>();
-        
-        defaultPoint = new WorldmapPoint(createPointEntry(0f, 0f, 0f, "x"));
-        
         globalPathList = new HashMap();
         globalPathPointList = new HashMap();        
         treeNodeList = new HashMap();
@@ -299,13 +319,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         closing = false;
         zoneEditors = new HashMap();
         subZoneData = new HashMap();
-        galaxyMode = true;
+        isGalaxyMode = true;
         parentForm = null;
         
-        btnShowAreas.setSelected(Settings.getShowAreas());
-        btnShowCameras.setSelected(Settings.getShowCameras());
-        btnShowGravity.setSelected(Settings.getShowGravity());
-        btnShowPaths.setSelected(Settings.getShowPaths());
+        tgbShowAreas.setSelected(Settings.getShowAreas());
+        tgbShowCameras.setSelected(Settings.getShowCameras());
+        tgbShowGravity.setSelected(Settings.getShowGravity());
+        tgbShowPaths.setSelected(Settings.getShowPaths());
         tgbShowAxis.setSelected(Settings.getShowAxis());
         
         // TODO: make these buttons do something instead of simply hiding them
@@ -314,59 +334,265 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         btnDeleteScenario.setVisible(false);
         btnAddZone.setVisible(false);
         btnDeleteZone.setVisible(false);
+        tgbShowGravity.setVisible(false);
     }
     
-    /**
-     * Load {@code zone} into the {@code zoneArcs} array and add all objects and<br>
-     * paths from it into their respective global lists.
-     * @param zone the name of the zone
-     */
-    private void loadZone(String zone) {
-        StageArchive arc;
-        if(galaxyMode) {
-            arc = galaxyArc.openZone(zone);
-            zoneArcs.put(zone, arc);
-        }
-        else 
-            arc = zoneArcs.get(zone);
+    private void initAddObjectPopup() {
+        tlbObjects.validate();
+        pmnAddObjects = new JPopupMenu();
         
-        // Add all objects from zone into the globalObjList
-        for(java.util.List<AbstractObj> objlist : arc.objects.values()) {
-            if(galaxyMode) {
-                for(AbstractObj obj : objlist) {
-                    globalObjList.put(maxUniqueID, obj);
-                    obj.uniqueID = maxUniqueID;
-                    maxUniqueID++;
+        initAddObjectPopupItem("objinfo", "General");
+        initAddObjectPopupItem("mappartsinfo", "MapPart");
+        
+        if (Whitehole.getCurrentGameType() == 1) {
+            initAddObjectPopupItem("childobjinfo", "ChildObj");
+        }
+        
+        initAddObjectPopupItem("planetobjinfo", "Gravity");
+        initAddObjectPopupItem("areaobjinfo", "Area");
+        initAddObjectPopupItem("cameracubeinfo", "Camera");
+        
+        if (Whitehole.getCurrentGameType() == 1) {
+            initAddObjectPopupItem("soundinfo", "Sound");
+        }
+        
+        initAddObjectPopupItem("startinfo", "Start");
+        initAddObjectPopupItem("demoobjinfo", "Cutscene");
+        initAddObjectPopupItem("generalposinfo", "Position");
+        initAddObjectPopupItem("debugmoveinfo", "Debug");
+        initAddObjectPopupItem("path", "Path");
+        initAddObjectPopupItem("pathpoint", "Path Point");
+        
+        pmnAddObjects.addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                if(addingObject.isEmpty()) {
+                    tgbAddObject.setSelected(false);
                 }
-            } else {
-                for(AbstractObj obj : objlist)
+                else {
+                    setStatusText();
+                }
+            }
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {
+                if(addingObject.isEmpty()) {
+                    tgbAddObject.setSelected(false);
+                }
+                else {
+                    setStatusText();
+                }
+            }
+        });
+    }
+    
+    private void initAddObjectPopupItem(String key, String desc) {
+        JMenuItem menuItem = new JMenuItem(desc);
+        menuItem.addActionListener((ActionEvent e) -> setObjectBeingAdded(key));
+        pmnAddObjects.add(menuItem);
+    }
+    
+    private void initGUI() {
+        setTitle(galaxyName + " -- " + Whitehole.NAME);
+        initAddObjectPopup();
+        
+        sep3.setVisible(false);
+        
+        if(Settings.getUseAntiAliasing()) {
+            GLProfile prof = GLProfile.getMaxFixedFunc(true);
+            GLCapabilities caps = new GLCapabilities(prof);
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(8);
+            caps.setHardwareAccelerated(true);
+            
+            glCanvas = new GLCanvas(caps);
+            if(RendererCache.refContext != null)
+                glCanvas.createContext(RendererCache.refContext);
+            else
+                RendererCache.refContext = glCanvas.getContext();
+        } else {
+            glCanvas = new GLCanvas(null);
+            glCanvas.createContext(RendererCache.refContext);
+        }
+        
+        glCanvas.addGLEventListener(renderer = new GalaxyEditorForm.GalaxyRenderer());
+        glCanvas.addMouseListener(renderer);
+        glCanvas.addMouseMotionListener(renderer);
+        glCanvas.addMouseWheelListener(renderer);
+        glCanvas.addKeyListener(renderer);
+        
+        pnlGLPanel.add(glCanvas, BorderLayout.CENTER);
+        pnlGLPanel.validate();
+        
+        pnlObjectSettings = new PropertyGrid(this);
+        scrObjSettings.setViewportView(pnlObjectSettings);
+        scrObjSettings.getVerticalScrollBar().setUnitIncrement(16);
+        pnlObjectSettings.setEventListener((String propname, Object value) -> {
+            propertyPanelPropertyChanged(propname, value);
+        });
+        
+        glCanvas.requestFocusInWindow();
+    }
+    
+    private void loadZone(String zone) {
+        // Load zone archive
+        StageArchive arc;
+        
+        if(isGalaxyMode) {
+            arc = galaxyArchive.openZone(zone);
+            zoneArchives.put(zone, arc);
+        }
+        else {
+            arc = zoneArchives.get(zone);
+        }
+        
+        // Populate objects and assign their maxUniqueIDs
+        for (List<AbstractObj> layers : arc.objects.values()) {
+            if (isGalaxyMode) {
+                for (AbstractObj obj : layers) {
+                    obj.uniqueID = maxUniqueID;
+                    globalObjList.put(maxUniqueID++, obj);
+                }
+            }
+            else {
+                for (AbstractObj obj : layers) {
                     globalObjList.put(obj.uniqueID, obj);
+                }
             }
         }
         
-        // Add all paths from this zone into the globalPathList
-        for(PathObj obj : arc.paths) {
-            globalPathList.put(maxUniqueID, obj);
-            obj.uniqueID = maxUniqueID;
-            maxUniqueID++;
+        // Populate paths and assign their maxUniqueIDs
+        for (PathObj pathObj : arc.paths) {
+            pathObj.uniqueID = maxUniqueID;
+            globalPathList.put(maxUniqueID++, pathObj);
             
-            for(PathPointObj pt : obj.getPoints()) {
-                globalObjList.put(maxUniqueID, pt);
-                globalPathPointList.put(maxUniqueID, pt);
-                pt.uniqueID = maxUniqueID;
+            for(PathPointObj pointObj : pathObj.getPoints()) {
+                globalObjList.put(maxUniqueID, pointObj);
+                globalPathPointList.put(maxUniqueID, pointObj);
+                pointObj.uniqueID = maxUniqueID;
                 maxUniqueID++;
             }
         }
     }
     
-    /**
-     * Rerender the entire zone.
-     * @param zone the zone to be rerendered
-     */
+    private void saveChanges() {
+        lblStatus.setText("Saving changes...");
+        
+        try {
+            for (StageArchive stageArc : zoneArchives.values()) {
+                stageArc.save();
+            }
+            
+            // Update main editor from subzone
+            if(!isGalaxyMode && parentForm != null) {
+                parentForm.updateZone(galaxyName);
+            }
+            // Update subzone editors from main editor
+            else {
+                for (GalaxyEditorForm form : zoneEditors.values()) {
+                    form.updateZone(form.galaxyName);
+                }
+            }
+            
+            unsavedChanges = false;
+            lblStatus.setText("Saved changes!");
+        }
+        catch(IOException ex) {
+            lblStatus.setText("Failed to save changes: " + ex.getMessage() + ".");
+            System.err.println(ex);
+        }
+    }
+    
     public void updateZone(String zone) {
-        rerenderTasks.add("zone:"+zone);
+        rerenderTasks.add("zone:" + zone);
         glCanvas.repaint();
     }
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Object nodes
+    
+    private void initObjectNodeTree() {
+        objListModel = (DefaultTreeModel)treeObjects.getModel();
+        objListModel.setRoot(objListRootNode);
+        
+        objListTreeNodes.put("objinfo", new ObjListTreeNode("General"));
+        objListTreeNodes.put("mappartsinfo", new ObjListTreeNode("MapParts"));
+        
+        if (Whitehole.getCurrentGameType() == 1) {
+            objListTreeNodes.put("childobjinfo", new ObjListTreeNode("ChildObjs"));
+        }
+        
+        objListTreeNodes.put("planetobjinfo", new ObjListTreeNode("Gravities"));
+        objListTreeNodes.put("areaobjinfo", new ObjListTreeNode("Areas"));
+        objListTreeNodes.put("cameracubeinfo", new ObjListTreeNode("Cameras"));
+        
+        if (Whitehole.getCurrentGameType() == 1) {
+            objListTreeNodes.put("soundinfo", new ObjListTreeNode("Sounds"));
+        }
+        
+        objListTreeNodes.put("startinfo", new ObjListTreeNode("Spawns"));
+        objListTreeNodes.put("demoobjinfo", new ObjListTreeNode("Cutscenes"));
+        objListTreeNodes.put("generalposinfo", new ObjListTreeNode("Positions"));
+        objListTreeNodes.put("debugmoveinfo", new ObjListTreeNode("Debug"));
+    }
+    
+    private void populateObjectNodeTree(int layerMask) {
+        treeNodeList.clear();
+        objListRootNode.setUserObject(curZone);
+        objListRootNode.removeAllChildren();
+        int game = Whitehole.getCurrentGameType();
+        
+        // Populate objects
+        for (Map.Entry<String, ObjListTreeNode> entry : objListTreeNodes.entrySet()) {
+            String key = entry.getKey();
+            
+            // SMG2 does not have these two files
+            if (game == 2 && (key.equals("childobjinfo") || key.equals("soundinfo"))) {
+                continue;
+            }
+            
+            ObjListTreeNode node = entry.getValue();
+            objListRootNode.add(node);
+            
+            for (List<AbstractObj> layer : curZoneArc.objects.values()) {
+                for (AbstractObj obj : layer) {
+                    if (!obj.getFileType().equals(key)) {
+                        continue;
+                    }
+                    if (!obj.layerKey.equals("common")) {
+                        int layerID = obj.layerKey.charAt(5) - 'a';
+                        
+                        if ((layerMask & (1 << layerID)) == 0) {
+                            continue;
+                        }
+                    }
+                    
+                    ObjTreeNode objnode = node.addObject(obj);
+                    treeNodeList.put(obj.uniqueID, objnode);
+                }
+            }
+        }
+        
+        // Populate paths
+        objListRootNode.add(objListPathRootNode);
+        
+        for(PathObj obj : curZoneArc.paths) {
+            ObjListTreeNode node = (ObjListTreeNode)objListPathRootNode.addObject(obj);
+            treeNodeList.put(obj.uniqueID, node);
+            
+            for (Map.Entry<Integer, ObjTreeNode> pathPointNode : node.children.entrySet()) {
+                treeNodeList.put(pathPointNode.getKey(), pathPointNode.getValue());
+            }
+        }
+        
+        objListModel.reload();
+        treeObjects.expandRow(0);
+    }
+    
+    // -------------------------------------------------------------------------------------------------------------------------
     
     /**
      * Called when translating through the shortcut key G
@@ -533,46 +759,46 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jSplitPane1 = new javax.swing.JSplitPane();
+        split = new javax.swing.JSplitPane();
         pnlGLPanel = new javax.swing.JPanel();
-        jToolBar2 = new javax.swing.JToolBar();
-        btnDeselect = new javax.swing.JButton();
-        jSeparator3 = new javax.swing.JToolBar.Separator();
-        btnShowPaths = new javax.swing.JToggleButton();
-        jSeparator6 = new javax.swing.JToolBar.Separator();
-        btnShowAreas = new javax.swing.JToggleButton();
-        jSeparator11 = new javax.swing.JToolBar.Separator();
-        btnShowGravity = new javax.swing.JToggleButton();
-        jSeparator12 = new javax.swing.JToolBar.Separator();
-        btnShowCameras = new javax.swing.JToggleButton();
-        jSeparator7 = new javax.swing.JToolBar.Separator();
+        tlbOptions = new javax.swing.JToolBar();
+        tgbDeselect = new javax.swing.JButton();
+        sep1 = new javax.swing.JToolBar.Separator();
+        tgbShowPaths = new javax.swing.JToggleButton();
+        sep2 = new javax.swing.JToolBar.Separator();
+        tgbShowAreas = new javax.swing.JToggleButton();
+        sep3 = new javax.swing.JToolBar.Separator();
+        tgbShowGravity = new javax.swing.JToggleButton();
+        sep4 = new javax.swing.JToolBar.Separator();
+        tgbShowCameras = new javax.swing.JToggleButton();
+        sep5 = new javax.swing.JToolBar.Separator();
         tgbShowAxis = new javax.swing.JToggleButton();
-        lbStatusLabel = new javax.swing.JLabel();
-        tpLeftPanel = new javax.swing.JTabbedPane();
-        pnlScenarioZonePanel = new javax.swing.JSplitPane();
-        jPanel1 = new javax.swing.JPanel();
-        jToolBar3 = new javax.swing.JToolBar();
-        jLabel3 = new javax.swing.JLabel();
+        lblStatus = new javax.swing.JLabel();
+        tabData = new javax.swing.JTabbedPane();
+        pnlScenarioZone = new javax.swing.JSplitPane();
+        pnlScenarios = new javax.swing.JPanel();
+        tlbScenarios = new javax.swing.JToolBar();
+        lblScenarios = new javax.swing.JLabel();
         btnAddScenario = new javax.swing.JButton();
         btnEditScenario = new javax.swing.JButton();
         btnDeleteScenario = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        lbScenarioList = new javax.swing.JList();
-        jPanel2 = new javax.swing.JPanel();
-        jToolBar4 = new javax.swing.JToolBar();
-        jLabel4 = new javax.swing.JLabel();
+        listScenarios = new javax.swing.JList();
+        pnlZones = new javax.swing.JPanel();
+        tlbZones = new javax.swing.JToolBar();
+        lblZones = new javax.swing.JLabel();
         btnAddZone = new javax.swing.JButton();
         btnDeleteZone = new javax.swing.JButton();
         btnEditZone = new javax.swing.JButton();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        lbZoneList = new javax.swing.JList();
-        pnlLayersPanel = new javax.swing.JPanel();
-        jToolBar6 = new javax.swing.JToolBar();
+        scrZones = new javax.swing.JScrollPane();
+        listZones = new javax.swing.JList();
+        pnlLayers = new javax.swing.JPanel();
+        tlbLayers = new javax.swing.JToolBar();
         jLabel1 = new javax.swing.JLabel();
-        scpLayersList = new javax.swing.JScrollPane();
-        jSplitPane4 = new javax.swing.JSplitPane();
-        jPanel3 = new javax.swing.JPanel();
-        tbObjToolbar = new javax.swing.JToolBar();
+        scrLayers = new javax.swing.JScrollPane();
+        scrObjects = new javax.swing.JSplitPane();
+        pnlObjects = new javax.swing.JPanel();
+        tlbObjects = new javax.swing.JToolBar();
         tgbAddObject = new javax.swing.JToggleButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
         tgbDeleteObject = new javax.swing.JToggleButton();
@@ -580,38 +806,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         tgbCopyObj = new javax.swing.JToggleButton();
         jSeparator10 = new javax.swing.JToolBar.Separator();
         tgbPasteObj = new javax.swing.JToggleButton();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        tvObjectList = new javax.swing.JTree();
-        scpObjSettingsContainer = new javax.swing.JScrollPane();
-        jSplitPane5 = new javax.swing.JSplitPane();
-        jPanel4 = new javax.swing.JPanel();
-        tbObjToolbar1 = new javax.swing.JToolBar();
-        tgbQuickAction = new javax.swing.JToggleButton();
-        jSeparator9 = new javax.swing.JToolBar.Separator();
-        tgbAddWorldmapObj = new javax.swing.JToggleButton();
-        jSeparator1 = new javax.swing.JToolBar.Separator();
-        btnAddWorldmapRoute = new javax.swing.JButton();
-        jSeparator8 = new javax.swing.JToolBar.Separator();
-        btnDeleteWorldmapObj = new javax.swing.JButton();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        tvWorldmapObjectList = new javax.swing.JTree();
-        btnSaveWorldmap = new javax.swing.JButton();
-        scpWorldmapObjSettingsContainer = new javax.swing.JScrollPane();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        mnuSave = new javax.swing.JMenu();
-        itemSave = new javax.swing.JMenuItem();
-        itemClose = new javax.swing.JMenuItem();
+        scrObjectTree = new javax.swing.JScrollPane();
+        treeObjects = new javax.swing.JTree();
+        scrObjSettings = new javax.swing.JScrollPane();
+        menu = new javax.swing.JMenuBar();
+        mnuFile = new javax.swing.JMenu();
+        mniSave = new javax.swing.JMenuItem();
+        mniClose = new javax.swing.JMenuItem();
         mnuEdit = new javax.swing.JMenu();
-        subCopy = new javax.swing.JMenu();
+        mnuCopy = new javax.swing.JMenu();
         itmPositionCopy = new javax.swing.JMenuItem();
         itmRotationCopy = new javax.swing.JMenuItem();
         itmScaleCopy = new javax.swing.JMenuItem();
-        subPaste = new javax.swing.JMenu();
+        mnuPaste = new javax.swing.JMenu();
         itmPositionPaste = new javax.swing.JMenuItem();
         itmRotationPaste = new javax.swing.JMenuItem();
         itmScalePaste = new javax.swing.JMenuItem();
-        mnuHelp = new javax.swing.JMenu();
-        itemControls = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(Whitehole.NAME);
@@ -629,79 +839,81 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         });
 
-        jSplitPane1.setDividerLocation(335);
-        jSplitPane1.setFocusable(false);
+        split.setDividerLocation(335);
+        split.setFocusable(false);
 
         pnlGLPanel.setMinimumSize(new java.awt.Dimension(10, 30));
         pnlGLPanel.setLayout(new java.awt.BorderLayout());
 
-        jToolBar2.setFloatable(false);
-        jToolBar2.setRollover(true);
+        tlbOptions.setFloatable(false);
+        tlbOptions.setRollover(true);
 
-        btnDeselect.setText("Deselect");
-        btnDeselect.setEnabled(false);
-        btnDeselect.setFocusable(false);
-        btnDeselect.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnDeselect.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnDeselect.addActionListener(new java.awt.event.ActionListener() {
+        tgbDeselect.setText("Deselect");
+        tgbDeselect.setEnabled(false);
+        tgbDeselect.setFocusable(false);
+        tgbDeselect.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbDeselect.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbDeselect.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDeselectActionPerformed(evt);
+                tgbDeselectActionPerformed(evt);
             }
         });
-        jToolBar2.add(btnDeselect);
-        jToolBar2.add(jSeparator3);
+        tlbOptions.add(tgbDeselect);
+        tlbOptions.add(sep1);
 
-        btnShowPaths.setText("Show paths");
-        btnShowPaths.setFocusable(false);
-        btnShowPaths.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnShowPaths.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnShowPaths.addActionListener(new java.awt.event.ActionListener() {
+        tgbShowPaths.setSelected(true);
+        tgbShowPaths.setText("Show paths");
+        tgbShowPaths.setFocusable(false);
+        tgbShowPaths.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowPaths.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowPaths.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnShowPathsActionPerformed(evt);
+                tgbShowPathsActionPerformed(evt);
             }
         });
-        jToolBar2.add(btnShowPaths);
-        jToolBar2.add(jSeparator6);
+        tlbOptions.add(tgbShowPaths);
+        tlbOptions.add(sep2);
 
-        btnShowAreas.setSelected(true);
-        btnShowAreas.setText("Show areas");
-        btnShowAreas.setFocusable(false);
-        btnShowAreas.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnShowAreas.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnShowAreas.addActionListener(new java.awt.event.ActionListener() {
+        tgbShowAreas.setSelected(true);
+        tgbShowAreas.setText("Show areas");
+        tgbShowAreas.setFocusable(false);
+        tgbShowAreas.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowAreas.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowAreas.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnShowAreasActionPerformed(evt);
+                tgbShowAreasActionPerformed(evt);
             }
         });
-        jToolBar2.add(btnShowAreas);
-        jToolBar2.add(jSeparator11);
+        tlbOptions.add(tgbShowAreas);
+        tlbOptions.add(sep3);
 
-        btnShowGravity.setSelected(true);
-        btnShowGravity.setText("Show gravity");
-        btnShowGravity.setFocusable(false);
-        btnShowGravity.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnShowGravity.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnShowGravity.addActionListener(new java.awt.event.ActionListener() {
+        tgbShowGravity.setSelected(true);
+        tgbShowGravity.setText("Show gravity");
+        tgbShowGravity.setFocusable(false);
+        tgbShowGravity.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowGravity.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowGravity.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnShowGravityActionPerformed(evt);
+                tgbShowGravityActionPerformed(evt);
             }
         });
-        jToolBar2.add(btnShowGravity);
-        jToolBar2.add(jSeparator12);
+        tlbOptions.add(tgbShowGravity);
+        tlbOptions.add(sep4);
 
-        btnShowCameras.setSelected(true);
-        btnShowCameras.setText("Show cameras");
-        btnShowCameras.setFocusable(false);
-        btnShowCameras.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnShowCameras.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnShowCameras.addActionListener(new java.awt.event.ActionListener() {
+        tgbShowCameras.setSelected(true);
+        tgbShowCameras.setText("Show cameras");
+        tgbShowCameras.setFocusable(false);
+        tgbShowCameras.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowCameras.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowCameras.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnShowCamerasActionPerformed(evt);
+                tgbShowCamerasActionPerformed(evt);
             }
         });
-        jToolBar2.add(btnShowCameras);
-        jToolBar2.add(jSeparator7);
+        tlbOptions.add(tgbShowCameras);
+        tlbOptions.add(sep5);
 
+        tgbShowAxis.setSelected(true);
         tgbShowAxis.setText("Show axis");
         tgbShowAxis.setFocusable(false);
         tgbShowAxis.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -711,30 +923,31 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 tgbShowAxisActionPerformed(evt);
             }
         });
-        jToolBar2.add(tgbShowAxis);
+        tlbOptions.add(tgbShowAxis);
 
-        pnlGLPanel.add(jToolBar2, java.awt.BorderLayout.NORTH);
+        pnlGLPanel.add(tlbOptions, java.awt.BorderLayout.NORTH);
 
-        lbStatusLabel.setText("Booting...");
-        pnlGLPanel.add(lbStatusLabel, java.awt.BorderLayout.PAGE_END);
+        lblStatus.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        lblStatus.setText("Booting...");
+        pnlGLPanel.add(lblStatus, java.awt.BorderLayout.PAGE_END);
 
-        jSplitPane1.setRightComponent(pnlGLPanel);
+        split.setRightComponent(pnlGLPanel);
 
-        tpLeftPanel.setMinimumSize(new java.awt.Dimension(100, 5));
-        tpLeftPanel.setName(""); // NOI18N
+        tabData.setMinimumSize(new java.awt.Dimension(100, 5));
+        tabData.setName(""); // NOI18N
 
-        pnlScenarioZonePanel.setDividerLocation(200);
-        pnlScenarioZonePanel.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        pnlScenarioZonePanel.setLastDividerLocation(200);
+        pnlScenarioZone.setDividerLocation(200);
+        pnlScenarioZone.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        pnlScenarioZone.setLastDividerLocation(200);
 
-        jPanel1.setPreferredSize(new java.awt.Dimension(201, 200));
-        jPanel1.setLayout(new java.awt.BorderLayout());
+        pnlScenarios.setPreferredSize(new java.awt.Dimension(201, 200));
+        pnlScenarios.setLayout(new java.awt.BorderLayout());
 
-        jToolBar3.setFloatable(false);
-        jToolBar3.setRollover(true);
+        tlbScenarios.setFloatable(false);
+        tlbScenarios.setRollover(true);
 
-        jLabel3.setText("Scenarios:");
-        jToolBar3.add(jLabel3);
+        lblScenarios.setText("Scenarios:");
+        tlbScenarios.add(lblScenarios);
 
         btnAddScenario.setText("Add");
         btnAddScenario.setFocusable(false);
@@ -745,13 +958,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 btnAddScenarioActionPerformed(evt);
             }
         });
-        jToolBar3.add(btnAddScenario);
+        tlbScenarios.add(btnAddScenario);
 
         btnEditScenario.setText("Edit");
         btnEditScenario.setFocusable(false);
         btnEditScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnEditScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar3.add(btnEditScenario);
+        tlbScenarios.add(btnEditScenario);
 
         btnDeleteScenario.setText("Delete");
         btnDeleteScenario.setFocusable(false);
@@ -762,36 +975,36 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 btnDeleteScenarioActionPerformed(evt);
             }
         });
-        jToolBar3.add(btnDeleteScenario);
+        tlbScenarios.add(btnDeleteScenario);
 
-        jPanel1.add(jToolBar3, java.awt.BorderLayout.PAGE_START);
+        pnlScenarios.add(tlbScenarios, java.awt.BorderLayout.PAGE_START);
 
-        lbScenarioList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        lbScenarioList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        listScenarios.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        listScenarios.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                lbScenarioListValueChanged(evt);
+                listScenariosValueChanged(evt);
             }
         });
-        jScrollPane1.setViewportView(lbScenarioList);
+        jScrollPane1.setViewportView(listScenarios);
 
-        jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+        pnlScenarios.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
-        pnlScenarioZonePanel.setTopComponent(jPanel1);
+        pnlScenarioZone.setTopComponent(pnlScenarios);
 
-        jPanel2.setLayout(new java.awt.BorderLayout());
+        pnlZones.setLayout(new java.awt.BorderLayout());
 
-        jToolBar4.setBorder(null);
-        jToolBar4.setFloatable(false);
-        jToolBar4.setRollover(true);
+        tlbZones.setBorder(null);
+        tlbZones.setFloatable(false);
+        tlbZones.setRollover(true);
 
-        jLabel4.setText("Zones:");
-        jToolBar4.add(jLabel4);
+        lblZones.setText("Zones:");
+        tlbZones.add(lblZones);
 
         btnAddZone.setText("Add");
         btnAddZone.setFocusable(false);
         btnAddZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnAddZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar4.add(btnAddZone);
+        tlbZones.add(btnAddZone);
 
         btnDeleteZone.setText("Delete");
         btnDeleteZone.setFocusable(false);
@@ -802,7 +1015,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 btnDeleteZoneActionPerformed(evt);
             }
         });
-        jToolBar4.add(btnDeleteZone);
+        tlbZones.add(btnDeleteZone);
 
         btnEditZone.setText("Edit individually");
         btnEditZone.setFocusable(false);
@@ -813,48 +1026,48 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 btnEditZoneActionPerformed(evt);
             }
         });
-        jToolBar4.add(btnEditZone);
+        tlbZones.add(btnEditZone);
 
-        jPanel2.add(jToolBar4, java.awt.BorderLayout.PAGE_START);
+        pnlZones.add(tlbZones, java.awt.BorderLayout.PAGE_START);
 
-        lbZoneList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        lbZoneList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        listZones.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        listZones.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                lbZoneListValueChanged(evt);
+                listZonesValueChanged(evt);
             }
         });
-        jScrollPane2.setViewportView(lbZoneList);
+        scrZones.setViewportView(listZones);
 
-        jPanel2.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+        pnlZones.add(scrZones, java.awt.BorderLayout.CENTER);
 
-        pnlScenarioZonePanel.setRightComponent(jPanel2);
+        pnlScenarioZone.setRightComponent(pnlZones);
 
-        tpLeftPanel.addTab("Scenario/Zone", pnlScenarioZonePanel);
+        tabData.addTab("Scenario/Zone", pnlScenarioZone);
 
-        pnlLayersPanel.setLayout(new java.awt.BorderLayout());
+        pnlLayers.setLayout(new java.awt.BorderLayout());
 
-        jToolBar6.setFloatable(false);
-        jToolBar6.setRollover(true);
+        tlbLayers.setFloatable(false);
+        tlbLayers.setRollover(true);
 
         jLabel1.setText("Layers:");
-        jToolBar6.add(jLabel1);
+        tlbLayers.add(jLabel1);
 
-        pnlLayersPanel.add(jToolBar6, java.awt.BorderLayout.PAGE_START);
-        pnlLayersPanel.add(scpLayersList, java.awt.BorderLayout.CENTER);
+        pnlLayers.add(tlbLayers, java.awt.BorderLayout.PAGE_START);
+        pnlLayers.add(scrLayers, java.awt.BorderLayout.CENTER);
 
-        tpLeftPanel.addTab("Layers", pnlLayersPanel);
+        tabData.addTab("Layers", pnlLayers);
 
-        jSplitPane4.setDividerLocation(300);
-        jSplitPane4.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        jSplitPane4.setResizeWeight(0.5);
-        jSplitPane4.setFocusCycleRoot(true);
-        jSplitPane4.setLastDividerLocation(300);
+        scrObjects.setDividerLocation(300);
+        scrObjects.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        scrObjects.setResizeWeight(0.5);
+        scrObjects.setFocusCycleRoot(true);
+        scrObjects.setLastDividerLocation(300);
 
-        jPanel3.setPreferredSize(new java.awt.Dimension(149, 300));
-        jPanel3.setLayout(new java.awt.BorderLayout());
+        pnlObjects.setPreferredSize(new java.awt.Dimension(149, 300));
+        pnlObjects.setLayout(new java.awt.BorderLayout());
 
-        tbObjToolbar.setFloatable(false);
-        tbObjToolbar.setRollover(true);
+        tlbObjects.setFloatable(false);
+        tlbObjects.setRollover(true);
 
         tgbAddObject.setText("Add object");
         tgbAddObject.setFocusable(false);
@@ -865,8 +1078,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 tgbAddObjectActionPerformed(evt);
             }
         });
-        tbObjToolbar.add(tgbAddObject);
-        tbObjToolbar.add(jSeparator4);
+        tlbObjects.add(tgbAddObject);
+        tlbObjects.add(jSeparator4);
 
         tgbDeleteObject.setText("Delete object");
         tgbDeleteObject.setFocusable(false);
@@ -877,8 +1090,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 tgbDeleteObjectActionPerformed(evt);
             }
         });
-        tbObjToolbar.add(tgbDeleteObject);
-        tbObjToolbar.add(jSeparator5);
+        tlbObjects.add(tgbDeleteObject);
+        tlbObjects.add(jSeparator5);
 
         tgbCopyObj.setText("Copy");
         tgbCopyObj.setFocusable(false);
@@ -889,8 +1102,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 tgbCopyObjActionPerformed(evt);
             }
         });
-        tbObjToolbar.add(tgbCopyObj);
-        tbObjToolbar.add(jSeparator10);
+        tlbObjects.add(tgbCopyObj);
+        tlbObjects.add(jSeparator10);
 
         tgbPasteObj.setText("Paste");
         tgbPasteObj.setFocusable(false);
@@ -901,147 +1114,56 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 tgbPasteObjActionPerformed(evt);
             }
         });
-        tbObjToolbar.add(tgbPasteObj);
+        tlbObjects.add(tgbPasteObj);
 
-        jPanel3.add(tbObjToolbar, java.awt.BorderLayout.PAGE_START);
+        pnlObjects.add(tlbObjects, java.awt.BorderLayout.PAGE_START);
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
-        tvObjectList.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
-        tvObjectList.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+        treeObjects.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        treeObjects.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
             public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                tvObjectListValueChanged(evt);
+                treeObjectsValueChanged(evt);
             }
         });
-        jScrollPane3.setViewportView(tvObjectList);
+        scrObjectTree.setViewportView(treeObjects);
 
-        jPanel3.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+        pnlObjects.add(scrObjectTree, java.awt.BorderLayout.CENTER);
 
-        jSplitPane4.setTopComponent(jPanel3);
-        jSplitPane4.setRightComponent(scpObjSettingsContainer);
+        scrObjects.setTopComponent(pnlObjects);
+        scrObjects.setRightComponent(scrObjSettings);
 
-        tpLeftPanel.addTab("Objects", jSplitPane4);
+        tabData.addTab("Objects", scrObjects);
 
-        jSplitPane5.setDividerLocation(300);
-        jSplitPane5.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        jSplitPane5.setResizeWeight(0.5);
-        jSplitPane5.setFocusCycleRoot(true);
-        jSplitPane5.setLastDividerLocation(300);
+        split.setTopComponent(tabData);
+        tabData.getAccessibleContext().setAccessibleDescription("");
 
-        jPanel4.setPreferredSize(new java.awt.Dimension(149, 300));
-        jPanel4.setLayout(new java.awt.BorderLayout());
+        getContentPane().add(split, java.awt.BorderLayout.CENTER);
 
-        tbObjToolbar1.setFloatable(false);
-        tbObjToolbar1.setRollover(true);
-        tbObjToolbar1.setMinimumSize(new java.awt.Dimension(385, 500));
-        tbObjToolbar1.setName(""); // NOI18N
+        mnuFile.setText("File");
 
-        tgbQuickAction.setText("Quick Actions");
-        tgbQuickAction.setFocusable(false);
-        tgbQuickAction.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbQuickAction.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbQuickAction.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbQuickActionActionPerformed(evt);
-            }
-        });
-        tbObjToolbar1.add(tgbQuickAction);
-        tbObjToolbar1.add(jSeparator9);
-
-        tgbAddWorldmapObj.setText("Add Point");
-        tgbAddWorldmapObj.setFocusable(false);
-        tgbAddWorldmapObj.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbAddWorldmapObj.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbAddWorldmapObj.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbAddWorldmapObjActionPerformed(evt);
-            }
-        });
-        tbObjToolbar1.add(tgbAddWorldmapObj);
-        tbObjToolbar1.add(jSeparator1);
-
-        btnAddWorldmapRoute.setText("Add Route");
-        btnAddWorldmapRoute.setFocusable(false);
-        btnAddWorldmapRoute.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnAddWorldmapRoute.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnAddWorldmapRoute.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddWorldmapRouteActionPerformed(evt);
-            }
-        });
-        tbObjToolbar1.add(btnAddWorldmapRoute);
-        tbObjToolbar1.add(jSeparator8);
-
-        btnDeleteWorldmapObj.setText("Delete");
-        btnDeleteWorldmapObj.setFocusable(false);
-        btnDeleteWorldmapObj.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnDeleteWorldmapObj.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnDeleteWorldmapObj.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDeleteWorldmapObjActionPerformed(evt);
-            }
-        });
-        tbObjToolbar1.add(btnDeleteWorldmapObj);
-
-        jPanel4.add(tbObjToolbar1, java.awt.BorderLayout.PAGE_START);
-
-        treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
-        tvWorldmapObjectList.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
-        tvWorldmapObjectList.setName(""); // NOI18N
-        tvWorldmapObjectList.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                tvWorldmapObjectListValueChanged(evt);
-            }
-        });
-        jScrollPane4.setViewportView(tvWorldmapObjectList);
-
-        jPanel4.add(jScrollPane4, java.awt.BorderLayout.CENTER);
-
-        btnSaveWorldmap.setText("Save Worldmap");
-        btnSaveWorldmap.setFocusable(false);
-        btnSaveWorldmap.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnSaveWorldmap.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnSaveWorldmap.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSaveWorldmapActionPerformed(evt);
-            }
-        });
-        jPanel4.add(btnSaveWorldmap, java.awt.BorderLayout.PAGE_END);
-
-        jSplitPane5.setTopComponent(jPanel4);
-        jSplitPane5.setRightComponent(scpWorldmapObjSettingsContainer);
-
-        tpLeftPanel.addTab("WorldMap", jSplitPane5);
-
-        jSplitPane1.setTopComponent(tpLeftPanel);
-        tpLeftPanel.getAccessibleContext().setAccessibleDescription("");
-
-        getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
-
-        mnuSave.setText("File");
-
-        itemSave.setAccelerator(Settings.getUseWASD() ? null : KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK)
+        mniSave.setAccelerator(Settings.getUseWASD() ? null : KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK)
         );
-        itemSave.setText("Save");
-        itemSave.addActionListener(new java.awt.event.ActionListener() {
+        mniSave.setText("Save");
+        mniSave.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemSaveActionPerformed(evt);
+                mniSaveActionPerformed(evt);
             }
         });
-        mnuSave.add(itemSave);
+        mnuFile.add(mniSave);
 
-        itemClose.setText("Close");
-        itemClose.addActionListener(new java.awt.event.ActionListener() {
+        mniClose.setText("Close");
+        mniClose.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemCloseActionPerformed(evt);
+                mniCloseActionPerformed(evt);
             }
         });
-        mnuSave.add(itemClose);
+        mnuFile.add(mniClose);
 
-        jMenuBar1.add(mnuSave);
+        menu.add(mnuFile);
 
         mnuEdit.setText("Edit");
 
-        subCopy.setText("Copy");
+        mnuCopy.setText("Copy");
 
         itmPositionCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyPosition(), ActionEvent.ALT_MASK)
         );
@@ -1051,7 +1173,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 itmPositionCopyActionPerformed(evt);
             }
         });
-        subCopy.add(itmPositionCopy);
+        mnuCopy.add(itmPositionCopy);
 
         itmRotationCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyRotation(), ActionEvent.ALT_MASK));
         itmRotationCopy.setText("Rotation");
@@ -1060,7 +1182,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 itmRotationCopyActionPerformed(evt);
             }
         });
-        subCopy.add(itmRotationCopy);
+        mnuCopy.add(itmRotationCopy);
 
         itmScaleCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyScale(), ActionEvent.ALT_MASK));
         itmScaleCopy.setText("Scale");
@@ -1069,11 +1191,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 itmScaleCopyActionPerformed(evt);
             }
         });
-        subCopy.add(itmScaleCopy);
+        mnuCopy.add(itmScaleCopy);
 
-        mnuEdit.add(subCopy);
+        mnuEdit.add(mnuCopy);
 
-        subPaste.setText("Paste");
+        mnuPaste.setText("Paste");
 
         itmPositionPaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyPosition(), ActionEvent.SHIFT_MASK));
         itmPositionPaste.setText("Position (0.0, 0.0, 0.0)");
@@ -1082,7 +1204,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 itmPositionPasteActionPerformed(evt);
             }
         });
-        subPaste.add(itmPositionPaste);
+        mnuPaste.add(itmPositionPaste);
 
         itmRotationPaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyRotation(), ActionEvent.SHIFT_MASK));
         itmRotationPaste.setText("Rotation (0.0, 0.0, 0.0)");
@@ -1091,7 +1213,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 itmRotationPasteActionPerformed(evt);
             }
         });
-        subPaste.add(itmRotationPaste);
+        mnuPaste.add(itmRotationPaste);
 
         itmScalePaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyScale(), ActionEvent.SHIFT_MASK));
         itmScalePaste.setText("Scale (1.0, 1.0, 1.0)");
@@ -1101,25 +1223,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 itmScalePasteActionPerformed(evt);
             }
         });
-        subPaste.add(itmScalePaste);
+        mnuPaste.add(itmScalePaste);
 
-        mnuEdit.add(subPaste);
+        mnuEdit.add(mnuPaste);
 
-        jMenuBar1.add(mnuEdit);
+        menu.add(mnuEdit);
 
-        mnuHelp.setText("Help");
-
-        itemControls.setText("Controls");
-        itemControls.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemControlsActionPerformed(evt);
-            }
-        });
-        mnuHelp.add(itemControls);
-
-        jMenuBar1.add(mnuHelp);
-
-        setJMenuBar(jMenuBar1);
+        setJMenuBar(menu);
 
         pack();
         setLocationRelativeTo(null);
@@ -1127,13 +1237,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
     private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
     {//GEN-HEADEREND:event_formWindowOpened
-        if(galaxyMode) {
+        if(isGalaxyMode) {
             DefaultListModel scenlist = new DefaultListModel();
-            lbScenarioList.setModel(scenlist);
-            for(Bcsv.Entry scen : galaxyArc.scenarioData)
+            listScenarios.setModel(scenlist);
+            for(Bcsv.Entry scen : galaxyArchive.scenarioData)
                 scenlist.addElement(String.format("[%1$d] %2$s",(int)scen.get("ScenarioNo"),(String)scen.get("ScenarioName")));
 
-            lbScenarioList.setSelectedIndex(0);
+            listScenarios.setSelectedIndex(0);
         }
     }//GEN-LAST:event_formWindowOpened
     
@@ -1145,8 +1255,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         pnlObjectSettings.clear();
         
         if(selectedObjs.isEmpty()) {
-            lbStatusLabel.setText("Object deselected.");
-            btnDeselect.setEnabled(false);
+            lblStatus.setText("Object deselected.");
+            tgbDeselect.setEnabled(false);
             camSelected = false;
             pnlObjectSettings.doLayout();
             pnlObjectSettings.validate();
@@ -1191,15 +1301,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 if(selectedObj instanceof PathPointObj) {
                     PathPointObj selectedPathPoint =(PathPointObj)selectedObj;
                     PathObj path = selectedPathPoint.path;
-                    lbStatusLabel.setText(String.format("Selected [%3$d] %1$s(%2$s), point %4$d",
+                    lblStatus.setText(String.format("Selected [%3$d] %1$s(%2$s), point %4$d",
                                 path.data.get("name"), path.stage.stageName, path.pathID, selectedPathPoint.getIndex()) + ".");
-                    btnDeselect.setEnabled(true);
+                    tgbDeselect.setEnabled(true);
                     selectedPathPoint.getProperties(pnlObjectSettings);
                 }
                 else {
                     String layer = selectedObj.layerKey.equals("common") ? "Common" : selectedObj.getLayerName();
-                    lbStatusLabel.setText("Selected " + selectedObj.name + "(" + selectedObj.stage.stageName + ", " + layer + ").");
-                    btnDeselect.setEnabled(true);
+                    lblStatus.setText("Selected " + selectedObj.name + "(" + selectedObj.stage.stageName + ", " + layer + ").");
+                    tgbDeselect.setEnabled(true);
                     
                     LinkedList layerlist = new LinkedList();
                     layerlist.add("Common");
@@ -1213,8 +1323,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         pnlObjectSettings.addCategory("obj_general", "General");
                         if(selectedObj.getClass() != StartObj.class && selectedObj.getClass() != DebugObj.class)
                             pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name, "Default");
-                        if(galaxyMode)
-                            pnlObjectSettings.addField("zone", "Zone", "list", galaxyArc.zoneList, selectedObj.stage.stageName, "Default");
+                        if(isGalaxyMode)
+                            pnlObjectSettings.addField("zone", "Zone", "list", galaxyArchive.zoneList, selectedObj.stage.stageName, "Default");
                         pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer, "Default");
                     }
 
@@ -1272,7 +1382,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         if(selectedObjs.size() > 1) {
-            lbStatusLabel.setText("Multiple objects selected.(" + selectedObjs.size() + ").");
+            lblStatus.setText("Multiple objects selected.(" + selectedObjs.size() + ").");
         }
         
         pnlObjectSettings.doLayout();
@@ -1282,398 +1392,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         glCanvas.requestFocusInWindow();
     }
     
-    /**
-     * Called when worldmap object selection is changed. TODO
-     */
-    public void selectedWorldmapObjChanged() {
-        pnlWorldmapObjectSettings.clear();
-        if(currentWorldmapPointIndex != -1) {
-            WorldmapPoint point = globalWorldmapPointList.get(currentWorldmapPointIndex);
-            pnlWorldmapObjectSettings.doLayout();
-            pnlWorldmapObjectSettings.validate();
-            pnlWorldmapObjectSettings.repaint();
-            pnlWorldmapObjectSettings.addCategory("general", "General");
-            pnlWorldmapObjectSettings
-            .addField("point_posX", "X position", "float", null,
-                   ((float)point.entry.get(-726582764))*0.001f, "The x position of this Worldmap Point")
-            
-            .addField("point_posY", "Y position", "float", null,
-                   ((float)point.entry.get(-726582763))*0.001f, "The y position of this Worldmap Point")
-            
-            .addField("point_posZ", "Z position", "float", null,
-                   ((float)point.entry.get(-726582762))*0.001f, "The z position of this Worldmap Point");
-            
-            if(point.entry.containsKey("ColorChange")) {
-                pnlWorldmapObjectSettings
-                .addField("point_color", "Color", "list", worldmapColors,
-                    point.entry.get("ColorChange").equals("o")?"Pink":"Yellow", "The color of this Worldmap Point");
-            }
-            
-            pnlWorldmapObjectSettings
-            .addField("point_enabled", "Enabled", "bool", null,
-                    point.entry.get("Valid").equals("o"),"")
-            
-            .addIntegerField("point_camId", "CameraSettingID",
-                           (int)point.entry.get("LayerNo"), "", 0, Integer.MAX_VALUE)
-                    
-            .addField("point_subPoint", "Is Subpoint(always false)", "bool", null,
-                    point.entry.get("SubPoint").equals("o"),"");
-            
-            
-            if(point instanceof GalaxyPreview) {
-                GalaxyPreview galaxy =(GalaxyPreview)point;
-                pnlWorldmapObjectSettings.
-                addField("point_type", "Type", "list", worldmapObjTypes,
-                        "GalaxyIcon", "")
-                
-                
-                .addCategory("galaxy", "GalaxyIconSettings")
-                
-                .addField("galaxy_name", "GalaxyName", "text", null,
-                        galaxy.entryGP.get("StageName"), "")
-                        
-                .addField("galaxy_type", "Type", "list", worldmapGalaxyTypes,
-                        galaxy.entryGP.get("StageType"), "")
-                
-                .addField("galaxy_iconname", "IconModel", "text", null,
-                        galaxy.entryGP.get("MiniatureName"), "")
-                
-                .addField("galaxy_iconScaleMin", "Icon Normal Scale", "float", null,
-                        galaxy.entryGP.get("ScaleMin"), "")
-                
-                .addField("galaxy_iconScaleMax", "Icon Selected Scale", "float", null,
-                        galaxy.entryGP.get("ScaleMax"), "")
-                
-                
-                .addCategory("galaxyPositioning", "GalaxyPositioning")
-                
-                .addField("galaxy_iconPosX", "Icon X position", "float", null,
-                   (float)galaxy.entryGP.get("PosOffsetX")*0.01f, "")
-                        
-                .addField("galaxy_iconPosY", "Icon Y position", "float", null,
-                   (float)galaxy.entryGP.get("PosOffsetY")*0.01f, "")
-                        
-                .addField("galaxy_iconPosZ", "Icon Z position", "float", null,
-                   (float)galaxy.entryGP.get("PosOffsetZ")*0.01f, "")
-                
-                .addField("galaxy_labelPosX", "NameLabel X position", "float", null,
-                   (float)galaxy.entryGP.get("NamePlatePosX")*0.01f, "")
-                        
-                .addField("galaxy_labelPosY", "NameLabel Y position", "float", null,
-                   (float)galaxy.entryGP.get("NamePlatePosY")*0.01f, "")
-                        
-                .addField("galaxy_labelPosZ", "NameLabel Z position", "float", null,
-                   (float)galaxy.entryGP.get("NamePlatePosZ")*0.01f, "")
-                
-                
-                .addCategory("iconInWorldselection", "Icon in world selection screen")
-                        
-                .addField("galaxy_overviewIconX", "X position", "float", null,
-                   (float)galaxy.entryGP.get("IconOffsetX")*0.01f, "")
-                        
-                .addField("galaxy_overviewIconY", "Y position", "float", null,
-                   (float)galaxy.entryGP.get("IconOffsetY")*0.01f, "");
-                
-                
-            } else if(point instanceof MiscWorldmapObject) {
-                MiscWorldmapObject misc =(MiscWorldmapObject) point;
-                switch((String)misc.entryMO.get(-391766075)) {
-                    case "WorldWarpPoint":
-                        pnlWorldmapObjectSettings.
-                        addField("point_type", "Type", "list", worldmapObjTypes,
-                        "WorldPortal","")
-                                
-                        .addCategory("worldPortal", "WorldPortalSettings")
-                        
-                        .addIntegerField("misc_portal_destWorld", "Dest. World",
-                           (int)misc.entryMO.get("Param00"), "", 1, 8)
-                        
-                        .addIntegerField("misc_portal_destPoint", "Dest. Point",
-                           (int)misc.entryMO.get("Param01"), "", 0, Integer.MAX_VALUE);
-                        break;
-                    case "StarCheckPoint":
-                        pnlWorldmapObjectSettings.
-                        addField("point_type", "Type", "list", worldmapObjTypes,
-                        "StarGate","")
-                                
-                        .addCategory("starGate", "StarGateSettings")
-                        
-                        .addIntegerField("misc_check_stars", "Required Stars",
-                           (int)misc.entryMO.get("Param00"), "", 0, Integer.MAX_VALUE)
-                        
-                        .addIntegerField("misc_check_id", "Id in Worldmap",
-                           (int)misc.entryMO.get("PartsIndex"), "", 0, Integer.MAX_VALUE);
-                        break;
-                    case "TicoRouteCreator":
-                        pnlWorldmapObjectSettings.
-                        addField("point_type", "Type", "list", worldmapObjTypes,
-                        "Hungry Luma","")
-                                
-                        .addCategory("hungryLuma", "HungryLumaSettings")
-                        
-                        .addIntegerField("misc_luma_starBits", "Reqired Starbits",
-                           (int)misc.entryMO.get("Param00"), "", 0, Integer.MAX_VALUE)
-                        
-                        .addIntegerField("misc_luma_destPoint", "Dest. Point",
-                           (int)misc.entryMO.get("Param01"), "", 0, globalWorldmapPointList.size()-1);
-                        break;
-                    case "EarthenPipe":
-                        pnlWorldmapObjectSettings.
-                        addField("point_type", "Type", "list", worldmapObjTypes,
-                        "WarpPipe","")
-                                
-                        .addCategory("warpPipe", "WarpPipeSettings")
-                        
-                        .addIntegerField("misc_pipe_destPoint", "Dest. Point",
-                           (int)misc.entryMO.get("Param00"), "", 0, globalWorldmapPointList.size()-1);
-                        break;
-                    case "StarRoadWarpPoint":
-                        pnlWorldmapObjectSettings.
-                        addField("point_type", "Type", "list", worldmapObjTypes,
-                        "WorldmapIcon","")
-                                
-                        .addCategory("worldmapIcon", "WorldmapIconSettings")
-                        
-                        .addIntegerField("misc_select_destWorld", "Dest. World",
-                           (int)misc.entryMO.get("Param00"), "", 1, 7)
-                        
-                        .addIntegerField("misc_select_destPoint", "Dest. Point",
-                           (int)misc.entryMO.get("Param01"), "", 0, Integer.MAX_VALUE);
-                        break;
-                    default:
-                        pnlWorldmapObjectSettings.
-                        addField("point_type", "Type", "list", worldmapObjTypes,
-                        "Giant StarBit","")
-                                
-                        .addCategory("giantStarBit", "GiantStarBitSettings");
-                        break;
-                }
-            } else {
-                pnlWorldmapObjectSettings.
-                addField("point_type", "Type", "list", worldmapObjTypes,
-                        "NormalPoint", "");
-            }
-        } else if(currentWorldmapRouteIndex!=-1) {
-            WorldmapRoute route = globalWorldmapRouteList.get(currentWorldmapRouteIndex);
-            pnlWorldmapObjectSettings
-            .addCategory("general", "General")
-                    
-            .addIntegerField("route_pointA", "Point1",
-                   (int)route.entry.get("PointIndexA"), "", 0, globalWorldmapPointList.size()-1)
-                    
-            .addIntegerField("route_pointB", "Point2",
-                   (int)route.entry.get("PointIndexB"), "", 0, globalWorldmapPointList.size()-1)
-                    
-            .addField("route_color", "Color", "list", worldmapColors,
-                    route.entry.get("IsColorChange").equals("o")?"Pink":"Yellow", "The color of this Connection")
-                    
-            .addField("route_subRoute", "Is Subroute", "bool", null,
-                    route.entry.get("IsSubRoute").equals("o"),"")
-                    
-            .addCategory("regired", "Required Collected Star/Game Flag")
-            
-            .addField("route_requiredGalaxy", "GalaxyName", "text", null,
-                    route.entry.get("CloseStageName"), "")
-                    
-            .addIntegerField("route_requiredScenario", "Act Id",
-                           (int)route.entry.get("CloseStageScenarioNo"), "", -1, 7)
-                    
-            .addField("route_requiredFlag", "Flag", "text", null,
-                    route.entry.get("CloseGameFlag"), "");
-            
-        } else if(currentWorldmapEntryPointIndex!=-1) {
-            WorldmapTravelObject obj = globalWorldmapTravelObjects.get(currentWorldmapEntryPointIndex);
-            pnlWorldmapObjectSettings.addCategory("worldEntry", "WorldEntrySettings")
-            .addIntegerField("entry_destPoint", "Dest. Point",
-                           (int)obj.entryMO.get("Param01"), "", 0, globalWorldmapPointList.size()-1);
-        }
-        
-        populateQuickActions();
-        
-        pnlWorldmapObjectSettings.doLayout();
-        pnlWorldmapObjectSettings.validate();
-        tpLeftPanel.repaint();
-        
-        glCanvas.requestFocusInWindow();
-    }
-    
     private void setStatusText() {
-        lbStatusLabel.setText(galaxyMode ? "Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + curZone + "." :
+        lblStatus.setText(isGalaxyMode ? "Editing scenario " + listScenarios.getSelectedValue() + ", zone " + curZone + "." :
                                                 "Editing zone " + curZone + ".");
-    }
-    
-    /**
-     * Populates the object Tree list for the passed {@code objnode}.
-     * @param layermask identifies the layer being loaded
-     * @param objnode the node to add objects to
-     * @param type the type of objects to add. {@code AbstractObj.class} for all objects.
-     */
-    private void populateObjectSublist(int layermask, ObjListTreeNode objnode, Class type) {
-        for(java.util.List<AbstractObj> tempobjs : curZoneArc.objects.values()) {
-            for(AbstractObj obj : tempobjs) {
-                if(obj.getClass() != type)
-                    continue;
-                
-                if(!obj.layerKey.equals("common")) {
-                    int layernum = obj.layerKey.charAt(5) - 'a';
-                    if((layermask & (1 << layernum)) == 0)
-                        continue;
-                }
-                
-                TreeNode tn = objnode.addObject(obj);
-                treeNodeList.put(obj.uniqueID, tn);
-            }
-        }
-    }
-    
-    /**
-     * Populates the entire Object Tree view, for the specified layer.
-     * @param layermask identifies the layer being loaded
-     */
-    private void populateObjectList(int layermask) {
-        treeNodeList.clear();
-        
-        DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(curZone);
-        objlist.setRoot(root);
-        ObjListTreeNode objnode;
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("General");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, LevelObj.class);
-        
-        if(StageArchive.game == 1) {
-            objnode = new ObjListTreeNode();
-            objnode.setUserObject("ChildObj");
-            root.add(objnode);
-            populateObjectSublist(layermask, objnode, ChildObj.class);
-        }
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("MapParts");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, MapPartObj.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Gravity");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, GravityObj.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Starting points");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, StartObj.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Areas");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, AreaObj.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Cameras");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, CameraObj.class);
-        
-        if(StageArchive.game == 1) {
-            objnode = new ObjListTreeNode();
-            objnode.setUserObject("Sounds");
-            root.add(objnode);
-            populateObjectSublist(layermask, objnode, SoundObj.class);
-        }
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Cutscenes");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, CutsceneObj.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Positions");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, PositionObj.class);
-        
-        if(StageArchive.game == 2) {
-            objnode = new ObjListTreeNode();
-            objnode.setUserObject("Changers");
-            root.add(objnode);
-        }
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Debug");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, DebugObj.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Paths");
-        root.add(objnode);
-        
-        for(PathObj obj : curZoneArc.paths) {
-            ObjListTreeNode tn =(ObjListTreeNode)objnode.addObject(obj);
-            treeNodeList.put(obj.uniqueID, tn);
-            
-            for(Entry<Integer, TreeNode> ctn : tn.children.entrySet())
-                treeNodeList.put(ctn.getKey(), ctn.getValue());
-        }
-        
-        tvObjectList.expandRow(0);
-    }
-    
-    /**
-     * Populates the worldmap TreeList.
-     */
-    private void populateWorldmapObjectList() {
-        lbStatusLabel.setText("Populating");
-        worldmapPointsNode.removeAllChildren();
-        
-        lbStatusLabel.setText("Populating.");
-        for(WorldmapPoint point : globalWorldmapPointList)
-            worldmapPointsNode.add(new DefaultMutableTreeNode(point.getName()));
-        
-        lbStatusLabel.setText("Populating..");
-        worldmapConnectionsNode.removeAllChildren();
-        
-        for(WorldmapRoute route : globalWorldmapRouteList)
-            worldmapConnectionsNode.add(new DefaultMutableTreeNode(route.getName()));
-        
-        lbStatusLabel.setText("Populating...");
-        worldmapEntryPointsNode.removeAllChildren();
-        
-        for(WorldmapTravelObject obj : globalWorldmapTravelObjects)
-            worldmapEntryPointsNode.add(new DefaultMutableTreeNode(obj.getName()));
-        
-       ((DefaultTreeModel)tvWorldmapObjectList.getModel()).reload();
-        
-        lbStatusLabel.setText("Populated!");
-        
-        int uid = 0;
-        for(WorldmapPoint curPoint : globalWorldmapPointList) {
-            while(globalObjList.containsKey(uid) 
-                    || globalPathList.containsKey(uid)
-                    || globalPathPointList.containsKey(uid) || worldMapPickingList.containsKey(uid)) 
-                uid++;
-            if(uid > maxUniqueID)
-                maxUniqueID = uid;
-            curPoint.pickingId = uid;
-
-            worldMapPickingList.put(uid, curPoint);
-        }
-        
-    }
-    
-    /**
-     * Used in the mess that is the worldmap code right now. Rewrite pending.
-     */
-    private void updateCurrentNode() {
-        if(currentWorldmapPointIndex!=-1) {
-            DefaultMutableTreeNode node =(DefaultMutableTreeNode)worldmapPointsNode.getChildAt(currentWorldmapPointIndex);
-            node.setUserObject(globalWorldmapPointList.get(currentWorldmapPointIndex).getName());
-           ((DefaultTreeModel)tvWorldmapObjectList.getModel()).nodeChanged(node);
-        }
-        else if(currentWorldmapRouteIndex!=-1) {
-            DefaultMutableTreeNode node =(DefaultMutableTreeNode)worldmapConnectionsNode.getChildAt(currentWorldmapRouteIndex);
-            node.setUserObject(globalWorldmapRouteList.get(currentWorldmapRouteIndex).getName());
-           ((DefaultTreeModel)tvWorldmapObjectList.getModel()).nodeChanged(node);
-        }
     }
     
     /**
@@ -1695,45 +1416,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         glCanvas.repaint();
     }
     
-    /**
-     * Save the level and zone ARCs, including all BCSV files open within them.
-     */
-    private void saveChanges() {
-        lbStatusLabel.setText("Saving changes...");
-        try {
-            // Save worldmap
-            if(worldmapId != -1) {
-                btnSaveWorldmap.doClick();
-            }
-            
-            for(StageArchive zonearc : zoneArcs.values()) {
-                zonearc.save();
-            }
-            
-            if(!galaxyMode && parentForm != null)
-                parentForm.updateZone(galaxyName);
-            else {
-                for(GalaxyEditorForm form : zoneEditors.values())
-                    form.updateZone(form.galaxyName);
-            }
-            
-            unsavedChanges = false;
-            lbStatusLabel.setText("Saved changes!");
-        }
-        catch(IOException ex) {
-            lbStatusLabel.setText("Failed to save changes: " + ex.getMessage() + ".");
-            
-            System.err.println(ex.getLocalizedMessage());
-        }
-    }
-    
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
-        if(galaxyMode) {
+        if(isGalaxyMode) {
             for(GalaxyEditorForm form : zoneEditors.values())
                 form.dispose();
         }
-        if(!galaxyMode)
+        if(!isGalaxyMode)
             return;
         
         if(unsavedChanges) {
@@ -1751,21 +1440,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         closing = true;
-        Settings.setShowAreas(btnShowAreas.isSelected());
-        Settings.setShowCameras(btnShowCameras.isSelected());
-        Settings.setShowGravity(btnShowGravity.isSelected());
-        Settings.setShowPaths(btnShowPaths.isSelected());
+        Settings.setShowAreas(tgbShowAreas.isSelected());
+        Settings.setShowCameras(tgbShowCameras.isSelected());
+        Settings.setShowGravity(tgbShowGravity.isSelected());
+        Settings.setShowPaths(tgbShowPaths.isSelected());
         Settings.setShowAxis(tgbShowAxis.isSelected());
         
-        for(StageArchive zonearc : zoneArcs.values())
+        for(StageArchive zonearc : zoneArchives.values())
             zonearc.close();
     }//GEN-LAST:event_formWindowClosing
 
-    private void itemSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemSaveActionPerformed
+    private void mniSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniSaveActionPerformed
         saveChanges();
-    }//GEN-LAST:event_itemSaveActionPerformed
+    }//GEN-LAST:event_mniSaveActionPerformed
 
-    private void itemCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemCloseActionPerformed
+    private void mniCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniCloseActionPerformed
         if(unsavedChanges) {
             int res = JOptionPane.showConfirmDialog(this, "Save your changes?", Whitehole.NAME,
                     JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
@@ -1779,14 +1468,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     saveChanges();
             }
         }
-        Settings.setShowAreas(btnShowAreas.isSelected());
-        Settings.setShowCameras(btnShowCameras.isSelected());
-        Settings.setShowGravity(btnShowGravity.isSelected());
-        Settings.setShowPaths(btnShowPaths.isSelected());
+        Settings.setShowAreas(tgbShowAreas.isSelected());
+        Settings.setShowCameras(tgbShowCameras.isSelected());
+        Settings.setShowGravity(tgbShowGravity.isSelected());
+        Settings.setShowPaths(tgbShowPaths.isSelected());
         Settings.setShowAxis(tgbShowAxis.isSelected());
         
         dispose();
-    }//GEN-LAST:event_itemCloseActionPerformed
+    }//GEN-LAST:event_mniCloseActionPerformed
 
     private void itmPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionCopyActionPerformed
         if(selectedObjs.size() == 1) {
@@ -1815,12 +1504,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     c.setContents(selection, selection);
                 } catch (UnsupportedFlavorException | IOException ex) {
                     Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-                    lbStatusLabel.setText(ex.getMessage());
+                    lblStatus.setText(ex.getMessage());
                     return;
                 }
                 
                 itmPositionPaste.setText("Position(" + posToCopy.x + ", " + posToCopy.y + ", " + posToCopy.z + ")");
-                lbStatusLabel.setText("Copied position " + posToCopy.x + ", " + posToCopy.y + ", " + posToCopy.z + ".");
+                lblStatus.setText("Copied position " + posToCopy.x + ", " + posToCopy.y + ", " + posToCopy.z + ".");
             }
         }
     }//GEN-LAST:event_itmPositionCopyActionPerformed
@@ -1855,12 +1544,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     c.setContents(selection, selection);
                 } catch (UnsupportedFlavorException | IOException ex) {
                     Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-                    lbStatusLabel.setText(ex.getMessage());
+                    lblStatus.setText(ex.getMessage());
                     return;
                 }
                 
                 itmRotationPaste.setText("Rotation(" + rotToCopy.x + ", " + rotToCopy.y + ", " + rotToCopy.z + ")");
-                lbStatusLabel.setText("Copied rotation " + rotToCopy.x + ", " + rotToCopy.y + ", " + rotToCopy.z + ".");
+                lblStatus.setText("Copied rotation " + rotToCopy.x + ", " + rotToCopy.y + ", " + rotToCopy.z + ".");
             }
         }
     }//GEN-LAST:event_itmRotationCopyActionPerformed
@@ -1895,12 +1584,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     c.setContents(selection, selection);
                 } catch (UnsupportedFlavorException | IOException ex) {
                     Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-                    lbStatusLabel.setText(ex.getMessage());
+                    lblStatus.setText(ex.getMessage());
                     return;
                 }
                 
                 itmScalePaste.setText("Scale(" + scaleToCopy.x + ", " + scaleToCopy.y + ", " + scaleToCopy.z + ")");
-                lbStatusLabel.setText("Copied scale " + scaleToCopy.x + ", " + scaleToCopy.y + ", " + scaleToCopy.z + ".");
+                lblStatus.setText("Copied scale " + scaleToCopy.x + ", " + scaleToCopy.y + ", " + scaleToCopy.z + ".");
             }
         }
     }//GEN-LAST:event_itmScaleCopyActionPerformed
@@ -1935,12 +1624,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
             } else
             {
-                lbStatusLabel.setText("Clipboard does not contain pos/rot/scl!");
+                lblStatus.setText("Clipboard does not contain pos/rot/scl!");
                 return;
             }
         } catch (UnsupportedFlavorException | IOException ex) {
             Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-            lbStatusLabel.setText(ex.getMessage());
+            lblStatus.setText(ex.getMessage());
             return;
         }
         
@@ -1962,7 +1651,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             rerenderTasks.add("zone:"+selectedObj.stage.stageName);
             
             glCanvas.repaint();
-            lbStatusLabel.setText("Pasted scale " + copyScl.x + ", " + copyScl.y + ", " + copyScl.z + ".");
+            lblStatus.setText("Pasted scale " + copyScl.x + ", " + copyScl.y + ", " + copyScl.z + ".");
             unsavedChanges = true;
         }
     }//GEN-LAST:event_itmScalePasteActionPerformed
@@ -1997,12 +1686,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 
             } else
             {
-                lbStatusLabel.setText("Clipboard does not contain pos/rot/scl!");
+                lblStatus.setText("Clipboard does not contain pos/rot/scl!");
                 return;
             }
         } catch (UnsupportedFlavorException | IOException ex) {
             Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-            lbStatusLabel.setText(ex.getMessage());
+            lblStatus.setText(ex.getMessage());
             return;
         }
         
@@ -2059,7 +1748,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             glCanvas.repaint();
-            lbStatusLabel.setText("Pasted position " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
+            lblStatus.setText("Pasted position " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
             unsavedChanges = true;
         }
     }//GEN-LAST:event_itmPositionPasteActionPerformed
@@ -2093,12 +1782,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
             } else
             {
-                lbStatusLabel.setText("Clipboard does not contain pos/rot/scl!");
+                lblStatus.setText("Clipboard does not contain pos/rot/scl!");
                 return;
             }
         } catch (UnsupportedFlavorException | IOException ex) {
             Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-            lbStatusLabel.setText(ex.getMessage());
+            lblStatus.setText(ex.getMessage());
             return;
         }
         
@@ -2119,39 +1808,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             rerenderTasks.add("zone:"+selectedObj.stage.stageName);
             
             glCanvas.repaint();
-            lbStatusLabel.setText("Pasted rotation " + copyRot.x + ", " + copyRot.y + ", " + copyRot.z + ".");
+            lblStatus.setText("Pasted rotation " + copyRot.x + ", " + copyRot.y + ", " + copyRot.z + ".");
             unsavedChanges = true;
         }
     }//GEN-LAST:event_itmRotationPasteActionPerformed
 
-    private void itemControlsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemControlsActionPerformed
-        JOptionPane.showMessageDialog(null,
-                    "Select/Deselect Object: Left click, hold Ctrl or Shift to select multiple\r\n" +
-                    "Rotate Camera: Right-mouse drag\r\n" +
-                    "Zoom: Mousewheel or PageUp/Down or Numpad 3/9\r\n" +
-                    "Pan Camera: Left-mouse drag or arrow keys/numpad\r\n" +
-                    "Move Object: Drag left click on selected object(s)\r\n" +
-                    "\r\n" +
-                    "Move Position: P + arrow keys\r\n" +
-                    "Rotate Object: R + arrow keys\r\n" +
-                    "Scale Object:  S + arrow keys\r\n" + 
-                    "\r\n" +
-                    "Copy Position: ALT + P\r\n" +
-                    "Copy Rotation: ALT + R\r\n" +
-                    "Copy Scale: ALT + S\r\n" +
-                    "\r\n" +
-                    "Paste Position: SHIFT + P\r\n" +
-                    "Paste Rotation: SHIFT + R\r\n" +
-                    "Paste Scale: SHIFT + S\r\n" +
-                    "Copy Selelction: Ctrl + C\r\n" +
-                    "Paste Selection: Ctrl + V\r\n" +
-                    "Delete Object: Delete\r\n" +
-                    "Undo: Ctrl-Z\r\n" +
-                    "Redo: Ctrl-Y\r\n",
-                    Whitehole.NAME, JOptionPane.INFORMATION_MESSAGE);
-    }//GEN-LAST:event_itemControlsActionPerformed
-
-    private void tvObjectListValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_tvObjectListValueChanged
+    private void treeObjectsValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_treeObjectsValueChanged
         TreePath[] paths = evt.getPaths();
         for(TreePath path : paths) {
             TreeNode node =(TreeNode)path.getLastPathComponent();
@@ -2175,7 +1837,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         selectionArg = 0;
         selectionChanged();
         glCanvas.repaint();
-    }//GEN-LAST:event_tvObjectListValueChanged
+    }//GEN-LAST:event_treeObjectsValueChanged
 
     private void tgbDeleteObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeleteObjectActionPerformed
         if(!selectedObjs.isEmpty()) {
@@ -2188,7 +1850,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
                 selectionChanged();
             }
-            tvObjectList.setSelectionRow(0);
+            treeObjects.setSelectionRow(0);
             tgbDeleteObject.setSelected(false);
         } else {
             if(!tgbDeleteObject.isSelected()) {
@@ -2196,7 +1858,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 setStatusText();
             } else {
                 deletingObjects = true;
-                lbStatusLabel.setText("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
+                lblStatus.setText("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
             }
         }
     }//GEN-LAST:event_tgbDeleteObjectActionPerformed
@@ -2210,22 +1872,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_tgbAddObjectActionPerformed
 
-    private void lbZoneListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_lbZoneListValueChanged
-        if(evt.getValueIsAdjusting() || lbZoneList.getSelectedValue() == null)
+    private void listZonesValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listZonesValueChanged
+        if(evt.getValueIsAdjusting() || listZones.getSelectedValue() == null)
             return;
         
         btnEditZone.setEnabled(true);
 
-        int selid = lbZoneList.getSelectedIndex();
-        curZone = galaxyArc.zoneList.get(selid);
-        curZoneArc = zoneArcs.get(curZone);
+        int selid = listZones.getSelectedIndex();
+        curZone = galaxyArchive.zoneList.get(selid);
+        curZoneArc = zoneArchives.get(curZone);
 
-        int layermask =(int) curScenario.get(curZone);
-        populateObjectList(layermask << 1 | 1);
+        int layermask = (int)curScenario.get(curZone);
+        populateObjectNodeTree(layermask);
 
         setStatusText();
         glCanvas.repaint();
-    }//GEN-LAST:event_lbZoneListValueChanged
+    }//GEN-LAST:event_listZonesValueChanged
 
     private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditZoneActionPerformed
         if(zoneEditors.containsKey(curZone)) {
@@ -2242,16 +1904,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         zoneEditors.put(curZone, form);
     }//GEN-LAST:event_btnEditZoneActionPerformed
 
-    private void lbScenarioListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_lbScenarioListValueChanged
-        if(evt.getValueIsAdjusting() || lbScenarioList.getSelectedValue() == null)
+    private void listScenariosValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listScenariosValueChanged
+        if(evt.getValueIsAdjusting() || listScenarios.getSelectedValue() == null)
             return;
 
-        curScenarioID = lbScenarioList.getSelectedIndex();
-        curScenario = galaxyArc.scenarioData.get(curScenarioID);
+        curScenarioID = listScenarios.getSelectedIndex();
+        curScenario = galaxyArchive.scenarioData.get(curScenarioID);
 
         DefaultListModel zonelist = new DefaultListModel();
-        lbZoneList.setModel(zonelist);
-        for(String zone : galaxyArc.zoneList) {
+        listZones.setModel(zonelist);
+        for(String zone : galaxyArchive.zoneList) {
             String layerstr = "ABCDEFGHIJKLMNOP";
             int layermask =(int) curScenario.get(zone);
             String layers = "Common+";
@@ -2265,176 +1927,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             zonelist.addElement(zone + " [" + layers + "]");
         }
 
-        lbZoneList.setSelectedIndex(0);
-    }//GEN-LAST:event_lbScenarioListValueChanged
+        listZones.setSelectedIndex(0);
+    }//GEN-LAST:event_listScenariosValueChanged
 
     private void btnAddScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddScenarioActionPerformed
         // TODO: what the peck is this?
     }//GEN-LAST:event_btnAddScenarioActionPerformed
-
-    private void tgbAddWorldmapObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbAddWorldmapObjActionPerformed
-        if(tgbAddWorldmapObj.isSelected())
-            pmnAddWorldmapObjs.show(tgbAddWorldmapObj, 0, tgbAddWorldmapObj.getHeight());
-        else {
-            pmnAddWorldmapObjs.setVisible(false);
-            setStatusText();
-        }
-    }//GEN-LAST:event_tgbAddWorldmapObjActionPerformed
-
-    private void tvWorldmapObjectListValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_tvWorldmapObjectListValueChanged
-        currentWorldmapPointIndex = worldmapPointsNode.getIndex((MutableTreeNode)evt.getPath().getLastPathComponent());
-        currentWorldmapRouteIndex = worldmapConnectionsNode.getIndex((MutableTreeNode)evt.getPath().getLastPathComponent());
-        currentWorldmapEntryPointIndex = worldmapEntryPointsNode.getIndex((MutableTreeNode)evt.getPath().getLastPathComponent());
-        selectedWorldmapObjChanged();
-        
-        unsavedChanges = true;
-        
-        glCanvas.repaint();
-    }//GEN-LAST:event_tvWorldmapObjectListValueChanged
-
-    private void btnSaveWorldmapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveWorldmapActionPerformed
-        try {
-            bcsvWorldMapPoints.entries.clear();
-            try {
-                bcsvWorldMapGalaxies.entries.clear();
-            } catch(Exception e) {}
-            bcsvWorldMapMiscObjects.entries.clear();
-            
-            for(WorldmapPoint point : globalWorldmapPointList) {
-                bcsvWorldMapPoints.entries.add(point.entry);
-                
-                if(point instanceof GalaxyPreview)
-                    bcsvWorldMapGalaxies.entries.add(((GalaxyPreview)point).entryGP);
-                else if(point instanceof MiscWorldmapObject)
-                    bcsvWorldMapMiscObjects.entries.add(((MiscWorldmapObject)point).entryMO);
-                
-            }
-            bcsvWorldMapPoints.save();
-            
-            try {
-                bcsvWorldMapGalaxies.save();
-            } catch(IOException e) {}
-            
-            bcsvWorldMapMiscObjects.save();
-            
-            int i = 1;
-            for(Bcsv bcsv : worldWideMiscObjects) {
-                if(i != worldmapId) //Means the own map was already saved
-                    bcsv.save();
-                i++;
-            }
-            
-            bcsvWorldMapLinks.entries.clear();
-            for(WorldmapRoute route : globalWorldmapRouteList)
-                bcsvWorldMapLinks.entries.add(route.entry);
-            bcsvWorldMapLinks.save();
-            
-            for(RarcFile arc : allWorldArchives)
-                arc.save();
-            
-            lbStatusLabel.setText("Worldmap saved!");
-        } catch(IOException ex) {
-            lbStatusLabel.setText("Error while saving worldmap: " + ex.getMessage() + ".");
-        }
-    }//GEN-LAST:event_btnSaveWorldmapActionPerformed
-
-    private void tgbQuickActionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbQuickActionActionPerformed
-        if(tgbQuickAction.isSelected())
-            pmnWorldmapQuickActions.show(tgbQuickAction, 0, tgbQuickAction.getHeight());
-        else {
-            pmnWorldmapQuickActions.setVisible(false);
-            setStatusText();
-        }
-    }//GEN-LAST:event_tgbQuickActionActionPerformed
-
-    private void btnAddWorldmapRouteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddWorldmapRouteActionPerformed
-        addWorldmapRoute();
-    }//GEN-LAST:event_btnAddWorldmapRouteActionPerformed
-
-    private void btnDeleteWorldmapObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteWorldmapObjActionPerformed
-        if(currentWorldmapPointIndex != -1) {
-            globalWorldmapPointList.remove(currentWorldmapPointIndex);
-            for(int i = currentWorldmapPointIndex; i<globalWorldmapPointList.size();i++) {
-                WorldmapPoint current = globalWorldmapPointList.get(i);
-                current.entry.put(70793394, i);
-                if(current instanceof GalaxyPreview)
-                   ((GalaxyPreview)current).entryGP.put("PointPosIndex", i);
-                else if(current instanceof MiscWorldmapObject) {
-                    MiscWorldmapObject mo =(MiscWorldmapObject)current;
-                    mo.entryMO.put("PointIndex", i);
-                    switch((String)mo.entryMO.get(-391766075)) {
-                        case "WorldWarpPoint":
-                            if((int)mo.entryMO.get("Param00")==worldmapId) { //in case somebody makes a portal to the same world
-                                if((int)mo.entryMO.get("Param01")==currentWorldmapPointIndex)
-                                    mo.entryMO.put("Param01", i);//reference to yourself
-                                else if((int)mo.entryMO.get("Param01")>=currentWorldmapPointIndex)
-                                    mo.entryMO.put("Param01",(int)mo.entryMO.get("Param01")-1);
-                            }
-                            break;
-                        
-                        case "TicoRouteCreator":
-                            if((int)mo.entryMO.get("Param01")==currentWorldmapPointIndex)
-                                mo.entryMO.put("Param01", i); //reference to yourself
-                            else if((int)mo.entryMO.get("Param01")>=currentWorldmapPointIndex)
-                                mo.entryMO.put("Param01",(int)mo.entryMO.get("Param01")-1);
-                            break;
-                        
-                        case "EarthenPipe":
-                            if((int)mo.entryMO.get("Param00")==currentWorldmapPointIndex)
-                                mo.entryMO.put("Param00", i);//reference to yourself
-                            else if((int)mo.entryMO.get("Param00")>=currentWorldmapPointIndex)
-                                mo.entryMO.put("Param00",(int)mo.entryMO.get("Param00")-1);
-                            break;
-                    }
-                }
-            }
-            
-            for(WorldmapTravelObject obj : globalWorldmapTravelObjects) {
-                if((int)obj.entryMO.get("Param01") == currentWorldmapPointIndex)
-                    obj.entryMO.put("Param01", 0); //reference to yourself
-                else if((int)obj.entryMO.get("Param01")>=currentWorldmapPointIndex)
-                    obj.entryMO.put("Param01",(int)obj.entryMO.get("Param01")-1);
-                break;
-            }
-            
-            for(int i = globalWorldmapRouteList.size()-1; i>=0; i--) {
-                WorldmapRoute route = globalWorldmapRouteList.get(i);
-                int pointA =(int)route.entry.get("PointIndexA");
-                int pointB =(int)route.entry.get("PointIndexB");
-                if(pointA==currentWorldmapPointIndex || pointB==currentWorldmapPointIndex) {
-                    globalWorldmapRouteList.remove(i);
-                    continue;
-                }
-                
-                if(pointA>currentWorldmapPointIndex)
-                    route.entry.put("PointIndexA", pointA-1);
-                if(pointB>currentWorldmapPointIndex)
-                    route.entry.put("PointIndexB", pointB-1);
-            }
-            if(globalWorldmapPointList.isEmpty())
-                addWorldmapPoint("NormalPoint");
-            
-            populateWorldmapObjectList();
-            TreeNode tn = worldmapPointsNode.getLastChild();
-            TreePath tp = new TreePath(((DefaultTreeModel)tvWorldmapObjectList.getModel()).getPathToRoot(tn));
-            tvWorldmapObjectList.setSelectionPath(tp);
-            
-        } else if(currentWorldmapRouteIndex!=-1) {
-            globalWorldmapRouteList.remove(currentWorldmapRouteIndex);
-            
-            populateWorldmapObjectList();
-            TreeNode tn = worldmapConnectionsNode.getLastChild();
-            TreePath tp = new TreePath(((DefaultTreeModel)tvWorldmapObjectList.getModel()).getPathToRoot(tn));
-            tvWorldmapObjectList.setSelectionPath(tp);
-            
-        } else {
-            lbStatusLabel.setText("No objects selected.");
-            return;
-        }
-        
-        selectedWorldmapObjChanged();
-        glCanvas.repaint();
-    }//GEN-LAST:event_btnDeleteWorldmapObjActionPerformed
     
     /**
      * Rerenders all objects in all zones.
@@ -2443,7 +1941,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if(rerenderTasks == null)
             rerenderTasks = new PriorityQueue<>();
         
-        for(String zone : zoneArcs.keySet())
+        for(String zone : zoneArchives.keySet())
             rerenderTasks.add("zone:" + zone);
         
         glCanvas.repaint();
@@ -2456,14 +1954,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void tgbCopyObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbCopyObjActionPerformed
         copyObj =(LinkedHashMap<Integer, AbstractObj>) selectedObjs.clone();
         tgbCopyObj.setSelected(false);
-        lbStatusLabel.setText("Copied objects.");
+        lblStatus.setText("Copied objects.");
     }//GEN-LAST:event_tgbCopyObjActionPerformed
 
     private void tgbPasteObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbPasteObjActionPerformed
         tgbPasteObj.setSelected(false);
         if(copyObj != null) {
             for(AbstractObj currentTempObj : copyObj.values()) {
-                addingObject = "general|" + currentTempObj.name;
+                addingObject = "objinfo|" + currentTempObj.name;
                 addingObjectOnLayer = currentTempObj.layerKey;
                 
                 Vector3 temppos=new Vector3();
@@ -2484,7 +1982,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 newobj.rotation = temprot;
                 addingObject = "";
             }
-            lbStatusLabel.setText("Pasted objects.");
+            lblStatus.setText("Pasted objects.");
             glCanvas.repaint();
         }
     }//GEN-LAST:event_tgbPasteObjActionPerformed
@@ -2493,29 +1991,29 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         glCanvas.repaint();
     }//GEN-LAST:event_tgbShowAxisActionPerformed
 
-    private void btnShowCamerasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowCamerasActionPerformed
+    private void tgbShowCamerasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowCamerasActionPerformed
         renderAllObjects();
-    }//GEN-LAST:event_btnShowCamerasActionPerformed
+    }//GEN-LAST:event_tgbShowCamerasActionPerformed
 
-    private void btnShowGravityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowGravityActionPerformed
+    private void tgbShowGravityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowGravityActionPerformed
         renderAllObjects();
-    }//GEN-LAST:event_btnShowGravityActionPerformed
+    }//GEN-LAST:event_tgbShowGravityActionPerformed
 
-    private void btnShowAreasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowAreasActionPerformed
+    private void tgbShowAreasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAreasActionPerformed
         renderAllObjects();
-    }//GEN-LAST:event_btnShowAreasActionPerformed
+    }//GEN-LAST:event_tgbShowAreasActionPerformed
 
-    private void btnShowPathsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowPathsActionPerformed
+    private void tgbShowPathsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowPathsActionPerformed
         renderAllObjects();
-    }//GEN-LAST:event_btnShowPathsActionPerformed
+    }//GEN-LAST:event_tgbShowPathsActionPerformed
 
-    private void btnDeselectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeselectActionPerformed
+    private void tgbDeselectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeselectActionPerformed
         for(AbstractObj obj : selectedObjs.values())
             addRerenderTask("zone:"+obj.stage.stageName);
         selectedObjs.clear();
         selectionChanged();
         glCanvas.repaint();
-    }//GEN-LAST:event_btnDeselectActionPerformed
+    }//GEN-LAST:event_tgbDeselectActionPerformed
 
     private void btnDeleteZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteZoneActionPerformed
         // TODO add your handling code here:
@@ -2525,420 +2023,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_btnDeleteScenarioActionPerformed
     
-    /**
-     * Try to view the camera angle/position in whitehole.
-     * @param id the ID of the camera to look for in the cam BCSV.
-     */
-    public void viewCamera(int id) {
-        Bcsv camBcsv;
-        try {
-            camBcsv = new Bcsv(curZoneArc.mapArc.openFile("/Stage/camera/CameraParam.bcam"));
-        } catch(IOException ex) {
-            lbStatusLabel.setText("Could not open camera BCSV!");
-            return;
-        }
-        
-        ArrayList<Field> fields = new ArrayList();
-        for(Map.Entry<Integer, Field> entry : camBcsv.fields.entrySet()) {
-            Field value = entry.getValue();
-            fields.add(value);
-        }
-        
-        // idColumn holds the index of the column that contains the c:XXXX strings
-        int idColumn = 0;
-        for(int i = 0; i < fields.size(); i++) {
-            if("[00000D1B]".equals(fields.get(i).name) || "id".equals(fields.get(i).name)) {
-                idColumn = i;
-                break;
-            }
-        }
-        
-        if(idColumn == 0) {
-            lbStatusLabel.setText("Could not find camera ID field in the BCSV. Corrupted BCAM?");
-            return;
-        }
-        
-        // Creating the c:XXXX camera id
-        String idString;
-        String formatted = Integer.toHexString(id);
-        while(formatted.length() < 4)
-            formatted = "0" + formatted;
-        if(!formatted.matches(".*\\d.*")) // will match if it has any numbers in it
-            idString = "c:" + Integer.toHexString(id); // workaround for PCs that use a different char for 0
-        else
-            idString = "c:" + formatted;
-        
-        Bcsv.Entry cameraInQuestion = null;
-        for(int i = 0; i < camBcsv.entries.size(); i++) {
-            Bcsv.Entry curEntry = camBcsv.entries.get(i);
-            ArrayList keys = new ArrayList(curEntry.keySet());
-            String curIdString =(String) curEntry.get((Integer)keys.get(idColumn));
-            if(curIdString.contains("c:") && Integer.parseInt(curIdString.substring(2), 16) == id) {
-                cameraInQuestion =(Bcsv.Entry) curEntry.clone();
-                break;
-            }
-        }
-        
-        if(cameraInQuestion == null) {
-            lbStatusLabel.setText("Could not find camera id " + idString + "(" + id + ") in the camera BCSV.");
-            return;
-        }
-        
-        // TODO: account for zone rotation :weary:
-        for(int i = 0; i < fields.size(); i++) {
-            ArrayList keys = new ArrayList(cameraInQuestion.keySet());
-            switch(fields.get(i).name) {
-                case "angleA":
-                    camRotation.x = -1f * (float) (cameraInQuestion.get((Integer)keys.get(i))) + (float) Math.PI;
-                    break;
-                case "angleB":
-                    camRotation.y = (float) (cameraInQuestion.get((Integer)keys.get(i)));
-                    break;
-                case "dist":
-                    camDistance = (float) cameraInQuestion.get((Integer)keys.get(i)) / scaledown;
-                    break;
-                case "[BEC02B35]": // this field holds the Y offset
-                    Vector3 objPos = (Vector3) selectedObjs.values().iterator().next().position.clone();
-                    camPosition.y = ((float)cameraInQuestion.get((Integer)keys.get(i)) + objPos.y) / scaledown;
-                    camTarget.y = (float) objPos.y / scaledown;
-                    camTarget.x = (float) objPos.x / scaledown;
-                    camTarget.z = (float) objPos.z / scaledown;
-                    break;
-                default:
-                    break;
-            }
-        }
-        
-        lbStatusLabel.setText("Viewing camera " + idString + "(" + id + ").");
-        renderer.updateCamera();
-        renderer.display(glCanvas);
-        glCanvas.repaint();
-    }
-    
-    /**
-     * Tries to generate a camera and add it to the current zone's cam BCSV<br>
-     * from Whitehole's current camera position and rotation.
-     * @throws FileNotFoundException 
-     */
-    public void generateCameraFromView() throws FileNotFoundException{
-        Bcsv camBcsv;
-        try {
-            camBcsv = new Bcsv(curZoneArc.mapArc.openFile("/Stage/camera/CameraParam.bcam"));
-        } catch(IOException ex) {
-            lbStatusLabel.setText("Could not open camera BCSV!");
-            return;
-        }
-        
-        if(camBcsv.entries.size() >= 2)
-            camBcsv.entries.add((Bcsv.Entry) camBcsv.entries.get(camBcsv.entries.size() - 1).clone());
-        else {
-            Bcsv.Entry entry = new Bcsv.Entry();
-            
-            int c = 0;
-            for(Bcsv.Field field : camBcsv.fields.values()) {
-                String val = "0";
-                try {
-                    switch(field.type) {
-                        case 0:
-                        case 3:
-                            entry.put(field.hash, Integer.parseInt(val));
-                            break;
-                        case 4:
-                            entry.put(field.hash, Short.parseShort(val));
-                            break;
-                        case 5:
-                            entry.put(field.hash, Byte.parseByte(val));
-                            break;
-                        case 2:
-                            entry.put(field.hash, Float.parseFloat(val));
-                            break;
-                        case 6:
-                            entry.put(field.hash, val);
-                            break;
-                    }
-                }
-                catch(NumberFormatException ex) {
-                    switch(field.type) {
-                        case 0:
-                        case 3: entry.put(field.hash,(int)0); break;
-                        case 4: entry.put(field.hash,(short)0); break;
-                        case 5: entry.put(field.hash,(byte)0); break;
-                        case 2: entry.put(field.hash, 0f); break;
-                        case 6: entry.put(field.hash, ""); break;
-                    }
-                }
-                c++; // should learn this language
-            }
-            camBcsv.entries.add(entry);
-        }
-        
-        ArrayList<Integer> camIdList = new ArrayList();
-        ArrayList<Field> fields = new ArrayList();
-        for(Map.Entry<Integer, Field> entry : camBcsv.fields.entrySet()) {
-            Field value = entry.getValue();
-            fields.add(value);
-        }
-        
-        int idColumn = 0;
-        for(int i = 0; i < fields.size(); i++) {
-            if("[00000D1B]".equals(fields.get(i).name) || "id".equals(fields.get(i).name)) {
-                idColumn = i;
-                break;
-            }
-        }
-        
-        if(idColumn == 0) {
-            lbStatusLabel.setText("Could not find camera ID field in the BCSV. Corrupted BCAM?");
-            return;
-        }
-        
-        int row = camBcsv.entries.size();
-        for(int i = 0; i < row - 1; i++) {
-            //String camId = editor.tblBcsv.getValueAt(i, idColumn).toString();
-            Bcsv.Entry list = camBcsv.entries.get(i);
-            ArrayList keys = new ArrayList(list.keySet());
-            //System.out.println(keys);
-            String camId =(String) list.get((int) keys.get(idColumn));
-            if(camId.contains("c:"))
-                camIdList.add(Integer.parseInt(camId.substring(2), 16));
-        }
-        int largest = 0;
-        for(int current : camIdList) {
-            if(current > largest)
-                largest = current;
-        }
-        if(largest >= 9999) {
-            lbStatusLabel.setText("There's more than 0x9999 cameras in the level?!? Chances are, you're just a dirty hacker...");
-            return;
-        }
-        String id;
-        String formatted = Integer.toHexString(largest + 1);
-        while(formatted.length() < 4)
-            formatted = "0" + formatted;
-        if(!formatted.matches(".*\\d.*"))
-            id = "c:" + Integer.toHexString(largest + 1); //workaround for PCs that use a different char for 0
-        else
-            id = "c:" + formatted;
-        
-        boolean goodSelects = false;
-        AbstractObj object = null;
-        if(selectedObjs.size() == 1) {
-            for(AbstractObj obj : selectedObjs.values()) {
-                if(obj instanceof CameraObj) {
-                    goodSelects = true;
-                    object = obj;
-                    break;
-                }
-            }
-        }
-        if(goodSelects && object != null) {
-           ((CameraObj) object).data.put("Obj_arg0", largest + 1);
-            pnlObjectSettings.setFieldValue("Obj_arg0", largest + 1);
-            
-           ((CameraObj) object).data.put("Obj_arg2", 100);
-            pnlObjectSettings.setFieldValue("Obj_arg2", 100);
-            
-           ((CameraObj) object).data.put("l_id", largest + 1);
-            pnlObjectSettings.setFieldValue("l_id", largest + 1);
-            
-            pnlObjectSettings.repaint();
-        } else
-            return;
-        
-        for(int i = 0; i < camBcsv.fields.size() - 1; i++) {
-            ArrayList keys = new ArrayList(camBcsv.fields.keySet());
-            String name = camBcsv.fields.get((int) keys.get(i)).name;
-            
-            Bcsv.Entry curEntry = camBcsv.entries.get(row - 1);
-            switch(name) {
-                case "version":
-                    curEntry.put((int) keys.get(i), 196631);    
-                    break;
-                case "[00000D1B]":
-                    curEntry.put((int) keys.get(i), id);
-                    break;
-                case "id":
-                    System.out.println("wtp, id is called id??");
-                    curEntry.put((int) keys.get(i), id);
-                    break;
-                case "[00000DC1]":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                case "camtype":
-                    curEntry.put((int) keys.get(i), "CAM_TYPE_XZ_PARA");
-                    break;
-                case "angleB":
-                    curEntry.put((int) keys.get(i),(float)((((camRotation.y *(180/Math.PI)) % 360) * Math.PI) / 180));
-                    break;
-                case "angleA":
-                    curEntry.put((int) keys.get(i),(float)(Math.abs((int)(((camRotation.x *(180/Math.PI)) - 180)) % 360) * Math.PI) / 180);
-                    break;
-                case "roll":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "dist":
-                    curEntry.put((int) keys.get(i), (float) Math.sqrt(
-                            Math.abs(Math.pow(object.position.x - (camPosition.x * scaledown), 2) +
-                                    Math.pow(object.position.y -(camPosition.y * scaledown), 2) +
-                                    Math.pow(object.position.z -(camPosition.z * scaledown), 2))));
-                    lastCamDist = (float) Math.sqrt(
-                            Math.abs(Math.pow(object.position.x -(camPosition.x * scaledown), 2) +
-                                    Math.pow(object.position.y -(camPosition.y * scaledown), 2) +
-                                    Math.pow(object.position.z -(camPosition.z * scaledown), 2)));
-                    break;
-                case "fovy":
-                    curEntry.put((int) keys.get(i), 45.0f);
-                    break;
-                case "camint":
-                    curEntry.put((int) keys.get(i), 120);
-                    break;
-                case "camendint":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                case "gndint":
-                    curEntry.put((int) keys.get(i), 160);
-                    break;
-                case "num1":
-                    curEntry.put((int) keys.get(i), 1);
-                    break;
-                case "num2":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                case "uplay":
-                    curEntry.put((int) keys.get(i), 300.0f);
-                    break;
-                case "lplay":
-                    curEntry.put((int) keys.get(i), 800.0f);
-                    break;
-                case "pushdelay":
-                    curEntry.put((int) keys.get(i), 120);
-                    break;
-                case "pushdelaylow":
-                    curEntry.put((int) keys.get(i), 120);
-                    break;
-                case "udown":
-                    curEntry.put((int) keys.get(i), 120);
-                    break;
-                case "loffset":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "loffsetv":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "upper":
-                    curEntry.put((int) keys.get(i), 0.3f);
-                    break;
-                case "lower":
-                    curEntry.put((int) keys.get(i), 0.1f);
-                    break;
-                case "evfrm":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                case "evpriority":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                case "[BEC02B34]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[BEC02B35]":
-                    curEntry.put((int) keys.get(i),(float)(camPosition.y * scaledown - object.position.y));
-                    lastCamHeight =(float)(camPosition.y * scaledown - object.position.y);
-                    break;
-                case "[BEC02B36]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[31CB1323]":
-                    curEntry.put((int) keys.get(i), 0f);
-                    break;
-                case "[31CB1324]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[31CB1325]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[AC52894B]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[AC52894C]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[AC52894D]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[3B5CB472]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[3B5CB473]":
-                    curEntry.put((int) keys.get(i), 1.0f);
-                    break;
-                case "[3B5CB474]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[0036D9C5]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[0036D9C6]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "[0036D9C7]":
-                    curEntry.put((int) keys.get(i), 0.0f);
-                    break;
-                case "flag.noreset":
-                    curEntry.put((int) keys.get(i), 0f);
-                    break;
-                case "flag.nofovy":
-                    curEntry.put((int) keys.get(i), 0f);
-                    break;
-                case "flag.lofserpoff":
-                    curEntry.put((int) keys.get(i), 0f);
-                    break;
-                case "flag.antibluroff":
-                    curEntry.put((int) keys.get(i), 0f);
-                    break;
-                case "flag.collisionoff":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                case "flag.subjectiveoff":
-                    curEntry.put((int) keys.get(i), 0f);
-                    break;
-                case "gflag.enableEndErpFrame":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                case "gflag.thru":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                case "gflag.camendint":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                case "vpanuse":
-                    curEntry.put((int) keys.get(i), 1);
-                    break;
-                case "eflag.enableEndErpFrame":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                case "eflag.enableErpFrame":
-                    curEntry.put((int) keys.get(i), 0);
-                    break;
-                default:
-                    curEntry.put((int) keys.get(i), 0);
-                    System.err.println("Used default case in generate cam method! This is not good! Problematic entry is: " + name + ".");
-                    break;
-            }
-            
-        }
-        
-        try {
-            camBcsv.save();
-        } catch(IOException ex) {
-            lbStatusLabel.setText("Failed to save CANM! Got " + ex.getMessage() + ".");
-            return;
-        }
-        lbStatusLabel.setText("Generated camera with a distance of " + lastCamDist + ", a height of " + lastCamHeight + ", " +
-                "and an ID of " + id + "(" +(largest + 1) + ").");
-    }
-    
     public void pasteObject(AbstractObj obj) {
-    	System.out.println("Objekt kopiert");
         addingObject = obj.getFileType() + "|" + obj.name;
         addingObjectOnLayer = obj.layerKey;
         addObject(mousePos);
@@ -3002,7 +2087,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         UndoEntry change = undoList.get(undoIndex);
         
         if(change.objType.equals("pathpoint")) {
-            lbStatusLabel.setText("Undoing path points is currently not supported, sorry!");
+            lblStatus.setText("Undoing path points is currently not supported, sorry!");
         } else {
             switch(change.type) {
                 case "changeObj":
@@ -3079,10 +2164,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @param delta the position to change
      */
     public Vector3 applySubzoneRotation(Vector3 delta) {
-        if(!galaxyMode)
+        if(!isGalaxyMode)
             return new Vector3();
 
-        String szkey = String.format("%1$d/%2$s", curScenarioID, curZone);
+        String szkey = curZone;
         if(subZoneData.containsKey(szkey)) {
             StageObj szdata = subZoneData.get(szkey);
             
@@ -3264,511 +2349,25 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         scaleSelectionBy(delta, 0.0f);
     }
     
-    /**
-     * Add an object, {@code addingObject} in layer {@code addingObjectOnLayer}.
-     * @param where instanceof Point or Vector3
-     */
-    private void addObject(Object where) {
-        Vector3 pos;
-        if(where instanceof Point)
-            pos = get3DCoords((Point) where, Math.min(pickingDepth, 1f));
-        else
-            pos =(Vector3) where;
-        
-        if(galaxyMode) {
-            String szkey = String.format("%1$d/%2$s", curScenarioID, curZone);
-            if(subZoneData.containsKey(szkey)) {
-                StageObj szdata = subZoneData.get(szkey);
-                Vector3.subtract(pos, szdata.position, pos);
-                applySubzoneRotation(pos);
-            }
-        }
-        String objtype = addingObject.substring(0, addingObject.indexOf('|'));
-        String objname = addingObject.substring(addingObject.indexOf('|') + 1);
-        addingObjectOnLayer = addingObjectOnLayer.toLowerCase();
- 
-        
-        int nodeid = -1;
-        
-        // If the requested object is a path or pathpoint, a special
-        // function is required to add them properly.
-        if(objtype.equals("path") ||(objtype.equals("pathpoint"))) {
-            if(objtype.equals("path")) {
-                int newPathLinkID = 0;
-                
-                for (PathObj path : curZoneArc.paths) {
-                    if (path.pathID >= newPathLinkID) {
-                        newPathLinkID = path.pathID + 1;
-                    }
-                }
-                
-                PathObj thepath = new PathObj(curZoneArc, newPathLinkID);
-                thepath.uniqueID = maxUniqueID++;
-                globalPathList.put(thepath.uniqueID, thepath);
-                curZoneArc.paths.add(thepath);
-                
-                //thepath.createStorage();
-                
-                PathPointObj thepoint = new PathPointObj(thepath, pos);
-                thepoint.uniqueID = maxUniqueID;
-                maxUniqueID++;
-                globalObjList.put(thepoint.uniqueID, thepoint);
-                globalPathPointList.put(thepoint.uniqueID, thepoint);
-                thepath.getPoints().add(thepoint);
-                
-                DefaultTreeModel objlist =(DefaultTreeModel) tvObjectList.getModel();
-                ObjListTreeNode listnode =(ObjListTreeNode)((DefaultMutableTreeNode) objlist.getRoot()).getChildAt(StageArchive.game == 2 ? 10 : 11);
-                ObjListTreeNode newnode =(ObjListTreeNode) listnode.addObject(thepath);
-                objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
-                treeNodeList.put(thepath.uniqueID, newnode);
-                
-                TreeNode newpointnode = newnode.addObject(thepoint);
-                objlist.nodesWereInserted(newnode, new int[] { newnode.getIndex(newpointnode) });
-                treeNodeList.put(thepoint.uniqueID, newpointnode);
-                
-                rerenderTasks.add("path:" + thepath.uniqueID);
-                rerenderTasks.add("zone:" + curZone);
-                glCanvas.repaint();
-                unsavedChanges = true;
-            }
-            else {
-                if(selectedObjs.size() > 1)
-                    return;
-                
-                PathObj thepath = null;
-                for(AbstractObj obj : selectedObjs.values())
-                    thepath =((PathPointObj) obj).path;
-                
-                if(thepath == null)
-                    return;
-                
-                
-                PathPointObj thepoint = new PathPointObj(thepath, pos);
-                thepoint.uniqueID = maxUniqueID;
-                maxUniqueID += 3;
-                globalObjList.put(thepoint.uniqueID, thepoint);
-                globalPathPointList.put(thepoint.uniqueID, thepoint);
-                thepath.getPoints().add(thepoint);
-                
-                DefaultTreeModel objlist =(DefaultTreeModel) tvObjectList.getModel();
-                ObjListTreeNode listnode =(ObjListTreeNode)((DefaultMutableTreeNode) objlist.getRoot()).getChildAt(StageArchive.game == 2 ? 10 : 11);
-                listnode =(ObjListTreeNode) listnode.children.get(thepath.uniqueID);
-                
-                TreeNode newnode = listnode.addObject(thepoint);
-                objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
-                treeNodeList.put(thepoint.uniqueID, newnode);
-                
-                rerenderTasks.add("path:" + thepath.uniqueID);
-                rerenderTasks.add("zone:" + thepath.stage.stageName);
-                glCanvas.repaint();
-                unsavedChanges = true;
-            }
-            return;
-        }
-        
-        newobj = null;
-        
-        switch(objtype) {
-            case "general": 
-                newobj = new LevelObj(curZoneArc, addingObjectOnLayer, objname, pos);
-                nodeid = 0;
-                break;
-            case "mappart": 
-                newobj = new MapPartObj(curZoneArc, addingObjectOnLayer, objname, pos);
-                nodeid = 1; 
-                break;
-            case "gravity": 
-                newobj = new GravityObj(curZoneArc, addingObjectOnLayer, objname, pos);
-                nodeid = 2;
-                break;
-            case "start": 
-                newobj = new StartObj(curZoneArc, addingObjectOnLayer, pos);
-                nodeid = 3;
-                break;    
-            case "area": 
-                newobj = new AreaObj(curZoneArc, addingObjectOnLayer, objname, pos);
-                nodeid = 4;
-                break;
-            case "camera": 
-                newobj = new CameraObj(curZoneArc, addingObjectOnLayer, objname, pos);
-                nodeid = 5;
-                break;
-            case "cutscene": 
-                newobj = new CutsceneObj(curZoneArc, addingObjectOnLayer, objname, pos);
-                nodeid = 6;
-                break;    
-            case "position": 
-                newobj = new PositionObj(curZoneArc, addingObjectOnLayer, pos);
-                nodeid = 7;
-                break;
-            case "child":
-                if(StageArchive.game == 2)
-                    break;
-                newobj = new ChildObj(curZoneArc, addingObjectOnLayer, objname, pos);
-                nodeid = 8; 
-                break;
-            case "sound":
-                if(StageArchive.game == 2)
-                    break;
-                newobj = new SoundObj(curZoneArc, addingObjectOnLayer, pos);
-                nodeid = 9;
-                break;
-            case "debug":
-                newobj = new DebugObj(curZoneArc, addingObjectOnLayer, pos);
-                nodeid = StageArchive.game == 2 ? 9 : 10;
-                break;
-            default:
-                return;
-        }
-        
-        int uid = 0;
-        while(globalObjList.containsKey(uid) 
-                || globalPathList.containsKey(uid)
-                || globalPathPointList.containsKey(uid)) 
-            uid++;
-        if(uid > maxUniqueID)
-            maxUniqueID = uid;
-        newobj.uniqueID = uid;
-        
-        globalObjList.put(uid, newobj);
-        curZoneArc.objects.get(addingObjectOnLayer.toLowerCase()).add(newobj);
-        
-        DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
-        ObjListTreeNode listnode =(ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(nodeid);
-        TreeNode newnode = listnode.addObject(newobj);
-        objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
-        treeNodeList.put(uid, newnode);
-        
-        rerenderTasks.add(String.format("addobj:%1$d", uid));
-        rerenderTasks.add("zone:"+curZone);
-        glCanvas.repaint();
-        unsavedChanges = true;
-    }
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Object adding and deleting
     
-    private void addWorldmapPoint(String type) {
-        
-        try {
-            globalWorldmapPointList.add(createWorldmapPoint(type, createPointEntry(0f,0f,0f,"x")));
-        } catch(IllegalArgumentException | IllegalAccessException ex) {
-            return;
-        }
-        lbStatusLabel.setText("Added "+type + ".");
-        refreshPoints();
-    }
-
-    private void refreshPoints() {
-        populateWorldmapObjectList();
-        TreeNode tn = worldmapPointsNode.getLastChild();
-        TreePath tp = new TreePath(((DefaultTreeModel)tvWorldmapObjectList.getModel()).getPathToRoot(tn));
-        
-        tvWorldmapObjectList.setSelectionPath(tp);
-        glCanvas.repaint();
-    }
-    
-    private WorldmapPoint createWorldmapPoint(String type, Bcsv.Entry baseEntry) throws IllegalArgumentException, IllegalAccessException {
-        switch(type) {
-            case "NormalPoint":
-                return new WorldmapPoint(baseEntry);
-            case "GalaxyIcon":
-                Bcsv.Entry newEntryGP = new Bcsv.Entry();
-                newEntryGP.put("StageName", "RedBlueExGalaxy");
-                newEntryGP.put("MiniatureName", "MiniRedBlueExGalaxy");
-                newEntryGP.put("PointPosIndex", baseEntry.get(70793394));
-                newEntryGP.put("StageType", "MiniGalaxy");
-                newEntryGP.put("ScaleMin", 1f);
-                newEntryGP.put("ScaleMax", 1.2f);
-                newEntryGP.put("PosOffsetX", 0f);
-                newEntryGP.put("PosOffsetY", 2500f);
-                newEntryGP.put("PosOffsetZ", 0f);
-                newEntryGP.put("NamePlatePosX", 0f);
-                newEntryGP.put("NamePlatePosY", 1500f);
-                newEntryGP.put("NamePlatePosZ", 0f);
-                newEntryGP.put("IconOffsetX", 0f);
-                newEntryGP.put("IconOffsetY", 0f);
-                GalaxyPreview gp = new GalaxyPreview(newEntryGP, baseEntry);
-                gp.initRenderer(renderinfo);
-                return gp;
-            default:
-                Bcsv.Entry newEntryMO = new Bcsv.Entry();
-                newEntryMO.put("PointIndex", "WorldWarpPoint");
-                newEntryMO.put("PartsIndex", 0);
-                newEntryMO.put("Param02", -1);
-                newEntryMO.put("PointIndex", baseEntry.get(70793394));
-                
-        switch(type) {
-            case "WorldPortal":
-                newEntryMO.put("PartsTypeName", "WorldWarpPoint");
-                newEntryMO.put("Param00", worldmapId);
-                newEntryMO.put("Param01", baseEntry.get(70793394));
-                break;
-            case "StarGate":
-                newEntryMO.put("PartsTypeName", "StarCheckPoint");
-                newEntryMO.put("Param00", 1);
-                newEntryMO.put("Param01", 0);
-                break;
-            case "Hungry Luma":
-                newEntryMO.put("PartsTypeName", "TicoRouteCreator");
-                newEntryMO.put("Param00", 100);
-                newEntryMO.put("Param01", baseEntry.get(70793394));
-                break;
-            case "WarpPipe":
-                newEntryMO.put("PartsTypeName", "EarthenPipe");
-                newEntryMO.put("Param00", baseEntry.get(70793394));
-                newEntryMO.put("Param01", -1);
-                break;
-            case "WorldmapIcon":
-                newEntryMO.put("PartsTypeName", "StarRoadWarpPoint");
-                newEntryMO.put("Param00", 1);
-                newEntryMO.put("Param01", 0);
-                break;
-            default:
-                newEntryMO.put("PartsTypeName", "StarPieceMine");
-                newEntryMO.put("Param00", -1);
-                newEntryMO.put("Param01", -1);
-                break;
-        }
-                MiscWorldmapObject mo = new MiscWorldmapObject(newEntryMO, baseEntry);
-                mo.initRenderer(renderinfo);
-                return mo;
-        }
-    }
-    
-    private Bcsv.Entry createPointEntry(float x, float y, float z, String colorChange) {
-        Bcsv.Entry newEntry = new Bcsv.Entry();
-        newEntry.put(70793394, globalWorldmapPointList.size());
-        newEntry.put("Valid", "o");
-        newEntry.put("SubPoint", "x");
-        newEntry.put("ColorChange", colorChange);
-        newEntry.put("LayerNo", 0);
-        newEntry.put(-726582764, x);
-        newEntry.put(-726582763, y);
-        newEntry.put(-726582762, z);
-        return newEntry;
-    }
-    
-    private void addWorldmapRoute() {
-        if(globalWorldmapPointList.size()<2) {
-            lbStatusLabel.setText("No connection added, at least 2 points are required.");
-            return;
-        }
-        
-        globalWorldmapRouteList.add(createWorldmapRoute(0, 0, false));
-        refreshRoutes();
-        
-        lbStatusLabel.setText("Successfully added connection!");
-    }
-
-    private void refreshRoutes() {
-        populateWorldmapObjectList();
-        
-        TreeNode tn = worldmapConnectionsNode.getLastChild();
-        TreePath tp = new TreePath(((DefaultTreeModel)tvWorldmapObjectList.getModel()).getPathToRoot(tn));
-        
-        tvWorldmapObjectList.setSelectionPath(tp);
-        glCanvas.repaint();
-    }
-    
-    private void refreshRoutes(int index) {
-        populateWorldmapObjectList();
-        
-        TreeNode tn = worldmapConnectionsNode.getChildAt(index);
-        TreePath tp = new TreePath(((DefaultTreeModel)tvWorldmapObjectList.getModel()).getPathToRoot(tn));
-        
-        tvWorldmapObjectList.setSelectionPath(tp);
-        glCanvas.repaint();
-    }
-    
-    private WorldmapRoute createWorldmapRoute(int indexA, int indexB, boolean secret) {
-        Bcsv.Entry newEntry = new Bcsv.Entry();
-        newEntry.put("PointIndexA", indexA);
-        newEntry.put("PointIndexB", indexB);
-        newEntry.put("CloseStageName", "");
-        newEntry.put("CloseStageScenarioNo", -1);
-        newEntry.put("CloseGameFlag", "");
-        newEntry.put("IsSubRoute", secret?"o":"x");
-        newEntry.put("IsColorChange", secret?"o":"x");
-        return new WorldmapRoute(newEntry);
-    }
-    
-    private void quickWorldmapAction(JMenuItem foo) {
-        switch(foo.getText()) {
-            case "Load default template":
-                try {
-                    globalWorldmapPointList.clear();
-                    globalWorldmapRouteList.clear();
-                    
-                    int portalToTheLeftWorld = 0;
-                    int portalToTheLeftIndex = 0;
-                    int portalToTheRightWorld = 0;
-                    int portalToTheRightIndex = 0;
-                    
-                    
-                    for(Bcsv.Entry entry : bcsvWorldMapMiscObjects.entries) {
-                        if(entry.get("PartsTypeName").equals("WorldWarpPoint")) {
-                            if((int)entry.get("Param00")>worldmapId) {
-                                portalToTheRightWorld =(int)entry.get("Param00");
-                                portalToTheRightIndex =(int)entry.get("Param01");
-                            }else if((int)entry.get("Param00")<worldmapId) {
-                                portalToTheLeftWorld =(int)entry.get("Param00");
-                                portalToTheLeftIndex =(int)entry.get("Param01");
-                            }
-                        }
-                    }
-                    
-                    for(int i = 0; i<globalWorldmapTravelObjects.size(); i++) {
-                        WorldmapTravelObject obj =(WorldmapTravelObject)globalWorldmapTravelObjects.get(i);
-                        if(obj.entryMO.get("PartsTypeName").equals("WorldWarpPoint")) {
-                            if((int)obj.worldmapId>worldmapId) {
-                                obj.entryMO.put("Param01", 1);
-                            }else if((int)obj.worldmapId<worldmapId) {
-                                obj.entryMO.put("Param01", 0);
-                            }
-                        }else if(obj.entryMO.get("PartsTypeName").equals("StarRoadWorldWarp")) {
-                            obj.entryMO.put("Param01", 0);
-                        }
-                    }
-                    System.out.println("QuickAction: load Template");
-                    System.out.println(portalToTheLeftWorld);
-                    System.out.println(portalToTheLeftIndex);
-                    System.out.println(portalToTheRightWorld);
-                    System.out.println(portalToTheRightIndex);
-                    
-                    globalWorldmapPointList.add(createWorldmapPoint("NormalPoint", createPointEntry(-40000f,0f,0f,"x") ));
-                    globalWorldmapPointList.add(createWorldmapPoint("NormalPoint", createPointEntry(40000f,0f,0f,"x") ));
-                    globalWorldmapRouteList.add(createWorldmapRoute(0, 1, false));
-                    int index = 2;
-                    
-                    
-                    
-                    if(portalToTheLeftWorld!=0) {
-                        MiscWorldmapObject portal =(MiscWorldmapObject)createWorldmapPoint("WorldPortal", createPointEntry(-50000f,0f,0f,"x") );
-                        portal.entryMO.put("Param00", portalToTheLeftWorld);
-                        portal.entryMO.put("Param01", portalToTheLeftIndex);
-                        globalWorldmapPointList.add(portal);
-                        globalWorldmapRouteList.add(createWorldmapRoute(0, index, false));
-                        index++;
-                    }
-                    if(portalToTheRightWorld!=0) {
-                        MiscWorldmapObject portal =(MiscWorldmapObject)createWorldmapPoint("WorldPortal", createPointEntry(50000f,0f,0f,"x") );
-                        portal.entryMO.put("Param00", portalToTheRightWorld);
-                        portal.entryMO.put("Param01", portalToTheRightIndex);
-                        globalWorldmapPointList.add(portal);
-                        globalWorldmapRouteList.add(createWorldmapRoute(1, index, false));
-                    }
-                    
-                    refreshRoutes(0);
-                    lbStatusLabel.setText("Loaded default worldmap template.");
-                } catch(IllegalArgumentException | IllegalAccessException ex) {
-                    return;
-                }
-                return;
-            case "Insert Point":
-                try {
-                    WorldmapRoute route = globalWorldmapRouteList.get(currentWorldmapRouteIndex);
-                    
-                    Bcsv.Entry firstRoute = new Bcsv.Entry();
-                    Bcsv.Entry secondRoute = new Bcsv.Entry();
-                    
-
-                    Bcsv.Entry pointEntryA = globalWorldmapPointList.get((int)route.entry.get("PointIndexA")).entry;
-                    Bcsv.Entry pointEntryB = globalWorldmapPointList.get((int)route.entry.get("PointIndexB")).entry;
-                    
-                    for(String prop : new String[]{"PointIndexA","PointIndexB","CloseStageName","CloseStageScenarioNo",
-                                                    "CloseGameFlag","IsSubRoute","IsColorChange"}) {
-                        firstRoute.put(prop,route.entry.get(prop));
-                        secondRoute.put(prop,route.entry.get(prop));
-                    }
-
-                    firstRoute.put("PointIndexB", globalWorldmapPointList.size());
-                    secondRoute.put("PointIndexA", globalWorldmapPointList.size());
-                    
-                    globalWorldmapRouteList.remove(currentWorldmapRouteIndex);
-                    
-                    globalWorldmapPointList.add(createWorldmapPoint("NormalPoint", createPointEntry(
-                           ((float)pointEntryA.get(-726582764)+(float)pointEntryB.get(-726582764))/2f,
-                           ((float)pointEntryA.get(-726582763)+(float)pointEntryB.get(-726582763))/2f,
-                           ((float)pointEntryA.get(-726582762)+(float)pointEntryB.get(-726582762))/2f,
-                            "x") ));
-                    
-                    globalWorldmapRouteList.add(new WorldmapRoute(firstRoute));
-                    globalWorldmapRouteList.add(new WorldmapRoute(secondRoute));
-                    
-                    refreshPoints();
-                    lbStatusLabel.setText("Added a point.");
-                } catch(IllegalArgumentException | IllegalAccessException ex) {
-                    return;
-                }
-                return;
-            case "Add connected Point":
-                try {
-                    Bcsv.Entry pointEntry = globalWorldmapPointList.get(currentWorldmapPointIndex).entry;
-                    
-                    globalWorldmapRouteList.add(createWorldmapRoute(currentWorldmapPointIndex, globalWorldmapPointList.size(), false));
-                    globalWorldmapPointList.add(new WorldmapPoint(createPointEntry(
-                           (float)pointEntry.get(-726582764),
-                           (float)pointEntry.get(-726582763),
-                           (float)pointEntry.get(-726582762),
-                            "x")));
-                    refreshPoints();
-                    lbStatusLabel.setText("Added a connected point.");
-                } catch(Exception ex) {}
-                return;
-            case "Add connected SecretGalaxy":
-                try {
-                    MiscWorldmapObject current =(MiscWorldmapObject)globalWorldmapPointList.get(currentWorldmapPointIndex);
-                    Bcsv.Entry pointEntry = globalWorldmapPointList.get(currentWorldmapPointIndex).entry;
-                    
-                    globalWorldmapRouteList.add(createWorldmapRoute(currentWorldmapPointIndex, globalWorldmapPointList.size(), true));
-                    GalaxyPreview gp =(GalaxyPreview)createWorldmapPoint("GalaxyIcon",createPointEntry(
-                           (float)pointEntry.get(-726582764),
-                           (float)pointEntry.get(-726582763),
-                           (float)pointEntry.get(-726582762),
-                            "o"));
-                    gp.entryGP.put("StageType", "MiniGalxy");
-                    current.entryMO.put("Param01", globalWorldmapPointList.size());
-                    globalWorldmapPointList.add(gp);
-                    refreshPoints();
-                    lbStatusLabel.setText("Added a connected Secret Galaxy.");
-                } catch(IllegalArgumentException | IllegalAccessException ex) {
-                    return;
-                }
-                return;
-            case "Add connected Pipe":
-                try {
-                    MiscWorldmapObject current =(MiscWorldmapObject)globalWorldmapPointList.get(currentWorldmapPointIndex);
-                    Bcsv.Entry pointEntry = globalWorldmapPointList.get(currentWorldmapPointIndex).entry;
-                    
-                    MiscWorldmapObject mo =(MiscWorldmapObject)createWorldmapPoint("WarpPipe",createPointEntry(
-                           (float)pointEntry.get(-726582764),
-                           (float)pointEntry.get(-726582763),
-                           (float)pointEntry.get(-726582762),
-                            "x"));
-                    mo.entryMO.put("Param00", currentWorldmapPointIndex);
-                    current.entryMO.put("Param00", globalWorldmapPointList.size());
-                    globalWorldmapPointList.add(mo);
-                    refreshPoints();
-                    lbStatusLabel.setText("Added a connected pipe.");
-                } catch(IllegalArgumentException | IllegalAccessException ex) {
-                }
-        }
-    }
-    
-    private void setObjectBeingAdded(String type) {         
-        switch(type) {
-            case "start":
-                addingObject = "start|Mario";
+    private void setObjectBeingAdded(String key) {
+        switch(key) {
+            case "startinfo":
+                addingObject = "startinfo|Mario";
                 addingObjectOnLayer = "common";
                 break;
-            case "debug":
-                addingObject = "debug|DebugMovePos";
+            case "soundinfo":
+                addingObject = "soundinfo|SoundEmitter";
                 addingObjectOnLayer = "common";
                 break;
-            case "position":
-                addingObject = "position|GeneralPos";
+            case "generalposinfo":
+                addingObject = "generalposinfo|GeneralPos";
                 addingObjectOnLayer = "common";
                 break;
-            case "change":
-                addingObject = "change|ChangeObj";
+            case "debugmoveinfo":
+                addingObject = "debugmoveinfo|DebugMovePos";
                 addingObjectOnLayer = "common";
                 break;
             case "path":
@@ -3777,15 +2376,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             case "pathpoint":
                 addingObject = "pathpoint|null";
                 break;
-            case "camera":
-                if(Whitehole.getCurrentGameType() != 1) {
-                    addingObject = "camera|CameraArea";
+            case "cameracubeinfo":
+                if (Whitehole.getCurrentGameType() == 2) {
+                    addingObject = "cameracubeinfo|CameraArea";
                     addingObjectOnLayer = "common";
                     break;
                 }
             default:
-                if (ObjectSelectForm.openNewObjectDialog(type, curZoneArc.getLayerNames())) {
-                    addingObject = type + "|" + ObjectSelectForm.getResultName();
+                if (ObjectSelectForm.openNewObjectDialog(key, curZoneArc.getLayerNames())) {
+                    addingObject = key + "|" + ObjectSelectForm.getResultName();
                     addingObjectOnLayer = ObjectSelectForm.getResultLayer();
                 }
                 else {
@@ -3793,101 +2392,174 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
                 break;
         }
-        lbStatusLabel.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
+        
+        lblStatus.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
     }
     
-    public void makeFullscreen() {
-        fullScreen = new JFrame(this.getTitle());
-        fullScreen.addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                
+    private void addObject(Object point) {
+        // Resolve position
+        Vector3 position;
+        if(point instanceof Point) {
+            position = get3DCoords((Point)point, Math.min(pickingDepth, 1f));
+        }
+        else {
+            position = (Vector3)point;
+        }
+        
+        // Apply zone placement
+        if(isGalaxyMode) {
+            if(subZoneData.containsKey(curZone)) {
+                StageObj zonePlacement = subZoneData.get(curZone);
+                Vector3.subtract(position, zonePlacement.position, position);
+                applySubzoneRotation(position);
             }
+        }
+        
+        // Get designated information
+        String objtype = addingObject.substring(0, addingObject.indexOf('|'));
+        String objname = addingObject.substring(addingObject.indexOf('|') + 1);
+        addingObjectOnLayer = addingObjectOnLayer.toLowerCase();
+        
+        // Add new path?
+        if(objtype.equals("path")) {
+            int newPathLinkID = 0;
 
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_F) {
-                    fullScreen.setExtendedState(Frame.NORMAL);
-                    fullScreen.setVisible(false);
-                    fullScreen.dispose();
-                    System.out.println("cleanup");
+            for (PathObj path : curZoneArc.paths) {
+                if (path.pathID >= newPathLinkID) {
+                    newPathLinkID = path.pathID + 1;
                 }
             }
 
-            @Override
-            public void keyReleased(KeyEvent e) {
+            PathObj thepath = new PathObj(curZoneArc, newPathLinkID);
+            thepath.uniqueID = maxUniqueID++;
+            globalPathList.put(thepath.uniqueID, thepath);
+            curZoneArc.paths.add(thepath);
+
+            //thepath.createStorage();
+
+            PathPointObj thepoint = new PathPointObj(thepath, position);
+            thepoint.uniqueID = maxUniqueID;
+            maxUniqueID++;
+            globalObjList.put(thepoint.uniqueID, thepoint);
+            globalPathPointList.put(thepoint.uniqueID, thepoint);
+            thepath.getPoints().add(thepoint);
+
+            DefaultTreeModel objlist =(DefaultTreeModel) treeObjects.getModel();
+            ObjListTreeNode listnode =(ObjListTreeNode)((DefaultMutableTreeNode) objlist.getRoot()).getChildAt(StageArchive.game == 2 ? 10 : 11);
+            ObjListTreeNode newnode =(ObjListTreeNode) listnode.addObject(thepath);
+            objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
+            treeNodeList.put(thepath.uniqueID, newnode);
+
+            TreeNode newpointnode = newnode.addObject(thepoint);
+            objlist.nodesWereInserted(newnode, new int[] { newnode.getIndex(newpointnode) });
+            treeNodeList.put(thepoint.uniqueID, newpointnode);
+
+            rerenderTasks.add("path:" + thepath.uniqueID);
+            rerenderTasks.add("zone:" + curZone);
+            glCanvas.repaint();
+            unsavedChanges = true;
+        }
+        // Add new path point?
+        else if (objtype.equals("pathpoint")) {
+            if(selectedObjs.size() > 1)
+                return;
+
+            PathObj thepath = null;
+            for(AbstractObj obj : selectedObjs.values())
+                thepath =((PathPointObj) obj).path;
+
+            if(thepath == null)
+                return;
+
+
+            PathPointObj thepoint = new PathPointObj(thepath, position);
+            thepoint.uniqueID = maxUniqueID;
+            maxUniqueID += 3;
+            globalObjList.put(thepoint.uniqueID, thepoint);
+            globalPathPointList.put(thepoint.uniqueID, thepoint);
+            thepath.getPoints().add(thepoint);
+
+            DefaultTreeModel objlist =(DefaultTreeModel) treeObjects.getModel();
+            ObjListTreeNode listnode =(ObjListTreeNode)((DefaultMutableTreeNode) objlist.getRoot()).getChildAt(StageArchive.game == 2 ? 10 : 11);
+            listnode =(ObjListTreeNode) listnode.children.get(thepath.uniqueID);
+
+            TreeNode newnode = listnode.addObject(thepoint);
+            objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
+            treeNodeList.put(thepoint.uniqueID, newnode);
+
+            rerenderTasks.add("path:" + thepath.uniqueID);
+            rerenderTasks.add("zone:" + thepath.stage.stageName);
+            glCanvas.repaint();
+            unsavedChanges = true;
+        }
+        else {
+            newobj = null;
+            
+            switch(objtype) {
+                case "objinfo": newobj = new LevelObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "mappartsinfo": newobj = new MapPartObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "childobjinfo": newobj = new ChildObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "planetobjinfo": newobj = new GravityObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "areaobjinfo": newobj = new AreaObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "cameracubeinfo": newobj = new CameraObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "soundinfo": newobj = new SoundObj(curZoneArc, addingObjectOnLayer, position); break;
+                case "startinfo": newobj = new StartObj(curZoneArc, addingObjectOnLayer, position); break;
+                case "demoobjinfo": newobj = new CutsceneObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "generalposinfo": newobj = new PositionObj(curZoneArc, addingObjectOnLayer, position); break;
+                case "debugmoveinfo": newobj = new DebugObj(curZoneArc, addingObjectOnLayer, position); break;
             }
-        });
-        
-        fullScreen.addWindowListener(new WindowListener() {
-            @Override
-            public void windowOpened(WindowEvent e) {}
-
-            @Override
-            public void windowClosing(WindowEvent e) {
-                glCanvas.requestFocusInWindow();
-                setVisible(true);
+            
+            // Calculate UID
+            int uniqueID = 0;
+            
+            while(globalObjList.containsKey(uniqueID)
+                    || globalPathList.containsKey(uniqueID)
+                    || globalPathPointList.containsKey(uniqueID)) {
+                uniqueID++;
             }
-
-            @Override
-            public void windowClosed(WindowEvent e) {}
-
-            @Override
-            public void windowIconified(WindowEvent e) {}
-
-            @Override
-            public void windowDeiconified(WindowEvent e) {}
-
-            @Override
-            public void windowActivated(WindowEvent e) {}
-
-            @Override
-            public void windowDeactivated(WindowEvent e) {}
-        });
-        
-        fullScreen.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-        fullScreen.setExtendedState(Frame.MAXIMIZED_BOTH);
-        fullScreen.setUndecorated(true);
-        
-        
-        com.jogamp.opengl.GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
-        caps.setSampleBuffers(true);
-        caps.setNumSamples(8);
-        caps.setHardwareAccelerated(true);
-        fullCanvas = new GLCanvas(caps);
-        fullCanvas.setSharedContext(RendererCache.refContext);
-        fullCanvas.addGLEventListener(renderer = new GalaxyEditorForm.GalaxyRenderer(true));
-        fullCanvas.addMouseListener(renderer);
-        fullCanvas.addMouseMotionListener(renderer);
-        fullCanvas.addMouseWheelListener(renderer);
-        fullCanvas.addKeyListener(renderer);
-        
-        fullScreen.add(fullCanvas);
-        fullScreen.setVisible(true);
+            
+            if(uniqueID > maxUniqueID) {
+                maxUniqueID = uniqueID;
+            }
+            
+            // Add entry and node
+            newobj.uniqueID = uniqueID;
+            globalObjList.put(uniqueID, newobj);
+            curZoneArc.objects.get(addingObjectOnLayer).add(newobj);
+            
+            ObjTreeNode newnode = objListTreeNodes.get(objtype).addObject(newobj);
+            treeNodeList.put(uniqueID, newnode);
+            
+            // Update rendering
+            rerenderTasks.add(String.format("addobj:%1$d", uniqueID));
+            rerenderTasks.add("zone:" + curZone);
+            glCanvas.repaint();
+            unsavedChanges = true;
+        }
     }
     
-    private void deleteObject(int uid) {
-        if(globalObjList.containsKey(uid)) {
-            AbstractObj obj = globalObjList.get(uid);
+    private void deleteObject(int uniqueID) {
+        if(globalObjList.containsKey(uniqueID)) {
+            AbstractObj obj = globalObjList.get(uniqueID);
             
             addUndoEntry("deleteObj", obj);
             
             obj.stage.objects.get(obj.layerKey).remove(obj);
-            rerenderTasks.add(String.format("delobj:%1$d", uid));
+            rerenderTasks.add(String.format("delobj:%1$d", uniqueID));
             rerenderTasks.add("zone:" + obj.stage.stageName);
 
-            if(treeNodeList.containsKey(uid)) {
-                DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
-                ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(uid);
+            if(treeNodeList.containsKey(uniqueID)) {
+                DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
+                ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(uniqueID);
                 objlist.removeNodeFromParent(thenode);
-                treeNodeList.remove(uid);
+                treeNodeList.remove(uniqueID);
             }
         }
         
-        if(globalPathPointList.containsKey(uid)) {
-            PathPointObj obj = globalPathPointList.get(uid);
+        if(globalPathPointList.containsKey(uniqueID)) {
+            PathPointObj obj = globalPathPointList.get(uniqueID);
             obj.path.getPoints().remove(obj.getIndex());
-            globalPathPointList.remove(uid);
+            globalPathPointList.remove(uniqueID);
             if(obj.path.getPoints().isEmpty()) {
                 obj.path.stage.paths.remove(obj.path);
                 //obj.path.deleteStorage();
@@ -3896,22 +2568,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 rerenderTasks.add("zone:"+obj.path.stage.stageName);
 
                 if(treeNodeList.containsKey(obj.path.uniqueID)) {
-                    DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
+                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                     ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(obj.path.uniqueID);
                     objlist.removeNodeFromParent(thenode);
                     treeNodeList.remove(obj.path.uniqueID);
-                    treeNodeList.remove(uid);
+                    treeNodeList.remove(uniqueID);
                 }
             }
             else {
                 rerenderTasks.add(String.format("path:%1$d", obj.path.uniqueID));
                 rerenderTasks.add("zone:"+obj.path.stage.stageName);
 
-                if(treeNodeList.containsKey(uid)) {
-                    DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
-                    ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(uid);
+                if(treeNodeList.containsKey(uniqueID)) {
+                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
+                    ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(uniqueID);
                     objlist.removeNodeFromParent(thenode);
-                    treeNodeList.remove(uid);
+                    treeNodeList.remove(uniqueID);
                 }
             }
         }
@@ -4241,13 +2913,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         }
                         case "name": {
                             selectedPathPoint.path.name =(String) value;
-                            DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
+                            DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                             objlist.nodeChanged(treeNodeList.get(selectedPathPoint.path.uniqueID));
                             break;
                         }
                         case "l_id": {
                             selectedPathPoint.path.pathID =(int) value;
-                            DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
+                            DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                             objlist.nodeChanged(treeNodeList.get(selectedPathPoint.path.uniqueID));
                         }
                         default:
@@ -4272,7 +2944,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     selectedObj.name =(String)value;
                     selectedObj.loadDBInfo();
 
-                    DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
+                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                     objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
 
                     rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
@@ -4284,26 +2956,26 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     String newzone =(String)value;
                     int uid = selectedObj.uniqueID;
 
-                    selectedObj.stage = zoneArcs.get(newzone);
-                    zoneArcs.get(oldzone).objects.get(selectedObj.layerKey).remove(selectedObj);
-                    if(zoneArcs.get(newzone).objects.containsKey(selectedObj.layerKey))
-                        zoneArcs.get(newzone).objects.get(selectedObj.layerKey).add(selectedObj);
+                    selectedObj.stage = zoneArchives.get(newzone);
+                    zoneArchives.get(oldzone).objects.get(selectedObj.layerKey).remove(selectedObj);
+                    if(zoneArchives.get(newzone).objects.containsKey(selectedObj.layerKey))
+                        zoneArchives.get(newzone).objects.get(selectedObj.layerKey).add(selectedObj);
                     else {
                         selectedObj.layerKey = "common";
-                        zoneArcs.get(newzone).objects.get(selectedObj.layerKey).add(selectedObj);
+                        zoneArchives.get(newzone).objects.get(selectedObj.layerKey).add(selectedObj);
                     }
 
-                    for(int z = 0; z < galaxyArc.zoneList.size(); z++) {
-                        if(!galaxyArc.zoneList.get(z).equals(newzone))
+                    for(int z = 0; z < galaxyArchive.zoneList.size(); z++) {
+                        if(!galaxyArchive.zoneList.get(z).equals(newzone))
                             continue;
-                        lbZoneList.setSelectedIndex(z);
+                        listZones.setSelectedIndex(z);
                         break;
                     }
                     if(treeNodeList.containsKey(uid)) {
                         TreeNode tn = treeNodeList.get(uid);
-                        TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
-                        tvObjectList.setSelectionPath(tp);
-                        tvObjectList.scrollPathToVisible(tp);
+                        TreePath tp = new TreePath(((DefaultTreeModel)treeObjects.getModel()).getPathToRoot(tn));
+                        treeObjects.setSelectionPath(tp);
+                        treeObjects.scrollPathToVisible(tp);
                     }
 
                     selectionChanged();
@@ -4319,7 +2991,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     curZoneArc.objects.get(oldlayer).remove(selectedObj);
                     curZoneArc.objects.get(newlayer).add(selectedObj);
 
-                    DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
+                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                     objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
 
                     rerenderTasks.add("zone:"+selectedObj.stage.stageName);
@@ -4370,7 +3042,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         }
                     }
                     else if(propname.equals("AreaShapeNo")) {
-                        DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
+                        DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                         objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
                         if(selectedObj.getClass() == AreaObj.class || selectedObj.getClass() == CameraObj.class) {
                             rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
@@ -4379,7 +3051,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         }
                     }
                     else if(propname.equals("MarioNo") || propname.equals("PosName") || propname.equals("DemoName") || propname.equals("TimeSheetName")) {
-                        DefaultTreeModel objlist =(DefaultTreeModel)tvObjectList.getModel();
+                        DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                         objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
                     }
                 }
@@ -4388,181 +3060,81 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         unsavedChanges = true;
     }
+
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Actual renderer
     
-    public void worldmapObjPropertyPanelPropertyChanged(String propname, Object value) {
+    public void makeFullscreen() {
+        fullScreen = new JFrame(this.getTitle());
+        fullScreen.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_F) {
+                    fullScreen.setExtendedState(Frame.NORMAL);
+                    fullScreen.setVisible(false);
+                    fullScreen.dispose();
+                    System.out.println("cleanup");
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+        });
         
-        System.out.println(propname+": "+value);
-        if(propname.startsWith("point_")) { //a point is selected
-            WorldmapPoint point = globalWorldmapPointList.get(currentWorldmapPointIndex);
-            
-            switch(propname) {
-                case "point_posX":
-                    point.entry.put(-726582764,(float)value*1000f);
-                    break;
-                case "point_posY":
-                    point.entry.put(-726582763,(float)value*1000f);
-                    break;
-                case "point_posZ":
-                    point.entry.put(-726582762,(float)value*1000f);
-                    break;
-                case "point_color":
-                    point.entry.put("ColorChange",(value.equals("Pink"))?"o":"x");
-                    break;
-                case "point_camId":
-                    point.entry.put("LayerNo",value);
-                    break;
-                case "point_enabled":
-                    point.entry.put("Valid",(boolean)value?"o":"x");
-                    break;
-                case "point_subPoint":
-                    point.entry.put("SubPoint",(boolean)value?"o":"x");
-                    break;
-                case "point_type":
-                    lbStatusLabel.setText("Converting to "+value +"."); //note to self: check what this is doing w/ JuPaHe ~SunCat
-                    try {
-                        globalWorldmapPointList.add(currentWorldmapPointIndex,createWorldmapPoint((String)value,point.entry));
-                        updateCurrentNode();
-                        selectedWorldmapObjChanged();
-                    } catch(IllegalArgumentException | IllegalAccessException ex) {
-                        return;
-                    }
-                    globalWorldmapPointList.remove(currentWorldmapPointIndex+1);
-                    break;
-                default:
-                    break;
+        fullScreen.addWindowListener(new WindowListener() {
+            @Override
+            public void windowOpened(WindowEvent e) {}
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                glCanvas.requestFocusInWindow();
+                setVisible(true);
             }
-            
-        } else if(propname.startsWith("galaxy_")) {//a galaxyPreview is selected
-            GalaxyPreview galaxyPreview =(GalaxyPreview)globalWorldmapPointList.get(currentWorldmapPointIndex);  
-            
-            switch(propname) {
-                case "galaxy_name":
-                    galaxyPreview.entryGP.put("StageName",value);
-                    updateCurrentNode();
-                    break;
-                case "galaxy_type":
-                    galaxyPreview.entryGP.put("StageType",((String)value).split(": ")[0]);
-                    break;
-                case "galaxy_iconname":
-                    galaxyPreview.entryGP.put("MiniatureName",value);
-                    galaxyPreview.initRenderer(renderinfo);
-                    break;
-                case "galaxy_iconPosX":
-                    galaxyPreview.entryGP.put("PosOffsetX",(float)value*100f);
-                    break;
-                case "galaxy_iconPosY":
-                    galaxyPreview.entryGP.put("PosOffsetY",(float)value*100f);
-                    break;
-                case "galaxy_iconPosZ":
-                    galaxyPreview.entryGP.put("PosOffsetZ",(float)value*100f);
-                    break;
-                case "galaxy_iconScaleMin":
-                    galaxyPreview.entryGP.put("ScaleMin",value);
-                    break;
-                case "galaxy_iconScaleMax":
-                    galaxyPreview.entryGP.put("ScaleMax",value);
-                    break;
-                case "galaxy_labelPosX":
-                    galaxyPreview.entryGP.put("NamePlatePosX",(float)value*100f);
-                    break;
-                case "galaxy_labelPosY":
-                    galaxyPreview.entryGP.put("NamePlatePosY",(float)value*100f);
-                    break;
-                case "galaxy_labelPosZ":
-                    galaxyPreview.entryGP.put("NamePlatePosZ",(float)value*100f);
-                    break;
-                case "galaxy_overviewIconX":
-                    galaxyPreview.entryGP.put("IconOffsetX",value);
-                    break;
-                case "galaxy_overviewIconY":
-                    galaxyPreview.entryGP.put("IconOffsetY",value);
-                    break;
-                default:
-                    break;
-            }
-            
-            
-        } else if(propname.startsWith("route_")) {//a galaxyPreview is selected
-            WorldmapRoute route =(WorldmapRoute)globalWorldmapRouteList.get(currentWorldmapRouteIndex);
-            
-            switch(propname) {
-                case "route_pointA":
-                    route.entry.put("PointIndexA",value);
-                    updateCurrentNode();
-                    break;
-                case "route_pointB":
-                    route.entry.put("PointIndexB",value);
-                    updateCurrentNode();
-                    break;
-                case "route_color":
-                    route.entry.put("IsColorChange",(value.equals("Pink"))?"o":"x");
-                    break;
-                case "route_subRoute":
-                    route.entry.put("IsSubRoute",(boolean)value?"o":"x");
-                    break;
-                case "route_requiredGalaxy":
-                    route.entry.put("CloseStageName",value);
-                    break;
-                case "route_requiredScenario":
-                    route.entry.put("CloseStageScenarioNo",value);
-                    break;
-                case "route_requiredFlag":
-                    route.entry.put("CloseGameFlag",value);
-                    break;
-                default:
-                    break;
-            }
-            
-            
-        } else if(propname.startsWith("misc_")) {
-            MiscWorldmapObject misc =(MiscWorldmapObject)globalWorldmapPointList.get(currentWorldmapPointIndex);
-            
-            switch(propname) {
-                case "misc_portal_destWorld":
-                    misc.entryMO.put("Param00",value);
-                    break;
-                case "misc_portal_destPoint":
-                    misc.entryMO.put("Param01",value);
-                    break;
-                case "misc_check_stars":
-                    misc.entryMO.put("Param00",value);
-                    updateCurrentNode();
-                    break;
-                case "misc_check_id":
-                    misc.entryMO.put("PartsIndex",value);
-                    break;
-                case "misc_luma_starBits":
-                    misc.entryMO.put("Param00",value);
-                    break;
-                case "misc_luma_destPoint":
-                    misc.entryMO.put("Param01",value);
-                    break;
-                case "misc_pipe_destPoint":
-                    misc.entryMO.put("Param00",value);
-                    break;
-                case "misc_select_destWorld":
-                    misc.entryMO.put("Param00",value);
-                    misc.initRenderer(renderinfo);
-                    updateCurrentNode();
-                    break;
-                case "misc_select_destPoint":
-                    misc.entryMO.put("Param01",value);
-                    break;
-                default:
-                    break;
-            }
-            
-            
-        } else if(propname.equals("entry_destPoint")) {
-            WorldmapTravelObject obj =(WorldmapTravelObject)globalWorldmapTravelObjects.get(currentWorldmapEntryPointIndex);
-            obj.entryMO.put("Param01",value);
-        }
-        glCanvas.repaint();
+
+            @Override
+            public void windowClosed(WindowEvent e) {}
+
+            @Override
+            public void windowIconified(WindowEvent e) {}
+
+            @Override
+            public void windowDeiconified(WindowEvent e) {}
+
+            @Override
+            public void windowActivated(WindowEvent e) {}
+
+            @Override
+            public void windowDeactivated(WindowEvent e) {}
+        });
+        
+        fullScreen.setSize(Toolkit.getDefaultToolkit().getScreenSize());
+        fullScreen.setExtendedState(Frame.MAXIMIZED_BOTH);
+        fullScreen.setUndecorated(true);
+        
+        
+        com.jogamp.opengl.GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(8);
+        caps.setHardwareAccelerated(true);
+        fullCanvas = new GLCanvas(caps);
+        fullCanvas.setSharedContext(RendererCache.refContext);
+        fullCanvas.addGLEventListener(renderer = new GalaxyEditorForm.GalaxyRenderer(true));
+        fullCanvas.addMouseListener(renderer);
+        fullCanvas.addMouseMotionListener(renderer);
+        fullCanvas.addMouseWheelListener(renderer);
+        fullCanvas.addKeyListener(renderer);
+        
+        fullScreen.add(fullCanvas);
+        fullScreen.setVisible(true);
     }
-
+    
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
-
-
         public class AsyncPrerenderer implements Runnable {
             public AsyncPrerenderer(GL2 gl) {
                 this.gl = gl;
@@ -4580,30 +3152,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             obj.oldName = obj.name;
                         }
 
-                        for(WorldmapPoint obj : globalWorldmapPointList)
-                            obj.initRenderer(renderinfo);
-
-                        if(galaxyName.startsWith("WorldMap0")) {
-                            if(worldmapId==8)
-                                worldSelectSkyboxRenderer = RendererFactory.tryCreateBmdRenderer(renderinfo,"VR_GrandGalaxy");
-
-                            pinkPointRenderer = RendererFactory.tryCreateBmdRenderer(renderinfo, "MiniRoutePoint");
-                            if(pinkPointRenderer instanceof BmdRenderer)
-                                ((BmdRenderer)pinkPointRenderer).generateShaders(renderinfo.drawable.getGL().getGL2(), 1, 253, 127, 149);
-                            yellowPointRenderer = RendererFactory.tryCreateBmdRenderer(renderinfo, "MiniRoutePoint");
-                            if(yellowPointRenderer instanceof BmdRenderer)
-                                ((BmdRenderer)yellowPointRenderer).generateShaders(renderinfo.drawable.getGL().getGL2(), 1, 254, 219, 0);
-
-                            pinkRouteRenderer = RendererFactory.tryCreateBmdRenderer(renderinfo, "MiniRouteLine");
-                            if(pinkRouteRenderer instanceof BmdRenderer)
-                                ((BmdRenderer)pinkRouteRenderer).generateShaders(renderinfo.drawable.getGL().getGL2(), 1, 253, 127, 149);
-                            yellowRouteRenderer = RendererFactory.tryCreateBmdRenderer(renderinfo, "MiniRouteLine");
-                            if(yellowRouteRenderer instanceof BmdRenderer)
-                                ((BmdRenderer)yellowRouteRenderer).generateShaders(renderinfo.drawable.getGL().getGL2(), 1, 254, 219, 0);
-
-                            starShipMarioRenderer = RendererFactory.tryCreateBmdRenderer(renderinfo, "MiniPlayerRocket"); //TODO: do this
-                        }
-
                         for(PathObj obj : globalPathList.values())
                             obj.prerender(renderinfo);
                     }
@@ -4616,9 +3164,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     glCanvas.repaint();
                     setStatusText();
                 } catch(GLException ex) {
-                    lbStatusLabel.setText("Failed to render level!" + ex.getMessage());
-                    lbStatusLabel.setForeground(Color.red);
-                    lbStatusLabel.repaint();
+                    lblStatus.setText("Failed to render level!" + ex.getMessage());
+                    lblStatus.setForeground(Color.red);
+                    lblStatus.repaint();
                     System.out.println("rip");
                 }
             }
@@ -4628,19 +3176,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public GalaxyRenderer(boolean isFullscreen) {
             super();
             fullscreen = true;
-            if(worldmapId!=-1)
-                fov = (float) ((45f * Math.PI) / 180f);
-            else
-                fov =(float)((70f * Math.PI) / 180f);
+            fov =(float)((70f * Math.PI) / 180f);
         }
         
         public GalaxyRenderer() {
             super();
-            
-            if(worldmapId != -1)
-                fov = (float) ((45f * Math.PI) / 180f);
-            else
-                fov = (float) ((70f * Math.PI) / 180f);
+            fov = (float) ((70f * Math.PI) / 180f);
         }
         
         @Override
@@ -4675,7 +3216,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             camPosition = new Vector3(0f, 0f, 0f);
             camTarget = new Vector3(0f, 0f, 0f);
             
-            StageArchive firstzone = zoneArcs.get(galaxyName);
+            StageArchive firstzone = zoneArchives.get(galaxyName);
             StartObj start = null;
             for(AbstractObj obj : firstzone.objects.get("common")) {
                 if(obj instanceof StartObj) {
@@ -4695,26 +3236,20 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 camRotation.x =(-start.rotation.y - 90f) *(float)Math.PI / 180f;
             }
             
-            if(worldmapId!=-1) {
-                camRotation.y =(float)Math.PI / 4f;
-                camDistance = 3f;
-            }
-            
-            
             updateCamera();
             
             objDisplayLists = new HashMap<>();
             zoneDisplayLists = new HashMap<>();
             rerenderTasks = new PriorityQueue<>();
             
-            for(int s = 0; s <(galaxyMode ? galaxyArc.scenarioData.size() : 1); s++)
+            for(int s = 0; s <(isGalaxyMode ? galaxyArchive.scenarioData.size() : 1); s++)
                 zoneDisplayLists.put(s, new int[] {0,0,0});
             
             gl.glFrontFace(GL2.GL_CW);
             
             gl.glClearColor(0f, 0f, 0.125f, 1f);
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
-            lbStatusLabel.setText("Prerendering "+(galaxyMode?"galaxy":"zone")+", please wait...");
+            lblStatus.setText("Prerendering "+(isGalaxyMode?"galaxy":"zone")+", please wait...");
             
             SwingUtilities.invokeLater(new GalaxyRenderer.AsyncPrerenderer(gl));
             
@@ -4750,11 +3285,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 case TRANSLUCENT: mode = 2; break;
             }
             
-            if(galaxyMode) {
-                for(String zone : galaxyArc.zoneList)
+            if(isGalaxyMode) {
+                for(String zone : galaxyArchive.zoneList)
                     prerenderZone(gl, zone);
                 
-                for(int s = 0; s < galaxyArc.scenarioData.size(); s++) {
+                for(int s = 0; s < galaxyArchive.scenarioData.size(); s++) {
 
                     int dl = zoneDisplayLists.get(s)[mode];
                     if(dl == 0) {
@@ -4763,7 +3298,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     gl.glNewList(dl, GL2.GL_COMPILE);
                     
-                    Bcsv.Entry scenario = galaxyArc.scenarioData.get(s);
+                    Bcsv.Entry scenario = galaxyArchive.scenarioData.get(s);
                     renderZone(gl, scenario, galaxyName,(int)scenario.get(galaxyName), 0);
 
                     gl.glEndList();
@@ -4795,7 +3330,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 case TRANSLUCENT: mode = 2; break;
             }
             
-            StageArchive zonearc = zoneArcs.get(zone);
+            StageArchive zonearc = zoneArchives.get(zone);
             Set<String> layers = zonearc.objects.keySet();
             for(String layer : layers) {
                 String key = zone + "/" + layer.toLowerCase();
@@ -4824,11 +3359,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     final String c = obj.getClass().getSimpleName();
                     switch(c) {
                         case "AreaObj":
-                            if(btnShowAreas.isSelected())
+                            if(tgbShowAreas.isSelected())
                                 obj.render(renderinfo);
                             break;
                         case "CameraObj":
-                            if(btnShowCameras.isSelected())
+                            if(tgbShowCameras.isSelected())
                                 obj.render(renderinfo);
                             break;
                         default:
@@ -4842,7 +3377,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 // path rendering -- be lazy and hijack the display lists used for the Common objects
                 if(layer.equalsIgnoreCase("common")) {
                     for(PathObj pobj : zonearc.paths) {
-                        if(!btnShowPaths.isSelected() && // isSelected? intuitive naming ftw :/
+                        if(!tgbShowPaths.isSelected() && // isSelected? intuitive naming ftw :/
                                 !displayedPaths.containsKey(pobj.pathID))
                             continue;
                         
@@ -4855,17 +3390,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             }
                         }
                     }
-                }
-                
-                // I have no clue why this works but it does -TheSunCat
-                for(int index = 0; index < globalWorldmapPointList.size(); index++) {
-                    WorldmapPoint p = globalWorldmapPointList.get(index);
-                    gl.glColor4ub(
-                               (byte)(maxUniqueID + index + 1 >>> 16), 
-                               (byte)(maxUniqueID + index + 1 >>> 8), 
-                               (byte)(maxUniqueID + index + 1), 
-                               (byte)0xFF);
-                    p.render(renderinfo, yellowPointRenderer);
                 }
                 
                 gl.glEndList();
@@ -4881,7 +3405,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 case TRANSLUCENT: mode = 2; break;
             }
             
-            if(galaxyMode)
+            if(isGalaxyMode)
                 gl.glCallList(objDisplayLists.get(zone + "/common")[mode]);
             else {
                 if((layermask & 1) != 0)
@@ -4895,7 +3419,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             if(level < 5) {
-                for(StageObj subzone : zoneArcs.get(zone).zones.get("common")) {
+                for(StageObj subzone : zoneArchives.get(zone).zones.get("common")) {
                     gl.glPushMatrix();
                     gl.glTranslatef(subzone.position.x, subzone.position.y, subzone.position.z);
                     gl.glRotatef(subzone.rotation.x, 0f, 0f, 1f);
@@ -4910,7 +3434,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 
                 for(int l = 0; l < 16; l++) {
                     if((layermask &(1 << l)) != 0) {
-                        for(StageObj subzone : zoneArcs.get(zone).zones.get("layer" + alphabet.charAt(l))) {
+                        for(StageObj subzone : zoneArchives.get(zone).zones.get("layer" + alphabet.charAt(l))) {
                             gl.glPushMatrix();
                             gl.glTranslatef(subzone.position.x, subzone.position.y, subzone.position.z);
                             gl.glRotatef(subzone.rotation.x, 0f, 0f, 1f);
@@ -4947,8 +3471,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             if(parentForm == null) {
                 for(AbstractObj obj : globalObjList.values())
-                    obj.closeRenderer(renderinfo);
-                for(WorldmapPoint obj : globalWorldmapPointList)
                     obj.closeRenderer(renderinfo);
             }
             
@@ -5012,11 +3534,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                 }
             } catch(GLException ex) {
-                lbStatusLabel.setText("Failed to render level!" + ex.getMessage());
-                lbStatusLabel.setOpaque(true);
-                lbStatusLabel.setVisible(false);
-                lbStatusLabel.setForeground(Color.red);
-                lbStatusLabel.setVisible(true);
+                lblStatus.setText("Failed to render level!" + ex.getMessage());
+                lblStatus.setOpaque(true);
+                lblStatus.setVisible(false);
+                lblStatus.setForeground(Color.red);
+                lblStatus.setVisible(true);
             }
         }
         
@@ -5118,165 +3640,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             gl.glDisable(GL2.GL_TEXTURE_2D);
             gl.glDisable(GL2.GL_BLEND);
             gl.glDisable(GL2.GL_ALPHA_TEST);
-            
-            if(galaxyName.startsWith("WorldMap0")&&worldmapId==8) {
-                renderinfo.renderMode = RenderMode.OPAQUE;
-                worldSelectSkyboxRenderer.render(renderinfo);
-                renderinfo.renderMode = RenderMode.TRANSLUCENT;
-                worldSelectSkyboxRenderer.render(renderinfo);
-            }
-            
-            for(WorldmapPoint point : globalWorldmapPointList) {
-                if(point.entry.get("Valid").equals("x"))
-                    continue;
-                if(pinkPointRenderer == null || yellowPointRenderer == null) {
-                    pinkPointRenderer = RendererFactory.tryCreateBmdRenderer(renderinfo, "MiniRoutePoint");
-                    
-                    if (pinkPointRenderer instanceof BmdRenderer) {
-                        ((BmdRenderer)pinkPointRenderer).generateShaders(renderinfo.drawable.getGL().getGL2(), 1, 253, 127, 149);
-                    }
-                    
-                    yellowPointRenderer = RendererFactory.tryCreateBmdRenderer(renderinfo, "MiniRoutePoint");
-                    
-                    if (pinkPointRenderer instanceof BmdRenderer) {
-                        ((BmdRenderer)yellowPointRenderer).generateShaders(renderinfo.drawable.getGL().getGL2(), 1, 254, 219, 0);
-                    }
-                    
-                }
-                point.initRenderer(renderinfo);
-                renderinfo.renderMode = RenderMode.OPAQUE;
-                point.render(renderinfo,point.entry.containsKey("ColorChange") &&
-                       ((String)point.entry.get("ColorChange")).equals("o") ? pinkPointRenderer : yellowPointRenderer);
-                renderinfo.renderMode = RenderMode.TRANSLUCENT;
-                point.render(renderinfo,point.entry.containsKey("ColorChange")&&
-                       ((String)point.entry.get("ColorChange")).equals("o") ? pinkPointRenderer : yellowPointRenderer);
-            }
-            
-            renderinfo.renderMode = RenderMode.OPAQUE;
-            for(WorldmapRoute route : globalWorldmapRouteList) {
-                WorldmapPoint firstPoint;
-                try {
-                    firstPoint = globalWorldmapPointList.get((int)route.entry.get("PointIndexA"));
-                } catch(Exception ex) {
-                    firstPoint = defaultPoint;
-                }
-                WorldmapPoint secondPoint;
-                try {
-                    secondPoint = globalWorldmapPointList.get((int)route.entry.get("PointIndexB"));
-                } catch(Exception ex) {
-                    secondPoint = defaultPoint;
-                }
-                
-                if(pinkRouteRenderer == null || yellowRouteRenderer == null) {
-                    pinkRouteRenderer = RendererFactory.tryCreateBmdRenderer(renderinfo, "MiniRouteLine");
-                    if(pinkRouteRenderer instanceof BmdRenderer)
-                        ((BmdRenderer)pinkRouteRenderer).generateShaders(renderinfo.drawable.getGL().getGL2(), 1, 253,127,149);
-                    yellowRouteRenderer = RendererFactory.tryCreateBmdRenderer(renderinfo, "MiniRouteLine");
-                    if(yellowRouteRenderer instanceof BmdRenderer)
-                        ((BmdRenderer)yellowRouteRenderer).generateShaders(renderinfo.drawable.getGL().getGL2(), 1, 254,219,0);
-                    System.err.println("un-nulling...?");
-                }
-                
-                route.render(
-                       (float)firstPoint.entry.get(-726582764),(float)firstPoint.entry.get(-726582763),(float)firstPoint.entry.get(-726582762),
-                       (float)secondPoint.entry.get(-726582764),(float)secondPoint.entry.get(-726582763),(float)secondPoint.entry.get(-726582762),
-                        renderinfo,((String)route.entry.get(-98523831)).equals("o") ? pinkRouteRenderer : yellowRouteRenderer);
-            }
-            if(currentWorldmapPointIndex!=-1) {
-                WorldmapPoint current = globalWorldmapPointList.get(currentWorldmapPointIndex);
-                
-                RenderMode oldmode = doHighLightSettings(gl);
-                
-                current.render(renderinfo,yellowPointRenderer);
-                
-                if(current instanceof GalaxyPreview) {
-                    GalaxyPreview gp =(GalaxyPreview) current;
-                    gl.glColor4f(1f, 1f, 1f, 1f);
-                    gl.glPushMatrix();
-                    gl.glTranslatef(
-                           (float)gp.entry.get(-726582764)+(float)gp.entryGP.get(1370777937),
-                           (float)gp.entry.get(-726582763)+(float)gp.entryGP.get(1370777938),
-                           (float)gp.entry.get(-726582762)+(float)gp.entryGP.get(1370777939));
-                    gl.glRotatef(-30f, 1f, 0f, 0f);
-                    gl.glTranslatef(
-                           (float)gp.entryGP.get(1541074511),
-                           (float)gp.entryGP.get(1541074512),
-                           (float)gp.entryGP.get(1541074513));
-                    
-                    gl.glBegin(GL2.GL_TRIANGLES);
-                    gl.glVertex3f(-300f, 1000f, 0f);
-                    gl.glVertex3f(300f, 1000f, 0f);
-                    gl.glVertex3f(0f, 0f, 0f);
-                    
-                    gl.glVertex3f(-3000f, 1600f, 0f);
-                    gl.glVertex3f(3000f, 1600f, 0f);
-                    gl.glVertex3f(-3000f, 1000f, 0f);
-                    
-                    gl.glVertex3f(3000f, 1600f, 0f);
-                    gl.glVertex3f(3000f, 1000f, 0f);
-                    gl.glVertex3f(-3000f, 1000f, 0f);
-                    gl.glEnd();
-                    gl.glPopMatrix();
-                } else if(current instanceof MiscWorldmapObject) {
-                    MiscWorldmapObject misc =(MiscWorldmapObject) current;
-                    if(misc.entryMO.get(-391766075).equals("EarthenPipe")) {
-                        WorldmapPoint dest = globalWorldmapPointList.get((int)misc.entryMO.get(871155501));
-                        gl.glColor4f(0f, 1f, 0.25f, 0.3f);
-                        dest.render(renderinfo, yellowPointRenderer);
-                        
-                    } else if(misc.entryMO.get(-391766075).equals("TicoRouteCreator")) {
-                        WorldmapPoint dest = globalWorldmapPointList.get((int)misc.entryMO.get(871155502));
-                        gl.glColor4f(0f, 0.8f, 1f, 0.3f);
-                        dest.render(renderinfo, yellowPointRenderer);
-                    }
-                }
-                
-
-                gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);
-                renderinfo.renderMode = oldmode;
-                
-            } else if(currentWorldmapRouteIndex!=-1) {
-                RenderMode oldmode = doHighLightSettings(gl);
-                WorldmapRoute current = globalWorldmapRouteList.get(currentWorldmapRouteIndex);
-                WorldmapPoint firstPoint;
-                try {
-                    firstPoint = globalWorldmapPointList.get((int)current.entry.get("PointIndexA"));
-                } catch(Exception ex) {
-                    firstPoint = defaultPoint;
-                }
-                WorldmapPoint secondPoint;
-                try {
-                    secondPoint = globalWorldmapPointList.get((int)current.entry.get("PointIndexB"));
-                } catch(Exception ex) {
-                    secondPoint = defaultPoint;
-                }
-                
-                current.render(
-                       (float)firstPoint.entry.get(-726582764),(float)firstPoint.entry.get(-726582763),(float)firstPoint.entry.get(-726582762),
-                       (float)secondPoint.entry.get(-726582764),(float)secondPoint.entry.get(-726582763),(float)secondPoint.entry.get(-726582762),
-                        renderinfo,yellowRouteRenderer);
-                
-                gl.glColor4f(0f, 1f, 0.25f, 0.3f);
-                firstPoint.render(renderinfo, yellowPointRenderer);
-                gl.glColor4f(1f, 0f, 0f, 0.3f);
-                secondPoint.render(renderinfo, yellowPointRenderer);
-                
-                gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);
-                renderinfo.renderMode = oldmode;
-            } else if(currentWorldmapEntryPointIndex != -1) {
-                RenderMode oldmode = doHighLightSettings(gl);
-                
-                WorldmapTravelObject current = globalWorldmapTravelObjects.get(currentWorldmapEntryPointIndex);
-                WorldmapPoint entryPoint = globalWorldmapPointList.get((int)current.entryMO.get("Param01"));
-                
-                gl.glColor4f(0f, 1f, 0.25f, 0.3f);
-                entryPoint.render(
-                        renderinfo,yellowPointRenderer);
-
-                gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);
-                renderinfo.renderMode = oldmode;
-            }
-            
             
             if(tgbShowAxis.isSelected()) {
                 gl.glBegin(GL2.GL_LINES);
@@ -5603,8 +3966,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                                 for(AbstractObj unselobj : oldsel.values()) {
                                     if(treeNodeList.containsKey(unselobj.uniqueID)) {
                                         TreeNode tn = treeNodeList.get(unselobj.uniqueID);
-                                        TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
-                                        tvObjectList.removeSelectionPath(tp);
+                                        TreePath tp = new TreePath(((DefaultTreeModel)treeObjects.getModel()).getPathToRoot(tn));
+                                        treeObjects.removeSelectionPath(tp);
                                     }
                                     else
                                         addRerenderTask("zone:"+unselobj.stage.stageName);
@@ -5620,35 +3983,35 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             }
                         }
                         int z;
-                        for(z = 0; z < lbZoneList.getModel().getSize(); z++) {
-                            if(!lbZoneList.getModel().getElementAt(z).toString().contains(theobject.stage.stageName))
+                        for(z = 0; z < listZones.getModel().getSize(); z++) {
+                            if(!listZones.getModel().getElementAt(z).toString().contains(theobject.stage.stageName))
                                 continue;
-                            lbZoneList.setSelectedIndex(z);
+                            listZones.setSelectedIndex(z);
                             break;
                         }
                         addRerenderTask("zone:"+theobject.stage.stageName);
 
                         if(wasselected) {
                             if(selectedObjs.size() == 1) {
-                                if(galaxyMode) {
+                                if(isGalaxyMode) {
                                     String zone = selectedObjs.values().iterator().next().stage.stageName;
-                                    lbZoneList.setSelectedValue(zone, true);
+                                    listZones.setSelectedValue(zone, true);
                                 }
 
                                 selectionArg = arg;
                             }
-                            tpLeftPanel.setSelectedIndex(1);
+                            tabData.setSelectedIndex(1);
 
                             // if the object is in the TreeView, all we have to do is tell the TreeView to select it
                             // and the rest will be handled there
                             if(treeNodeList.containsKey(objid)) {
                                 TreeNode tn = treeNodeList.get(objid);
-                                TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
+                                TreePath tp = new TreePath(((DefaultTreeModel)treeObjects.getModel()).getPathToRoot(tn));
                                 if(ctrlpressed || shiftpressed)
-                                    tvObjectList.addSelectionPath(tp);
+                                    treeObjects.addSelectionPath(tp);
                                 else
-                                    tvObjectList.setSelectionPath(tp);
-                                tvObjectList.scrollPathToVisible(tp);
+                                    treeObjects.setSelectionPath(tp);
+                                treeObjects.scrollPathToVisible(tp);
                             }
                             else {
                                 addRerenderTask("zone:"+theobject.stage.stageName);
@@ -5657,8 +4020,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         } else {
                             if(treeNodeList.containsKey(objid)) {
                                 TreeNode tn = treeNodeList.get(objid);
-                                TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
-                                tvObjectList.removeSelectionPath(tp);
+                                TreePath tp = new TreePath(((DefaultTreeModel)treeObjects.getModel()).getPathToRoot(tn));
+                                treeObjects.removeSelectionPath(tp);
                             } else {
                                 addRerenderTask("zone:"+theobject.stage.stageName);
                                 selectionChanged();
@@ -5757,7 +4120,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         if(obj.isHidden) {
                             obj.isHidden = false;
                             rerenderTasks.add("zone:" + obj.stage.stageName);
-                            lbStatusLabel.setText("Unhid all objects.");
+                            lblStatus.setText("Unhid all objects.");
                         }
                     }
                     glCanvas.repaint();
@@ -5768,7 +4131,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     for(AbstractObj curObj : hidingObjs) {
                         curObj.isHidden = !curObj.isHidden;
                         rerenderTasks.add("zone:" + curObj.stage.stageName);
-                        lbStatusLabel.setText("Hid/unhid selection.");
+                        lblStatus.setText("Hid/unhid selection.");
                     }
                     glCanvas.repaint();
                 }
@@ -5850,9 +4213,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     copyObj =(LinkedHashMap<Integer, AbstractObj>) selectedObjs.clone();
                     
                     if(selectedObjs.size() == 1)
-                        lbStatusLabel.setText("Copied " + new ArrayList<>(copyObj.values()).get(0).name + ".");
+                        lblStatus.setText("Copied " + new ArrayList<>(copyObj.values()).get(0).name + ".");
                     else
-                        lbStatusLabel.setText("Copied current selection.");
+                        lblStatus.setText("Copied current selection.");
                     
                     return;
                 }
@@ -5863,9 +4226,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             pasteObject(currentObj);
 
                         if(copyObj.size() == 1)
-                            lbStatusLabel.setText("Pasted " + new ArrayList<>(copyObj.values()).get(0).name + ".");
+                            lblStatus.setText("Pasted " + new ArrayList<>(copyObj.values()).get(0).name + ".");
                         else
-                            lbStatusLabel.setText("Pasted objects.");
+                            lblStatus.setText("Pasted objects.");
 
                         addingObject = "";
                         glCanvas.repaint();
@@ -5968,170 +4331,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public final float zFar = 1000f;
     }
     
-    
-	private float g_move_x=0;
-	private float g_move_y=0;
-	private float g_move_z=0;
-	private float g_move_step_x=0;
-	private float g_move_step_y=0;
-	private float g_move_step_z=0;
-	private float g_move_step_a=0;
-	
-	private float g_center_x=0;
-	private float g_center_y=0;
-	private float g_center_z=0;
-	private float g_angle_x=0;
-	private float g_angle_y=0;
-	private float g_angle_z=0;
-	
-	private float g_offset_x=0;
-	private float g_offset_y=0;
-	private float g_offset_z=0;
-    
-    
-    private final float scaledown = 10000f;
-    public static boolean closing = false;
-    /**
-     * {@code true} if editing a galaxy, {@code false} when editing a zone.
-     */
-    private boolean galaxyMode;
-    public String galaxyName;
-    public HashMap<String, StageArchive> zoneArcs;
-    private HashMap<String, GalaxyEditorForm> zoneEditors;
-    private GalaxyEditorForm parentForm;
-    private GalaxyArchive galaxyArc;
-    private GalaxyRenderer renderer;
-    
-    private int worldmapId = -1;
-    
-    private ArrayList<WorldmapPoint> globalWorldmapPointList;
-    private ArrayList<WorldmapRoute> globalWorldmapRouteList;
-    private ArrayList<WorldmapTravelObject> globalWorldmapTravelObjects;
-    
-    private WorldmapPoint defaultPoint;
-    
-    ArrayList<RarcFile> allWorldArchives = new ArrayList<>();
-    RarcFile worldmapArchive;
-    ArrayList<Bcsv> worldWideMiscObjects = new ArrayList<>();
-    private Bcsv bcsvWorldMapPoints, bcsvWorldMapGalaxies, bcsvWorldMapMiscObjects, bcsvWorldMapLinks;
-    //private ArrayList<Bcsv.Entry> pointingObjectsFromOtherWorlds; //objects like portals in other worlds which point to a point in this world
-    private GLRenderer worldSelectSkyboxRenderer;
-    private GLRenderer yellowPointRenderer, pinkPointRenderer;
-    private GLRenderer yellowRouteRenderer, pinkRouteRenderer;
-    private GLRenderer starShipMarioRenderer;
-    
-    private int currentWorldmapPointIndex = -1, currentWorldmapRouteIndex = -1, currentWorldmapEntryPointIndex = -1;
-    
-    private int curScenarioID;
-    private Bcsv.Entry curScenario;
-    private String curZone;
-    public StageArchive curZoneArc;
-    
-    private int maxUniqueID;
-    private HashMap<Integer, AbstractObj> globalObjList;
-    private HashMap<Integer, PathObj> globalPathList;
-    private HashMap<Integer, PathPointObj> globalPathPointList;
-    private LinkedHashMap<Integer, AbstractObj> selectedObjs;
-    private LinkedHashMap<Integer, PathPointObj> displayedPaths;
-    private HashMap<String, int[]> objDisplayLists;
-    private HashMap<Integer, int[]> zoneDisplayLists;
-    
-    /**
-     * Contains a list of all currently loaded subzones (all zones except the main Zone)
-     */
-    private HashMap<String, StageObj> subZoneData;
-    private HashMap<Integer, TreeNode> treeNodeList;
-    
-    private GLCanvas glCanvas, fullCanvas;
-    private JFrame fullScreen;
-    private boolean inited;
-    private boolean unsavedChanges;
-        
-    private GLRenderer.RenderInfo renderinfo;
-    
-    private Queue<String> rerenderTasks = new LinkedList<>();
-    private int zoneModeLayerBitmask;
-
-    private Matrix4 modelViewMatrix;
-    private float camDistance;
-    /**
-     * Holds the current camera rotation, in radians.<br>
-     * X: rotation around up-down axis<br>
-     * Y: rotation around TODO, peck
-     */
-    private Vector2 camRotation;
-    
-    /**
-     * Holds the position or target of the camera,<br>
-     * in Whitehole scale (mult by {@code scaledown} to<br>
-     * get ingame units.
-     */
-    private Vector3 camPosition, camTarget;
-    
-    /**
-     * True if the camera is upside down.
-     */
-    private boolean upsideDown;
-    
-    /**
-     * Current scale of pixels to window size.<br>
-     * Used for dragging and misc.
-     */
-    private float pixelFactorX, pixelFactorY;
-
-    private int mouseButton;
-    private Point mousePos;
-    private boolean isDragging;
-    private boolean pickingCapture;
-    private IntBuffer pickingFrameBuffer;
-    private FloatBuffer pickingDepthBuffer;
-    private float pickingDepth;
-
-    private int underCursor;
-    private float depthUnderCursor;
-    private int selectionArg;
-    private String addingObject, addingObjectOnLayer;
-    private boolean deletingObjects;
-    
-    private CheckBoxList lbLayersList;
-    private JPopupMenu pmnAddObjects, pmnAddWorldmapObjs, pmnWorldmapQuickActions;
-    private PropertyGrid pnlObjectSettings, pnlWorldmapObjectSettings;
-    
-    
-    private ArrayList<String> worldmapColors = new ArrayList<String>() {{add("Yellow");add("Pink");}}, worldmapObjTypes = new ArrayList<>();
-    
-    private ArrayList<String> worldmapGalaxyTypes = new ArrayList<String>() {{
-        add("Galaxy: Normal Galaxy");
-        add("MiniGalaxy: Hungry Luma Galaxy");
-        add("HideGalaxy: Hidden Galaxy");
-        add("BossGalaxyLv1: Bowser Jr. Galaxy");
-        add("BossGalaxyLv2: Bowser Galaxy");
-        add("BossGalaxyLv3: Final Bowser Galaxy");
-    }};
-    
-    private DefaultMutableTreeNode worldmapPointsNode = new DefaultMutableTreeNode("Points");
-    private DefaultMutableTreeNode worldmapConnectionsNode = new DefaultMutableTreeNode("Connections");
-    private DefaultMutableTreeNode worldmapEntryPointsNode = new DefaultMutableTreeNode("EntryPoints");
-    private LinkedHashMap<Integer, WorldmapPoint> worldMapPickingList = new LinkedHashMap<>();
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddScenario;
-    private javax.swing.JButton btnAddWorldmapRoute;
     private javax.swing.JButton btnAddZone;
     private javax.swing.JButton btnDeleteScenario;
-    private javax.swing.JButton btnDeleteWorldmapObj;
     private javax.swing.JButton btnDeleteZone;
-    private javax.swing.JButton btnDeselect;
     private javax.swing.JButton btnEditScenario;
     private javax.swing.JButton btnEditZone;
-    private javax.swing.JButton btnSaveWorldmap;
-    private javax.swing.JToggleButton btnShowAreas;
-    private javax.swing.JToggleButton btnShowCameras;
-    private javax.swing.JToggleButton btnShowGravity;
-    private javax.swing.JToggleButton btnShowPaths;
-    private javax.swing.JMenuItem itemClose;
-    private javax.swing.JMenuItem itemControls;
-    private javax.swing.JMenuItem itemSave;
     private javax.swing.JMenuItem itmPositionCopy;
     private javax.swing.JMenuItem itmPositionPaste;
     private javax.swing.JMenuItem itmRotationCopy;
@@ -6139,77 +4345,58 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private javax.swing.JMenuItem itmScaleCopy;
     private javax.swing.JMenuItem itmScalePaste;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator10;
-    private javax.swing.JToolBar.Separator jSeparator11;
-    private javax.swing.JToolBar.Separator jSeparator12;
-    private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
-    private javax.swing.JToolBar.Separator jSeparator6;
-    private javax.swing.JToolBar.Separator jSeparator7;
-    private javax.swing.JToolBar.Separator jSeparator8;
-    private javax.swing.JToolBar.Separator jSeparator9;
-    private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JSplitPane jSplitPane4;
-    private javax.swing.JSplitPane jSplitPane5;
-    private javax.swing.JToolBar jToolBar2;
-    private javax.swing.JToolBar jToolBar3;
-    private javax.swing.JToolBar jToolBar4;
-    private javax.swing.JToolBar jToolBar6;
-    private javax.swing.JList lbScenarioList;
-    private javax.swing.JLabel lbStatusLabel;
-    private javax.swing.JList lbZoneList;
+    private javax.swing.JLabel lblScenarios;
+    private javax.swing.JLabel lblStatus;
+    private javax.swing.JLabel lblZones;
+    private javax.swing.JList listScenarios;
+    private javax.swing.JList listZones;
+    private javax.swing.JMenuBar menu;
+    private javax.swing.JMenuItem mniClose;
+    private javax.swing.JMenuItem mniSave;
+    private javax.swing.JMenu mnuCopy;
     private javax.swing.JMenu mnuEdit;
-    private javax.swing.JMenu mnuHelp;
-    private javax.swing.JMenu mnuSave;
+    private javax.swing.JMenu mnuFile;
+    private javax.swing.JMenu mnuPaste;
     private javax.swing.JPanel pnlGLPanel;
-    private javax.swing.JPanel pnlLayersPanel;
-    private javax.swing.JSplitPane pnlScenarioZonePanel;
-    private javax.swing.JScrollPane scpLayersList;
-    private javax.swing.JScrollPane scpObjSettingsContainer;
-    private javax.swing.JScrollPane scpWorldmapObjSettingsContainer;
-    private javax.swing.JMenu subCopy;
-    private javax.swing.JMenu subPaste;
-    private javax.swing.JToolBar tbObjToolbar;
-    private javax.swing.JToolBar tbObjToolbar1;
+    private javax.swing.JPanel pnlLayers;
+    private javax.swing.JPanel pnlObjects;
+    private javax.swing.JSplitPane pnlScenarioZone;
+    private javax.swing.JPanel pnlScenarios;
+    private javax.swing.JPanel pnlZones;
+    private javax.swing.JScrollPane scrLayers;
+    private javax.swing.JScrollPane scrObjSettings;
+    private javax.swing.JScrollPane scrObjectTree;
+    private javax.swing.JSplitPane scrObjects;
+    private javax.swing.JScrollPane scrZones;
+    private javax.swing.JToolBar.Separator sep1;
+    private javax.swing.JToolBar.Separator sep2;
+    private javax.swing.JToolBar.Separator sep3;
+    private javax.swing.JToolBar.Separator sep4;
+    private javax.swing.JToolBar.Separator sep5;
+    private javax.swing.JSplitPane split;
+    private javax.swing.JTabbedPane tabData;
     private javax.swing.JToggleButton tgbAddObject;
-    private javax.swing.JToggleButton tgbAddWorldmapObj;
     private javax.swing.JToggleButton tgbCopyObj;
     private javax.swing.JToggleButton tgbDeleteObject;
+    private javax.swing.JButton tgbDeselect;
     private javax.swing.JToggleButton tgbPasteObj;
-    private javax.swing.JToggleButton tgbQuickAction;
+    private javax.swing.JToggleButton tgbShowAreas;
     private javax.swing.JToggleButton tgbShowAxis;
-    private javax.swing.JTabbedPane tpLeftPanel;
-    private javax.swing.JTree tvObjectList;
-    private javax.swing.JTree tvWorldmapObjectList;
+    private javax.swing.JToggleButton tgbShowCameras;
+    private javax.swing.JToggleButton tgbShowGravity;
+    private javax.swing.JToggleButton tgbShowPaths;
+    private javax.swing.JToolBar tlbLayers;
+    private javax.swing.JToolBar tlbObjects;
+    private javax.swing.JToolBar tlbOptions;
+    private javax.swing.JToolBar tlbScenarios;
+    private javax.swing.JToolBar tlbZones;
+    private javax.swing.JTree treeObjects;
     // End of variables declaration//GEN-END:variables
-    public LinkedHashMap<Integer, AbstractObj> copyObj;
-    public AbstractObj currentObj, newobj; 
-    public ArrayList<Bcsv> camBcsvs = new ArrayList<>();
-    public Point curMouseRelative, startingMousePos, objCenter, firstMoveDir = new Point(1, 1);
-    public int counter;
-    public static long lastMove;
-    public Vector3 startingObjScale = new Vector3(1f, 1f, 1f), startingObjPos = new Vector3(1f, 1f, 1f);
-    private float lastCamHeight = 0, lastCamDist = 0;
-    
-    public boolean keyScaling, keyTranslating, keyRotating, camSelected = false, fullscreen = false;
-    public String keyAxis = "all";
-    
-    public ArrayList<UndoEntry> undoList = new ArrayList<>();
-    private int undoIndex = 0;
-    private float lastDist;
+
     
     // This object is used to save previous obj info for undo
     public class UndoEntry {
@@ -6260,190 +4447,5 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public int id;
         
         public int parentPathId;
-    }
-    
-    // GUI stuff under here
-    private void initGUI() {
-        setTitle(galaxyName + " - " + Whitehole.NAME);
-        
-        tbObjToolbar.validate();
-        
-        Font bigfont = lbStatusLabel.getFont().deriveFont(Font.BOLD, 12f);
-        lbStatusLabel.setFont(bigfont);
-        
-        pmnAddObjects = new JPopupMenu();
-        
-        String[] smg1items = new String[] { "Normal", "Spawn", "Gravity", "Area", "Camera", "Sound", "Child",
-                                            "MapPart", "Cutscene", "Position", "Debug", "Path", "Path point" };
-        String[] smg2items = new String[] { "Normal", "Spawn", "Gravity", "Area", "Camera", "MapPart", "Cutscene",
-                                            "Position", "Changer", "Debug", "Path", "Path point" };
-        String[] items = StageArchive.game == 2 ? smg2items : smg1items;
-
-        for(String item : items) {
-            JMenuItem menuitem = new JMenuItem(item);
-            menuitem.addActionListener((ActionEvent e) -> {
-                JMenuItem foo =(JMenuItem) e.getSource();
-                switch(foo.getText()) {
-                    case "Normal": setObjectBeingAdded("general"); break;
-                    case "Spawn": setObjectBeingAdded("start"); break;
-                    case "Gravity": setObjectBeingAdded("gravity"); break;
-                    case "Area": setObjectBeingAdded("area"); break;
-                    case "Camera": setObjectBeingAdded("camera"); break;
-                    case "Sound": setObjectBeingAdded("sound"); break;
-                    case "Child": setObjectBeingAdded("child"); break;
-                    case "MapPart": setObjectBeingAdded("mappart"); break;
-                    case "Cutscene": setObjectBeingAdded("cutscene"); break;
-                    case "Position": setObjectBeingAdded("position"); break;
-                    case "Changer": setObjectBeingAdded("change"); break;
-                    case "Debug": setObjectBeingAdded("debug"); break;
-                    case "Path": setObjectBeingAdded("path"); break;
-                    case "Path point": setObjectBeingAdded("pathpoint"); break;
-                }
-            });
-            pmnAddObjects.add(menuitem);
-        }
-        
-        pmnAddObjects.addPopupMenuListener(new PopupMenuListener() {
-            @Override
-            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
-
-            @Override
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                if(!addingObject.isEmpty())
-                    setStatusText();
-                else
-                    tgbAddObject.setSelected(false);
-            }
-
-            @Override
-            public void popupMenuCanceled(PopupMenuEvent e) {
-                if(!addingObject.isEmpty())
-                    setStatusText();
-                else
-                    tgbAddObject.setSelected(false);
-            }
-        });
-        
-        pmnAddWorldmapObjs = new JPopupMenu();
-        
-        ArrayList<String> items2 = worldmapObjTypes;
-        for(String item : items2) {
-            JMenuItem menuitem = new JMenuItem(item);
-            menuitem.addActionListener((ActionEvent e) -> {
-                JMenuItem foo =(JMenuItem) e.getSource();
-                addWorldmapPoint(foo.getText());
-            });
-            pmnAddWorldmapObjs.add(menuitem);
-        }
-
-        pmnAddWorldmapObjs.addPopupMenuListener(new PopupMenuListener() {
-            @Override
-            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
-
-            @Override
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                tgbAddWorldmapObj.setSelected(false);
-            }
-
-            @Override
-            public void popupMenuCanceled(PopupMenuEvent e) {
-                tgbAddWorldmapObj.setSelected(false);
-            }
-        });
-        
-        pmnWorldmapQuickActions = new JPopupMenu();
-        
-        populateQuickActions();
-
-        pmnWorldmapQuickActions.addPopupMenuListener(new PopupMenuListener() {
-            @Override
-            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
-
-            @Override
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                tgbQuickAction.setSelected(false);
-            }
-
-            @Override
-            public void popupMenuCanceled(PopupMenuEvent e) {
-                tgbQuickAction.setSelected(false);
-            }
-        });
-        
-        if(Settings.getUseAntiAliasing()) {
-            GLProfile prof = GLProfile.getMaxFixedFunc(true);
-            GLCapabilities caps = new GLCapabilities(prof);
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(8);
-            caps.setHardwareAccelerated(true);
-            
-            glCanvas = new GLCanvas(caps);
-            if(RendererCache.refContext != null)
-                glCanvas.createContext(RendererCache.refContext);
-            else
-                RendererCache.refContext = glCanvas.getContext();
-        } else {
-            glCanvas = new GLCanvas(null);
-            glCanvas.createContext(RendererCache.refContext);
-        }
-        
-        glCanvas.addGLEventListener(renderer = new GalaxyEditorForm.GalaxyRenderer());
-        glCanvas.addMouseListener(renderer);
-        glCanvas.addMouseMotionListener(renderer);
-        glCanvas.addMouseWheelListener(renderer);
-        glCanvas.addKeyListener(renderer);
-        
-        pnlGLPanel.add(glCanvas, BorderLayout.CENTER);
-        pnlGLPanel.validate();
-        
-        pnlObjectSettings = new PropertyGrid(this);
-        scpObjSettingsContainer.setViewportView(pnlObjectSettings);
-        scpObjSettingsContainer.getVerticalScrollBar().setUnitIncrement(16);
-        pnlObjectSettings.setEventListener((String propname, Object value) -> {
-            propertyPanelPropertyChanged(propname, value);
-        });
-        
-        pnlWorldmapObjectSettings = new PropertyGrid(this);
-        scpWorldmapObjSettingsContainer.setViewportView(pnlWorldmapObjectSettings);
-        scpWorldmapObjSettingsContainer.getVerticalScrollBar().setUnitIncrement(16);
-        pnlWorldmapObjectSettings.setEventListener((String propname, Object value) -> {
-            worldmapObjPropertyPanelPropertyChanged(propname, value);
-        });
-        
-        if(worldmapId != -1)
-            tgbShowAxis.doClick();
-        
-        glCanvas.requestFocusInWindow();
-    }
-
-    private void populateQuickActions() {
-        pmnWorldmapQuickActions.removeAll();
-        
-        ArrayList<String> items = new ArrayList<>();
-        
-        items.add("Load default template");
-        
-        if(currentWorldmapRouteIndex != -1)
-            items.add("Insert Point");
-        else if(currentWorldmapPointIndex != -1) {
-            items.add("Add connected Point");
-            WorldmapPoint point = globalWorldmapPointList.get(currentWorldmapPointIndex);
-            if(point instanceof MiscWorldmapObject) {
-                MiscWorldmapObject mo =(MiscWorldmapObject)point;
-                if(mo.entryMO.get("PartsTypeName").equals("EarthenPipe"))
-                    items.add("Add connected Pipe");
-                else if(mo.entryMO.get("PartsTypeName").equals("TicoRouteCreator"))
-                    items.add("Add connected SecretGalaxy");
-            }
-        }
-        
-        for(String item : items) {
-            JMenuItem menuitem = new JMenuItem(item);
-            menuitem.addActionListener((ActionEvent e) -> {
-                JMenuItem foo =(JMenuItem) e.getSource();
-                quickWorldmapAction(foo);
-            });
-            pmnWorldmapQuickActions.add(menuitem);
-        }
     }
 }

@@ -172,23 +172,6 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
     // -------------------------------------------------------------------------------------------------------------------------
     // Dialog accessors
     
-    // Will be removed when the main editor gets changed...
-    @Deprecated
-    private static String objectTypeSubstitutor(String type) {
-        switch(type.toLowerCase()) {
-            case "general": return "objinfo";
-            case "gravity": return "planetobjinfo";
-            case "area": return "areaobjinfo";
-            case "camera": return "cameracubeinfo";
-            case "sound": return "soundinfo";
-            case "child": return "childobjinfo";
-            case "mappart": return "mappartsinfo";
-            case "cutscene": return "demoobjinfo";
-        }
-        
-        return "";
-    }
-    
     private void populate() {
         for (ObjectCategoryNode node : categoryNodes) {
             node.populate(Whitehole.getCurrentGameType(), tempObjectType);
@@ -206,7 +189,7 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         validResult = false;
         resultName = null;
         resultLayer = null;
-        tempObjectType = objectTypeSubstitutor(objectType);
+        tempObjectType = objectType;
         txtSearchObj.setText("");
         
         populate();

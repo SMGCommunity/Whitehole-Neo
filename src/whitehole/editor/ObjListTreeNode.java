@@ -15,7 +15,6 @@
 
 package whitehole.editor;
 
-import whitehole.util.AdaptedEnumeration;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import javax.swing.tree.MutableTreeNode;
@@ -26,7 +25,8 @@ import whitehole.smg.object.PathPointObj;
 import whitehole.util.AdaptedEnumeration;
 
 public class ObjListTreeNode extends ObjTreeNode {
-    public ObjListTreeNode() {
+    public ObjListTreeNode(String name) {
+        userObject = name;
         children = new LinkedHashMap();
         object = null;
     }
@@ -110,19 +110,19 @@ public class ObjListTreeNode extends ObjTreeNode {
         return new AdaptedEnumeration(children.values().iterator());
     }
     
-    public TreeNode addObject(AbstractObj obj) {
+    public ObjTreeNode addObject(AbstractObj obj) {
         ObjTreeNode tn = new ObjTreeNode(obj);
         children.put(obj.uniqueID, tn);
         tn.setParent(this);
         return tn;
     }
     
-    public TreeNode addObject(PathObj obj) {
+    public ObjTreeNode addObject(PathObj obj) {
         ObjListTreeNode tn = new ObjListTreeNode(obj);
         children.put(obj.uniqueID, tn);
         tn.setParent(this);
         return tn;
     }
     
-    public LinkedHashMap<Integer, TreeNode> children;
+    public LinkedHashMap<Integer, ObjTreeNode> children;
 }
