@@ -25,6 +25,7 @@ import whitehole.util.Vector3;
 import com.jogamp.opengl.*;
 import java.util.ArrayList;
 import java.util.List;
+import whitehole.Whitehole;
 import whitehole.db.ObjectDB;
 import whitehole.smg.StageHelper;
 
@@ -128,7 +129,8 @@ public abstract class AbstractObj {
             case "Obj_arg5":
             case "Obj_arg6":
             case "Obj_arg7":
-                panel.addField(field, objdbInfo.getParameterName(field), "int", null, data.getInt(field, -1), "Default");
+                String desc = objdbInfo.getParameterName(Whitehole.getCurrentGameType(), field);
+                panel.addField(field, desc, "int", null, data.getInt(field, -1), "Default");
                 break;
             
             // Switches

@@ -193,6 +193,7 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         }
         
         normalModel.reload();
+        treeObjects.setModel(normalModel);
     }
     
     public void showNewObject(String objectType, List<String> layerNames) {
@@ -204,6 +205,7 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         resultName = null;
         resultLayer = null;
         tempObjectType = objectTypeSubstitutor(objectType);
+        txtSearchObj.setText("");
         
         populate();
         
@@ -225,6 +227,7 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         resultName = null;
         resultLayer = null;
         tempObjectType = "";
+        txtSearchObj.setText("");
         
         // Reload nodes and make selection from object name
         populate();
@@ -637,11 +640,11 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
     }//GEN-LAST:event_treeObjectsMouseClicked
 
     private void txtSearchObjKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchObjKeyReleased
-        String searchcase = txtSearchObj.getText().toLowerCase();
+        String searchcase = txtSearchObj.getText().toLowerCase().trim();
         
-        if (searchcase.isBlank()) {
+        // Ignore strings that are less than 3 characters. This improves performance and sorts out obsolete cases.
+        if (searchcase.length() < 3) {
             populate();
-            treeObjects.setModel(normalModel);
         }
         else {
             searchRoot.removeAllChildren();

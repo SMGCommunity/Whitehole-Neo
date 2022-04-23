@@ -201,7 +201,7 @@ public final class ObjectDB {
             return false;
         }
         
-        public String getParameterName(String field) {
+        public String getParameterName(int game, String field) {
             return field;
         }
     }
@@ -294,11 +294,29 @@ public final class ObjectDB {
         }
         
         @Override
-        public String getParameterName(String name) {
+        public String getParameterName(int game, String name) {
             JSONObject parametersRoot = getClassInfo(2).getJSONObject("Parameters");
             
             if (parametersRoot.has(name)) {
-                return parametersRoot.getJSONObject(name).getString("Name");
+                JSONObject paramInfo = parametersRoot.getJSONObject(name);
+                JSONArray exclusives = paramInfo.getJSONArray("Exclusives");
+                boolean isForGame = (paramInfo.getInt("Games") & game) != 0;
+                
+                if (exclusives.length() > 0) {
+                    String myName = toString();
+                    isForGame = false;
+                    
+                    for (int i = 0 ; i < exclusives.length() ; i++) {
+                        if (exclusives.getString(i).equalsIgnoreCase(myName)) {
+                            isForGame = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (isForGame) {
+                    return paramInfo.getString("Name");
+                }
             }
             
             return name;

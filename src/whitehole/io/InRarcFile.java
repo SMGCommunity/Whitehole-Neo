@@ -19,6 +19,9 @@ package whitehole.io;
 import java.io.IOException;
 
 public class InRarcFile extends MemoryFile {
+    private final RarcFile archive;
+    final String filePath;
+    
     public InRarcFile(RarcFile rarc, String filePath) throws IOException {
         super(rarc.getFileContents(filePath));
         
@@ -30,8 +33,4 @@ public class InRarcFile extends MemoryFile {
     public void save() throws IOException {
         archive.reinsertFile(this);
     }
-
-
-    RarcFile archive;
-    String filePath;
 }

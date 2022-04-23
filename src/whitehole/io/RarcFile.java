@@ -532,7 +532,7 @@ public class RarcFile implements FilesystemBase {
         String key = pathToKey(fullname);
         FileEntry fileEntry = fileEntries.get(key);
         
-        if (fileEntry.data != null){
+        if (fileEntry.data == null){
             file.position(fileEntry.dataOffset);
             fileEntry.data = file.readBytes(fileEntry.dataSize);
         }
