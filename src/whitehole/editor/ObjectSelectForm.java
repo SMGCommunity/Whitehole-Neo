@@ -195,6 +195,7 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         populate();
         
         for (String layer : layerNames) {
+            System.out.println(layer);
             cmoLayer.addItem(layer);
         }
         

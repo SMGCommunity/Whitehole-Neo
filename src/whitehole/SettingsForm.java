@@ -47,7 +47,6 @@ public class SettingsForm extends javax.swing.JDialog {
         lblAppearance = new javax.swing.JLabel();
         lblControls = new javax.swing.JLabel();
         chkDisplaySimpleNameDB = new javax.swing.JCheckBox();
-        chkUseAntiAliasing = new javax.swing.JCheckBox();
         chkUseShaders = new javax.swing.JCheckBox();
         chkDebugFakeColor = new javax.swing.JCheckBox();
         chkDebugFastDrag = new javax.swing.JCheckBox();
@@ -101,19 +100,6 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkDisplaySimpleNameDB, gridBagConstraints);
-
-        chkUseAntiAliasing.setSelected(Settings.getUseAntiAliasing());
-        chkUseAntiAliasing.setText("Use anti-aliasing");
-        chkUseAntiAliasing.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                chkUseAntiAliasingItemStateChanged(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-        pnlSettings.add(chkUseAntiAliasing, gridBagConstraints);
 
         chkUseShaders.setSelected(Settings.getUseShaders());
         chkUseShaders.setText("Use shaders for 3D rendering");
@@ -249,10 +235,6 @@ public class SettingsForm extends javax.swing.JDialog {
         Settings.setDisplaySimpleNameDB(evt.getStateChange() == ItemEvent.SELECTED);
     }//GEN-LAST:event_chkDisplaySimpleNameDBItemStateChanged
 
-    private void chkUseAntiAliasingItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseAntiAliasingItemStateChanged
-        Settings.setUseAntiAliasing(evt.getStateChange() == ItemEvent.SELECTED);
-    }//GEN-LAST:event_chkUseAntiAliasingItemStateChanged
-
     private void chkUseShadersItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseShadersItemStateChanged
         Settings.setUseShaders(evt.getStateChange() == ItemEvent.SELECTED);
     }//GEN-LAST:event_chkUseShadersItemStateChanged
@@ -328,7 +310,6 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JCheckBox chkDebugFakeColor;
     private javax.swing.JCheckBox chkDebugFastDrag;
     private javax.swing.JCheckBox chkDisplaySimpleNameDB;
-    private javax.swing.JCheckBox chkUseAntiAliasing;
     private javax.swing.JCheckBox chkUseReverseRot;
     private javax.swing.JCheckBox chkUseShaders;
     private javax.swing.JCheckBox chkUseWASD;

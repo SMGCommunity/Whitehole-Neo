@@ -100,8 +100,8 @@ public class StageArchive {
         ret.add("Common");
         
         for (int i = 0 ; i < 16 ; i++) {
-            if (objects.containsKey("layer" + ('a' + i))) {
-                ret.add("Layer" + ('A' + i));
+            if (objects.containsKey("layer" + (char)('a' + i))) {
+                ret.add("Layer" + (char)('A' + i));
             }
         }
         

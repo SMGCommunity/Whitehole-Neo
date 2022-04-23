@@ -336,6 +336,10 @@ public class PathObj {
             return;
         }
         
+        if (displayLists == null) {
+            return;
+        }
+        
         GL2 gl = info.drawable.getGL().getGL2();
         gl.glCallList(displayLists[info.renderMode.ordinal()]);
     }

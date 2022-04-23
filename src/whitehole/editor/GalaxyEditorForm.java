@@ -1,18 +1,19 @@
 /*
-    © 2012 - 2021 - Whitehole Team
-
-    Whitehole is free software: you can redistribute it and/or modify it under
-    the terms of the GNU General Public License as published by the Free
-    Software Foundation, either version 3 of the License, or(at your option)
-    any later version.
-
-    Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
-    WARRANTY; See the GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along 
-    with Whitehole. If not, see http://www.gnu.org/licenses/.
-*/
-
+ * Copyright (C) 2022 Whitehole Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package whitehole.editor;
 
 import whitehole.util.Vector2;
@@ -45,21 +46,7 @@ import java.awt.Toolkit;
 import whitehole.smg.Bcsv;
 import whitehole.smg.GalaxyArchive;
 import whitehole.smg.StageArchive;
-import whitehole.smg.object.AbstractObj;
-import whitehole.smg.object.AreaObj;
-import whitehole.smg.object.CameraObj;
-import whitehole.smg.object.ChildObj;
-import whitehole.smg.object.CutsceneObj;
-import whitehole.smg.object.DebugObj;
-import whitehole.smg.object.GravityObj;
-import whitehole.smg.object.LevelObj;
-import whitehole.smg.object.MapPartObj;
-import whitehole.smg.object.PathObj;
-import whitehole.smg.object.PathPointObj;
-import whitehole.smg.object.PositionObj;
-import whitehole.smg.object.SoundObj;
-import whitehole.smg.object.StageObj;
-import whitehole.smg.object.StartObj;
+import whitehole.smg.object.*;
 import java.awt.datatransfer.Transferable;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -71,15 +58,84 @@ import whitehole.util.CheckBoxList;
 import whitehole.util.PropertyGrid;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
+    private static final float SCALE_DOWN = 10000f;
+    
     // -------------------------------------------------------------------------------------------------------------------------
     // Variables
     
-    // Object Tree
+    // General
+    private boolean isGalaxyMode = true;
+    private String galaxyName;
+    private GalaxyArchive galaxyArchive;
+    private HashMap<String, StageArchive> zoneArchives;
+    private int curScenarioID;
+    private Bcsv.Entry curScenario;
+    private String curZone;
+    private StageArchive curZoneArc;
+    
+    private HashMap<String, GalaxyEditorForm> zoneEditors = new HashMap();
+    private GalaxyEditorForm parentForm = null;
+    
+    private boolean unsavedChanges = false;
+    private int zoneModeLayerBitmask;
+    
+    
+    // Additional UI
+    private CheckBoxList listLayerCheckboxes;
+    private JPopupMenu popupAddItems;
+    private PropertyGrid pnlObjectSettings;
+    
+    
+    // Object holders
+    private int maxUniqueID = 0;
+    private final HashMap<Integer, AbstractObj> globalObjList = new HashMap();
+    private final HashMap<Integer, PathObj> globalPathList = new HashMap();
+    private final HashMap<Integer, PathPointObj> globalPathPointList = new HashMap();
+    private final HashMap<Integer, AbstractObj> selectedObjs = new LinkedHashMap();
+    private final HashMap<Integer, PathPointObj> displayedPaths = new LinkedHashMap();
+    private final HashMap<String, StageObj> zonePlacements = new HashMap();
+    private final HashMap<Integer, TreeNode> treeNodeList = new HashMap();
+    
+    
+    // Object selection & settings
     private DefaultTreeModel objListModel;
     private final DefaultMutableTreeNode objListRootNode = new DefaultMutableTreeNode("dummy");
     private final HashMap<String, ObjListTreeNode> objListTreeNodes = new LinkedHashMap(11);
     private final ObjListTreeNode objListPathRootNode = new ObjListTreeNode("Paths");
+    private String addingObject = "";
+    private String addingObjectOnLayer = "";
     
+    
+    // Rendering
+    private GalaxyRenderer renderer;
+    private GLRenderer.RenderInfo renderInfo;
+    private final HashMap<String, int[]> objDisplayLists = new HashMap();
+    private final HashMap<Integer, int[]> zoneDisplayLists = new HashMap();
+    private final Queue<String> rerenderTasks = new PriorityQueue();
+    private GLCanvas glCanvas, fullCanvas;
+    private JFrame fullScreen;
+    private boolean initializedRenderer = false;
+    
+    
+    // Camera & view
+    private Matrix4 modelViewMatrix;
+    private float camDistance = 1.0f;
+    private final Vector2 camRotation = new Vector2(0.0f, 0.0f);
+    private final Vector3 camPosition = new Vector3(0.0f, 0.0f, 0.0f);
+    private Vector3 camTarget = new Vector3(0.0f, 0.0f, 0.0f);
+    private boolean isUpsideDown = false;
+    
+    // Controls
+    private float pixelFactorX, pixelFactorY;
+    private int mouseButton;
+    private Point mousePos = new Point(-1, 1);
+    private boolean isDragging = false;
+    private boolean pickingCapture = false;
+    private final IntBuffer pickingFrameBuffer = IntBuffer.allocate(9);
+    private final FloatBuffer pickingDepthBuffer = FloatBuffer.allocate(1);
+    private float pickingDepth = 1.0f;
+    
+    // Assorted
     private float g_move_x=0;
     private float g_move_y=0;
     private float g_move_z=0;
@@ -87,119 +143,29 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private float g_move_step_y=0;
     private float g_move_step_z=0;
     private float g_move_step_a=0;
-
     private float g_center_x=0;
     private float g_center_y=0;
     private float g_center_z=0;
     private float g_angle_x=0;
     private float g_angle_y=0;
     private float g_angle_z=0;
-
     private float g_offset_x=0;
     private float g_offset_y=0;
     private float g_offset_z=0;
     
-    
-    private final float scaledown = 10000f;
-    public static boolean closing = false;
-    /**
-     * {@code true} if editing a galaxy, {@code false} when editing a zone.
-     */
-    private boolean isGalaxyMode;
-    public String galaxyName;
-    public HashMap<String, StageArchive> zoneArchives;
-    private HashMap<String, GalaxyEditorForm> zoneEditors;
-    private GalaxyEditorForm parentForm;
-    private GalaxyArchive galaxyArchive;
-    private GalaxyRenderer renderer;
-    
-    private int curScenarioID;
-    private Bcsv.Entry curScenario;
-    private String curZone;
-    public StageArchive curZoneArc;
-    
-    private int maxUniqueID;
-    private HashMap<Integer, AbstractObj> globalObjList;
-    private HashMap<Integer, PathObj> globalPathList;
-    private HashMap<Integer, PathPointObj> globalPathPointList;
-    private LinkedHashMap<Integer, AbstractObj> selectedObjs;
-    private LinkedHashMap<Integer, PathPointObj> displayedPaths;
-    private HashMap<String, int[]> objDisplayLists;
-    private HashMap<Integer, int[]> zoneDisplayLists;
-    
-    /**
-     * Contains a list of all currently loaded subzones (all zones except the main Zone)
-     */
-    private HashMap<String, StageObj> subZoneData;
-    private HashMap<Integer, TreeNode> treeNodeList;
-    
-    private GLCanvas glCanvas, fullCanvas;
-    private JFrame fullScreen;
-    private boolean inited;
-    private boolean unsavedChanges;
-        
-    private GLRenderer.RenderInfo renderinfo;
-    
-    private Queue<String> rerenderTasks = new LinkedList<>();
-    private int zoneModeLayerBitmask;
-
-    private Matrix4 modelViewMatrix;
-    private float camDistance;
-    /**
-     * Holds the current camera rotation, in radians.<br>
-     * X: rotation around up-down axis<br>
-     * Y: rotation around TODO, peck
-     */
-    private Vector2 camRotation;
-    
-    /**
-     * Holds the position or target of the camera,<br>
-     * in Whitehole scale (mult by {@code scaledown} to<br>
-     * get ingame units.
-     */
-    private Vector3 camPosition, camTarget;
-    
-    /**
-     * True if the camera is upside down.
-     */
-    private boolean upsideDown;
-    
-    /**
-     * Current scale of pixels to window size.<br>
-     * Used for dragging and misc.
-     */
-    private float pixelFactorX, pixelFactorY;
-
-    private int mouseButton;
-    private Point mousePos;
-    private boolean isDragging;
-    private boolean pickingCapture;
-    private IntBuffer pickingFrameBuffer;
-    private FloatBuffer pickingDepthBuffer;
-    private float pickingDepth;
-
-    private int underCursor;
+    private int underCursor = 0xFFFFFF;
     private float depthUnderCursor;
-    private int selectionArg;
-    private String addingObject, addingObjectOnLayer;
-    private boolean deletingObjects;
-    
-    private CheckBoxList lbLayersList;
-    private JPopupMenu pmnAddObjects;
-    private PropertyGrid pnlObjectSettings;
+    private int selectionArg = 0;
+    private boolean deletingObjects = false;
     
     public LinkedHashMap<Integer, AbstractObj> copyObj;
-    public AbstractObj currentObj, newobj; 
-    public ArrayList<Bcsv> camBcsvs = new ArrayList<>();
-    public Point curMouseRelative, startingMousePos, objCenter, firstMoveDir = new Point(1, 1);
-    public int counter;
-    public static long lastMove;
-    public Vector3 startingObjScale = new Vector3(1f, 1f, 1f), startingObjPos = new Vector3(1f, 1f, 1f);
+    public AbstractObj newobj; 
+    public Point startingMousePos;
     
-    public boolean keyScaling, keyTranslating, keyRotating, camSelected = false, fullscreen = false;
+    public boolean keyScaling, keyTranslating, keyRotating, fullscreen = false;
     public String keyAxis = "all";
     
-    public ArrayList<UndoEntry> undoList = new ArrayList<>();
+    public ArrayList<UndoEntry> undoList = new ArrayList();
     private int undoIndex = 0;
     private float lastDist;
     
@@ -208,7 +174,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     public GalaxyEditorForm(String galaxy) {
         initComponents();
-        initVariables();
         
         galaxyName = galaxy;
         tabData.remove(1);
@@ -225,10 +190,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             // Collect zone placements
             StageArchive galaxyZone = zoneArchives.get(galaxyName);
             
-            for (List<StageObj> zonePlacements : galaxyZone.zones.values()) {
-                for (StageObj zonePlacement : zonePlacements) {
-                    if (!subZoneData.containsKey(zonePlacement.name)) {
-                        subZoneData.put(zonePlacement.name, zonePlacement);
+            for (List<StageObj> placements : galaxyZone.zones.values()) {
+                for (StageObj zonePlacement : placements) {
+                    if (!zonePlacements.containsKey(zonePlacement.name)) {
+                        zonePlacements.put(zonePlacement.name, zonePlacement);
                     }
                 } 
             }
@@ -251,9 +216,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      */
     public GalaxyEditorForm(GalaxyEditorForm gal_parent, StageArchive zone) {
         initComponents();
-        initVariables();
         
-        subZoneData = null;
         galaxyArchive = null;
 
         isGalaxyMode = false;
@@ -273,12 +236,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         tabData.remove(0);
         
-        lbLayersList = new CheckBoxList();
-        lbLayersList.setEventListener((int index, boolean status) -> {
+        listLayerCheckboxes = new CheckBoxList();
+        listLayerCheckboxes.setEventListener((int index, boolean status) -> {
             layerSelectChange(index, status);
         });
         
-        scrLayers.setViewportView(lbLayersList);
+        scrLayers.setViewportView(listLayerCheckboxes);
         
         zoneModeLayerBitmask = 0;
         JCheckBox[] cblayers = new JCheckBox[curZoneArc.objects.keySet().size()];
@@ -297,49 +260,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 i++;
             }
         }
-        lbLayersList.setListData(cblayers);
+        listLayerCheckboxes.setListData(cblayers);
         
         populateObjectNodeTree(zoneModeLayerBitmask);
-        
-        tabData.remove(2);
-    }
-    
-    /**
-     * Set all default values for variables.
-     */
-    private void initVariables() {
-        maxUniqueID = 0;
-        globalObjList = new HashMap();
-        globalPathList = new HashMap();
-        globalPathPointList = new HashMap();        
-        treeNodeList = new HashMap();
-        
-        unsavedChanges = false;
-        
-        closing = false;
-        zoneEditors = new HashMap();
-        subZoneData = new HashMap();
-        isGalaxyMode = true;
-        parentForm = null;
-        
-        tgbShowAreas.setSelected(Settings.getShowAreas());
-        tgbShowCameras.setSelected(Settings.getShowCameras());
-        tgbShowGravity.setSelected(Settings.getShowGravity());
-        tgbShowPaths.setSelected(Settings.getShowPaths());
-        tgbShowAxis.setSelected(Settings.getShowAxis());
-        
-        // TODO: make these buttons do something instead of simply hiding them
-        btnAddScenario.setVisible(false);
-        btnEditScenario.setVisible(false);
-        btnDeleteScenario.setVisible(false);
-        btnAddZone.setVisible(false);
-        btnDeleteZone.setVisible(false);
-        tgbShowGravity.setVisible(false);
     }
     
     private void initAddObjectPopup() {
         tlbObjects.validate();
-        pmnAddObjects = new JPopupMenu();
+        popupAddItems = new JPopupMenu();
         
         initAddObjectPopupItem("objinfo", "General");
         initAddObjectPopupItem("mappartsinfo", "MapPart");
@@ -363,7 +291,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         initAddObjectPopupItem("path", "Path");
         initAddObjectPopupItem("pathpoint", "Path Point");
         
-        pmnAddObjects.addPopupMenuListener(new PopupMenuListener() {
+        popupAddItems.addPopupMenuListener(new PopupMenuListener() {
             @Override
             public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
 
@@ -392,29 +320,40 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void initAddObjectPopupItem(String key, String desc) {
         JMenuItem menuItem = new JMenuItem(desc);
         menuItem.addActionListener((ActionEvent e) -> setObjectBeingAdded(key));
-        pmnAddObjects.add(menuItem);
+        popupAddItems.add(menuItem);
     }
     
     private void initGUI() {
         setTitle(galaxyName + " -- " + Whitehole.NAME);
         initAddObjectPopup();
         
-        sep3.setVisible(false);
+        tgbShowAreas.setSelected(Settings.getShowAreas());
+        tgbShowCameras.setSelected(Settings.getShowCameras());
+        tgbShowGravity.setSelected(Settings.getShowGravity());
+        tgbShowPaths.setSelected(Settings.getShowPaths());
+        tgbShowAxis.setSelected(Settings.getShowAxis());
         
-        if(Settings.getUseAntiAliasing()) {
-            GLProfile prof = GLProfile.getMaxFixedFunc(true);
-            GLCapabilities caps = new GLCapabilities(prof);
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(8);
-            caps.setHardwareAccelerated(true);
-            
-            glCanvas = new GLCanvas(caps);
-            if(RendererCache.refContext != null)
-                glCanvas.createContext(RendererCache.refContext);
-            else
-                RendererCache.refContext = glCanvas.getContext();
-        } else {
-            glCanvas = new GLCanvas(null);
+        // For now, hide these until their proper functions are added
+        btnAddScenario.setVisible(false);
+        btnEditScenario.setVisible(false);
+        btnDeleteScenario.setVisible(false);
+        btnAddZone.setVisible(false);
+        btnDeleteZone.setVisible(false);
+        sep3.setVisible(false);
+        tgbShowGravity.setVisible(false);
+        
+        GLProfile prof = GLProfile.getMaxFixedFunc(true);
+        GLCapabilities capabilities = new GLCapabilities(prof);
+        capabilities.setSampleBuffers(true);
+        capabilities.setNumSamples(8);
+        capabilities.setHardwareAccelerated(true);
+        
+        glCanvas = new GLCanvas(capabilities);
+        
+        if (RendererCache.refContext == null) {
+            RendererCache.refContext = glCanvas.getContext();
+        }
+        else {
             glCanvas.createContext(RendererCache.refContext);
         }
         
@@ -436,6 +375,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         glCanvas.requestFocusInWindow();
     }
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Zone loading and saving
     
     private void loadZone(String zone) {
         // Load zone archive
@@ -618,8 +560,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             case "all":
                 float objz = depthUnderCursor;
 
-                float xdelta = (startingMousePos.x - mousePos.x) * pixelFactorX * objz * scaledown;
-                float ydelta = (startingMousePos.y - mousePos.y) * -pixelFactorY * objz * scaledown;
+                float xdelta = (startingMousePos.x - mousePos.x) * pixelFactorX * objz * SCALE_DOWN;
+                float ydelta = (startingMousePos.y - mousePos.y) * -pixelFactorY * objz * SCALE_DOWN;
 
                 delta = new Vector3(
                        (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
@@ -1257,7 +1199,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if(selectedObjs.isEmpty()) {
             lblStatus.setText("Object deselected.");
             tgbDeselect.setEnabled(false);
-            camSelected = false;
             pnlObjectSettings.doLayout();
             pnlObjectSettings.validate();
             pnlObjectSettings.repaint();
@@ -1404,7 +1345,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @param status 
      */
     private void layerSelectChange(int index, boolean status) {
-        JCheckBox cbx =(JCheckBox)lbLayersList.getModel().getElementAt(index);
+        JCheckBox cbx =(JCheckBox)listLayerCheckboxes.getModel().getElementAt(index);
         int layer = cbx.getText().equals("Common") ? 1 :(2 <<(cbx.getText().charAt(5) - 'A'));
         
         if(status)
@@ -1439,7 +1380,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         }
         
-        closing = true;
         Settings.setShowAreas(tgbShowAreas.isSelected());
         Settings.setShowCameras(tgbShowCameras.isSelected());
         Settings.setShowGravity(tgbShowGravity.isSelected());
@@ -1865,9 +1805,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
     private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbAddObjectActionPerformed
         if(tgbAddObject.isSelected())
-            pmnAddObjects.show(tgbAddObject, 0, tgbAddObject.getHeight());
+            popupAddItems.show(tgbAddObject, 0, tgbAddObject.getHeight());
         else {
-            pmnAddObjects.setVisible(false);
+            popupAddItems.setVisible(false);
             setStatusText();
         }
     }//GEN-LAST:event_tgbAddObjectActionPerformed
@@ -1938,9 +1878,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * Rerenders all objects in all zones.
      */
     public void renderAllObjects() {
-        if(rerenderTasks == null)
-            rerenderTasks = new PriorityQueue<>();
-        
         for(String zone : zoneArchives.keySet())
             rerenderTasks.add("zone:" + zone);
         
@@ -2168,8 +2105,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             return new Vector3();
 
         String szkey = curZone;
-        if(subZoneData.containsKey(szkey)) {
-            StageObj szdata = subZoneData.get(szkey);
+        if(zonePlacements.containsKey(szkey)) {
+            StageObj szdata = zonePlacements.get(szkey);
             
             float rotY = szdata.rotation.y;
             
@@ -2200,10 +2137,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private Vector3 get3DCoords(Point pt, float depth) {
         Vector3 ret = new Vector3(
-                camPosition.x * scaledown,
-                camPosition.y * scaledown,
-                camPosition.z * scaledown);
-        depth *= scaledown;
+                camPosition.x * SCALE_DOWN,
+                camPosition.y * SCALE_DOWN,
+                camPosition.z * SCALE_DOWN);
+        depth *= SCALE_DOWN;
 
         ret.x -=(depth *(float)Math.cos(camRotation.x) *(float)Math.cos(camRotation.y));
         ret.y -=(depth *(float)Math.sin(camRotation.y));
@@ -2344,8 +2281,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
-    private void scaleSelectionBy(Vector3 delta)
-    {
+    private void scaleSelectionBy(Vector3 delta) {
         scaleSelectionBy(delta, 0.0f);
     }
     
@@ -2408,8 +2344,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         // Apply zone placement
         if(isGalaxyMode) {
-            if(subZoneData.containsKey(curZone)) {
-                StageObj zonePlacement = subZoneData.get(curZone);
+            if(zonePlacements.containsKey(curZone)) {
+                StageObj zonePlacement = zonePlacements.get(curZone);
                 Vector3.subtract(position, zonePlacement.position, position);
                 applySubzoneRotation(position);
             }
@@ -3148,17 +3084,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     
                     if(parentForm == null) {
                         for(AbstractObj obj : globalObjList.values()) {
-                            obj.initRenderer(renderinfo);
+                            obj.initRenderer(renderInfo);
                             obj.oldName = obj.name;
                         }
 
                         for(PathObj obj : globalPathList.values())
-                            obj.prerender(renderinfo);
+                            obj.prerender(renderInfo);
                     }
 
-                    renderinfo.renderMode = GLRenderer.RenderMode.PICKING; renderAllObjects(gl);
-                    renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
-                    renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
+                    renderInfo.renderMode = GLRenderer.RenderMode.PICKING; renderAllObjects(gl);
+                    renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
+                    renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
 
                     gl.getContext().release();
                     glCanvas.repaint();
@@ -3191,30 +3127,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             RendererCache.setRefContext(glad.getContext());
             
-            mousePos = new Point(-1, -1);
-            pickingFrameBuffer = IntBuffer.allocate(9);
-            pickingDepthBuffer = FloatBuffer.allocate(1);
-            pickingDepth = 1f;
             
-            isDragging = false;
-            pickingCapture = false;
-            underCursor = 0xFFFFFF;
-            selectedObjs = new LinkedHashMap<>();
-            selectionArg = 0;
-            displayedPaths = new LinkedHashMap<>();
-            addingObject = "";
-            addingObjectOnLayer = "";
-            deletingObjects = false;
-            
-            renderinfo = new GLRenderer.RenderInfo();
-            renderinfo.drawable = glad;
-            renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;
+            renderInfo = new GLRenderer.RenderInfo();
+            renderInfo.drawable = glad;
+            renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE;
             
             // Place the camera behind the first entrance
-            camDistance = 1f;
-            camRotation = new Vector2(0f, 0f);
-            camPosition = new Vector3(0f, 0f, 0f);
-            camTarget = new Vector3(0f, 0f, 0f);
             
             StageArchive firstzone = zoneArchives.get(galaxyName);
             StartObj start = null;
@@ -3228,19 +3146,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(start != null) {
                 camDistance = 0.125f;
                 
-                camTarget.x = start.position.x / scaledown;
-                camTarget.y = start.position.y / scaledown;
-                camTarget.z = start.position.z / scaledown;
+                camTarget.x = start.position.x / SCALE_DOWN;
+                camTarget.y = start.position.y / SCALE_DOWN;
+                camTarget.z = start.position.z / SCALE_DOWN;
                 
                 camRotation.y =(float)Math.PI / 8f;
                 camRotation.x =(-start.rotation.y - 90f) *(float)Math.PI / 180f;
             }
             
             updateCamera();
-            
-            objDisplayLists = new HashMap<>();
-            zoneDisplayLists = new HashMap<>();
-            rerenderTasks = new PriorityQueue<>();
             
             for(int s = 0; s <(isGalaxyMode ? galaxyArchive.scenarioData.size() : 1); s++)
                 zoneDisplayLists.put(s, new int[] {0,0,0});
@@ -3253,7 +3167,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             SwingUtilities.invokeLater(new GalaxyRenderer.AsyncPrerenderer(gl));
             
-            inited = true;
+            initializedRenderer = true;
         }
         
         private void renderSelectHighlight(GL2 gl, String zone)  {
@@ -3270,16 +3184,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             for(AbstractObj obj : selectedObjs.values()) {
                 if(obj.stage.stageName.equals(zone) && !(obj instanceof PathPointObj))
-                    obj.render(renderinfo);
+                    obj.render(renderInfo);
             }
             
             gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);
-            renderinfo.renderMode = oldmode;
+            renderInfo.renderMode = oldmode;
         }
         
         private void renderAllObjects(GL2 gl) {
             int mode = -1;
-            switch(renderinfo.renderMode) {
+            switch(renderInfo.renderMode) {
                 case PICKING: mode = 0; break;
                 case OPAQUE: mode = 1; break;
                 case TRANSLUCENT: mode = 2; break;
@@ -3324,7 +3238,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         private void prerenderZone(GL2 gl, String zone) {
             int mode = -1;
-            switch(renderinfo.renderMode) {
+            switch(renderInfo.renderMode) {
                 case PICKING: mode = 0; break;
                 case OPAQUE: mode = 1; break;
                 case TRANSLUCENT: mode = 2; break;
@@ -3360,14 +3274,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     switch(c) {
                         case "AreaObj":
                             if(tgbShowAreas.isSelected())
-                                obj.render(renderinfo);
+                                obj.render(renderInfo);
                             break;
                         case "CameraObj":
                             if(tgbShowCameras.isSelected())
-                                obj.render(renderinfo);
+                                obj.render(renderInfo);
                             break;
                         default:
-                            obj.render(renderinfo);
+                            obj.render(renderInfo);
                     }
                 }
                 
@@ -3381,12 +3295,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                                 !displayedPaths.containsKey(pobj.pathID))
                             continue;
                         
-                        pobj.render(renderinfo);
+                        pobj.render(renderInfo);
                         
                         if(mode == 1) {
                             PathPointObj ptobj = displayedPaths.get(pobj.pathID);
                             if(ptobj != null) {
-                                ptobj.render(renderinfo, selectionArg);
+                                ptobj.render(renderInfo, selectionArg);
                             }
                         }
                     }
@@ -3399,7 +3313,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         private void renderZone(GL2 gl, Bcsv.Entry scenario, String zone, int layermask, int level) {
             String alphabet = "abcdefghijklmnop";
             int mode = -1;
-            switch(renderinfo.renderMode) {
+            switch(renderInfo.renderMode) {
                 case PICKING: mode = 0; break;
                 case OPAQUE: mode = 1; break;
                 case TRANSLUCENT: mode = 2; break;
@@ -3455,7 +3369,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         @Override
         public void dispose(GLAutoDrawable glad) {
             GL2 gl = glad.getGL().getGL2();
-            renderinfo.drawable = glad;
+            renderInfo.drawable = glad;
             
             for(int[] dls : zoneDisplayLists.values()) {
                 gl.glDeleteLists(dls[0], 1);
@@ -3471,7 +3385,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             if(parentForm == null) {
                 for(AbstractObj obj : globalObjList.values())
-                    obj.closeRenderer(renderinfo);
+                    obj.closeRenderer(renderInfo);
             }
             
             RendererCache.clearRefContext();
@@ -3479,23 +3393,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         private void doRerenderTasks() {
             try {
-                GL2 gl = renderinfo.drawable.getGL().getGL2();
+                GL2 gl = renderInfo.drawable.getGL().getGL2();
 
                 while(!rerenderTasks.isEmpty()) {
                     String[] task = rerenderTasks.poll().split(":");
                     switch(task[0]) {
                         case "zone":
-                            renderinfo.renderMode = GLRenderer.RenderMode.PICKING;      renderAllObjects(gl);
-                            renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;       prerenderZone(gl, task[1]);
-                            renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  prerenderZone(gl, task[1]);
+                            renderInfo.renderMode = GLRenderer.RenderMode.PICKING;      renderAllObjects(gl);
+                            renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE;       prerenderZone(gl, task[1]);
+                            renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  prerenderZone(gl, task[1]);
                             break;
 
                         case "object":
                             {
                                 int objid = Integer.parseInt(task[1]);
                                 AbstractObj obj = globalObjList.get(objid);
-                                obj.closeRenderer(renderinfo);
-                                obj.initRenderer(renderinfo);
+                                obj.closeRenderer(renderInfo);
+                                obj.initRenderer(renderInfo);
                                 obj.oldName = obj.name;
                             }
                             break;
@@ -3504,7 +3418,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             {
                                 int objid = Integer.parseInt(task[1]);
                                 AbstractObj obj = globalObjList.get(objid);
-                                obj.initRenderer(renderinfo);
+                                obj.initRenderer(renderInfo);
                                 obj.oldName = obj.name;
                             }
                             break;
@@ -3513,22 +3427,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             {
                                 int objid = Integer.parseInt(task[1]);
                                 AbstractObj obj = globalObjList.get(objid);
-                                obj.closeRenderer(renderinfo);
+                                obj.closeRenderer(renderInfo);
                                 globalObjList.remove(obj.uniqueID);
                             }
                             break;
 
                         case "allobjects":
-                            renderinfo.renderMode = GLRenderer.RenderMode.PICKING;      renderAllObjects(gl);
-                            renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;       renderAllObjects(gl);
-                            renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  renderAllObjects(gl);
+                            renderInfo.renderMode = GLRenderer.RenderMode.PICKING;      renderAllObjects(gl);
+                            renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE;       renderAllObjects(gl);
+                            renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  renderAllObjects(gl);
                             break;
 
                         case "path":
                             {
                                 int pathid = Integer.parseInt(task[1]);
                                 PathObj pobj = globalPathList.get(pathid);
-                                pobj.prerender(renderinfo);
+                                pobj.prerender(renderInfo);
                             }
                             break;
                     }
@@ -3544,13 +3458,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         @Override
         public void display(GLAutoDrawable glad) {
-            if(!inited) return;
+            if(!initializedRenderer) return;
             GL2 gl = glad.getGL().getGL2();
-            renderinfo.drawable = glad;
+            renderInfo.drawable = glad;
             
-            if(rerenderTasks == null) {
-                rerenderTasks = new PriorityQueue<>();
-            }
             doRerenderTasks();
             
             // Rendering pass 1 -- fakecolor rendering
@@ -3680,16 +3591,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             gl.glDepthMask(false);
             gl.glEnable(GL2.GL_POLYGON_OFFSET_FILL);
             gl.glPolygonOffset(-1f, -1f);
-            renderinfo.drawable = glCanvas;
-            RenderMode oldmode = renderinfo.renderMode;
-            renderinfo.renderMode = RenderMode.PICKING;
+            renderInfo.drawable = glCanvas;
+            RenderMode oldmode = renderInfo.renderMode;
+            renderInfo.renderMode = RenderMode.PICKING;
             gl.glColor4f(1f, 1f, 0.75f, 0.3f);
             return oldmode;
         }
         
         @Override
         public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
-            if(!inited) return;
+            if(!initializedRenderer) return;
             
             GL2 gl = glad.getGL().getGL2();
             gl.glViewport(x, y, width, height);
@@ -3711,11 +3622,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             Vector3 up;
             
             if(Math.cos(camRotation.y) < 0f) {
-                upsideDown = true;
+                isUpsideDown = true;
                 up = new Vector3(0f, -1f, 0f);
             }
             else {
-                upsideDown = false;
+                isUpsideDown = false;
                 up = new Vector3(0f, 1f, 0f);
             }
             
@@ -3726,13 +3637,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             Vector3.add(camPosition, camTarget, camPosition);
             
             modelViewMatrix = Matrix4.lookAt(camPosition, camTarget, up);
-            Matrix4.mult(Matrix4.scale(1f / scaledown), modelViewMatrix, modelViewMatrix);
+            Matrix4.mult(Matrix4.scale(1f / SCALE_DOWN), modelViewMatrix, modelViewMatrix);
         }
         
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            if(!inited) return;
+            if(!initializedRenderer) return;
             
             float xdelta = e.getX() - mousePos.x;
             float ydelta = e.getY() - mousePos.y;
@@ -3757,8 +3668,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 if(mouseButton == MouseEvent.BUTTON1) { // left click
                     float objz = depthUnderCursor;
                     
-                    xdelta *= pixelFactorX * objz * scaledown;
-                    ydelta *= -pixelFactorY * objz * scaledown;
+                    xdelta *= pixelFactorX * objz * SCALE_DOWN;
+                    ydelta *= -pixelFactorY * objz * SCALE_DOWN;
                     
                     Vector3 delta = new Vector3(
                            (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
@@ -3771,7 +3682,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
             } else {
                 if(mouseButton == MouseEvent.BUTTON3) { // right click
-                    if(upsideDown) xdelta = -xdelta;
+                    if(isUpsideDown) xdelta = -xdelta;
                     
                     if(!Settings.getUseReverseRot()) {
                         xdelta = -xdelta;
@@ -3826,7 +3737,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         @Override
         public void mouseMoved(MouseEvent e) {
-            if(!inited) return;
+            if(!initializedRenderer) return;
             
             mousePos = e.getPoint();
             
@@ -3852,7 +3763,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            if(!inited) return;
+            if(!initializedRenderer) return;
             if(mouseButton != MouseEvent.NOBUTTON) return;
             
             mouseButton = e.getButton();
@@ -3868,7 +3779,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if(!inited) return;
+            if(!initializedRenderer) return;
             if(e.getButton() != mouseButton) return;
             
             mouseButton = MouseEvent.NOBUTTON;
@@ -4042,11 +3953,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
-            if(!inited) return;
+            if(!initializedRenderer) return;
             
             if(mouseButton == MouseEvent.BUTTON1 && !selectedObjs.isEmpty() && selectedObjs.containsKey(underCursor >>> 3)) {
                 float delta =(float)e.getPreciseWheelRotation();
-                delta =((delta < 0f) ? -1f:1f) *(float)Math.pow(delta, 2f) * 0.05f * scaledown;
+                delta =((delta < 0f) ? -1f:1f) *(float)Math.pow(delta, 2f) * 0.05f * SCALE_DOWN;
                 
                 Vector3 vdelta = new Vector3(
                         delta *(float)Math.cos(camRotation.x) *(float)Math.cos(camRotation.y),
@@ -4158,15 +4069,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     for(AbstractObj obj : selectedObjs.values())
                         scalingObjs.add(obj);
 
-                    for(AbstractObj currentChangeObj : scalingObjs) {
-                        startingObjScale.x = currentChangeObj.scale.x;
-                        startingObjScale.y = currentChangeObj.scale.y;
-                        startingObjScale.z = currentChangeObj.scale.z;
-                        startingObjPos.x = currentChangeObj.position.x;
-                        startingObjPos.y = currentChangeObj.position.y;
-                        startingObjPos.z = currentChangeObj.position.z;
-                    }
-
                     keyScaling = true;
 
                     return;
@@ -4199,10 +4101,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             // Pull Up Add menu
             if(keyCode == KeyEvent.VK_A && e.isShiftDown()) {
-                pmnAddObjects.setLightWeightPopupEnabled(false);
-                pmnAddObjects.show(pnlGLPanel, mousePos.x, mousePos.y);
-                pmnAddObjects.setOpaque(true);
-                pmnAddObjects.setVisible(true);
+                popupAddItems.setLightWeightPopupEnabled(false);
+                popupAddItems.show(pnlGLPanel, mousePos.x, mousePos.y);
+                popupAddItems.setOpaque(true);
+                popupAddItems.setVisible(true);
                 
                 return;
             }
@@ -4248,9 +4150,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 
                 camTarget = (Vector3) camTarg.clone();
                 
-                camTarget.x = camTarget.x / scaledown;
-                camTarget.y = camTarget.y / scaledown;
-                camTarget.z = camTarget.z / scaledown;
+                camTarget.x = camTarget.x / SCALE_DOWN;
+                camTarget.y = camTarget.y / SCALE_DOWN;
+                camTarget.z = camTarget.z / SCALE_DOWN;
                 camDistance = 0.1f;
                 
                 camRotation.y = (float) Math.PI / 8f;

@@ -39,7 +39,6 @@ public final class Settings {
     public static boolean getShowCameras() { return PREFERENCES.getBoolean("whitehole_showCameras", true); }
     public static boolean getShowGravity() { return PREFERENCES.getBoolean("whitehole_showGravity", true); }
     public static boolean getShowPaths() { return PREFERENCES.getBoolean("whitehole_showPaths", true); }
-    public static boolean getUseAntiAliasing() { return PREFERENCES.getBoolean("whitehole_useAntiAliasing", true); }
     public static boolean getUseShaders() { return PREFERENCES.getBoolean("whitehole_useShaders", true); }
     public static boolean getDebugFakeColor() { return PREFERENCES.getBoolean("whitehole_debugFakeColor", false); }
     public static boolean getDebugFastDrag() { return PREFERENCES.getBoolean("whitehole_debugFastDrag", false); }
@@ -49,7 +48,6 @@ public final class Settings {
     public static void setShowCameras(boolean val) { PREFERENCES.putBoolean("whitehole_showCameras", val); }
     public static void setShowGravity(boolean val) { PREFERENCES.putBoolean("whitehole_showGravity", val); }
     public static void setShowPaths(boolean val) { PREFERENCES.putBoolean("whitehole_showPaths", val); }
-    public static void setUseAntiAliasing(boolean val) { PREFERENCES.putBoolean("whitehole_useAntiAliasing", val); }
     public static void setUseShaders(boolean val) { PREFERENCES.putBoolean("whitehole_useShaders", val); }
     public static void setDebugFakeColor(boolean val) { PREFERENCES.putBoolean("whitehole_debugFakeColor", val); }
     public static void setDebugFastDrag(boolean val) { PREFERENCES.putBoolean("whitehole_debugFastDrag", val); }
