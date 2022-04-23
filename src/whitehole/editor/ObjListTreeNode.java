@@ -13,7 +13,7 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.swing;
+package whitehole.editor;
 
 import whitehole.util.AdaptedEnumeration;
 import java.util.Enumeration;
@@ -23,6 +23,7 @@ import javax.swing.tree.TreeNode;
 import whitehole.smg.object.AbstractObj;
 import whitehole.smg.object.PathObj;
 import whitehole.smg.object.PathPointObj;
+import whitehole.util.AdaptedEnumeration;
 
 public class ObjListTreeNode extends ObjTreeNode {
     public ObjListTreeNode() {

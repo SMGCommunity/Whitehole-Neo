@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package whitehole;
+package whitehole.editor;
 
 import whitehole.io.FilesystemBase;
 import whitehole.io.RarcFile;
@@ -22,8 +22,9 @@ import java.io.IOException;
 import java.util.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.*;
+import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
-import whitehole.swing.TableColumnAdjuster;
+import whitehole.util.TableColumnAdjuster;
 
 public class BcsvEditorForm extends javax.swing.JFrame {
     private final DefaultTableModel tableModel;

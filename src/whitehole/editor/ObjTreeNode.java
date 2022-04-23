@@ -13,7 +13,7 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.swing;
+package whitehole.editor;
 
 import java.util.Enumeration;
 import javax.swing.tree.MutableTreeNode;

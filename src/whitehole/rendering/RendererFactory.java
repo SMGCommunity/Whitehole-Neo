@@ -123,7 +123,7 @@ public final class RendererFactory {
         }
         // Some objects are programmed to load an indexed model
         else if (Arrays.binarySearch(SHAPE_MODEL_COMPATIBILITY, objModelName) >= 0) {
-            int shapeModelNo = (short)obj.data.getOrDefault("ShapeModelNo", (short)-1);
+            int shapeModelNo = obj.data.getShort("ShapeModelNo", (short)-1);
             return String.format("%s%02d", objModelName, shapeModelNo);
         }
         

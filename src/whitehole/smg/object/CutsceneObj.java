@@ -17,7 +17,7 @@
 package whitehole.smg.object;
 
 import whitehole.Whitehole;
-import whitehole.swing.PropertyGrid;
+import whitehole.util.PropertyGrid;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.Vector3;

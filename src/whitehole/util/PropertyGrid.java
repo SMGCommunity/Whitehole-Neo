@@ -13,7 +13,7 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.swing;
+package whitehole.util;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -34,7 +34,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-import whitehole.ObjectSelectForm;
+import whitehole.editor.ObjectSelectForm;
 
 public class PropertyGrid extends JTable {
     public PropertyGrid(JFrame parent) {

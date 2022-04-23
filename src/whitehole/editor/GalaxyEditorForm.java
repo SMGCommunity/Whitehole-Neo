@@ -13,7 +13,7 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole;
+package whitehole.editor;
 
 import whitehole.smg.worldmapObject.WorldmapTravelObject;
 import whitehole.util.Vector2;
@@ -69,11 +69,11 @@ import java.awt.datatransfer.Transferable;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
+import whitehole.Settings;
+import whitehole.Whitehole;
 import whitehole.rendering.RendererFactory;
-import whitehole.swing.CheckBoxList;
-import whitehole.swing.ObjListTreeNode;
-import whitehole.swing.ObjTreeNode;
-import whitehole.swing.PropertyGrid;
+import whitehole.util.CheckBoxList;
+import whitehole.util.PropertyGrid;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     public GalaxyEditorForm(String galaxy) {

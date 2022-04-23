@@ -16,6 +16,8 @@
  */
 package whitehole;
 
+import whitehole.editor.GalaxyEditorForm;
+import whitehole.editor.BcsvEditorForm;
 import whitehole.rendering.RendererCache;
 import whitehole.rendering.ShaderCache;
 import whitehole.rendering.TextureCache;

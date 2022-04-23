@@ -16,7 +16,7 @@
  */
 package whitehole.smg.object;
 
-import whitehole.swing.PropertyGrid;
+import whitehole.util.PropertyGrid;
 import whitehole.rendering.GLRenderer;
 import whitehole.smg.Bcsv;
 import whitehole.util.Vector3;

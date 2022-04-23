@@ -15,7 +15,7 @@
 
 // By Rob Camick (https://tips4java.wordpress.com/2008/11/10/table-column-adjuster/)
 
-package whitehole.swing;
+package whitehole.util;
 
 import java.awt.*;
 import java.awt.event.*;
