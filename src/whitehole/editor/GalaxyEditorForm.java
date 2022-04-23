@@ -347,6 +347,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         capabilities.setSampleBuffers(true);
         capabilities.setNumSamples(8);
         capabilities.setHardwareAccelerated(true);
+        capabilities.setDoubleBuffered(true);
         
         glCanvas = new GLCanvas(capabilities);
         
@@ -354,10 +355,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             RendererCache.refContext = glCanvas.getContext();
         }
         else {
-            glCanvas.createContext(RendererCache.refContext);
+            glCanvas.setSharedContext(RendererCache.refContext);
         }
         
-        glCanvas.addGLEventListener(renderer = new GalaxyEditorForm.GalaxyRenderer());
+        renderer = new GalaxyEditorForm.GalaxyRenderer();
+        glCanvas.addGLEventListener(renderer);
         glCanvas.addMouseListener(renderer);
         glCanvas.addMouseMotionListener(renderer);
         glCanvas.addMouseWheelListener(renderer);
@@ -448,7 +450,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
-    public void updateZone(String zone) {
+    private void updateZone(String zone) {
         rerenderTasks.add("zone:" + zone);
         glCanvas.repaint();
     }
@@ -3319,20 +3321,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 case TRANSLUCENT: mode = 2; break;
             }
             
-            if(isGalaxyMode)
-                gl.glCallList(objDisplayLists.get(zone + "/common")[mode]);
-            else {
-                if((layermask & 1) != 0)
-                    gl.glCallList(objDisplayLists.get(zone + "/common")[mode]);
-                layermask >>= 1;
-            }
+            gl.glCallList(objDisplayLists.get(zone + "/common")[mode]);
             
             for(int l = 0; l < 16; l++) {
                 if((layermask &(1 << l)) != 0)
                     gl.glCallList(objDisplayLists.get(zone + "/layer" + alphabet.charAt(l))[mode]);
             }
             
-            if(level < 5) {
+            if (level < 5) {
                 for(StageObj subzone : zoneArchives.get(zone).zones.get("common")) {
                     gl.glPushMatrix();
                     gl.glTranslatef(subzone.position.x, subzone.position.y, subzone.position.z);
@@ -3365,7 +3361,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         }
         
-
         @Override
         public void dispose(GLAutoDrawable glad) {
             GL2 gl = glad.getGL().getGL2();

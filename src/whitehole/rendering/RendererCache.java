@@ -17,10 +17,8 @@
 package whitehole.rendering;
 
 import java.util.HashMap;
-import whitehole.rendering.GLRenderer;
 import whitehole.smg.object.AbstractObj;
 import com.jogamp.opengl.*;
-import whitehole.rendering.RendererFactory;
 
 public class RendererCache {
     public static class CacheEntry {
