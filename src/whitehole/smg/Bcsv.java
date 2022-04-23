@@ -198,7 +198,7 @@ public class Bcsv {
                     // LONG and LONG_2
                     case 0:
                     case 3:
-                        file.writeInt(((int)entry.getOrDefault(field.hash, -1) << field.shift) & field.mask);
+                        file.writeInt((entry.getInt(field.hash, -1) << field.shift) & field.mask);
                         break;
                     // STRING
                     case 1:
@@ -206,19 +206,19 @@ public class Bcsv {
                         break;
                     // FLOAT
                     case 2:
-                        file.writeFloat((float)entry.getOrDefault(field.hash, 0.0f));
+                        file.writeFloat((float)entry.getFloat(field.hash, 0.0f));
                         break;
                     // SHORT
                     case 4:
-                        file.writeShort((short)(((short)entry.getOrDefault(field.hash, (short)-1) << field.shift) & field.mask));
+                        file.writeShort((short)((entry.getShort(field.hash, (short)-1) << field.shift) & field.mask));
                         break;
                     // BYTE
                     case 5:
-                        file.writeByte((byte)(((byte)entry.getOrDefault(field.hash, (byte)-1) << field.shift) & field.mask));
+                        file.writeByte((byte)((entry.getByte(field.hash, (byte)-1) << field.shift) & field.mask));
                         break;
                     // STRING_OFFSET
                     case 6:
-                        String val = (String)entry.getOrDefault(field.hash, "");
+                        String val = entry.getString(field.hash, "");
                         
                         if (stringLookup.containsKey(val)) {
                             file.writeInt(stringLookup.get(val));
@@ -329,6 +329,149 @@ public class Bcsv {
 
         public boolean containsKey(String key) {
             return this.containsKey(Bcsv.calcJGadgetHash(key));
+        }
+        
+        // ---------------------------------------------------------------------------------------------------------------------
+        // Easy data getters
+        
+        public byte getByte(String key, byte defval) {
+            Object val = getOrDefault(Bcsv.calcJGadgetHash(key), null);
+            
+            if (val == null || !(val instanceof Number)) {
+                return defval;
+            }
+            
+            return ((Number)val).byteValue();
+        }
+        
+        public byte getByte(String key) {
+            return getByte(key, (byte)0);
+        }
+        
+        public byte getByte(int key, byte defval) {
+            Object val = getOrDefault(key, null);
+            
+            if (val == null || !(val instanceof Number)) {
+                return defval;
+            }
+            
+            return ((Number)val).byteValue();
+        }
+        
+        public byte getByte(int key) {
+            return getByte(key, (byte)0);
+        }
+        
+        public short getShort(String key, short defval) {
+            Object val = getOrDefault(Bcsv.calcJGadgetHash(key), null);
+            
+            if (val == null || !(val instanceof Number)) {
+                return defval;
+            }
+            
+            return ((Number)val).shortValue();
+        }
+        
+        public short getShort(String key) {
+            return getShort(key, (short)0);
+        }
+        
+        public short getShort(int key, short defval) {
+            Object val = getOrDefault(key, null);
+            
+            if (val == null || !(val instanceof Number)) {
+                return defval;
+            }
+            
+            return ((Number)val).shortValue();
+        }
+        
+        public short getShort(int key) {
+            return getShort(key, (short)0);
+        }
+        
+        public int getInt(String key, int defval) {
+            Object val = getOrDefault(Bcsv.calcJGadgetHash(key), null);
+            
+            if (val == null || !(val instanceof Number)) {
+                return defval;
+            }
+            
+            return ((Number)val).intValue();
+        }
+        
+        public int getInt(String key) {
+            return getInt(key, 0);
+        }
+        
+        public int getInt(int key, int defval) {
+            Object val = getOrDefault(key, null);
+            
+            if (val == null || !(val instanceof Number)) {
+                return defval;
+            }
+            
+            return ((Number)val).intValue();
+        }
+        
+        public int getInt(int key) {
+            return getInt(key, 0);
+        }
+        
+        public float getFloat(String key, float defval) {
+            Object val = getOrDefault(Bcsv.calcJGadgetHash(key), null);
+            
+            if (val == null || !(val instanceof Number)) {
+                return defval;
+            }
+            
+            return ((Number)val).floatValue();
+        }
+        
+        public float getFloat(String key) {
+            return getFloat(key, 0.0f);
+        }
+        
+        public float getFloat(int key, float defval) {
+            Object val = getOrDefault(key, null);
+            
+            if (val == null || !(val instanceof Number)) {
+                return defval;
+            }
+            
+            return ((Number)val).floatValue();
+        }
+        
+        public float getFloat(int key) {
+            return getFloat(key, 0.0f);
+        }
+        
+        public String getString(String key, String defval) {
+            Object val = getOrDefault(Bcsv.calcJGadgetHash(key), null);
+            
+            if (val == null) {
+                return defval;
+            }
+            
+            return val.toString();
+        }
+        
+        public String getString(String key) {
+            return getString(key, "");
+        }
+        
+        public String getString(int key, String defval) {
+            Object val = getOrDefault(key, null);
+            
+            if (val == null) {
+                return defval;
+            }
+            
+            return val.toString();
+        }
+        
+        public String getString(int key) {
+            return getString(key, "");
         }
     }
 }

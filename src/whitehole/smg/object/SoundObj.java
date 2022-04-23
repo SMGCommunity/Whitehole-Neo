@@ -71,29 +71,29 @@ public class SoundObj extends AbstractObj {
     @Override
     public void getProperties(PropertyGrid panel) {
         panel.addCategory("obj_rendering", "Rendering");
-        panel.addField("pos_x", "X position", "float", null, position.x, "Default");
-        panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
-        panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
-        panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
-        panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
-        panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
-        panel.addField("scale_x", "X size", "float", null, scale.x, "Default");
-        panel.addField("scale_y", "Y size", "float", null, scale.y, "Default");
-        panel.addField("scale_z", "Z size", "float", null, scale.z, "Default");
-
-        panel.addCategory("obj_args", "Arguments");
-        panel.addField("Obj_arg0", objdbInfo.getParameterName("Obj_arg0"), "int", null, data.get("Obj_arg0"), "Default");
-        panel.addField("Obj_arg1", objdbInfo.getParameterName("Obj_arg1"), "int", null, data.get("Obj_arg1"), "Default");
-        panel.addField("Obj_arg2", objdbInfo.getParameterName("Obj_arg2"), "int", null, data.get("Obj_arg2"), "Default");
-        panel.addField("Obj_arg3", objdbInfo.getParameterName("Obj_arg3"), "int", null, data.get("Obj_arg3"), "Default");
-   
-        panel.addCategory("obj_switches", "Switches");
-        panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"), "Default");
-        panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"), "Default");
-        panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"), "Default");
+        addField(panel, "pos_x");
+        addField(panel, "pos_y");
+        addField(panel, "pos_z");
+        addField(panel, "dir_x");
+        addField(panel, "dir_y");
+        addField(panel, "dir_z");
+        addField(panel, "scale_x");
+        addField(panel, "scale_y");
+        addField(panel, "scale_z");
 
         panel.addCategory("obj_settings", "Settings");
-        panel.addField("l_id", "Link ID", "int", null, data.get("l_id"), "Default");  
-        panel.addField("CommonPath_ID", "Path ID", "int", null, data.get("CommonPath_ID"), "Default");  
+        addField(panel, "l_id");
+        addField(panel, "CommonPath_ID");
+
+        panel.addCategory("obj_args", "Arguments");
+        addField(panel, "Obj_arg0");
+        addField(panel, "Obj_arg1");
+        addField(panel, "Obj_arg2");
+        addField(panel, "Obj_arg3");
+        
+        panel.addCategory("obj_switches", "Switches");
+        addField(panel, "SW_APPEAR");
+        addField(panel, "SW_A");
+        addField(panel, "SW_B");
     }
 }

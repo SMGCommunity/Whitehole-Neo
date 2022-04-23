@@ -104,67 +104,67 @@ public class MapPartObj extends AbstractObj {
     @Override
     public void getProperties(PropertyGrid panel) {
         panel.addCategory("obj_rendering", "Rendering");
-        panel.addField("pos_x", "X position", "float", null, position.x, "Default");
-        panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
-        panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
-        panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
-        panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
-        panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
-        panel.addField("scale_x", "X size", "float", null, scale.x, "Default");
-        panel.addField("scale_y", "Y size", "float", null, scale.y, "Default");
-        panel.addField("scale_z", "Z size", "float", null, scale.z, "Default");
+        addField(panel, "pos_x");
+        addField(panel, "pos_y");
+        addField(panel, "pos_z");
+        addField(panel, "dir_x");
+        addField(panel, "dir_y");
+        addField(panel, "dir_z");
+        addField(panel, "scale_x");
+        addField(panel, "scale_y");
+        addField(panel, "scale_z");
         
         panel.addCategory("obj_mappartsinfo", "MapParts Settings");
-        panel.addField("MoveConditionType", "MoveConditionType", "int", null, data.get("MoveConditionType"), "Default");
-        panel.addField("RotateSpeed", "RotateSpeed", "int", null, data.get("RotateSpeed"), "Default");
-        panel.addField("RotateAngle", "RotateAngle", "int", null, data.get("RotateAngle"), "Default");
-        panel.addField("RotateAxis", "RotateAxis", "int", null, data.get("RotateAxis"), "Default");
-        panel.addField("RotateAccelType", "RotateAccelType", "int", null, data.get("RotateAccelType"), "Default");
-        panel.addField("RotateStopTime", "RotateStopTime", "int", null, data.get("RotateStopTime"), "Default");
-        panel.addField("RotateType", "RotateType", "int", null, data.get("RotateType"), "Default");
-        panel.addField("ShadowType", "ShadowType", "int", null, data.get("ShadowType"), "Default");
-        panel.addField("SignMotionType", "SignMotionType", "int", null, data.get("SignMotionType"), "Default");
-        panel.addField("PressType", "PressType", "int", null, data.get("PressType"), "Default");
-        panel.addField("FarClip", "FarClip", "int", null, data.get("FarClip"), "Default");
+        addField(panel, "MoveConditionType");
+        addField(panel, "RotateSpeed");
+        addField(panel, "RotateAngle");
+        addField(panel, "RotateAxis");
+        addField(panel, "RotateAccelType");
+        addField(panel, "RotateStopTime");
+        addField(panel, "RotateType");
+        addField(panel, "ShadowType");
+        addField(panel, "SignMotionType");
+        addField(panel, "PressType");
+        addField(panel, "FarClip");
         
         panel.addCategory("obj_args", "Arguments");
-        panel.addField("Obj_arg0", objdbInfo.getParameterName("Obj_arg0"), "int", null, data.get("Obj_arg0"), "Default");
-        panel.addField("Obj_arg1", objdbInfo.getParameterName("Obj_arg1"), "int", null, data.get("Obj_arg1"), "Default");
-        panel.addField("Obj_arg2", objdbInfo.getParameterName("Obj_arg2"), "int", null, data.get("Obj_arg2"), "Default");
-        panel.addField("Obj_arg3", objdbInfo.getParameterName("Obj_arg3"), "int", null, data.get("Obj_arg3"), "Default");
+        addField(panel, "Obj_arg0");
+        addField(panel, "Obj_arg1");
+        addField(panel, "Obj_arg2");
+        addField(panel, "Obj_arg3");
         
         panel.addCategory("obj_switches", "Switches");
-        panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"), "Default");
-        panel.addField("SW_DEAD", "SW_DEAD", "int", null, data.get("SW_DEAD"), "Default");
-        panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"), "Default");
-        panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"), "Default");
+        addField(panel, "SW_APPEAR");
+        addField(panel, "SW_DEAD");
+        addField(panel, "SW_A");
+        addField(panel, "SW_B");
         
         if (Whitehole.getCurrentGameType() == 1) {
-            panel.addField("SW_SLEEP", "SW_SLEEP", "int", null, data.get("SW_SLEEP"), "Default");
+            addField(panel, "SW_SLEEP");
         }
         else {
-            panel.addField("SW_AWAKE", "SW_AWAKE", "int", null, data.get("SW_AWAKE"), "Default");
-            panel.addField("SW_PARAM", "SW_PARAM", "int", null, data.get("SW_PARAM"), "Default");
+            addField(panel, "SW_AWAKE");
+            addField(panel, "SW_PARAM");
         }
         
         panel.addCategory("obj_settings", "Settings");
-        panel.addField("l_id", "ID", "int", null, data.get("l_id"), "Default");
-        panel.addField("ShapeModelNo", "Model ID", "int", null, data.get("ShapeModelNo"), "Default");
-        panel.addField("CommonPath_ID", "Path ID", "int", null, data.get("CommonPath_ID"), "Default");
-        panel.addField("CameraSetId", "Camera Set ID", "int", null, data.get("CameraSetId"), "Default");
+        addField(panel, "l_id");
+        addField(panel, "ShapeModelNo");
+        addField(panel, "CommonPath_ID");
+        addField(panel, "CameraSetId");
         
         if (Whitehole.getCurrentGameType() == 2) {
-            panel.addField("ParamScale", "Speed Scale", "float", null, data.get("ParamScale"), "Default");
-            panel.addField("ParentId", "Parent Object ID", "int", null, data.get("ParentId"), "Default");
-            panel.addField("Obj_ID", "Follow Object ID", "int", null, data.get("Obj_ID"), "Default");
-            panel.addField("MapParts_ID", "Follow MapParts ID", "int", null, data.get("MapParts_ID"), "Default");
+            addField(panel, "ParamScale");
+            addField(panel, "ParentId");
+            addField(panel, "Obj_ID");
+            addField(panel, "MapParts_ID");
         }
         
         panel.addCategory("obj_groups", "Groups");
-        panel.addField("GroupId", "Group ID", "int", null, data.get("GroupId"), "Default");
-        panel.addField("ClippingGroupId", "Clipping Group ID", "int", null, data.get("ClippingGroupId"), "Default");
-        panel.addField("ViewGroupId", "View Group ID", "int", null, data.get("ViewGroupId"), "Default");
-        panel.addField("DemoGroupId", "Cutscene Group ID", "int", null, data.get("DemoGroupId"), "Default");
-        panel.addField("CastId", "Cast Group ID", "int", null, data.get("CastId"), "Default");
+        addField(panel, "GroupId");
+        addField(panel, "ClippingGroupId");
+        addField(panel, "ViewGroupId");
+        addField(panel, "DemoGroupId");
+        addField(panel, "CastId");
     }
 }

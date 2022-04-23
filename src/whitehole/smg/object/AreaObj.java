@@ -21,10 +21,6 @@ import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.Vector3;
 import whitehole.Whitehole;
-import whitehole.rendering.CubeRenderer;
-import whitehole.rendering.GLRenderer;
-import whitehole.rendering.AreaShapeRenderer;
-import whitehole.util.Color4;
 
 public class AreaObj extends AbstractObj {
     @Override
@@ -100,58 +96,62 @@ public class AreaObj extends AbstractObj {
     @Override
     public void getProperties(PropertyGrid panel) {
         panel.addCategory("obj_rendering", "Rendering");
-        panel.addField("pos_x", "X position", "float", null, position.x, "Default");
-        panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
-        panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
-        panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
-        panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
-        panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
-        panel.addField("scale_x", "X size", "float", null, scale.x, "Default");
-        panel.addField("scale_y", "Y size", "float", null, scale.y, "Default");
-        panel.addField("scale_z", "Z size", "float", null, scale.z, "Default");
-        
-        panel.addCategory("obj_args", "Arguments");
-        panel.addField("Obj_arg0", objdbInfo.getParameterName("Obj_arg0"), "int", null, data.get("Obj_arg0"), "Default");
-        panel.addField("Obj_arg1", objdbInfo.getParameterName("Obj_arg1"), "int", null, data.get("Obj_arg1"), "Default");
-        panel.addField("Obj_arg2", objdbInfo.getParameterName("Obj_arg2"), "int", null, data.get("Obj_arg2"), "Default");
-        panel.addField("Obj_arg3", objdbInfo.getParameterName("Obj_arg3"), "int", null, data.get("Obj_arg3"), "Default");
-        panel.addField("Obj_arg4", objdbInfo.getParameterName("Obj_arg4"), "int", null, data.get("Obj_arg4"), "Default");
-        panel.addField("Obj_arg5", objdbInfo.getParameterName("Obj_arg5"), "int", null, data.get("Obj_arg5"), "Default");
-        panel.addField("Obj_arg6", objdbInfo.getParameterName("Obj_arg6"), "int", null, data.get("Obj_arg6"), "Default");
-        panel.addField("Obj_arg7", objdbInfo.getParameterName("Obj_arg7"), "int", null, data.get("Obj_arg7"), "Default");
-        
-        panel.addCategory("obj_eventinfo", "Switches");
-        panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"), "Default");
-        panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"), "Default");
-        panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"), "Default");
-        
-        if (Whitehole.getCurrentGameType() == 1) {
-            panel.addField("SW_SLEEP", "SW_SLEEP", "int", null, data.get("SW_SLEEP"), "Default");
-        }
-        else {
-            panel.addField("SW_AWAKE", "SW_AWAKE", "int", null, data.get("SW_AWAKE"), "Default");
-        }
+        addField(panel, "pos_x");
+        addField(panel, "pos_y");
+        addField(panel, "pos_z");
+        addField(panel, "dir_x");
+        addField(panel, "dir_y");
+        addField(panel, "dir_z");
+        addField(panel, "scale_x");
+        addField(panel, "scale_y");
+        addField(panel, "scale_z");
         
         panel.addCategory("obj_settings", "Settings");
-        panel.addField("l_id", "Link ID", "int", null, data.get("l_id"), "Default");
+        addField(panel, "l_id");
         
         if (Whitehole.getCurrentGameType() == 2) {
-            panel.addField("AreaShapeNo", "Shape ID", "int", null, data.get("AreaShapeNo"), "Default");
-            panel.addField("Priority", "Priority", "int", null, data.get("Priority"), "Default");
+            addField(panel, "AreaShapeNo");
         }
         
-        panel.addField("CommonPath_ID", "Path ID", "int", null, data.get("CommonPath_ID"), "Default");
-        panel.addField("FollowId", "Follow Area ID", "int", null, data.get("FollowId"), "Default");
-        panel.addField("Obj_ID", "Follow Object ID", "int", null, data.get("Obj_ID"), "Default");
-        panel.addField("MapParts_ID", "Follow MapParts ID", "int", null, data.get("MapParts_ID"), "Default");
+        addField(panel, "CommonPath_ID");
+        
+        if (Whitehole.getCurrentGameType() == 2) {
+            addField(panel, "Priority");
+        }
+        
+        addField(panel, "FollowId");
+        addField(panel, "Obj_ID");
+        addField(panel, "MapParts_ID");
         
         if (Whitehole.getCurrentGameType() == 1) {
-            panel.addField("ChildObjId", "Follow Child ID", "int", null, data.get("ChildObjId"), "Default");
+            addField(panel, "ChildObjId");
+        }
+        
+        panel.addCategory("obj_args", "Arguments");
+        addField(panel, "Obj_arg0");
+        addField(panel, "Obj_arg1");
+        addField(panel, "Obj_arg2");
+        addField(panel, "Obj_arg3");
+        addField(panel, "Obj_arg4");
+        addField(panel, "Obj_arg5");
+        addField(panel, "Obj_arg6");
+        addField(panel, "Obj_arg7");
+        
+        panel.addCategory("obj_eventinfo", "Switches");
+        addField(panel, "SW_APPEAR");
+        addField(panel, "SW_A");
+        addField(panel, "SW_B");
+        
+        if (Whitehole.getCurrentGameType() == 1) {
+            addField(panel, "SW_SLEEP");
+        }
+        else {
+            addField(panel, "SW_AWAKE");
         }
         
         panel.addCategory("obj_groups", "Groups");
-        panel.addField("GroupId", "Group ID", "int", null, data.get("GroupId"), "Default");
-        panel.addField("ClippingGroupId", "Clipping Group ID", "int", null, data.get("ClippingGroupId"), "Default");
-        panel.addField("DemoGroupId", "Cutscene Group ID", "int", null, data.get("DemoGroupId"), "Default");
+        addField(panel, "GroupId");
+        addField(panel, "ClippingGroupId");
+        addField(panel, "DemoGroupId");
     }
 }

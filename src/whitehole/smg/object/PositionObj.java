@@ -66,24 +66,24 @@ public class PositionObj extends AbstractObj {
     @Override
     public void getProperties(PropertyGrid panel) {
         panel.addCategory("obj_rendering", "Rendering");
-        panel.addField("pos_x", "X position", "float", null, position.x, "Default");
-        panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
-        panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
-        panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
-        panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
-        panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
+        addField(panel, "pos_x");
+        addField(panel, "pos_y");
+        addField(panel, "pos_z");
+        addField(panel, "dir_x");
+        addField(panel, "dir_y");
+        addField(panel, "dir_z");
         
         panel.addCategory("obj_settings", "Settings");
-        panel.addField("PosName", "Identifier", "text", null, data.get("PosName"), "Default"); 
-        panel.addField("Obj_ID", "Linked Object ID", "int", null, data.get("Obj_ID"), "Default");
+        addField(panel, "PosName");
+        addField(panel, "Obj_ID");
         
         if (Whitehole.getCurrentGameType() == 1) {
-            panel.addField("ChildObjId", "Linked Child ID", "int", null, data.get("ChildObjId"), "Default");
+            addField(panel, "ChildObjId");
         }
     }
     
     @Override
     public String toString() {
-        return String.format("%s <%s>", (String)data.get("PosName"), getLayerName());
+        return String.format("%s <%s>", data.getString("PosName", "undefined"), getLayerName());
     }
 }

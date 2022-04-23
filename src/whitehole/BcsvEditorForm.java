@@ -136,8 +136,10 @@ public class BcsvEditorForm extends javax.swing.JFrame {
                 
                 try {
                     switch(field.type) {
-                        case 0, 3: entry.put(field.hash, Integer.parseInt(val)); break;
-                        case 1, 6: entry.put(field.hash, val); break;
+                        case 0:
+                        case 3: entry.put(field.hash, Integer.parseInt(val)); break;
+                        case 1:
+                        case 6: entry.put(field.hash, val); break;
                         case 2: entry.put(field.hash, Float.parseFloat(val)); break;
                         case 4: entry.put(field.hash, Short.parseShort(val)); break;
                         case 5: entry.put(field.hash, Byte.parseByte(val)); break;
@@ -145,8 +147,10 @@ public class BcsvEditorForm extends javax.swing.JFrame {
                 }
                 catch(NumberFormatException ex) {
                     switch (field.type) {
-                        case 0, 3: entry.put(field.hash, -1); break;
-                        case 1, 6: entry.put(field.hash, ""); break;
+                        case 0:
+                        case 3: entry.put(field.hash, -1); break;
+                        case 1:
+                        case 6: entry.put(field.hash, ""); break;
                         case 2: entry.put(field.hash, 0f); break;
                         case 4: entry.put(field.hash, (short)-1); break;
                         case 5: entry.put(field.hash, (byte)-1); break;
@@ -926,8 +930,10 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         
         for (Bcsv.Field field : bcsv.fields.values()) {
             switch(field.type) {
-                case 0, 3: row[i] = -1; break;
-                case 1, 6: row[i] = ""; break;
+                case 0:
+                case 3: row[i] = -1; break;
+                case 1:
+                case 6: row[i] = ""; break;
                 case 2: row[i] = 0.0f; break;
                 case 4: row[i] = (short)-1; break;
                 case 5: row[i] = (byte)-1; break;

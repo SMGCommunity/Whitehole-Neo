@@ -95,63 +95,58 @@ public class GravityObj extends AbstractObj {
         return 0;
     }
     
-    private static List<String> choicesGravityPower = new ArrayList() {{ add("Normal"); add("Light"); add("Heavy"); }};
-    private static List<String> choicesGravityType = new ArrayList() {{ add("Normal"); add("Shadow"); add("Magnet"); }};
-
     @Override
     public void getProperties(PropertyGrid panel) {
         panel.addCategory("obj_rendering", "Rendering");
-        panel.addField("pos_x", "X position", "float", null, position.x, "Default");
-        panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
-        panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
-        panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
-        panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
-        panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
-        panel.addField("scale_x", "X size", "float", null, scale.x, "Default");
-        panel.addField("scale_y", "Y size", "float", null, scale.y, "Default");
-        panel.addField("scale_z", "Z size", "float", null, scale.z, "Default");
-        
-        panel.addCategory("obj_gravity", "Gravity");
-        panel.addField("Range", "Range", "float", null, data.get("Range"), "Default");
-        panel.addField("Distant", "Distance", "float", null, data.get("Distant"), "Default");
-        panel.addField("Priority", "Priority", "int", null, data.get("Priority"), "Default");
-        panel.addField("Inverse", "Inverse", "int", null, data.get("Inverse"), "Default");
-        panel.addField("Power", "Power", "list", choicesGravityPower, data.get("Power"), "Default");
-        panel.addField("Gravity_type", "Type", "list", choicesGravityType, data.get("Gravity_type"), "Default");
-
-        panel.addCategory("obj_args", "Arguments");
-        panel.addField("Obj_arg0", objdbInfo.getParameterName("Obj_arg0"), "int", null, data.get("Obj_arg0"), "Default");
-        panel.addField("Obj_arg1", objdbInfo.getParameterName("Obj_arg1"), "int", null, data.get("Obj_arg1"), "Default");
-        panel.addField("Obj_arg2", objdbInfo.getParameterName("Obj_arg2"), "int", null, data.get("Obj_arg2"), "Default");
-        //panel.addField("Obj_arg3", objdbInfo.getParameterName("Obj_arg3"), "int", null, data.get("Obj_arg3"), "Default");
-        
-        panel.addCategory("obj_switches", "Switches");
-        panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"), "Default");
-        //panel.addField("SW_DEAD", "SW_DEAD", "int", null, data.get("SW_DEAD"), "Default");
-        panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"), "Default");
-        panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"), "Default");
-        
-        if (Whitehole.getCurrentGameType() == 1) {
-            panel.addField("SW_SLEEP", "SW_SLEEP", "int", null, data.get("SW_SLEEP"), "Default");
-        }
-        else {
-            panel.addField("SW_AWAKE", "SW_AWAKE", "int", null, data.get("SW_AWAKE"), "Default");
-        }
+        addField(panel, "pos_x");
+        addField(panel, "pos_y");
+        addField(panel, "pos_z");
+        addField(panel, "dir_x");
+        addField(panel, "dir_y");
+        addField(panel, "dir_z");
+        addField(panel, "scale_x");
+        addField(panel, "scale_y");
+        addField(panel, "scale_z");
         
         panel.addCategory("obj_settings", "Settings");
-        panel.addField("l_id", "ID", "int", null, data.get("l_id"), "Default");
-        panel.addField("CommonPath_ID", "Path ID", "int", null, data.get("CommonPath_ID"), "Default");
-        panel.addField("FollowId", "Follow Gravity ID", "int", null, data.get("FollowId"), "Default");
-        panel.addField("Obj_ID", "Follow Object ID", "int", null, data.get("Obj_ID"), "Default");
-        panel.addField("MapParts_ID", "Follow MapParts ID", "int", null, data.get("MapParts_ID"), "Default");
+        addField(panel, "l_id");
+        addField(panel, "Range");
+        addField(panel, "Distant");
+        addField(panel, "Priority");
+        addField(panel, "Inverse");
+        addField(panel, "Power");
+        addField(panel, "Gravity_type");
+        addField(panel, "CommonPath_ID");
+        addField(panel, "FollowId");
+        addField(panel, "Obj_ID");
+        addField(panel, "MapParts_ID");
         
         if (Whitehole.getCurrentGameType() == 1) {
-            panel.addField("ChildObjId", "Follow Child ID", "int", null, data.get("ChildObjId"), "Default");
+            addField(panel, "ChildObjId");
+        }
+
+        panel.addCategory("obj_args", "Arguments");
+        addField(panel, "Obj_arg0");
+        addField(panel, "Obj_arg1");
+        addField(panel, "Obj_arg2");
+        addField(panel, "Obj_arg3");
+        
+        panel.addCategory("obj_switches", "Switches");
+        addField(panel, "SW_APPEAR");
+        addField(panel, "SW_DEAD");
+        addField(panel, "SW_A");
+        addField(panel, "SW_B");
+        
+        if (Whitehole.getCurrentGameType() == 1) {
+            addField(panel, "SW_SLEEP");
+        }
+        else {
+            addField(panel, "SW_AWAKE");
         }
         
         panel.addCategory("obj_groups", "Groups");
-        panel.addField("GroupId", "Group ID", "int", null, data.get("GroupId"), "Default");
-        panel.addField("ClippingGroupId", "Clipping Group ID", "int", null, data.get("ClippingGroupId"), "Default");
-        panel.addField("DemoGroupId", "Cutscene Group ID", "int", null, data.get("DemoGroupId"), "Default");
+        addField(panel, "GroupId");
+        addField(panel, "ClippingGroupId");
+        addField(panel, "DemoGroupId");
     }
 }

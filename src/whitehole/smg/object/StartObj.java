@@ -64,24 +64,24 @@ public class StartObj extends AbstractObj {
     @Override
     public void getProperties(PropertyGrid panel) {
         panel.addCategory("obj_rendering", "Rendering");
-        panel.addField("pos_x", "X position", "float", null, position.x, "Default");
-        panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
-        panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
-        panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
-        panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
-        panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
-        panel.addField("scale_x", "X size", "float", null, scale.x, "Default");
-        panel.addField("scale_y", "Y size", "float", null, scale.y, "Default");
-        panel.addField("scale_z", "Z size", "float", null, scale.z, "Default");
+        addField(panel, "pos_x");
+        addField(panel, "pos_y");
+        addField(panel, "pos_z");
+        addField(panel, "dir_x");
+        addField(panel, "dir_y");
+        addField(panel, "dir_z");
+        addField(panel, "scale_x");
+        addField(panel, "scale_y");
+        addField(panel, "scale_z");
 
         panel.addCategory("obj_settings", "Settings");
-        panel.addField("Obj_arg0", objdbInfo.getParameterName("Obj_arg0"), "int", null, data.get("Obj_arg0"), "Default");
-        panel.addField("MarioNo", "Spawn ID", "int", null, data.get("MarioNo"), "Default");
-        panel.addField("Camera_id", "Camera ID", "int", null, data.get("Camera_id"), "Default");
+        addField(panel, "Obj_arg0");
+        addField(panel, "MarioNo");
+        addField(panel, "Camera_id");
     }
     
     @Override
     public String toString() {
-        return String.format("Spawn %d <%s>", (int)data.get("MarioNo"), getLayerName());
+        return String.format("Spawn %d <%s>", data.getInt("MarioNo", 0), getLayerName());
     }
 }

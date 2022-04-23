@@ -73,34 +73,38 @@ public class CutsceneObj extends AbstractObj {
     @Override
     public void getProperties(PropertyGrid panel) {
         panel.addCategory("obj_rendering", "Rendering");
-        panel.addField("pos_x", "X position", "float", null, position.x, "Default");
-        panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
-        panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
-        panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
-        panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
-        panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
-        panel.addField("scale_x", "X size", "float", null, scale.x, "Default");
-        panel.addField("scale_y", "Y size", "float", null, scale.y, "Default");
-        panel.addField("scale_z", "Z size", "float", null, scale.z, "Default");
+        addField(panel, "pos_x");
+        addField(panel, "pos_y");
+        addField(panel, "pos_z");
+        addField(panel, "dir_x");
+        addField(panel, "dir_y");
+        addField(panel, "dir_z");
+        addField(panel, "scale_x");
+        addField(panel, "scale_y");
+        addField(panel, "scale_z");
         
         panel.addCategory("obj_switches", "Switches");
-        panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"), "Default");
-        panel.addField("SW_DEAD", "SW_DEAD", "int", null, data.get("SW_DEAD"), "Default");
-        panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"), "Default");
-        panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"), "Default");
+        addField(panel, "SW_APPEAR");
+        addField(panel, "SW_DEAD");
+        addField(panel, "SW_A");
+        addField(panel, "SW_B");
         
         panel.addCategory("obj_settings", "Settings");
-        panel.addField("l_id", "Link ID", "int", null, data.get("l_id"), "Default");  
-        panel.addField("DemoName", "Cutscene Name", "text", null, data.get("DemoName"), "Default");
-        panel.addField("TimeSheetName", "Sheet Name", "text", null, data.get("TimeSheetName"), "Default");
+        addField(panel, "l_id");
+        addField(panel, "DemoName");
+        addField(panel, "TimeSheetName");
         
         if (Whitehole.getCurrentGameType() == 2) {
-            panel.addField("DemoSkip", "Skipable?", "bool", null, (int) data.get("DemoSkip") != -1, "Default");
+            addField(panel, "DemoSkip");
         }
     }
     
     @Override
     public String toString() {
-        return String.format("%s / %s <%s>", (String)data.get("DemoName"), (String)data.get("TimeSheetName"), getLayerName());
+        return String.format("%s / %s <%s>",
+                data.getString("DemoName", "undefined"),
+                data.getString("TimeSheetName", "undefined"),
+                getLayerName()
+        );
     }
 }

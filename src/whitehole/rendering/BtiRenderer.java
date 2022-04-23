@@ -91,11 +91,13 @@ public class BtiRenderer extends GLRenderer {
         int ifmt, fmt;
         
         switch (btiData.format) {
-            case 0, 1:
+            case 0:
+            case 1:
                 ifmt = GL2.GL_INTENSITY;
                 fmt = GL2.GL_LUMINANCE;
                 break;
-            case 2, 3:
+            case 2:
+            case 3:
                 ifmt = GL2.GL_LUMINANCE8_ALPHA8;
                 fmt = GL2.GL_LUMINANCE_ALPHA;
                 break;

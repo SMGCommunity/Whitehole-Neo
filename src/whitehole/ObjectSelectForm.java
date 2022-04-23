@@ -267,7 +267,7 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
             lblDispArchive.setText(info.destArchive());
             lblDispPlacementList.setText(info.destFile(Whitehole.getCurrentGameType()));
             txtDispDescription.setText(info.description());
-            txtDispClassNotes.setText(info.classNotes());
+            txtDispClassNotes.setText(info.classNotes(Whitehole.getCurrentGameType()));
             lblDispIsUnused.setVisible(info.isUnused());
             lblDispIsLeftover.setVisible(info.isLeftover());
         }

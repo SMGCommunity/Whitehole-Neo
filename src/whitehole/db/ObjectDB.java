@@ -80,8 +80,6 @@ public final class ObjectDB {
                 
                 JSONObject rawInfo = objectsRoot.getJSONObject(objname);
                 info.objInfo = rawInfo;
-                // Adjust this for SMG1 in the future
-                info.classInfo = classesRoot.getJSONObject(rawInfo.getString("ClassNameSMG2"));
             }
         }
     }
@@ -171,7 +169,7 @@ public final class ObjectDB {
             return "";
         }
         
-        public String classNotes() {
+        public String classNotes(int game) {
             return "";
         }
         
@@ -208,11 +206,31 @@ public final class ObjectDB {
         }
     }
     
+    private static final JSONObject DUMMY_CLASS = new JSONObject() {{
+        put("InternalName", "");
+        put("Notes", "");
+        put("Games", 0);
+        put("Progress", 0);
+        put("Parameters", new JSONObject());
+    }};
+    
     public static final class ActualInfo extends Info {
-        JSONObject objInfo, classInfo;
+        JSONObject objInfo;
         
         private ActualInfo(String objname) {
             super(objname);
+        }
+        
+        private JSONObject getClassInfo(int game) {
+            JSONObject classes = DATABASE.getJSONObject("Classes");
+            String className = className(game);
+            
+            if (classes.has(className)) {
+                return classes.getJSONObject(className);
+            }
+            else {
+                return DUMMY_CLASS;
+            }
         }
         
         @Override
@@ -236,8 +254,8 @@ public final class ObjectDB {
         }
         
         @Override
-        public String classNotes() {
-            return classInfo.getString("Notes");
+        public String classNotes(int game) {
+            return getClassInfo(game).getString("Notes");
         }
         
         @Override
@@ -277,7 +295,7 @@ public final class ObjectDB {
         
         @Override
         public String getParameterName(String name) {
-            JSONObject parametersRoot = classInfo.getJSONObject("Parameters");
+            JSONObject parametersRoot = getClassInfo(2).getJSONObject("Parameters");
             
             if (parametersRoot.has(name)) {
                 return parametersRoot.getJSONObject(name).getString("Name");
