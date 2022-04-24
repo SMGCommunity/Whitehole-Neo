@@ -16,10 +16,9 @@
  */
 package whitehole.smg.object;
 
-import whitehole.util.PropertyGrid;
-import whitehole.rendering.GLRenderer.RenderInfo;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
+import whitehole.util.PropertyGrid;
 import whitehole.util.Vector3;
 
 public class StageObj extends AbstractObj {
@@ -56,9 +55,6 @@ public class StageObj extends AbstractObj {
         putVector("dir", rotation);
         return 0;
     }
-    
-    @Override
-    public void render(RenderInfo info) {}
     
     @Override
     public void getProperties(PropertyGrid panel) {

@@ -15,7 +15,6 @@
 
 package whitehole.io;
 
-import whitehole.MainFrame;
 import java.io.*;
 import java.util.*;
 public class ExternalFilesystem implements FilesystemBase {

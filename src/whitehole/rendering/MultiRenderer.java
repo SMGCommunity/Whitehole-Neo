@@ -21,10 +21,6 @@ import java.util.List;
 import whitehole.util.Vector3;
 
 public class MultiRenderer extends GLRenderer {
-    private static final Vector3 TRANSLATION = new Vector3(0f, 0f, 0f);
-    private static final Vector3 ROTATION = new Vector3(0f, 0f, 0f);
-    private static final Vector3 SCALE = new Vector3(1f, 1f, 1f);
-    
     public static class MultiRendererInfo {
         String modelName;
         Vector3 position, rotation, scale;
@@ -98,6 +94,8 @@ public class MultiRenderer extends GLRenderer {
             Vector3 rotation = multiInfo.rotation;
             Vector3 scale = multiInfo.scale;
             
+            gl.glPushMatrix();
+            
             gl.glTranslatef(translation.x, translation.y, translation.z);
             gl.glRotatef(rotation.x, 0f, 0f, 1f);
             gl.glRotatef(rotation.y, 0f, 1f, 0f);
@@ -105,6 +103,8 @@ public class MultiRenderer extends GLRenderer {
             gl.glScalef(scale.x, scale.y, scale.z);
             
             multiInfo.renderer.render(info);
+            
+            gl.glPopMatrix();
         }
     }
 }

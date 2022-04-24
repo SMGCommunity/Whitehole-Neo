@@ -15,9 +15,17 @@
 
 package whitehole.smg;
 
+import static com.jogamp.opengl.GL.GL_CLAMP_TO_EDGE;
+import static com.jogamp.opengl.GL.GL_LINEAR;
+import static com.jogamp.opengl.GL.GL_LINEAR_MIPMAP_LINEAR;
+import static com.jogamp.opengl.GL.GL_LINEAR_MIPMAP_NEAREST;
+import static com.jogamp.opengl.GL.GL_MIRRORED_REPEAT;
+import static com.jogamp.opengl.GL.GL_NEAREST;
+import static com.jogamp.opengl.GL.GL_NEAREST_MIPMAP_LINEAR;
+import static com.jogamp.opengl.GL.GL_NEAREST_MIPMAP_NEAREST;
+import static com.jogamp.opengl.GL.GL_REPEAT;
 import java.io.IOException;
 import whitehole.io.FileBase;
-import static com.jogamp.opengl.GL2.*;
 
 public class ImageUtils {
     public enum WrapMode {

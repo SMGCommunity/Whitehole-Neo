@@ -16,9 +16,9 @@
  */
 package whitehole.rendering;
 
-import whitehole.util.Color4;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.glu.*;
+import whitehole.util.Color4;
 
 public class AreaShapeRenderer extends GLRenderer {
     public static enum Shape {

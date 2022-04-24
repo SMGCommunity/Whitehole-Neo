@@ -16,18 +16,18 @@
  */
 package whitehole.smg.object;
 
-import whitehole.util.PropertyGrid;
-import whitehole.rendering.GLRenderer;
-import whitehole.rendering.RendererCache;
-import whitehole.smg.Bcsv;
-import whitehole.smg.StageArchive;
-import whitehole.util.Vector3;
 import com.jogamp.opengl.*;
 import java.util.ArrayList;
 import java.util.List;
 import whitehole.Whitehole;
 import whitehole.db.ObjectDB;
+import whitehole.rendering.GLRenderer;
+import whitehole.rendering.RendererCache;
+import whitehole.smg.Bcsv;
+import whitehole.smg.StageArchive;
 import whitehole.smg.StageHelper;
+import whitehole.util.PropertyGrid;
+import whitehole.util.Vector3;
 
 public abstract class AbstractObj {
     public String name, layerKey, oldName;

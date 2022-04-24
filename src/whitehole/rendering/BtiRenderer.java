@@ -16,6 +16,7 @@
  */
 package whitehole.rendering;
 
+import com.jogamp.opengl.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import whitehole.Whitehole;
@@ -24,7 +25,6 @@ import whitehole.smg.Bti;
 import whitehole.smg.ImageUtils.FilterMode;
 import whitehole.smg.ImageUtils.WrapMode;
 import whitehole.util.Vector3;
-import com.jogamp.opengl.*;
 
 public class BtiRenderer extends GLRenderer {
     private RarcFile archive = null;

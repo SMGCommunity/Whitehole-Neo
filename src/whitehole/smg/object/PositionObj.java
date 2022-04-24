@@ -16,11 +16,11 @@
  */
 package whitehole.smg.object;
 
-import whitehole.util.PropertyGrid;
+import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
+import whitehole.util.PropertyGrid;
 import whitehole.util.Vector3;
-import whitehole.Whitehole;
 
 public class PositionObj extends AbstractObj {
     @Override

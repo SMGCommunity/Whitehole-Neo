@@ -22,7 +22,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 
 public class SettingsForm extends javax.swing.JDialog {
     public SettingsForm(JFrame parent) {
@@ -49,7 +48,6 @@ public class SettingsForm extends javax.swing.JDialog {
         lblControls = new javax.swing.JLabel();
         chkUseDarkMode = new javax.swing.JCheckBox();
         chkDisplaySimpleNameDB = new javax.swing.JCheckBox();
-        chkUseShaders = new javax.swing.JCheckBox();
         chkDebugFakeColor = new javax.swing.JCheckBox();
         chkDebugFastDrag = new javax.swing.JCheckBox();
         chkUseReverseRot = new javax.swing.JCheckBox();
@@ -115,19 +113,6 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkDisplaySimpleNameDB, gridBagConstraints);
-
-        chkUseShaders.setSelected(Settings.getUseShaders());
-        chkUseShaders.setText("Use shaders for 3D rendering");
-        chkUseShaders.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                chkUseShadersItemStateChanged(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-        pnlSettings.add(chkUseShaders, gridBagConstraints);
 
         chkDebugFakeColor.setSelected(Settings.getDebugFakeColor());
         chkDebugFakeColor.setText("[Debug] Render picking colors");
@@ -250,10 +235,6 @@ public class SettingsForm extends javax.swing.JDialog {
         Settings.setDisplaySimpleNameDB(evt.getStateChange() == ItemEvent.SELECTED);
     }//GEN-LAST:event_chkDisplaySimpleNameDBItemStateChanged
 
-    private void chkUseShadersItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseShadersItemStateChanged
-        Settings.setUseShaders(evt.getStateChange() == ItemEvent.SELECTED);
-    }//GEN-LAST:event_chkUseShadersItemStateChanged
-
     private void chkDebugFakeColorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkDebugFakeColorItemStateChanged
         Settings.setDebugFakeColor(evt.getStateChange() == ItemEvent.SELECTED);
     }//GEN-LAST:event_chkDebugFakeColorItemStateChanged
@@ -278,10 +259,7 @@ public class SettingsForm extends javax.swing.JDialog {
 
     private void chkUseDarkModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseDarkModeItemStateChanged
         Settings.setUseDarkMode(evt.getStateChange() == ItemEvent.SELECTED);
-        
-        Whitehole.updateLAF();
-        SwingUtilities.updateComponentTreeUI(this);
-        pack();
+        Whitehole.requestUpdateLAF();
     }//GEN-LAST:event_chkUseDarkModeItemStateChanged
     
     private static class KeybindButton extends JButton {
@@ -335,7 +313,6 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JCheckBox chkDisplaySimpleNameDB;
     private javax.swing.JCheckBox chkUseDarkMode;
     private javax.swing.JCheckBox chkUseReverseRot;
-    private javax.swing.JCheckBox chkUseShaders;
     private javax.swing.JCheckBox chkUseWASD;
     private javax.swing.JLabel lblAppearance;
     private javax.swing.JLabel lblControls;

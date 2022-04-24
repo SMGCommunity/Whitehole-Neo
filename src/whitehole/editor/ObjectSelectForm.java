@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -34,24 +35,20 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
     // -------------------------------------------------------------------------------------------------------------------------
     // Singleton pattern implementation
     
-    private static ObjectSelectForm SINGLETON;
+    private static final ObjectSelectForm SINGLETON = new ObjectSelectForm();
     
     public static boolean openChangeObjectDialog(String objectName) {
-        if (SINGLETON == null) {
-            SINGLETON = new ObjectSelectForm();
-        }
-        
         SINGLETON.showChangeObject(objectName);
         return SINGLETON.validResult;
     }
     
     public static boolean openNewObjectDialog(String objectType, List<String> layerNames) {
-        if (SINGLETON == null) {
-            SINGLETON = new ObjectSelectForm();
-        }
-        
         SINGLETON.showNewObject(objectType, layerNames);
         return SINGLETON.validResult;
+    }
+    
+    public static void requestUpdateLAF() {
+        SwingUtilities.updateComponentTreeUI(SINGLETON);
     }
     
     public static String getResultName() {
@@ -165,7 +162,9 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         }
             
         void sort() {
-            children.sort((n1, n2) -> n1.toString().compareTo(n2.toString()));
+            if (children != null) {
+                children.sort((n1, n2) -> n1.toString().compareTo(n2.toString()));
+            }
         }
     }
     

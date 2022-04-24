@@ -16,19 +16,19 @@
  */
 package whitehole.smg.object;
 
+import com.jogamp.opengl.*;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import whitehole.rendering.CubeRenderer;
 import whitehole.rendering.GLRenderer;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.Color4;
 import whitehole.util.Vector3;
-import java.util.Random;
-import com.jogamp.opengl.*;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import whitehole.rendering.CubeRenderer;
 
 public class PathObj {
     private static final Color4 DUMMY_COLOR = new Color4(0f, 0f, 0f, 0f);

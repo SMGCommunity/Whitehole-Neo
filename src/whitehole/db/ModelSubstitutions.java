@@ -38,8 +38,8 @@ public final class ModelSubstitutions {
         }
     }
     
-    public static String getSubstitutedModelName(String stage) {
-        String key = stage.toLowerCase();
-        return MODEL_SUBSTITUTIONS.optString(key, key);
+    public static String getSubstitutedModelName(String model) {
+        String key = model.toLowerCase();
+        return MODEL_SUBSTITUTIONS.optString(key, model);
     }
 }

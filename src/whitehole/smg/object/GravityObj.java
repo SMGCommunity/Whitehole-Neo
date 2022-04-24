@@ -16,13 +16,11 @@
  */
 package whitehole.smg.object;
 
-import java.util.List;
-import whitehole.util.PropertyGrid;
+import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
+import whitehole.util.PropertyGrid;
 import whitehole.util.Vector3;
-import java.util.ArrayList;
-import whitehole.Whitehole;
 
 public class GravityObj extends AbstractObj {
     @Override

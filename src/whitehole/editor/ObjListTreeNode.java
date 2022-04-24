@@ -124,5 +124,9 @@ public class ObjListTreeNode extends ObjTreeNode {
         return tn;
     }
     
+    public void removeAllChildren() {
+        children.clear();
+    }
+    
     public LinkedHashMap<Integer, ObjTreeNode> children;
 }

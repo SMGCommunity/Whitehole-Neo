@@ -16,46 +16,43 @@
  */
 package whitehole.editor;
 
-import whitehole.util.Vector2;
-import whitehole.util.Vector3;
-import whitehole.util.Matrix4;
-import whitehole.util.RotationMatrix;
-import whitehole.rendering.GLRenderer;
-import whitehole.rendering.GLRenderer.RenderMode;
-import whitehole.rendering.RendererCache;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.*;
-import java.io.*;
-import java.nio.*;
-import java.util.Queue;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
-import com.jogamp.opengl.GLCapabilities;
-import com.jogamp.opengl.GLProfile;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
-import whitehole.smg.Bcsv;
-import whitehole.smg.GalaxyArchive;
-import whitehole.smg.StageArchive;
-import whitehole.smg.object.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.*;
+import java.io.*;
+import java.nio.*;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import whitehole.Settings;
 import whitehole.Whitehole;
+import whitehole.rendering.GLRenderer;
+import whitehole.rendering.GLRenderer.RenderMode;
+import whitehole.rendering.RendererCache;
 import whitehole.rendering.RendererFactory;
+import whitehole.smg.Bcsv;
+import whitehole.smg.GalaxyArchive;
+import whitehole.smg.StageArchive;
+import whitehole.smg.object.*;
 import whitehole.util.CheckBoxList;
+import whitehole.util.Matrix4;
 import whitehole.util.PropertyGrid;
+import whitehole.util.RotationMatrix;
+import whitehole.util.Vector2;
+import whitehole.util.Vector3;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     private static final float SCALE_DOWN = 10000f;
@@ -79,12 +76,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private boolean unsavedChanges = false;
     private int zoneModeLayerBitmask;
     
-    
     // Additional UI
     private CheckBoxList listLayerCheckboxes;
     private JPopupMenu popupAddItems;
     private PropertyGrid pnlObjectSettings;
-    
     
     // Object holders
     private int maxUniqueID = 0;
@@ -96,7 +91,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private final HashMap<String, StageObj> zonePlacements = new HashMap();
     private final HashMap<Integer, TreeNode> treeNodeList = new HashMap();
     
-    
     // Object selection & settings
     private DefaultTreeModel objListModel;
     private final DefaultMutableTreeNode objListRootNode = new DefaultMutableTreeNode("dummy");
@@ -104,7 +98,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private final ObjListTreeNode objListPathRootNode = new ObjListTreeNode("Paths");
     private String addingObject = "";
     private String addingObjectOnLayer = "";
-    
     
     // Rendering
     private GalaxyRenderer renderer;
@@ -221,7 +214,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         isGalaxyMode = false;
         parentForm = gal_parent;
-        zoneEditors = null;
         galaxyName = zone.stageName; // epic hax
         
         zoneArchives = new HashMap(1);
@@ -250,7 +242,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             String ls = String.format("Layer%1$c", (char) ('A' + l));
             if(curZoneArc.objects.containsKey(ls.toLowerCase())) {
                 cblayers[i] = new JCheckBox(ls);
-                if(i == 1) {
+                if(i == 0) {
                     cblayers[i].setSelected(true);
                     zoneModeLayerBitmask |= (1 << l);
                 }
@@ -375,6 +367,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         glCanvas.requestFocusInWindow();
     }
     
+    public void requestUpdateLAF() {
+        SwingUtilities.updateComponentTreeUI(this);
+        SwingUtilities.updateComponentTreeUI(pnlObjectSettings);
+        SwingUtilities.updateComponentTreeUI(popupAddItems);
+        
+        // Does not affect the actual checkboxes yet... Investigate this.
+        if (listLayerCheckboxes != null) {
+            SwingUtilities.updateComponentTreeUI(listLayerCheckboxes);
+        }
+        
+        for (GalaxyEditorForm subEditor : zoneEditors.values()) {
+            subEditor.requestUpdateLAF();
+        }
+    }
+    
     // -------------------------------------------------------------------------------------------------------------------------
     // Zone loading and saving
     
@@ -400,6 +407,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             else {
                 for (AbstractObj obj : layers) {
+                    globalObjList.put(obj.uniqueID, obj);
+                }
+            }
+        }
+        
+        // Populate zone objects and assign their maxUniqueIDs
+        for (List<StageObj> layers : arc.zones.values()) {
+            if (isGalaxyMode) {
+                for (StageObj obj : layers) {
+                    obj.uniqueID = maxUniqueID;
+                    globalObjList.put(maxUniqueID++, obj);
+                }
+            }
+            else {
+                for (StageObj obj : layers) {
                     globalObjList.put(obj.uniqueID, obj);
                 }
             }
@@ -470,6 +492,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         objListTreeNodes.put("areaobjinfo", new ObjListTreeNode("Areas"));
         objListTreeNodes.put("cameracubeinfo", new ObjListTreeNode("Cameras"));
         
+        /*if (Whitehole.getCurrentGameType() == 2) {
+            objListTreeNodes.put("design_areaobjinfo", new ObjListTreeNode("Light Areas"));
+            objListTreeNodes.put("sound_areaobjinfo", new ObjListTreeNode("Sound Areas"));
+            objListTreeNodes.put("sound_objinfo", new ObjListTreeNode("Sound Objects"));
+        }*/
+        
         if (Whitehole.getCurrentGameType() == 1) {
             objListTreeNodes.put("soundinfo", new ObjListTreeNode("Sounds"));
         }
@@ -496,6 +524,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             ObjListTreeNode node = entry.getValue();
+            node.removeAllChildren();
             objListRootNode.add(node);
             
             for (List<AbstractObj> layer : curZoneArc.objects.values()) {
@@ -505,12 +534,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     if (!obj.layerKey.equals("common")) {
                         int layerID = obj.layerKey.charAt(5) - 'a';
-                        
+
                         if ((layerMask & (1 << layerID)) == 0) {
                             continue;
                         }
                     }
-                    
+
                     ObjTreeNode objnode = node.addObject(obj);
                     treeNodeList.put(obj.uniqueID, objnode);
                 }
@@ -1995,9 +2024,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         newobj.data.put("MapParts_ID", obj.data.get("MapParts_ID"));
         newobj.data.put("MessageId", obj.data.get("MessageId"));
         
-        if(StageArchive.game == 1)
+        if(Whitehole.getCurrentGameType() == 1)
             newobj.data.put("SW_SLEEP", obj.data.get("SW_SLEEP"));
-        if(StageArchive.game == 2) {
+        if(Whitehole.getCurrentGameType() == 2) {
             newobj.data.put("SW_AWAKE", obj.data.get("SW_AWAKE"));
             newobj.data.put("SW_PARAM", obj.data.get("SW_PARAM"));
             newobj.data.put("ParamScale", obj.data.get("ParamScale"));
@@ -2202,8 +2231,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 rerenderTasks.add(String.format("path:%1$d", selectedPathPoint.path.uniqueID));
                 rerenderTasks.add("zone:"+selectedPathPoint.path.stage.stageName);
             } else {
-                if(selectedObj instanceof StageObj)
-                    return;
+                //if(selectedObj instanceof StageObj)
+                //    return;
                 
                 addUndoEntry("changeObj", selectedObj);
                 
@@ -2422,11 +2451,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             newobj = null;
             
             switch(objtype) {
-                case "objinfo": newobj = new LevelObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "objinfo":
+                case "sound_objinfo":
+                    newobj = new LevelObj(curZoneArc, addingObjectOnLayer, objname, position); break;
                 case "mappartsinfo": newobj = new MapPartObj(curZoneArc, addingObjectOnLayer, objname, position); break;
                 case "childobjinfo": newobj = new ChildObj(curZoneArc, addingObjectOnLayer, objname, position); break;
                 case "planetobjinfo": newobj = new GravityObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "areaobjinfo": newobj = new AreaObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "areaobjinfo":
+                case "sound_areaobjinfo":
+                case "design_areaobjinfo":
+                    newobj = new AreaObj(curZoneArc, addingObjectOnLayer, objname, position); break;
                 case "cameracubeinfo": newobj = new CameraObj(curZoneArc, addingObjectOnLayer, objname, position); break;
                 case "soundinfo": newobj = new SoundObj(curZoneArc, addingObjectOnLayer, position); break;
                 case "startinfo": newobj = new StartObj(curZoneArc, addingObjectOnLayer, position); break;
@@ -2867,9 +2901,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             // Also, zones. Not finished, though
-            else if(selectedObj instanceof StageObj) {
+            /*else if(selectedObj instanceof StageObj) {
                 // todo
-            }
+            }*/
             
             // Any other object
             else {
@@ -2945,8 +2979,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
                     if(propname.startsWith("scale_") && selectedObj.renderer.hasSpecialScaling())
                         rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
-
-                    rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                    
+                    if (selectedObj instanceof StageObj) {
+                        rerenderTasks.add("zone:"+selectedObj.name);
+                    }
+                    else {
+                        rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                    }
                     glCanvas.repaint();
                 }
                 else if(propname.equals("DemoSkip")) {
@@ -3327,9 +3366,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 for(StageObj subzone : zoneArchives.get(zone).zones.get("common")) {
                     gl.glPushMatrix();
                     gl.glTranslatef(subzone.position.x, subzone.position.y, subzone.position.z);
-                    gl.glRotatef(subzone.rotation.x, 0f, 0f, 1f);
+                    gl.glRotatef(subzone.rotation.z, 0f, 0f, 1f);
                     gl.glRotatef(subzone.rotation.y, 0f, 1f, 0f);
-                    gl.glRotatef(subzone.rotation.z, 1f, 0f, 0f);
+                    gl.glRotatef(subzone.rotation.x, 1f, 0f, 0f);
 
                     String zonename = subzone.name;
                     renderZone(gl, scenario, zonename,(int)scenario.get(zonename), level + 1);
@@ -3342,9 +3381,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         for(StageObj subzone : zoneArchives.get(zone).zones.get("layer" + alphabet.charAt(l))) {
                             gl.glPushMatrix();
                             gl.glTranslatef(subzone.position.x, subzone.position.y, subzone.position.z);
-                            gl.glRotatef(subzone.rotation.x, 0f, 0f, 1f);
+                            gl.glRotatef(subzone.rotation.z, 0f, 0f, 1f);
                             gl.glRotatef(subzone.rotation.y, 0f, 1f, 0f);
-                            gl.glRotatef(subzone.rotation.z, 1f, 0f, 0f);
+                            gl.glRotatef(subzone.rotation.x, 1f, 0f, 0f);
 
                             String zonename = subzone.name;
                             renderZone(gl, scenario, zonename,(int)scenario.get(zonename), level + 1);

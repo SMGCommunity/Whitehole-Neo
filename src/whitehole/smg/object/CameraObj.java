@@ -17,9 +17,9 @@
 package whitehole.smg.object;
 
 import whitehole.Whitehole;
-import whitehole.util.PropertyGrid;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
+import whitehole.util.PropertyGrid;
 import whitehole.util.Vector3;
 
 public class CameraObj extends AbstractObj {

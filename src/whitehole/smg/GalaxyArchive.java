@@ -15,10 +15,10 @@
 
 package whitehole.smg;
 
-import whitehole.io.RarcFile;
-import whitehole.io.FilesystemBase;
-import java.util.*;
 import java.io.*;
+import java.util.*;
+import whitehole.io.FilesystemBase;
+import whitehole.io.RarcFile;
 
 public class GalaxyArchive {
     public GalaxyArchive(GameArchive arc, String name) throws IOException {

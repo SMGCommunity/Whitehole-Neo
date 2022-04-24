@@ -16,13 +16,13 @@
  */
 package whitehole.editor;
 
-import whitehole.io.FilesystemBase;
-import whitehole.io.RarcFile;
 import java.io.IOException;
 import java.util.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.*;
 import whitehole.Whitehole;
+import whitehole.io.FilesystemBase;
+import whitehole.io.RarcFile;
 import whitehole.smg.Bcsv;
 import whitehole.util.TableColumnAdjuster;
 
@@ -36,8 +36,6 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         initComponents();
         tableModel = (DefaultTableModel)tblBcsv.getModel();
         adjuster = new TableColumnAdjuster(tblBcsv);
-        toggleShortcutVisibility();
-        
         tblBcsv.setAutoCreateRowSorter(true);
     }
     
@@ -46,6 +44,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             tbArchiveName.setText("/StageData/CocoonExGalaxy/CocoonExGalaxyScenario.arc");
             tbFileName.setText("/CocoonExGalaxyScenario/ScenarioData.bcsv");
             
+            sep1.setVisible(false);
             mnuUseResource.setVisible(false);
             mnuAudio.setVisible(false);
             mnuSystem.setVisible(false);
@@ -65,6 +64,12 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             
             subAstroNamePlateData.setVisible(false);
         }
+    }
+    
+    @Override
+    public void setVisible(boolean state) {
+        super.setVisible(state);
+        toggleShortcutVisibility();
     }
     
     private String getTextInput(String text) {
@@ -225,11 +230,11 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         subScenarioData = new javax.swing.JMenuItem();
         subZoneList = new javax.swing.JMenuItem();
         subGalaxyInfo = new javax.swing.JMenuItem();
-        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        sep1 = new javax.swing.JPopupMenu.Separator();
         subCameraParam = new javax.swing.JMenuItem();
         subLightDataZone = new javax.swing.JMenuItem();
         subLightData = new javax.swing.JMenuItem();
-        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        sep2 = new javax.swing.JPopupMenu.Separator();
         mnuUseResource = new javax.swing.JMenu();
         subURcommon = new javax.swing.JMenuItem();
         subUR1 = new javax.swing.JMenuItem();
@@ -262,6 +267,10 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         subTicoFatCoin = new javax.swing.JMenuItem();
         subTicoShop = new javax.swing.JMenuItem();
         subTicoShopDice = new javax.swing.JMenuItem();
+        sep3 = new javax.swing.JPopupMenu.Separator();
+        mniObjectInfluenceTable = new javax.swing.JMenuItem();
+        mniRushInfluenceTable = new javax.swing.JMenuItem();
+        mniMorphConditionTable = new javax.swing.JMenuItem();
         subAstroNamePlateData = new javax.swing.JMenuItem();
         subWorldMapCamera = new javax.swing.JMenuItem();
         mnuSystem = new javax.swing.JMenu();
@@ -457,7 +466,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             }
         });
         mnuStages.add(subGalaxyInfo);
-        mnuStages.add(jSeparator1);
+        mnuStages.add(sep1);
 
         subCameraParam.setText("Camera");
         subCameraParam.setToolTipText("");
@@ -483,7 +492,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             }
         });
         mnuStages.add(subLightData);
-        mnuStages.add(jSeparator2);
+        mnuStages.add(sep2);
 
         mnuUseResource.setText("UseResource");
 
@@ -728,6 +737,31 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         mnuNPCData.add(subTicoShopDice);
 
         mnuObjects.add(mnuNPCData);
+        mnuObjects.add(sep3);
+
+        mniObjectInfluenceTable.setText("ObjectInfluenceTable");
+        mniObjectInfluenceTable.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mniObjectInfluenceTableActionPerformed(evt);
+            }
+        });
+        mnuObjects.add(mniObjectInfluenceTable);
+
+        mniRushInfluenceTable.setText("RushInfluenceTable");
+        mniRushInfluenceTable.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mniRushInfluenceTableActionPerformed(evt);
+            }
+        });
+        mnuObjects.add(mniRushInfluenceTable);
+
+        mniMorphConditionTable.setText("MorphConditionTable");
+        mniMorphConditionTable.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mniMorphConditionTableActionPerformed(evt);
+            }
+        });
+        mnuObjects.add(mniMorphConditionTable);
 
         subAstroNamePlateData.setText("AstroNamePlateData");
         subAstroNamePlateData.addActionListener(new java.awt.event.ActionListener() {
@@ -1258,6 +1292,18 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         handleUseResourceShortcut("sound_scenario_3.bcsv");
     }//GEN-LAST:event_subURsound3ActionPerformed
 
+    private void mniObjectInfluenceTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniObjectInfluenceTableActionPerformed
+        handleShortcut("/ObjectData/MarioConst.arc", "/MarioConst/ActorInfo/ObjectInfluenceTable.bcsv");
+    }//GEN-LAST:event_mniObjectInfluenceTableActionPerformed
+
+    private void mniRushInfluenceTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniRushInfluenceTableActionPerformed
+        handleShortcut("/ObjectData/MarioConst.arc", "/MarioConst/ActorInfo/RushInfluenceTable.bcsv");
+    }//GEN-LAST:event_mniRushInfluenceTableActionPerformed
+
+    private void mniMorphConditionTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniMorphConditionTableActionPerformed
+        handleShortcut("/ObjectData/MarioConst.arc", "/MarioConst/ActorInfo/MorphConditionTable.bcsv");
+    }//GEN-LAST:event_mniMorphConditionTableActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public javax.swing.JButton btnAddRow;
     private javax.swing.JButton btnClear;
@@ -1267,11 +1313,12 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private javax.swing.JButton btnSave;
     private javax.swing.Box.Filler filler1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JPopupMenu.Separator jSeparator1;
-    private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JLabel lblArchive;
     private javax.swing.JLabel lblFile;
     private javax.swing.JMenuBar menubar;
+    private javax.swing.JMenuItem mniMorphConditionTable;
+    private javax.swing.JMenuItem mniObjectInfluenceTable;
+    private javax.swing.JMenuItem mniRushInfluenceTable;
     private javax.swing.JMenu mnuAudio;
     private javax.swing.JMenu mnuEffects;
     private javax.swing.JMenu mnuFile;
@@ -1281,6 +1328,9 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private javax.swing.JMenu mnuStages;
     private javax.swing.JMenu mnuSystem;
     private javax.swing.JMenu mnuUseResource;
+    private javax.swing.JPopupMenu.Separator sep1;
+    private javax.swing.JPopupMenu.Separator sep2;
+    private javax.swing.JPopupMenu.Separator sep3;
     private javax.swing.JToolBar.Separator spr2;
     private javax.swing.JToolBar.Separator spr3;
     private javax.swing.JToolBar.Separator spr5;

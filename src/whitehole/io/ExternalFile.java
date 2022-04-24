@@ -20,8 +20,6 @@ import java.io.*;
 import java.nio.*;
 import java.nio.charset.*;
 
-import java.io.IOException;
-
 public class ExternalFile implements FileBase {
     private final RandomAccessFile file;
     private boolean isBigEndian;

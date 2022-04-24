@@ -16,18 +16,19 @@
  */
 package whitehole;
 
-import whitehole.editor.GalaxyEditorForm;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
+import javax.swing.*;
+import whitehole.db.GalaxyNames;
 import whitehole.editor.BcsvEditorForm;
+import whitehole.editor.GalaxyEditorForm;
+import whitehole.editor.ObjectSelectForm;
+import whitehole.io.ExternalFilesystem;
 import whitehole.rendering.RendererCache;
 import whitehole.rendering.ShaderCache;
 import whitehole.rendering.TextureCache;
-import whitehole.db.GalaxyNames;
-import whitehole.io.ExternalFilesystem;
 import whitehole.smg.GameArchive;
-import javax.swing.*;
-import java.io.*;
-import java.util.*;
-import java.awt.event.*;
 
 public final class MainFrame extends javax.swing.JFrame {
     private static class GalaxyListItem {
@@ -50,10 +51,17 @@ public final class MainFrame extends javax.swing.JFrame {
     private final DefaultListModel<GalaxyListItem> galaxyItems;
     private String currentGalaxy = null;
     private GalaxyEditorForm galaxyEditor = null;
+    private final BcsvEditorForm bcsvEditor;
+    private final AboutForm aboutDialog;
+    private final SettingsForm settingsDialog;
     
     public MainFrame() {
         initComponents();
         galaxyItems = (DefaultListModel)(listGalaxy.getModel());
+        
+        bcsvEditor = new BcsvEditorForm();
+        aboutDialog = new AboutForm(this);
+        settingsDialog = new SettingsForm(this);
     }
     
     private void openGameDir(String gameDir) {
@@ -118,6 +126,20 @@ public final class MainFrame extends javax.swing.JFrame {
         currentGalaxy = galaxy.identifier;
         galaxyEditor = new GalaxyEditorForm(currentGalaxy);
         galaxyEditor.setVisible(true);
+    }
+    
+    public void requestUpdateLAF() {
+        SwingUtilities.updateComponentTreeUI(this);
+        
+        if (galaxyEditor != null) {
+            galaxyEditor.requestUpdateLAF();
+        }
+        
+        SwingUtilities.updateComponentTreeUI(bcsvEditor);
+        SwingUtilities.updateComponentTreeUI(aboutDialog);
+        SwingUtilities.updateComponentTreeUI(settingsDialog);
+        
+        ObjectSelectForm.requestUpdateLAF();
     }
     
     @SuppressWarnings("unchecked")
@@ -286,15 +308,21 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnOpenGalaxyActionPerformed
 
     private void btnBcsvEditorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBcsvEditorActionPerformed
-        new BcsvEditorForm().setVisible(true);
+        if (!bcsvEditor.isVisible()) {
+            bcsvEditor.setVisible(true);
+        }
     }//GEN-LAST:event_btnBcsvEditorActionPerformed
 
     private void btnSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSettingsActionPerformed
-        new SettingsForm(this).setVisible(true);
+        if (!settingsDialog.isVisible()) {
+            settingsDialog.setVisible(true);
+        }
     }//GEN-LAST:event_btnSettingsActionPerformed
 
     private void btnAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAboutActionPerformed
-        new AboutForm().setVisible(true);
+        if (!aboutDialog.isVisible()) {
+            aboutDialog.setVisible(true);
+        }
     }//GEN-LAST:event_btnAboutActionPerformed
 
     private void listGalaxyMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listGalaxyMouseClicked

@@ -16,8 +16,8 @@
  */
 package whitehole.rendering;
 
-import whitehole.util.Color4;
 import com.jogamp.opengl.*;
+import whitehole.util.Color4;
 
 public class CubeRenderer extends GLRenderer {
     private float cubeSize;

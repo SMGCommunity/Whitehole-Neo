@@ -15,6 +15,7 @@
 
 package whitehole.rendering.outdated;
 
+import com.jogamp.opengl.GL2;
 import whitehole.rendering.AreaShapeRenderer;
 import whitehole.rendering.AreaShapeRenderer.Shape;
 import whitehole.rendering.BmdRenderer;
@@ -22,7 +23,6 @@ import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderInfo;
 import whitehole.util.Color4;
 import whitehole.util.Vector3;
-import com.jogamp.opengl.GL2;
 
 public class BlackHoleRenderer extends GLRenderer {
     public BlackHoleRenderer(RenderInfo info, int arg0, Vector3 areascale, Shape shape, boolean area) {

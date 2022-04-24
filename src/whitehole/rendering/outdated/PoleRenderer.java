@@ -15,10 +15,10 @@
 
 package whitehole.rendering.outdated;
 
+import com.jogamp.opengl.*;
 import java.io.IOException;
 import whitehole.rendering.BmdRenderer;
 import whitehole.util.Vector3;
-import com.jogamp.opengl.*;
 
 public class PoleRenderer extends BmdRenderer {
     public PoleRenderer(RenderInfo info, Vector3 scale, String type) throws IOException {

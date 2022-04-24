@@ -16,24 +16,22 @@
  */
 package whitehole.rendering;
 
-import whitehole.smg.Bmd;
-import whitehole.smg.Bva;
-import whitehole.util.Vector3;
-import whitehole.util.Vector2;
-import whitehole.util.Color4;
-import whitehole.util.Matrix4;
-import whitehole.Settings;
-import whitehole.Whitehole;
-import whitehole.util.SuperFastHash;
-import whitehole.io.RarcFile;
-import whitehole.smg.ImageUtils.FilterMode;
-import whitehole.smg.ImageUtils.WrapMode;
+import com.jogamp.opengl.*;
 import java.io.IOException;
 import java.nio.*;
 import java.nio.charset.Charset;
 import java.util.Locale;
-import com.jogamp.opengl.*;
-import whitehole.io.FilesystemBase;
+import whitehole.Whitehole;
+import whitehole.io.RarcFile;
+import whitehole.smg.Bmd;
+import whitehole.smg.Bva;
+import whitehole.smg.ImageUtils.FilterMode;
+import whitehole.smg.ImageUtils.WrapMode;
+import whitehole.util.Color4;
+import whitehole.util.Matrix4;
+import whitehole.util.SuperFastHash;
+import whitehole.util.Vector2;
+import whitehole.util.Vector3;
 
 public class BmdRenderer extends GLRenderer {
     private void uploadTexture(GL2 gl, int id) {
@@ -483,6 +481,9 @@ public class BmdRenderer extends GLRenderer {
     protected Shader[] shaders = null;
     protected int[] textures = null;
     protected boolean hasShaders = false;
+    protected Vector3 translation = TRANSLATION;
+    protected Vector3 rotation = ROTATION;
+    protected Vector3 scale = SCALE;
     
     public BmdRenderer() {
         
@@ -502,7 +503,7 @@ public class BmdRenderer extends GLRenderer {
         }
     }
     
-    public boolean isValidBmdModel() {
+    public final boolean isValidBmdModel() {
         return model != null;
     }
     
@@ -568,7 +569,6 @@ public class BmdRenderer extends GLRenderer {
             extensions.contains("GL_ARB_shader_objects") &&
             extensions.contains("GL_ARB_vertex_shader") &&
             extensions.contains("GL_ARB_fragment_shader");
-        hasShaders = hasShaders && Settings.getUseShaders();
 
         textures = new int[model.textures.length];
         for(int i = 0; i < model.textures.length; i++)
@@ -702,6 +702,14 @@ public class BmdRenderer extends GLRenderer {
         
         if(model == null)
             return;
+        
+        gl.glPushMatrix();
+            
+        gl.glTranslatef(translation.x, translation.y, translation.z);
+        gl.glRotatef(rotation.x, 0f, 0f, 1f);
+        gl.glRotatef(rotation.y, 0f, 1f, 0f);
+        gl.glRotatef(rotation.z, 1f, 0f, 0f);
+        gl.glScalef(scale.x, scale.y, scale.z);
         
         for(Bmd.SceneGraphNode node : model.sceneGraph) {
             if(node.nodeType != 0) continue;
@@ -923,6 +931,8 @@ public class BmdRenderer extends GLRenderer {
                 }
             }
         }
+        
+        gl.glPopMatrix();
     }
     
     protected class Shader {

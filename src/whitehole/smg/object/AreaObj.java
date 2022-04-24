@@ -16,15 +16,23 @@
  */
 package whitehole.smg.object;
 
-import whitehole.util.PropertyGrid;
+import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
+import whitehole.util.PropertyGrid;
 import whitehole.util.Vector3;
-import whitehole.Whitehole;
 
 public class AreaObj extends AbstractObj {
     @Override
     public String getFileType() {
+        if (Whitehole.getCurrentGameType() == 2) {
+            String archive = objdbInfo.destArchive().toLowerCase();
+            
+            if (!archive.equals("map")) {
+                return archive + "_areaobjinfo";
+            }
+        }
+        
         return "areaobjinfo";
     }
     

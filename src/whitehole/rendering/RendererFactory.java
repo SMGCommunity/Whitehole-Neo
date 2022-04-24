@@ -31,6 +31,7 @@ import whitehole.smg.object.DebugObj;
 import whitehole.smg.object.GravityObj;
 import whitehole.smg.object.PositionObj;
 import whitehole.smg.object.SoundObj;
+import whitehole.smg.object.StageObj;
 import whitehole.util.Color4;
 import whitehole.util.Vector3;
 
@@ -112,7 +113,7 @@ public final class RendererFactory {
     }
     
     public static String getSubstitutedModelName(String objModelName, AbstractObj obj) {
-        objModelName = objModelName.toLowerCase();
+        String lowerObjModelName = objModelName.toLowerCase();
         
         // Areas and Cameras do not use models, but we can process their model keys already
         if (obj instanceof AreaObj) {
@@ -122,16 +123,16 @@ public final class RendererFactory {
             return String.format("cameraobj_%s", getAreaShapeModelName(obj));
         }
         // Some objects are programmed to load an indexed model
-        else if (Arrays.binarySearch(SHAPE_MODEL_COMPATIBILITY, objModelName) >= 0) {
+        else if (Arrays.binarySearch(SHAPE_MODEL_COMPATIBILITY, lowerObjModelName) >= 0) {
             int shapeModelNo = obj.data.getShort("ShapeModelNo", (short)-1);
             return String.format("%s%02d", objModelName, shapeModelNo);
         }
         
-        switch(objModelName) {
+        switch(lowerObjModelName) {
             case "clipareaboxbottomhighmodel":
-                return "clipareaboxbottom";
+                return "ClipAreaBoxBottom";
             case "clipareaboxcenterhighmodel":
-                return "clipareaboxcenter";
+                return "ClipAreaBoxCenter";
         }
         
         return ModelSubstitutions.getSubstitutedModelName(objModelName);
@@ -141,6 +142,8 @@ public final class RendererFactory {
     // Cache key substitution
     
     public static String getSubstitutedCacheKey(String objModelName, AbstractObj obj) {
+        objModelName = objModelName.toLowerCase();
+
         // Their cache keys match their objModelName that was created by getSubstitutedModelName
         if (obj instanceof AreaObj || obj instanceof CameraObj) {
             return objModelName;
@@ -162,6 +165,9 @@ public final class RendererFactory {
         }
         else if (obj instanceof SoundObj) {
             return "soundobj";
+        }
+        else if (obj instanceof StageObj) {
+            return "stageobj";
         }
         
         String cacheKey = String.format("object_%s", objModelName);
@@ -234,7 +240,13 @@ public final class RendererFactory {
         }
         
         // Try to create a sole model
-        return tryCreateBmdRenderer(info, objModelName);
+        renderer = tryCreateBmdRenderer(info, objModelName);
+        
+        if (renderer instanceof BmdRenderer) {
+            tryOffsetBmdRenderer((BmdRenderer)renderer, objModelName, obj);
+        }
+        
+        return renderer;
     }
     
     private static GLRenderer tryCreateRendererForObjectType(GLRenderer.RenderInfo info, String objModelName, AbstractObj obj) {
@@ -310,25 +322,25 @@ public final class RendererFactory {
     
     private static GLRenderer tryCreateBtiRenderer(GLRenderer.RenderInfo info, String btiName, AbstractObj obj) {
         switch(btiName) {
-            case "flag":
+            case "Flag":
                 return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
-            case "flagracea":
+            case "FlagRaceA":
                 return tryCreateBtiRenderer(info, btiName, new Vector3(0f,75f,0f), new Vector3(0f,-75f,300f), true);
-            case "flagsurfing":
+            case "FlagSurfing":
                 return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
-            case "flagtamakoro":
+            case "FlagTamakoro":
                 return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
-            case "flagpeachcastlea":
+            case "FlagPeachCastleA":
                 return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
-            case "flagpeachcastleb":
+            case "FlagPeachCastleB":
                 return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
-            case "flagpeachcastlec":
+            case "FlagPeachCastleC":
                 return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
-            case "flagkoopaa":
+            case "FlagKoopaA":
                 return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
-            case "flagkoopab":
+            case "FlagKoopaB":
                 return tryCreateBtiRenderer(info, btiName, new Vector3(0f,75f,0f), new Vector3(0f,-75f,600f), true);
-            case "flagkoopacastle":
+            case "FlagKoopaCastle":
                 return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
         }
         
@@ -337,125 +349,166 @@ public final class RendererFactory {
     
     private static GLRenderer tryCreateRendererWithMulti(GLRenderer.RenderInfo info, String objModelName, AbstractObj obj) {
         switch(objModelName) {
-            case "begomanspike": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("BegomanSpike"),
-                    new MultiRendererInfo("BegomanSpikeHead")
-            );
-            case "redblueturnblock": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("RedBlueTurnBlock"),
-                    new MultiRendererInfo("RedBlueTurnBlockBase")
-            );
-            case "patakuri": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("Kuribo"),
-                    new MultiRendererInfo("PatakuriWing", new Vector3(0f,15f,-25f))
-            );
-            case "patakuribig": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("KuriboChief"),
-                    new MultiRendererInfo("PatakuriWingBig", new Vector3(0f,750f,200f), new Vector3(0f,90f,0f))
-            );
-            case "nyoropon": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("NyoroponBody"),
-                    new MultiRendererInfo("NyoroponHead", new Vector3(0f,500f,0f), new Vector3(90f,0f,0f))
-            );
-            case "grapyon": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("GrapyonBody"),
-                    new MultiRendererInfo("GrapyonHead", new Vector3(0f,80f,0f), new Vector3(0f,0f,0f))
-            );
-            case "straytico": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("StrayTico"),
-                    new MultiRendererInfo("ItemBubble")
-            );
-            case "hammerheadpackun": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("PackunFlower"),
-                    new MultiRendererInfo("PackunLeaf")
-            );
-            case "hammerheadpackunspike": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("PackunFlowerSpike"),
-                    new MultiRendererInfo("PackunLeafSpike")
-            );
-            case "cocosambo": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("CocoSamboBody"),
-                    new MultiRendererInfo("CocoSamboHead", new Vector3(0f,325f,0f))
-            );
-            case "kiraira": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("Kiraira", new Vector3(0f,50f,0f)),
-                    new MultiRendererInfo("KirairaChain", new Vector3(0f,-160f,0f)),
-                    new MultiRendererInfo("KirairaFixPointBottom", new Vector3(0f,-15f,0f))
-            );
-            case "torpedo": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("Torpedo"),
-                    new MultiRendererInfo("TorpedoPropeller")
-            );
-            case "begomanspring":
-            case "begomanspringhide": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("BegomanSpring"),
-                    new MultiRendererInfo("BegomanSpringHead")
-            );
-            case "jumpbeamer": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("JumpBeamerBody"),
-                    new MultiRendererInfo("JumpBeamerHead")
-            );
-            case "jumpguarder": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("JumpGuarder"),
-                    new MultiRendererInfo("JumpGuarderHeader")
-            );
-            case "gliderbazooka":
-            case "glidershooter":
-            case "killershooter": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("MogucchiSpike"),
-                    new MultiRendererInfo("GliderBazooka")
-            );
-            case "waterbazooka": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("WaterBazooka"),
-                    new MultiRendererInfo("WaterBazookaCapsule", new Vector3(0f, 475f, 0f)),
-                    new MultiRendererInfo("MogucchiShooter", new Vector3(0f,-160f,0f))
-            );
-            case "electricbazooka": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("ElectricBazooka"),
-                    new MultiRendererInfo("WaterBazookaCapsule", new Vector3(0f, 475f, 0f)),
-                    new MultiRendererInfo("MogucchiShooter", new Vector3(0f,-160f,0f))
-            );
-            case "dinopackun":
-            case "dinopackunvs1": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("DinoPackun"),
-                    new MultiRendererInfo("DinoPackunTailBall", new Vector3(0f,150f,-750f), new Vector3(0f,90f,0f))
-            );
-            case "dinopackunvs2": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("DinoPackun2"),
-                    new MultiRendererInfo("DinoPackunTailBall", new Vector3(0f,150f,-750f), new Vector3(0f,90f,0f))
-            );
-            case "bossbegoman": return tryCreateMultiRenderer(info,
+            // Boss
+            case "BossBegoman": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("BossBegoman"),
                     new MultiRendererInfo("BossBegomanHead")
             );
-            case "bossjugem": return tryCreateMultiRenderer(info,
+            case "BossJugem": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("BossJugem"),
                     new MultiRendererInfo("BossJugemCloud")
             );
-            case "koopajrrobot": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("KoopaJrRobot"),
-                    new MultiRendererInfo("KoopaJrRobotPod", new Vector3(0f,1000f,0f))
+            case "DinoPackun":
+            case "DinoPackunVs1": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("DinoPackun"),
+                    new MultiRendererInfo("DinoPackunTailBall", new Vector3(0f, 150f, -750f), new Vector3(0f, 90f, 0f))
             );
-            case "koopajrcastle": return tryCreateMultiRenderer(info,
+            case "DinoPackunVs2": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("DinoPackun2"),
+                    new MultiRendererInfo("DinoPackunTailBall", new Vector3(0f, 150f, -750f), new Vector3(0f, 90f, 0f))
+            );
+            case "KoopaJrCastle": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("KoopaJrCastleBody"),
-                    new MultiRendererInfo("KoopaJrCastleHead", new Vector3(0f,2750f,0f)),
-                    new MultiRendererInfo("KoopaJrCastleCapsule", new Vector3(0f,700f,0f))
+                    new MultiRendererInfo("KoopaJrCastleHead", new Vector3(0f, 2750f, 0f)),
+                    new MultiRendererInfo("KoopaJrCastleCapsule", new Vector3(0f, 3475f, 0f))
             );
-            case "otarocktank": return tryCreateMultiRenderer(info,
+            case "KoopaJrCastleWindUp": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("Fan"),
+                    new MultiRendererInfo("FanWind")
+            );
+            case "KoopaJrRobot": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("KoopaJrRobot"),
+                    new MultiRendererInfo("KoopaJrRobotPod", new Vector3(0f, 1000f, 0f))
+            );
+            case "OtaRockTank": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("OtaRockTank"),
                     new MultiRendererInfo("OtaRockChief", new Vector3(0f, 500f, 0f))
             );
-            case "tombspider": return tryCreateMultiRenderer(info,
+            case "SkeletalFishBoss": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("SkeletalFishBoss"),
+                    new MultiRendererInfo("SkeletalFishBossHeadA")
+            );
+            case "TombSpider": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("TombSpider"),
                     new MultiRendererInfo("TombSpiderPlanet")
             );
-            case "skeletalfishboss": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("SkeletalFishBoss"),
-                    new MultiRendererInfo("SkeletalFishBossHeadA")
+            
+            // Enemy
+            case "CocoSambo": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("CocoSamboBody"),
+                    new MultiRendererInfo("CocoSamboHead", new Vector3(0f, 325f ,0f))
+            );
+            case "BegomanSpike": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("BegomanSpike"),
+                    new MultiRendererInfo("BegomanSpikeHead")
+            );
+            case "BegomanSpring":
+            case "BegomanSpringHide": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("BegomanSpring"),
+                    new MultiRendererInfo("BegomanSpringHead")
+            );
+            case "ElectricBazooka": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("ElectricBazooka"),
+                    new MultiRendererInfo("WaterBazookaCapsule", new Vector3(0f, 495f, 0f)),
+                    new MultiRendererInfo("MogucchiShooter", new Vector3(0f, 335f, 0f))
+            );
+            case "GliderBazooka":
+            case "GliderShooter":
+            case "KillerShooter": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("MogucchiSpike"),
+                    new MultiRendererInfo("GliderBazooka")
+            );
+            case "Grapyon": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("GrapyonBody"),
+                    new MultiRendererInfo("GrapyonHead", new Vector3(0f, 80f, 0f))
+            );
+            case "HammerHeadPackun": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("PackunFlower"),
+                    new MultiRendererInfo("PackunLeaf")
+            );
+            case "HammerHeadPackunSpike": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("PackunFlowerSpike"),
+                    new MultiRendererInfo("PackunLeafSpike")
+            );
+            case "Jugem": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("Jugem"),
+                    new MultiRendererInfo("JugemCloud")
+            );
+            case "JumpBeamer": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("JumpBeamerBody"),
+                    new MultiRendererInfo("JumpBeamerHead")
+            );
+            case "JumpGuarder": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("JumpGuarder"),
+                    new MultiRendererInfo("JumpGuarderHead", new Vector3(0f, 65f, 0f), new Vector3(), new Vector3(0.8f, 0.8f, 0.8f))
+            );
+            case "Kiraira": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("Kiraira", new Vector3(0f, 50f, 0f)),
+                    new MultiRendererInfo("KirairaChain", new Vector3(0f, -110f, 0f)),
+                    new MultiRendererInfo("KirairaFixPointBottom", new Vector3(0f, -125f, 0f))
+            );
+            case "Mogu": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("Mogu"),
+                    new MultiRendererInfo("MoguHole")
+            );
+            case "Nyoropon": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("NyoroponBody"),
+                    new MultiRendererInfo("NyoroponHead", new Vector3(0f, 500f, 0f), new Vector3(90f, 0f, 0f))
+            );
+            case "Patakuri": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("Kuribo"),
+                    new MultiRendererInfo("PatakuriWing", new Vector3(0f,15f,-25f))
+            );
+            case "PatakuriBig": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("KuriboChief"),
+                    new MultiRendererInfo("PatakuriWingBig", new Vector3(0f, 750f, 200f), new Vector3(0f, 90f, 0f))
+            );
+            case "Torpedo": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("Torpedo"),
+                    new MultiRendererInfo("TorpedoPropeller")
+            );
+            case "WaterBazooka": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("WaterBazooka"),
+                    new MultiRendererInfo("WaterBazookaCapsule", new Vector3(0f, 495f, 0f)),
+                    new MultiRendererInfo("MogucchiShooter", new Vector3(0f, 335f, 0f))
+            );
+            
+            // MapObj
+            case "GoroRockCoverCage": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("GoroRockCoverCage"),
+                    new MultiRendererInfo("GoroRockCoverCageFrame")
+            );
+            case "RedBlueTurnBlock": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("RedBlueTurnBlock"),
+                    new MultiRendererInfo("RedBlueTurnBlockBase")
+            );
+            case "StrayTico": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("StrayTico"),
+                    new MultiRendererInfo("ItemBubble")
+            );
+            case "YoshiEgg": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("YoshiEgg"),
+                    new MultiRendererInfo("YoshiNest")
+            );
+            case "YoshiFruit": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("YoshiFruit", new Vector3(0f, 65f, 0f)),
+                    new MultiRendererInfo("YoshiFruitStem")
+            );
+            case "YoshiFruitBig": return tryCreateMultiRenderer(info,
+                    new MultiRendererInfo("YoshiFruitBig", new Vector3(0f, 115f, 0f)),
+                    new MultiRendererInfo("YoshiFruitStemBig")
             );
         }
         
         return null;
+    }
+    
+    private static void tryOffsetBmdRenderer(BmdRenderer renderer, String objModelName, AbstractObj obj) {
+        // Set new vectors here because they reference shared vectors by default
+        switch(objModelName) {
+            case "DashFruit": renderer.translation = new Vector3(0f, 55f, 0f); break;
+            case "EarthenPipe": renderer.translation = new Vector3(0f, 100f, 0f); break;
+        }
     }
     
     /*
@@ -489,8 +542,6 @@ public final class RendererFactory {
                     case "KinopioPostman": return new KinopioRenderer(info, 2);
                     case "UFOKinoko": return new UFOKinokoRenderer(info, (int)obj.data.get("Obj_arg0"));
                     case "PowerStarHalo": return new PowerStarHaloRenderer(info);
-                    case "EarthenPipe":
-                    case "EarthenPipeInWater": return new BmdRendererSingle(info, "EarthenPipe", new Vector3(0f,100f,0f), new Vector3());
                 }
             }
             

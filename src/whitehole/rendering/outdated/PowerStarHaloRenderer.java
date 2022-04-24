@@ -15,18 +15,16 @@
 
 package whitehole.rendering.outdated;
 
-import whitehole.Settings;
+import com.jogamp.opengl.GL2;
 import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderInfo;
-import com.jogamp.opengl.GL2;
 
 public class PowerStarHaloRenderer extends GLRenderer {
     public PowerStarHaloRenderer(RenderInfo info) {
         renderHalo = new BmdRenderer(info, "PowerStarHalo");
         GL2 gl2 = info.drawable.getGL().getGL2();
-        if(Settings.getUseShaders())
-            renderHalo.generateShaders(gl2, 1, 200, 200, 70, 255);
+        renderHalo.generateShaders(gl2, 1, 200, 200, 70, 255);
     }
     
     @Override

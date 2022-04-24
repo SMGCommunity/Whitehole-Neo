@@ -16,15 +16,19 @@
  */
 package whitehole.smg.object;
 
-import whitehole.util.PropertyGrid;
+import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
+import whitehole.util.PropertyGrid;
 import whitehole.util.Vector3;
-import whitehole.Whitehole;
 
 public class LevelObj extends AbstractObj {
     @Override
     public String getFileType() {
+        if (Whitehole.getCurrentGameType() == 2 && objdbInfo.destArchive().equalsIgnoreCase("sound")) {
+            return "sound_objinfo";
+        }
+        
         return "objinfo";
     }
     

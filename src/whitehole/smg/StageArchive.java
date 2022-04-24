@@ -16,32 +16,27 @@
  */
 package whitehole.smg;
 
-import whitehole.smg.object.MapPartObj;
-import whitehole.smg.object.SoundObj;
-import whitehole.smg.object.PositionObj;
-import whitehole.smg.object.CameraObj;
-import whitehole.smg.object.ChildObj;
-import whitehole.smg.object.GravityObj;
-import whitehole.smg.object.AreaObj;
-import whitehole.smg.object.LevelObj;
-import whitehole.smg.object.PathObj;
-import whitehole.smg.object.StageObj;
-import whitehole.smg.object.DebugObj;
-import whitehole.smg.object.CutsceneObj;
-import whitehole.smg.object.StartObj;
-import whitehole.smg.object.AbstractObj;
-import whitehole.io.RarcFile;
-import whitehole.io.FilesystemBase;
 import java.io.*;
 import java.util.*;
 import whitehole.Whitehole;
+import whitehole.io.FilesystemBase;
+import whitehole.io.RarcFile;
+import whitehole.smg.object.AbstractObj;
+import whitehole.smg.object.AreaObj;
+import whitehole.smg.object.CameraObj;
+import whitehole.smg.object.ChildObj;
+import whitehole.smg.object.CutsceneObj;
+import whitehole.smg.object.DebugObj;
+import whitehole.smg.object.GravityObj;
+import whitehole.smg.object.LevelObj;
+import whitehole.smg.object.MapPartObj;
+import whitehole.smg.object.PathObj;
+import whitehole.smg.object.PositionObj;
+import whitehole.smg.object.SoundObj;
+import whitehole.smg.object.StageObj;
+import whitehole.smg.object.StartObj;
 
 public class StageArchive {
-    // This needs to be removed!!!!
-    @Deprecated
-    public static int game;
-    
-    
     // IO stuff
     public final GalaxyArchive galaxy;
     public final String stageName;
@@ -55,7 +50,6 @@ public class StageArchive {
     public List<PathObj> paths;
     
     public StageArchive(GalaxyArchive arc, String name) {
-        game = Whitehole.getCurrentGameType();
         galaxy = arc;
         filesystem = Whitehole.getCurrentGameFileSystem();
         stageName = name;
@@ -115,6 +109,15 @@ public class StageArchive {
         try {
             mapArc = new RarcFile(filesystem.openFile(mapPath));
             
+            /*if (Whitehole.getCurrentGameType() == 2) {
+                if (filesystem.fileExists(soundPath)) {
+                    soundArc = new RarcFile(filesystem.openFile(soundPath));
+                }
+                if (filesystem.fileExists(designPath)) {
+                    designArc = new RarcFile(filesystem.openFile(designPath));
+                }
+            }*/
+            
             loadLayeredZones();
             loadPaths();
             
@@ -131,6 +134,15 @@ public class StageArchive {
             if (Whitehole.getCurrentGameType() == 1) {
                 loadLayeredObjects(mapArc, "ChildObj", "ChildObjInfo");
                 loadLayeredObjects(mapArc, "Placement", "SoundInfo");
+            }
+            else {
+                if (soundArc != null) {
+                    loadLayeredObjects(soundArc, "Placement", "ObjInfo");
+                    loadLayeredObjects(soundArc, "Placement", "AreaObjInfo");
+                }
+                if (designArc != null) {
+                    loadLayeredObjects(designArc, "Placement", "AreaObjInfo");
+                }
             }
         }
         catch (IOException ex) {
@@ -182,7 +194,7 @@ public class StageArchive {
         try {
             Bcsv bcsv = new Bcsv(archive.openFile(path));
             
-            switch (type) {
+            switch(type) {
                 case "stageobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new StageObj(this, layerKey, e)); } break;
                 case "objinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new LevelObj(this, layerKey, e)); } break;
                 case "mappartsinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new MapPartObj(this, layerKey, e)); } break;

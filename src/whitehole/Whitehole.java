@@ -18,8 +18,6 @@ package whitehole;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
-import whitehole.db.GalaxyNames;
-import whitehole.smg.GameArchive;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.io.IOException;
@@ -27,15 +25,18 @@ import java.nio.charset.Charset;
 import java.util.List;
 import javax.swing.*;
 import whitehole.db.FieldHashes;
+import whitehole.db.GalaxyNames;
 import whitehole.db.ModelSubstitutions;
 import whitehole.db.ObjectDB;
 import whitehole.io.FilesystemBase;
+import whitehole.smg.GameArchive;
 
 public class Whitehole {
     public static final String NAME = "Whitehole Despaghettification";
     public static final String WEB_URL = "https://discord.gg/k7ZKzSDsVq";
     public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
     
+    private static MainFrame MAIN_FRAME;
     private static FlatDarkLaf DARK_THEME;
     private static FlatLightLaf LIGHT_THEME;
     
@@ -69,10 +70,11 @@ public class Whitehole {
         ObjectDB.init();
         ModelSubstitutions.init();
         
-        new MainFrame().setVisible(true);
+        MAIN_FRAME = new MainFrame();
+        MAIN_FRAME.setVisible(true);
     }
     
-    public static void updateLAF() {
+    public static void requestUpdateLAF() {
         LookAndFeel next = null;
         
         if (Settings.getUseDarkMode()) {
@@ -93,6 +95,8 @@ public class Whitehole {
             catch(Exception ex) {
                 System.err.println(ex);
             }
+            
+            MAIN_FRAME.requestUpdateLAF();
         }
     }
     

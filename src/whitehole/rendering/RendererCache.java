@@ -16,9 +16,9 @@
  */
 package whitehole.rendering;
 
+import com.jogamp.opengl.*;
 import java.util.HashMap;
 import whitehole.smg.object.AbstractObj;
-import com.jogamp.opengl.*;
 
 public class RendererCache {
     public static class CacheEntry {

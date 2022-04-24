@@ -16,10 +16,10 @@
  */
 package whitehole.util;
 
-import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.border.*;
 
 // CheckBoxList inspired from http://www.devx.com/tips/Tip/5342
 

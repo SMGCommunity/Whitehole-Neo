@@ -16,13 +16,13 @@
  */
 package whitehole.smg.object;
 
-import whitehole.util.PropertyGrid;
-import whitehole.rendering.GLRenderer;
-import whitehole.smg.Bcsv;
-import whitehole.util.Vector3;
+import com.jogamp.opengl.*;
 import java.util.ArrayList;
 import java.util.List;
-import com.jogamp.opengl.*;
+import whitehole.rendering.GLRenderer;
+import whitehole.smg.Bcsv;
+import whitehole.util.PropertyGrid;
+import whitehole.util.Vector3;
 
 public class PathPointObj extends AbstractObj {
     public PathObj path;

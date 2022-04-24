@@ -84,7 +84,7 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="subGalaxyInfoActionPerformed"/>
                   </Events>
                 </MenuItem>
-                <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator1">
+                <MenuItem class="javax.swing.JPopupMenu$Separator" name="sep1">
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="subCameraParam">
                   <Properties>
@@ -111,7 +111,7 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="subLightDataActionPerformed"/>
                   </Events>
                 </MenuItem>
-                <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator2">
+                <MenuItem class="javax.swing.JPopupMenu$Separator" name="sep2">
                 </MenuItem>
                 <Menu class="javax.swing.JMenu" name="mnuUseResource">
                   <Properties>
@@ -366,6 +366,32 @@
                     </MenuItem>
                   </SubComponents>
                 </Menu>
+                <MenuItem class="javax.swing.JPopupMenu$Separator" name="sep3">
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="mniObjectInfluenceTable">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="ObjectInfluenceTable"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="mniObjectInfluenceTableActionPerformed"/>
+                  </Events>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="mniRushInfluenceTable">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="RushInfluenceTable"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="mniRushInfluenceTableActionPerformed"/>
+                  </Events>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="mniMorphConditionTable">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="MorphConditionTable"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="mniMorphConditionTableActionPerformed"/>
+                  </Events>
+                </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="subAstroNamePlateData">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="AstroNamePlateData"/>

@@ -15,13 +15,13 @@
 
 package whitehole.smg;
 
-import whitehole.util.Matrix4;
-import whitehole.util.Color4;
-import whitehole.util.Vector3;
-import whitehole.util.Vector2;
-import whitehole.io.FileBase;
 import java.io.*;
 import java.util.*;
+import whitehole.io.FileBase;
+import whitehole.util.Color4;
+import whitehole.util.Matrix4;
+import whitehole.util.Vector2;
+import whitehole.util.Vector3;
 
 public class Bmd 
 {

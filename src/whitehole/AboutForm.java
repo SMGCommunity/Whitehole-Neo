@@ -16,12 +16,12 @@
  */
 package whitehole;
 
-import whitehole.Whitehole;
+import javax.swing.JFrame;
 
 public class AboutForm extends javax.swing.JDialog {
-    public AboutForm() {
+    public AboutForm(JFrame parent) {
+        super(parent, true);
         initComponents();
-        setModal(true);
     }
     
     @SuppressWarnings("unchecked")
