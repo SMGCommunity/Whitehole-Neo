@@ -52,7 +52,7 @@ public class ExternalFilesystem implements FilesystemBase {
                 ret.add(file.getName());
             }
         } catch(Exception ex) {
-            MainFrame.lbStatusBar.setText("Failed to open game directory.");
+            System.err.println(ex);
         }
 
         return ret;

@@ -136,9 +136,6 @@
         <Property name="text" type="java.lang.String" value="Ready!"/>
         <Property name="verticalTextPosition" type="int" value="3"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="9"/>
-      </AuxValues>
     </Component>
     <Container class="javax.swing.JScrollPane" name="scrGalaxy">
       <AuxValues>

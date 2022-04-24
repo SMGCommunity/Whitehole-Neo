@@ -17,6 +17,7 @@
 package whitehole;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 import whitehole.db.GalaxyNames;
 import whitehole.smg.GameArchive;
 import java.awt.Image;
@@ -35,11 +36,18 @@ public class Whitehole {
     public static final String WEB_URL = "https://discord.gg/k7ZKzSDsVq";
     public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
     
+    private static FlatDarkLaf DARK_THEME;
+    private static FlatLightLaf LIGHT_THEME;
+    
     public static void main(String[] args) throws IOException {
-        // Set look and feel if applicable
+        // Setup look and feel and set if applicable
+        FlatDarkLaf.setup();
+        FlatLightLaf.setup();
+        DARK_THEME = new FlatDarkLaf();
+        LIGHT_THEME = new FlatLightLaf();
+        
         try {
-            FlatDarkLaf.setup();
-            UIManager.setLookAndFeel(new FlatDarkLaf());
+            UIManager.setLookAndFeel(Settings.getUseDarkMode() ? DARK_THEME : LIGHT_THEME);
         }
         catch (Exception ex) {
             System.err.println(ex);
@@ -55,12 +63,37 @@ public class Whitehole {
             );
         }
         
+        // Initialize data
         FieldHashes.init();
         GalaxyNames.init();
         ObjectDB.init();
         ModelSubstitutions.init();
         
         new MainFrame().setVisible(true);
+    }
+    
+    public static void updateLAF() {
+        LookAndFeel next = null;
+        
+        if (Settings.getUseDarkMode()) {
+            if (UIManager.getLookAndFeel() != DARK_THEME) {
+                next = DARK_THEME;
+            }
+        }
+        else {
+            if (UIManager.getLookAndFeel() != LIGHT_THEME) {
+                next = LIGHT_THEME;
+            }
+        }
+        
+        if (next != null) {
+            try {
+                UIManager.setLookAndFeel(next);
+            }
+            catch(Exception ex) {
+                System.err.println(ex);
+            }
+        }
     }
     
     // -------------------------------------------------------------------------------------------------------------------------

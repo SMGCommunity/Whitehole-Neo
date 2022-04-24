@@ -581,8 +581,7 @@ public class BmdRenderer extends GLRenderer {
             }
             for(int i = 0; i < model.materials.length; i++) {
                 try {
-                    if(!Settings.legacy)
-                        generateShaders(gl, i);
+                    generateShaders(gl, i);
                 }
                 catch(GLException ex) {
                     // really ugly hack
@@ -731,11 +730,9 @@ public class BmdRenderer extends GLRenderer {
                 if(info.renderMode != RenderMode.PICKING) {
                     if((mat.drawFlag == 4) ^(info.renderMode == RenderMode.TRANSLUCENT))
                         continue;
-                    if(Settings.legacy)
-                        hasShaders = false;
                     if(hasShaders) {
                         // shader: handles multitexturing, color combination, alpha test
-                        if(gl.isFunctionAvailable("glUseProgram") && !Settings.legacy)
+                        if(gl.isFunctionAvailable("glUseProgram"))
                             gl.glUseProgram(shaders[node.materialID].program);
 
                         // do multitexturing

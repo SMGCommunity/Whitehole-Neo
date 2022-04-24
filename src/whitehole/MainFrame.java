@@ -290,7 +290,7 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnBcsvEditorActionPerformed
 
     private void btnSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSettingsActionPerformed
-        new SettingsForm().setVisible(true);
+        new SettingsForm(this).setVisible(true);
     }//GEN-LAST:event_btnSettingsActionPerformed
 
     private void btnAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAboutActionPerformed
@@ -312,7 +312,7 @@ public final class MainFrame extends javax.swing.JFrame {
             return;
         }
         
-        if(evt.getKeyCode() == KeyEvent.VK_ENTER) {
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             openGalaxy();
         }
     }//GEN-LAST:event_listGalaxyKeyReleased
@@ -327,7 +327,7 @@ public final class MainFrame extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator6;
-    public static javax.swing.JLabel lbStatusBar;
+    private javax.swing.JLabel lbStatusBar;
     private javax.swing.JList listGalaxy;
     private javax.swing.JScrollPane scrGalaxy;
     private javax.swing.JToolBar toolbar;

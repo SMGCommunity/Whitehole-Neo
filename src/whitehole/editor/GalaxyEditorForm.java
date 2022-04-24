@@ -244,11 +244,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         scrLayers.setViewportView(listLayerCheckboxes);
         
         zoneModeLayerBitmask = 0;
-        JCheckBox[] cblayers = new JCheckBox[curZoneArc.objects.keySet().size()];
+        JCheckBox[] cblayers = new JCheckBox[curZoneArc.objects.keySet().size() - 1];
         int i = 0;
-        cblayers[i] = new JCheckBox("Common");
-        cblayers[i].setSelected(true);
-        i++;
         for(int l = 0; l < 16; l++) {
             String ls = String.format("Layer%1$c", (char) ('A' + l));
             if(curZoneArc.objects.containsKey(ls.toLowerCase())) {
@@ -1348,7 +1345,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      */
     private void layerSelectChange(int index, boolean status) {
         JCheckBox cbx =(JCheckBox)listLayerCheckboxes.getModel().getElementAt(index);
-        int layer = cbx.getText().equals("Common") ? 1 :(2 <<(cbx.getText().charAt(5) - 'A'));
+        int layer = (1 <<(cbx.getText().charAt(5) - 'A'));
         
         if(status)
             zoneModeLayerBitmask |= layer;
@@ -2358,6 +2355,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         String objname = addingObject.substring(addingObject.indexOf('|') + 1);
         addingObjectOnLayer = addingObjectOnLayer.toLowerCase();
         
+        TreeNode newNode;
+        
         // Add new path?
         if(objtype.equals("path")) {
             int newPathLinkID = 0;
@@ -2373,29 +2372,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             globalPathList.put(thepath.uniqueID, thepath);
             curZoneArc.paths.add(thepath);
 
-            //thepath.createStorage();
-
             PathPointObj thepoint = new PathPointObj(thepath, position);
             thepoint.uniqueID = maxUniqueID;
-            maxUniqueID++;
+            maxUniqueID += 3;
+            
             globalObjList.put(thepoint.uniqueID, thepoint);
             globalPathPointList.put(thepoint.uniqueID, thepoint);
             thepath.getPoints().add(thepoint);
 
-            DefaultTreeModel objlist =(DefaultTreeModel) treeObjects.getModel();
-            ObjListTreeNode listnode =(ObjListTreeNode)((DefaultMutableTreeNode) objlist.getRoot()).getChildAt(StageArchive.game == 2 ? 10 : 11);
-            ObjListTreeNode newnode =(ObjListTreeNode) listnode.addObject(thepath);
-            objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
+            ObjListTreeNode newnode = (ObjListTreeNode)objListPathRootNode.addObject(thepath);
             treeNodeList.put(thepath.uniqueID, newnode);
 
-            TreeNode newpointnode = newnode.addObject(thepoint);
-            objlist.nodesWereInserted(newnode, new int[] { newnode.getIndex(newpointnode) });
-            treeNodeList.put(thepoint.uniqueID, newpointnode);
+            newNode = newnode.addObject(thepoint);
+            treeNodeList.put(thepoint.uniqueID, newNode);
 
             rerenderTasks.add("path:" + thepath.uniqueID);
             rerenderTasks.add("zone:" + curZone);
-            glCanvas.repaint();
-            unsavedChanges = true;
         }
         // Add new path point?
         else if (objtype.equals("pathpoint")) {
@@ -2417,18 +2409,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             globalPathPointList.put(thepoint.uniqueID, thepoint);
             thepath.getPoints().add(thepoint);
 
-            DefaultTreeModel objlist =(DefaultTreeModel) treeObjects.getModel();
-            ObjListTreeNode listnode =(ObjListTreeNode)((DefaultMutableTreeNode) objlist.getRoot()).getChildAt(StageArchive.game == 2 ? 10 : 11);
+            ObjListTreeNode listnode = objListPathRootNode;
             listnode =(ObjListTreeNode) listnode.children.get(thepath.uniqueID);
 
-            TreeNode newnode = listnode.addObject(thepoint);
-            objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
-            treeNodeList.put(thepoint.uniqueID, newnode);
-
+            newNode = listnode.addObject(thepoint);
+            treeNodeList.put(thepoint.uniqueID, newNode);
+            
             rerenderTasks.add("path:" + thepath.uniqueID);
             rerenderTasks.add("zone:" + thepath.stage.stageName);
-            glCanvas.repaint();
-            unsavedChanges = true;
         }
         else {
             newobj = null;
@@ -2465,15 +2453,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             globalObjList.put(uniqueID, newobj);
             curZoneArc.objects.get(addingObjectOnLayer).add(newobj);
             
-            ObjTreeNode newnode = objListTreeNodes.get(objtype).addObject(newobj);
-            treeNodeList.put(uniqueID, newnode);
+            newNode = objListTreeNodes.get(objtype).addObject(newobj);
+            treeNodeList.put(uniqueID, newNode);
             
             // Update rendering
             rerenderTasks.add(String.format("addobj:%1$d", uniqueID));
             rerenderTasks.add("zone:" + curZone);
-            glCanvas.repaint();
-            unsavedChanges = true;
         }
+        
+        // Update tree node model and scroll to new node
+        objListModel.reload();
+        TreePath path = new TreePath(objListModel.getPathToRoot(newNode));
+        treeObjects.setSelectionPath(path);
+        treeObjects.scrollPathToVisible(path);
+        
+        glCanvas.repaint();
+        unsavedChanges = true;
     }
     
     private void deleteObject(int uniqueID) {
@@ -3323,8 +3318,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             gl.glCallList(objDisplayLists.get(zone + "/common")[mode]);
             
-            for(int l = 0; l < 16; l++) {
-                if((layermask &(1 << l)) != 0)
+            for (int l = 0; l < 16; l++) {
+                if((layermask & (1 << l)) != 0)
                     gl.glCallList(objDisplayLists.get(zone + "/layer" + alphabet.charAt(l))[mode]);
             }
             

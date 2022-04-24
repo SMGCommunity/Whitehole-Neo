@@ -22,10 +22,11 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 public class SettingsForm extends javax.swing.JDialog {
-    public SettingsForm() {
-        super((JFrame)null, true);
+    public SettingsForm(JFrame parent) {
+        super(parent, true);
         
         initComponents();
         
@@ -46,6 +47,7 @@ public class SettingsForm extends javax.swing.JDialog {
         pnlSettings = new javax.swing.JPanel();
         lblAppearance = new javax.swing.JLabel();
         lblControls = new javax.swing.JLabel();
+        chkUseDarkMode = new javax.swing.JCheckBox();
         chkDisplaySimpleNameDB = new javax.swing.JCheckBox();
         chkUseShaders = new javax.swing.JCheckBox();
         chkDebugFakeColor = new javax.swing.JCheckBox();
@@ -87,6 +89,19 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(lblControls, gridBagConstraints);
+
+        chkUseDarkMode.setSelected(Settings.getUseDarkMode());
+        chkUseDarkMode.setText("Use Dark Mode");
+        chkUseDarkMode.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                chkUseDarkModeItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        pnlSettings.add(chkUseDarkMode, gridBagConstraints);
 
         chkDisplaySimpleNameDB.setSelected(Settings.getDisplaySimpleNameDB());
         chkDisplaySimpleNameDB.setText("Display object database names");
@@ -260,6 +275,14 @@ public class SettingsForm extends javax.swing.JDialog {
         Settings.setKeyRotation(((KeybindButton)btnRotation).keybind);
         Settings.setKeyScale(((KeybindButton)btnScale).keybind);
     }//GEN-LAST:event_formWindowClosing
+
+    private void chkUseDarkModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseDarkModeItemStateChanged
+        Settings.setUseDarkMode(evt.getStateChange() == ItemEvent.SELECTED);
+        
+        Whitehole.updateLAF();
+        SwingUtilities.updateComponentTreeUI(this);
+        pack();
+    }//GEN-LAST:event_chkUseDarkModeItemStateChanged
     
     private static class KeybindButton extends JButton {
         boolean binding = false;
@@ -310,6 +333,7 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JCheckBox chkDebugFakeColor;
     private javax.swing.JCheckBox chkDebugFastDrag;
     private javax.swing.JCheckBox chkDisplaySimpleNameDB;
+    private javax.swing.JCheckBox chkUseDarkMode;
     private javax.swing.JCheckBox chkUseReverseRot;
     private javax.swing.JCheckBox chkUseShaders;
     private javax.swing.JCheckBox chkUseWASD;
