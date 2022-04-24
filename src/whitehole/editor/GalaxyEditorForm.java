@@ -1387,10 +1387,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
-        if(isGalaxyMode) {
+        if (isGalaxyMode) {
             for(GalaxyEditorForm form : zoneEditors.values())
                 form.dispose();
         }
+        
         if(!isGalaxyMode)
             return;
         

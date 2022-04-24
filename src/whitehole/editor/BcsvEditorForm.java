@@ -40,25 +40,30 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     }
     
     private void toggleShortcutVisibility() {
-        if (Whitehole.getCurrentGameType() == 1) {
+        boolean isSmg1 = Whitehole.getCurrentGameType() == 1;
+        
+        sep1.setVisible(!isSmg1);
+        mnuUseResource.setVisible(!isSmg1);
+        mnuAudio.setVisible(!isSmg1);
+        mnuSystem.setVisible(!isSmg1);
+        subGalaxyInfo.setVisible(!isSmg1);
+        subProductMapObjData.setVisible(!isSmg1);
+        subWorldMapCamera.setVisible(!isSmg1);
+        subKinopioBank.setVisible(!isSmg1);
+        subPeach.setVisible(!isSmg1);
+        subTicoFatCoin.setVisible(!isSmg1);
+        subTicoFatStarPiece.setVisible(!isSmg1);
+        subTicoShopDice.setVisible(!isSmg1);
+        mniObjectInfluenceTable.setVisible(!isSmg1);
+        mniRushInfluenceTable.setVisible(!isSmg1);
+        mniMorphConditionTable.setVisible(!isSmg1);
+        subAstroNamePlateData.setVisible(isSmg1);
+        
+        if (isSmg1) {
             tbArchiveName.setText("/StageData/CocoonExGalaxy/CocoonExGalaxyScenario.arc");
             tbFileName.setText("/CocoonExGalaxyScenario/ScenarioData.bcsv");
-            
-            sep1.setVisible(false);
-            mnuUseResource.setVisible(false);
-            mnuAudio.setVisible(false);
-            mnuSystem.setVisible(false);
-            
-            subGalaxyInfo.setVisible(false);
-            subProductMapObjData.setVisible(false);
-            subWorldMapCamera.setVisible(false);
-            subKinopioBank.setVisible(false);
-            subPeach.setVisible(false);
-            subTicoFatCoin.setVisible(false);
-            subTicoFatStarPiece.setVisible(false);
-            subTicoShopDice.setVisible(false);
         }
-        else if (Whitehole.getCurrentGameType() == 2) {
+        else if (isSmg1) {
             tbArchiveName.setText("/StageData/RedBlueExGalaxy/RedBlueExGalaxyScenario.arc");
             tbFileName.setText("/RedBlueExGalaxyScenario/ScenarioData.bcsv");
             

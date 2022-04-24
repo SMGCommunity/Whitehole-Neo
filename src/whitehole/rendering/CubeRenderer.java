@@ -84,14 +84,14 @@ public class CubeRenderer extends GLRenderer {
         GL2 gl = info.drawable.getGL().getGL2();
 
         if (info.renderMode != RenderMode.PICKING) {
-            for (int i = 0; i < 8; i++) {
-                try {
-                    if(gl.isFunctionAvailable("glActiveTexture")) {
+            if (gl.isFunctionAvailable("glActiveTexture")) {
+                for (int i = 0; i < 8; i++) {
+                    try {
                         gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                        gl.glDisable(GL2.GL_TEXTURE_2D);
                     }
-                    gl.glDisable(GL2.GL_TEXTURE_2D);
+                    catch (GLException ex) {}
                 }
-                catch (GLException ex) {}
             }
             
             gl.glDisable(GL2.GL_TEXTURE_2D);
@@ -102,10 +102,7 @@ public class CubeRenderer extends GLRenderer {
             gl.glDisable(GL2.GL_BLEND);
             gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
             gl.glDisable(GL2.GL_ALPHA_TEST);
-            try {
-                gl.glUseProgram(0);
-            }
-            catch (GLException ex) {}
+            gl.glUseProgram(0);
         }
         
         // Draw the actual cube
