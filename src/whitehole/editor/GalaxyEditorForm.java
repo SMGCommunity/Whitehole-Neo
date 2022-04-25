@@ -20,7 +20,6 @@ import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -39,6 +38,7 @@ import javax.swing.event.*;
 import javax.swing.tree.*;
 import whitehole.Settings;
 import whitehole.Whitehole;
+import whitehole.db.GalaxyNames;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderMode;
 import whitehole.rendering.RendererCache;
@@ -63,7 +63,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // General
     private boolean isGalaxyMode = true;
     private String galaxyName;
-    private GalaxyArchive galaxyArchive;
+    private GalaxyArchive galaxyArchive = null;
     private HashMap<String, StageArchive> zoneArchives;
     private int curScenarioID;
     private Bcsv.Entry curScenario;
@@ -105,8 +105,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private final HashMap<String, int[]> objDisplayLists = new HashMap();
     private final HashMap<Integer, int[]> zoneDisplayLists = new HashMap();
     private final Queue<String> rerenderTasks = new PriorityQueue();
-    private GLCanvas glCanvas, fullCanvas;
-    private JFrame fullScreen;
+    private GLCanvas glCanvas;
     private boolean initializedRenderer = false;
     
     
@@ -163,7 +162,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private float lastDist;
     
     // -------------------------------------------------------------------------------------------------------------------------
-    // Constructors
+    // Constructors and GUI Setup
     
     public GalaxyEditorForm(String galaxy) {
         initComponents();
@@ -200,24 +199,24 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         initObjectNodeTree();
         initGUI();
+        
+        // Load scenario information
+        DefaultListModel scenlist = (DefaultListModel)listScenarios.getModel();
+
+        for(Bcsv.Entry scen : galaxyArchive.scenarioData) {
+            scenlist.addElement(String.format("[%1$d] %2$s", scen.getInt("ScenarioNo"), scen.getString("ScenarioName")));
+        }
     }
     
-    /**
-     * Create a GalaxyEditorForm editing {@code zone}
-     * @param gal_parent the parent galaxy of this zone
-     * @param zone the zone to be edited
-     */
-    public GalaxyEditorForm(GalaxyEditorForm gal_parent, StageArchive zone) {
+    public GalaxyEditorForm(GalaxyEditorForm parent, StageArchive zoneArc) {
         initComponents();
         
-        galaxyArchive = null;
-
         isGalaxyMode = false;
-        parentForm = gal_parent;
-        galaxyName = zone.stageName; // epic hax
+        parentForm = parent;
+        galaxyName = zoneArc.stageName;
         
         zoneArchives = new HashMap(1);
-        zoneArchives.put(galaxyName, zone);
+        zoneArchives.put(galaxyName, zoneArc);
         loadZone(galaxyName);
         
         curZone = galaxyName;
@@ -225,33 +224,114 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         initObjectNodeTree();
         initGUI();
+    }
+    
+    public void requestUpdateLAF() {
+        SwingUtilities.updateComponentTreeUI(this);
+        SwingUtilities.updateComponentTreeUI(pnlObjectSettings);
+        SwingUtilities.updateComponentTreeUI(popupAddItems);
         
-        tabData.remove(0);
+        // Does not affect the actual checkboxes yet... Investigate this.
+        if (listLayerCheckboxes != null) {
+            SwingUtilities.updateComponentTreeUI(listLayerCheckboxes);
+        }
         
-        listLayerCheckboxes = new CheckBoxList();
-        listLayerCheckboxes.setEventListener((int index, boolean status) -> {
-            layerSelectChange(index, status);
+        for (GalaxyEditorForm subEditor : zoneEditors.values()) {
+            subEditor.requestUpdateLAF();
+        }
+    }
+    
+    private void initGUI() {
+        if (isGalaxyMode) {
+            setTitle(GalaxyNames.getSimplifiedStageName(galaxyName) + " -- " + Whitehole.NAME);
+        }
+        else {
+            setTitle(galaxyName + " -- " + Whitehole.NAME);
+        }
+        
+        initAddObjectPopup();
+        
+        tgbShowAreas.setSelected(Settings.getShowAreas());
+        tgbShowCameras.setSelected(Settings.getShowCameras());
+        tgbShowGravity.setSelected(Settings.getShowGravity());
+        tgbShowPaths.setSelected(Settings.getShowPaths());
+        tgbShowAxis.setSelected(Settings.getShowAxis());
+        
+        // For now, hide these until their proper functions are added
+        btnAddScenario.setVisible(false);
+        btnEditScenario.setVisible(false);
+        btnDeleteScenario.setVisible(false);
+        btnAddZone.setVisible(false);
+        btnDeleteZone.setVisible(false);
+        sep3.setVisible(false);
+        tgbShowGravity.setVisible(false);
+        
+        // Setup the actual preview canvas
+        GLProfile prof = GLProfile.getMaxFixedFunc(true);
+        GLCapabilities capabilities = new GLCapabilities(prof);
+        capabilities.setSampleBuffers(true);
+        capabilities.setNumSamples(8);
+        capabilities.setHardwareAccelerated(true);
+        capabilities.setDoubleBuffered(true);
+        
+        glCanvas = new GLCanvas(capabilities);
+        
+        if (RendererCache.refContext == null) {
+            RendererCache.refContext = glCanvas.getContext();
+        }
+        else {
+            glCanvas.setSharedContext(RendererCache.refContext);
+        }
+        
+        renderer = new GalaxyEditorForm.GalaxyRenderer();
+        glCanvas.addGLEventListener(renderer);
+        glCanvas.addMouseListener(renderer);
+        glCanvas.addMouseMotionListener(renderer);
+        glCanvas.addMouseWheelListener(renderer);
+        glCanvas.addKeyListener(renderer);
+        
+        pnlGLPanel.add(glCanvas, BorderLayout.CENTER);
+        pnlGLPanel.validate();
+        
+        pnlObjectSettings = new PropertyGrid(this);
+        scrObjSettings.setViewportView(pnlObjectSettings);
+        scrObjSettings.getVerticalScrollBar().setUnitIncrement(16);
+        pnlObjectSettings.setEventListener((String propname, Object value) -> {
+            propertyPanelPropertyChanged(propname, value);
         });
         
-        scrLayers.setViewportView(listLayerCheckboxes);
+        glCanvas.requestFocusInWindow();
         
-        zoneModeLayerBitmask = 0;
-        JCheckBox[] cblayers = new JCheckBox[curZoneArc.objects.keySet().size() - 1];
-        int i = 0;
-        for(int l = 0; l < 16; l++) {
-            String ls = String.format("Layer%1$c", (char) ('A' + l));
-            if(curZoneArc.objects.containsKey(ls.toLowerCase())) {
-                cblayers[i] = new JCheckBox(ls);
-                if(i == 0) {
-                    cblayers[i].setSelected(true);
-                    zoneModeLayerBitmask |= (1 << l);
+        // Zone-only GUI stuff
+        if (!isGalaxyMode) {
+            tabData.remove(0);
+
+            listLayerCheckboxes = new CheckBoxList();
+            listLayerCheckboxes.setEventListener((index, status) -> layerSelectChange(index, status));
+            scrLayers.setViewportView(listLayerCheckboxes);
+
+            // Collect valid layer checkboxes
+            zoneModeLayerBitmask = 0;
+            JCheckBox[] layerCheckBoxes = new JCheckBox[curZoneArc.objects.keySet().size() - 1];
+            int index = 0;
+
+            for (int layerID = 0 ; layerID < 16 ; layerID++) {
+                String layerName = "Layer" + (char)('A' + layerID);
+
+                if (curZoneArc.objects.containsKey(layerName.toLowerCase())) {
+                    layerCheckBoxes[index] = new JCheckBox(layerName);
+
+                    if (index == 0) {
+                        layerCheckBoxes[index].setSelected(true);
+                        zoneModeLayerBitmask |= (1 << layerID);
+                    }
+
+                    index++;
                 }
-                i++;
             }
+
+            listLayerCheckboxes.setListData(layerCheckBoxes);
         }
-        listLayerCheckboxes.setListData(cblayers);
-        
-        populateObjectNodeTree(zoneModeLayerBitmask);
     }
     
     private void initAddObjectPopup() {
@@ -290,7 +370,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     tgbAddObject.setSelected(false);
                 }
                 else {
-                    setStatusText();
+                    setDefaultStatus();
                 }
             }
 
@@ -300,7 +380,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     tgbAddObject.setSelected(false);
                 }
                 else {
-                    setStatusText();
+                    setDefaultStatus();
                 }
             }
         });
@@ -312,73 +392,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         popupAddItems.add(menuItem);
     }
     
-    private void initGUI() {
-        setTitle(galaxyName + " -- " + Whitehole.NAME);
-        initAddObjectPopup();
-        
-        tgbShowAreas.setSelected(Settings.getShowAreas());
-        tgbShowCameras.setSelected(Settings.getShowCameras());
-        tgbShowGravity.setSelected(Settings.getShowGravity());
-        tgbShowPaths.setSelected(Settings.getShowPaths());
-        tgbShowAxis.setSelected(Settings.getShowAxis());
-        
-        // For now, hide these until their proper functions are added
-        btnAddScenario.setVisible(false);
-        btnEditScenario.setVisible(false);
-        btnDeleteScenario.setVisible(false);
-        btnAddZone.setVisible(false);
-        btnDeleteZone.setVisible(false);
-        sep3.setVisible(false);
-        tgbShowGravity.setVisible(false);
-        
-        GLProfile prof = GLProfile.getMaxFixedFunc(true);
-        GLCapabilities capabilities = new GLCapabilities(prof);
-        capabilities.setSampleBuffers(true);
-        capabilities.setNumSamples(8);
-        capabilities.setHardwareAccelerated(true);
-        capabilities.setDoubleBuffered(true);
-        
-        glCanvas = new GLCanvas(capabilities);
-        
-        if (RendererCache.refContext == null) {
-            RendererCache.refContext = glCanvas.getContext();
+    private void setDefaultStatus() {
+        if (isGalaxyMode) {
+            lblStatus.setText("Editing scenario " + listScenarios.getSelectedValue() + ", zone " + curZone + ".");
         }
         else {
-            glCanvas.setSharedContext(RendererCache.refContext);
-        }
-        
-        renderer = new GalaxyEditorForm.GalaxyRenderer();
-        glCanvas.addGLEventListener(renderer);
-        glCanvas.addMouseListener(renderer);
-        glCanvas.addMouseMotionListener(renderer);
-        glCanvas.addMouseWheelListener(renderer);
-        glCanvas.addKeyListener(renderer);
-        
-        pnlGLPanel.add(glCanvas, BorderLayout.CENTER);
-        pnlGLPanel.validate();
-        
-        pnlObjectSettings = new PropertyGrid(this);
-        scrObjSettings.setViewportView(pnlObjectSettings);
-        scrObjSettings.getVerticalScrollBar().setUnitIncrement(16);
-        pnlObjectSettings.setEventListener((String propname, Object value) -> {
-            propertyPanelPropertyChanged(propname, value);
-        });
-        
-        glCanvas.requestFocusInWindow();
-    }
-    
-    public void requestUpdateLAF() {
-        SwingUtilities.updateComponentTreeUI(this);
-        SwingUtilities.updateComponentTreeUI(pnlObjectSettings);
-        SwingUtilities.updateComponentTreeUI(popupAddItems);
-        
-        // Does not affect the actual checkboxes yet... Investigate this.
-        if (listLayerCheckboxes != null) {
-            SwingUtilities.updateComponentTreeUI(listLayerCheckboxes);
-        }
-        
-        for (GalaxyEditorForm subEditor : zoneEditors.values()) {
-            subEditor.requestUpdateLAF();
+            lblStatus.setText("Editing zone " + curZone + ".");
         }
     }
     
@@ -412,27 +431,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         }
         
-        // Populate zone objects and assign their maxUniqueIDs
-        for (List<StageObj> layers : arc.zones.values()) {
-            if (isGalaxyMode) {
-                for (StageObj obj : layers) {
-                    obj.uniqueID = maxUniqueID;
-                    globalObjList.put(maxUniqueID++, obj);
-                }
-            }
-            else {
-                for (StageObj obj : layers) {
-                    globalObjList.put(obj.uniqueID, obj);
-                }
-            }
-        }
-        
         // Populate paths and assign their maxUniqueIDs
         for (PathObj pathObj : arc.paths) {
             pathObj.uniqueID = maxUniqueID;
             globalPathList.put(maxUniqueID++, pathObj);
             
-            for(PathPointObj pointObj : pathObj.getPoints()) {
+            for (PathPointObj pointObj : pathObj.getPoints()) {
                 globalObjList.put(maxUniqueID, pointObj);
                 globalPathPointList.put(maxUniqueID, pointObj);
                 pointObj.uniqueID = maxUniqueID;
@@ -469,13 +473,57 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
+    private AbstractObj getScenarioStart() {
+        if (!isGalaxyMode) {
+            return null;
+        }
+        
+        AbstractObj ret = getScenarioStartInLayer(zoneArchives.get(galaxyName).objects.get("common"));
+        
+        if (ret != null) {
+            return ret;
+        }
+        
+        
+        int layerMask = curScenario.getInt(galaxyName, NORMAL);
+        
+        for (int layerID = 0 ; layerID < 16 ; layerID++) {
+            if ((layerMask & (1 << layerID)) == 0) {
+                continue;
+            }
+            
+            String layerKey = "layer" + (char)('a' + layerID);
+            ret = getScenarioStartInLayer(zoneArchives.get(galaxyName).objects.get(layerKey));
+            
+            if (ret != null) {
+                return ret;
+            }
+        }
+        
+        return null;
+    }
+    
+    private AbstractObj getScenarioStartInLayer(List<AbstractObj> objects) {
+        for (AbstractObj obj : objects) {
+            if (!(obj instanceof StartObj)) {
+                continue;
+            }
+            
+            if (obj.data.getInt("MarioNo", -1) == 0) {
+                return obj;
+            }
+        }
+        
+        return null;
+    }
+    
     private void updateZone(String zone) {
         rerenderTasks.add("zone:" + zone);
         glCanvas.repaint();
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
-    // Object nodes
+    // Object nodes and layer presentation
     
     private void initObjectNodeTree() {
         objListModel = (DefaultTreeModel)treeObjects.getModel();
@@ -549,7 +597,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         // Populate paths
         objListRootNode.add(objListPathRootNode);
         
-        for(PathObj obj : curZoneArc.paths) {
+        for (PathObj obj : curZoneArc.paths) {
             ObjListTreeNode node = (ObjListTreeNode)objListPathRootNode.addObject(obj);
             treeNodeList.put(obj.uniqueID, node);
             
@@ -561,6 +609,28 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         objListModel.reload();
         treeObjects.expandRow(0);
     }
+    
+    private void layerSelectChange(int index, boolean status) {
+        String layerName = ((JCheckBox)listLayerCheckboxes.getModel().getElementAt(index)).getText();
+        int layerMask = (1 << (layerName.charAt(5) - 'A'));
+        
+        if (status) {
+            zoneModeLayerBitmask |= layerMask;
+        }
+        else {
+            zoneModeLayerBitmask &= ~layerMask;
+        }
+        
+        populateObjectNodeTree(zoneModeLayerBitmask);
+        rerenderTasks.add("allobjects:");
+        glCanvas.repaint();
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // All code below this needs to be reorganized and revised...
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     // -------------------------------------------------------------------------------------------------------------------------
     
@@ -723,7 +793,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     /**
-     * Swing init code. Do not modify.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content
+     * of this method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -934,6 +1005,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         btnEditScenario.setFocusable(false);
         btnEditScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnEditScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnEditScenario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditScenarioActionPerformed(evt);
+            }
+        });
         tlbScenarios.add(btnEditScenario);
 
         btnDeleteScenario.setText("Delete");
@@ -949,6 +1025,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         pnlScenarios.add(tlbScenarios, java.awt.BorderLayout.PAGE_START);
 
+        listScenarios.setModel(new DefaultListModel());
         listScenarios.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         listScenarios.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
@@ -974,6 +1051,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         btnAddZone.setFocusable(false);
         btnAddZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnAddZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnAddZone.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddZoneActionPerformed(evt);
+            }
+        });
         tlbZones.add(btnAddZone);
 
         btnDeleteZone.setText("Delete");
@@ -1205,219 +1287,61 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
-    {//GEN-HEADEREND:event_formWindowOpened
-        if(isGalaxyMode) {
-            DefaultListModel scenlist = new DefaultListModel();
-            listScenarios.setModel(scenlist);
-            for(Bcsv.Entry scen : galaxyArchive.scenarioData)
-                scenlist.addElement(String.format("[%1$d] %2$s",(int)scen.get("ScenarioNo"),(String)scen.get("ScenarioName")));
-
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        if (isGalaxyMode) {
             listScenarios.setSelectedIndex(0);
         }
     }//GEN-LAST:event_formWindowOpened
     
-    /**
-     * Update rendering according to current selection. Called when the selection is changed.
-     */
-    public void selectionChanged() {
-        displayedPaths.clear();
-        pnlObjectSettings.clear();
-        
-        if(selectedObjs.isEmpty()) {
-            lblStatus.setText("Object deselected.");
-            tgbDeselect.setEnabled(false);
-            pnlObjectSettings.doLayout();
-            pnlObjectSettings.validate();
-            pnlObjectSettings.repaint();
-
-            glCanvas.requestFocusInWindow();
-            return;
-        }
-        
-        // Check if any are paths/path points linked to selected objs
-        for(AbstractObj obj : selectedObjs.values()) {
-            int pathid = -1;
-            
-            if(obj instanceof PathPointObj)
-                pathid = ((PathPointObj) obj).path.pathID;
-            else if(obj.data.containsKey("CommonPath_ID"))
-                pathid = (short) obj.data.get("CommonPath_ID");
-            
-            if(pathid == -1)
-                continue;
-            
-            // Display path if it is linked to object
-            if(displayedPaths.get(pathid) == null)
-                displayedPaths.put(pathid, (PathPointObj) globalPathPointList.get(pathid));
-        }
-        
-        // Check if the selected objects' classes are the same
-        Class cls = null; boolean allthesame = true;
-        if(selectedObjs.size() > 1) {
-            for(AbstractObj selectedObj : selectedObjs.values()) {
-                if(cls != null && cls != selectedObj.getClass()) {
-                    allthesame = false;
-                    break;
-                } else if(cls == null)
-                    cls = selectedObj.getClass();
-            }
-        }
-        
-        // If all selected objects are the same type, add all properties
-        if(allthesame) {
-            for(AbstractObj selectedObj : selectedObjs.values()) {
-                if(selectedObj instanceof PathPointObj) {
-                    PathPointObj selectedPathPoint =(PathPointObj)selectedObj;
-                    PathObj path = selectedPathPoint.path;
-                    lblStatus.setText(String.format("Selected [%3$d] %1$s(%2$s), point %4$d",
-                                path.data.get("name"), path.stage.stageName, path.pathID, selectedPathPoint.getIndex()) + ".");
-                    tgbDeselect.setEnabled(true);
-                    selectedPathPoint.getProperties(pnlObjectSettings);
-                }
-                else {
-                    String layer = selectedObj.layerKey.equals("common") ? "Common" : selectedObj.getLayerName();
-                    lblStatus.setText("Selected " + selectedObj.name + "(" + selectedObj.stage.stageName + ", " + layer + ").");
-                    tgbDeselect.setEnabled(true);
-                    
-                    LinkedList layerlist = new LinkedList();
-                    layerlist.add("Common");
-                    for(int l = 0; l < 26; l++) {
-                        String layerstring = String.format("Layer%1$c", (char) ('A' + l));
-                        if(curZoneArc.objects.containsKey(layerstring.toLowerCase()))
-                            layerlist.add(layerstring);
-                    }
-                    
-                    if(selectedObj.getClass() != PathPointObj.class) {
-                        pnlObjectSettings.addCategory("obj_general", "General");
-                        if(selectedObj.getClass() != StartObj.class && selectedObj.getClass() != DebugObj.class)
-                            pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name, "Default");
-                        if(isGalaxyMode)
-                            pnlObjectSettings.addField("zone", "Zone", "list", galaxyArchive.zoneList, selectedObj.stage.stageName, "Default");
-                        pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer, "Default");
-                    }
-
-                    selectedObj.getProperties(pnlObjectSettings);
-                }
-            }
-
-            if(selectedObjs.size() > 1) {
-                pnlObjectSettings.removeField("pos_x"); pnlObjectSettings.removeField("pos_y"); pnlObjectSettings.removeField("pos_z");
-                pnlObjectSettings.removeField("pnt0_x"); pnlObjectSettings.removeField("pnt0_y"); pnlObjectSettings.removeField("pnt0_z");
-                pnlObjectSettings.removeField("pnt1_x"); pnlObjectSettings.removeField("pnt1_y"); pnlObjectSettings.removeField("pnt1_z");
-                pnlObjectSettings.removeField("pnt2_x"); pnlObjectSettings.removeField("pnt2_y"); pnlObjectSettings.removeField("pnt2_z");
-                
-                
-                
-                pnlObjectSettings.addCategory("Group_Move", "Group_Move");
-                pnlObjectSettings.addField("group_move_x", "Step X Pos", "float", null,0.0f, "");//adding movement input fields
-                pnlObjectSettings.addField("group_move_y", "Step Y Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_move_z", "Step Z Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_x", "Move X", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_y", "Move Y", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_z", "Move Z", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_a", "Move all", "float", null,0.0f, "");
-                
-                pnlObjectSettings.addCategory("Group_Rotate", "Group_Rotate");
-                pnlObjectSettings.addField("group_rotate_center_x", "Center X Pos", "float", null,0.0f, "");//adding rotations input fields
-                pnlObjectSettings.addField("group_rotate_center_y", "Center Y Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_center_z", "Center Z Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_angle_x", "Rotate X", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_angle_y", "Rotate Y", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_angle_z", "Rotate Z", "float", null,0.0f, "");
-                
-                pnlObjectSettings.addCategory("Group_Copy", "Group_Copy");
-                pnlObjectSettings.addField("group_copy_offset_x", "offest X", "float", null,0.0f, "");//adding copy input fields
-                pnlObjectSettings.addField("group_copy_offset_y", "offest Y", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_copy_offset_z", "offest Z", "float", null,0.0f, "");
-            }
-            	this.g_center_x = 0;//reset values if selected objects changed
-            	this.g_center_y =0;
-            	this.g_center_z =0;
-            	this.g_angle_x =0;
-            	this.g_angle_y =0;
-            	this.g_angle_z =0;
-            	this.g_move_step_a =0;
-            	this.g_move_step_x =0;
-            	this.g_move_step_y =0;
-            	this.g_move_step_z =0;
-            	this.g_move_x =0;
-            	this.g_move_y =0;
-            	this.g_move_z =0;
-            	this.g_offset_x=0;
-            	this.g_offset_y=0;
-            	this.g_offset_z=0;
-            	
-        }
-        
-        if(selectedObjs.size() > 1) {
-            lblStatus.setText("Multiple objects selected.(" + selectedObjs.size() + ").");
-        }
-        
-        pnlObjectSettings.doLayout();
-        pnlObjectSettings.validate();
-        pnlObjectSettings.repaint();
-        
-        glCanvas.requestFocusInWindow();
-    }
-    
-    private void setStatusText() {
-        lblStatus.setText(isGalaxyMode ? "Editing scenario " + listScenarios.getSelectedValue() + ", zone " + curZone + "." :
-                                                "Editing zone " + curZone + ".");
-    }
-    
-    /**
-     * Called when the layer selection is changed.<br>
-     * TODO figure out what the peck it does.
-     * @param index
-     * @param status 
-     */
-    private void layerSelectChange(int index, boolean status) {
-        JCheckBox cbx =(JCheckBox)listLayerCheckboxes.getModel().getElementAt(index);
-        int layer = (1 <<(cbx.getText().charAt(5) - 'A'));
-        
-        if(status)
-            zoneModeLayerBitmask |= layer;
-        else
-            zoneModeLayerBitmask &= ~layer;
-        
-        rerenderTasks.add("allobjects:");
-        glCanvas.repaint();
-    }
-    
-    private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
-    {//GEN-HEADEREND:event_formWindowClosing
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         if (isGalaxyMode) {
-            for(GalaxyEditorForm form : zoneEditors.values())
+            for (GalaxyEditorForm form : zoneEditors.values()) {
                 form.dispose();
-        }
-        
-        if(!isGalaxyMode)
-            return;
-        
-        if(unsavedChanges) {
-            int res = JOptionPane.showConfirmDialog(this, "Save your changes?", Whitehole.NAME,
-                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+            }
             
-            if(res == JOptionPane.CANCEL_OPTION) {
-                setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-                return;
-            } else {
-                setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                if(res == JOptionPane.YES_OPTION)
-                    saveChanges();
+            // Save renderer preferences
+            Settings.setShowAreas(tgbShowAreas.isSelected());
+            Settings.setShowCameras(tgbShowCameras.isSelected());
+            Settings.setShowGravity(tgbShowGravity.isSelected());
+            Settings.setShowPaths(tgbShowPaths.isSelected());
+            Settings.setShowAxis(tgbShowAxis.isSelected());
+            
+            if(unsavedChanges) {
+                // Should we really scrap our changes?
+                int res = JOptionPane.showConfirmDialog(
+                        this, "Save your changes?", Whitehole.NAME,
+                        JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE
+                );
+
+                switch (res) {
+                    case JOptionPane.CANCEL_OPTION:
+                        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+                        return;
+                    case JOptionPane.YES_OPTION:
+                        if (res == JOptionPane.YES_OPTION) {
+                            saveChanges();
+                        }
+                    default:
+                        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                        break;
+                }
+            }
+            
+            // Close stages
+            for (StageArchive stageArc : zoneArchives.values()) {
+                stageArc.close();
             }
         }
-        
-        Settings.setShowAreas(tgbShowAreas.isSelected());
-        Settings.setShowCameras(tgbShowCameras.isSelected());
-        Settings.setShowGravity(tgbShowGravity.isSelected());
-        Settings.setShowPaths(tgbShowPaths.isSelected());
-        Settings.setShowAxis(tgbShowAxis.isSelected());
-        
-        for(StageArchive zonearc : zoneArchives.values())
-            zonearc.close();
+        else {
+            if (unsavedChanges) {
+                parentForm.unsavedChanges = true;
+            }
+        }
     }//GEN-LAST:event_formWindowClosing
+
+    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
+        renderAllObjects();
+    }//GEN-LAST:event_formWindowActivated
 
     private void mniSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniSaveActionPerformed
         saveChanges();
@@ -1562,68 +1486,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_itmScaleCopyActionPerformed
-
-    private void itmScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScalePasteActionPerformed
-        Vector3 copyScl = new Vector3();
-
-        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
-        try {
-            Transferable contents = c.getContents(null);
-            boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
-            String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
-
-            if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
-            {
-                String sclData = "," + data.substring(data.indexOf("scl") + 3); // ,X,Y,Z
-
-                if(sclData.contains(","))
-                {
-                    int indexOfComma = sclData.indexOf(",");
-
-                    float sclX = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
-
-                    indexOfComma = sclData.indexOf(",", indexOfComma + 1);
-                    float sclY = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
-
-                    indexOfComma = sclData.indexOf(",", indexOfComma + 1);
-                    float sclZ = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
-
-                    copyScl = new Vector3(sclX, sclY, sclZ);
-                }
-
-            } else
-            {
-                lblStatus.setText("Clipboard does not contain pos/rot/scl!");
-                return;
-            }
-        } catch (UnsupportedFlavorException | IOException ex) {
-            Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-            lblStatus.setText(ex.getMessage());
-            return;
-        }
-        
-        for(AbstractObj selectedObj : selectedObjs.values()) {
-            if(selectedObj instanceof PathPointObj || selectedObj instanceof PositionObj || selectedObj instanceof StageObj)
-                return;
-            
-            addUndoEntry("changeObj", selectedObj);
-            
-            selectedObj.scale = (Vector3) copyScl.clone();
-            
-            pnlObjectSettings.setFieldValue("scale_x", selectedObj.scale.x);
-            pnlObjectSettings.setFieldValue("scale_y", selectedObj.scale.y);
-            pnlObjectSettings.setFieldValue("scale_z", selectedObj.scale.z);
-            pnlObjectSettings.repaint();
-            
-            
-            rerenderTasks.add("object:"+selectedObj.uniqueID);
-            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
-            
-            glCanvas.repaint();
-            lblStatus.setText("Pasted scale " + copyScl.x + ", " + copyScl.y + ", " + copyScl.z + ".");
-            unsavedChanges = true;
-        }
-    }//GEN-LAST:event_itmScalePasteActionPerformed
 
     private void itmPositionPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionPasteActionPerformed
         Vector3 copyPos = new Vector3();
@@ -1782,96 +1644,67 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_itmRotationPasteActionPerformed
 
-    private void treeObjectsValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_treeObjectsValueChanged
-        TreePath[] paths = evt.getPaths();
-        for(TreePath path : paths) {
-            TreeNode node =(TreeNode)path.getLastPathComponent();
-            if(!(node instanceof ObjTreeNode))
-                continue;
-            
-            ObjTreeNode tnode =(ObjTreeNode)node;
-            if(!(tnode.object instanceof AbstractObj))
-                continue;
-            
-            AbstractObj obj =(AbstractObj)tnode.object;
-            if(evt.isAddedPath(path)) {
-                selectedObjs.put(obj.uniqueID, obj);
-                addRerenderTask("zone:"+obj.stage.stageName);
-            } else {
-                selectedObjs.remove(obj.uniqueID);
-                addRerenderTask("zone:"+obj.stage.stageName);
-            }
-        }
+    private void itmScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScalePasteActionPerformed
+        Vector3 copyScl = new Vector3();
 
-        selectionArg = 0;
-        selectionChanged();
-        glCanvas.repaint();
-    }//GEN-LAST:event_treeObjectsValueChanged
+        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+        try {
+            Transferable contents = c.getContents(null);
+            boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
+            String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
 
-    private void tgbDeleteObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeleteObjectActionPerformed
-        if(!selectedObjs.isEmpty()) {
-            if(tgbDeleteObject.isSelected()) {
-                Collection<AbstractObj> templist =((HashMap)selectedObjs.clone()).values();
-                for(AbstractObj selectedObj : templist) {
-                    selectedObjs.remove(selectedObj.uniqueID);
-                    if(selectedObj.getClass() != StageObj.class)
-                        deleteObject(selectedObj.uniqueID);
+            if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
+            {
+                String sclData = "," + data.substring(data.indexOf("scl") + 3); // ,X,Y,Z
+
+                if(sclData.contains(","))
+                {
+                    int indexOfComma = sclData.indexOf(",");
+
+                    float sclX = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
+
+                    indexOfComma = sclData.indexOf(",", indexOfComma + 1);
+                    float sclY = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
+
+                    indexOfComma = sclData.indexOf(",", indexOfComma + 1);
+                    float sclZ = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
+
+                    copyScl = new Vector3(sclX, sclY, sclZ);
                 }
-                selectionChanged();
-            }
-            treeObjects.setSelectionRow(0);
-            tgbDeleteObject.setSelected(false);
-        } else {
-            if(!tgbDeleteObject.isSelected()) {
-                deletingObjects = false;
-                setStatusText();
-            } else {
-                deletingObjects = true;
-                lblStatus.setText("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
-            }
-        }
-    }//GEN-LAST:event_tgbDeleteObjectActionPerformed
 
-    private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbAddObjectActionPerformed
-        if(tgbAddObject.isSelected())
-            popupAddItems.show(tgbAddObject, 0, tgbAddObject.getHeight());
-        else {
-            popupAddItems.setVisible(false);
-            setStatusText();
-        }
-    }//GEN-LAST:event_tgbAddObjectActionPerformed
-
-    private void listZonesValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listZonesValueChanged
-        if(evt.getValueIsAdjusting() || listZones.getSelectedValue() == null)
-            return;
-        
-        btnEditZone.setEnabled(true);
-
-        int selid = listZones.getSelectedIndex();
-        curZone = galaxyArchive.zoneList.get(selid);
-        curZoneArc = zoneArchives.get(curZone);
-
-        int layermask = (int)curScenario.get(curZone);
-        populateObjectNodeTree(layermask);
-
-        setStatusText();
-        glCanvas.repaint();
-    }//GEN-LAST:event_listZonesValueChanged
-
-    private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditZoneActionPerformed
-        if(zoneEditors.containsKey(curZone)) {
-            if(!zoneEditors.get(curZone).isVisible())
-                zoneEditors.remove(curZone);
-            else {
-                zoneEditors.get(curZone).toFront();
+            } else
+            {
+                lblStatus.setText("Clipboard does not contain pos/rot/scl!");
                 return;
             }
+        } catch (UnsupportedFlavorException | IOException ex) {
+            Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
+            lblStatus.setText(ex.getMessage());
+            return;
         }
-
-        GalaxyEditorForm form = new GalaxyEditorForm(this, curZoneArc);
-        form.setVisible(true);
-        zoneEditors.put(curZone, form);
-    }//GEN-LAST:event_btnEditZoneActionPerformed
+        
+        for(AbstractObj selectedObj : selectedObjs.values()) {
+            if(selectedObj instanceof PathPointObj || selectedObj instanceof PositionObj || selectedObj instanceof StageObj)
+                return;
+            
+            addUndoEntry("changeObj", selectedObj);
+            
+            selectedObj.scale = (Vector3) copyScl.clone();
+            
+            pnlObjectSettings.setFieldValue("scale_x", selectedObj.scale.x);
+            pnlObjectSettings.setFieldValue("scale_y", selectedObj.scale.y);
+            pnlObjectSettings.setFieldValue("scale_z", selectedObj.scale.z);
+            pnlObjectSettings.repaint();
+            
+            
+            rerenderTasks.add("object:"+selectedObj.uniqueID);
+            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+            
+            glCanvas.repaint();
+            lblStatus.setText("Pasted scale " + copyScl.x + ", " + copyScl.y + ", " + copyScl.z + ".");
+            unsavedChanges = true;
+        }
+    }//GEN-LAST:event_itmScalePasteActionPerformed
 
     private void listScenariosValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listScenariosValueChanged
         if(evt.getValueIsAdjusting() || listScenarios.getSelectedValue() == null)
@@ -1902,20 +1735,141 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void btnAddScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddScenarioActionPerformed
         // TODO: what the peck is this?
     }//GEN-LAST:event_btnAddScenarioActionPerformed
-    
-    /**
-     * Rerenders all objects in all zones.
-     */
-    public void renderAllObjects() {
-        for(String zone : zoneArchives.keySet())
-            rerenderTasks.add("zone:" + zone);
-        
-        glCanvas.repaint();
-    }
 
-    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
+    private void btnDeleteScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteScenarioActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDeleteScenarioActionPerformed
+
+    private void btnEditScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditScenarioActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnEditScenarioActionPerformed
+
+    private void listZonesValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listZonesValueChanged
+        if(evt.getValueIsAdjusting() || listZones.getSelectedValue() == null)
+            return;
+        
+        btnEditZone.setEnabled(true);
+
+        int selid = listZones.getSelectedIndex();
+        curZone = galaxyArchive.zoneList.get(selid);
+        curZoneArc = zoneArchives.get(curZone);
+
+        int layermask = (int)curScenario.get(curZone);
+        populateObjectNodeTree(layermask);
+
+        setDefaultStatus();
+        glCanvas.repaint();
+    }//GEN-LAST:event_listZonesValueChanged
+
+    private void btnAddZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddZoneActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnAddZoneActionPerformed
+
+    private void btnDeleteZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteZoneActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDeleteZoneActionPerformed
+
+    private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditZoneActionPerformed
+        if(zoneEditors.containsKey(curZone)) {
+            if(!zoneEditors.get(curZone).isVisible())
+                zoneEditors.remove(curZone);
+            else {
+                zoneEditors.get(curZone).toFront();
+                return;
+            }
+        }
+
+        GalaxyEditorForm form = new GalaxyEditorForm(this, curZoneArc);
+        form.setVisible(true);
+        zoneEditors.put(curZone, form);
+    }//GEN-LAST:event_btnEditZoneActionPerformed
+
+    private void tgbDeselectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeselectActionPerformed
+        for(AbstractObj obj : selectedObjs.values())
+            addRerenderTask("zone:"+obj.stage.stageName);
+        selectedObjs.clear();
+        selectionChanged();
+        glCanvas.repaint();
+    }//GEN-LAST:event_tgbDeselectActionPerformed
+
+    private void tgbShowPathsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowPathsActionPerformed
         renderAllObjects();
-    }//GEN-LAST:event_formWindowActivated
+    }//GEN-LAST:event_tgbShowPathsActionPerformed
+
+    private void tgbShowAreasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAreasActionPerformed
+        renderAllObjects();
+    }//GEN-LAST:event_tgbShowAreasActionPerformed
+
+    private void tgbShowCamerasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowCamerasActionPerformed
+        renderAllObjects();
+    }//GEN-LAST:event_tgbShowCamerasActionPerformed
+
+    private void tgbShowGravityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowGravityActionPerformed
+        renderAllObjects();
+    }//GEN-LAST:event_tgbShowGravityActionPerformed
+
+    private void tgbShowAxisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAxisActionPerformed
+        glCanvas.repaint();
+    }//GEN-LAST:event_tgbShowAxisActionPerformed
+
+    private void treeObjectsValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_treeObjectsValueChanged
+        TreePath[] paths = evt.getPaths();
+        for(TreePath path : paths) {
+            TreeNode node =(TreeNode)path.getLastPathComponent();
+            if(!(node instanceof ObjTreeNode))
+                continue;
+            
+            ObjTreeNode tnode =(ObjTreeNode)node;
+            if(!(tnode.object instanceof AbstractObj))
+                continue;
+            
+            AbstractObj obj =(AbstractObj)tnode.object;
+            if(evt.isAddedPath(path)) {
+                selectedObjs.put(obj.uniqueID, obj);
+                addRerenderTask("zone:"+obj.stage.stageName);
+            } else {
+                selectedObjs.remove(obj.uniqueID);
+                addRerenderTask("zone:"+obj.stage.stageName);
+            }
+        }
+
+        selectionArg = 0;
+        selectionChanged();
+        glCanvas.repaint();
+    }//GEN-LAST:event_treeObjectsValueChanged
+
+    private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbAddObjectActionPerformed
+        if(tgbAddObject.isSelected())
+            popupAddItems.show(tgbAddObject, 0, tgbAddObject.getHeight());
+        else {
+            popupAddItems.setVisible(false);
+            setDefaultStatus();
+        }
+    }//GEN-LAST:event_tgbAddObjectActionPerformed
+
+    private void tgbDeleteObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeleteObjectActionPerformed
+        if(!selectedObjs.isEmpty()) {
+            if(tgbDeleteObject.isSelected()) {
+                Collection<AbstractObj> templist =((HashMap)selectedObjs.clone()).values();
+                for(AbstractObj selectedObj : templist) {
+                    selectedObjs.remove(selectedObj.uniqueID);
+                    if(selectedObj.getClass() != StageObj.class)
+                        deleteObject(selectedObj.uniqueID);
+                }
+                selectionChanged();
+            }
+            treeObjects.setSelectionRow(0);
+            tgbDeleteObject.setSelected(false);
+        } else {
+            if(!tgbDeleteObject.isSelected()) {
+                deletingObjects = false;
+                setDefaultStatus();
+            } else {
+                deletingObjects = true;
+                lblStatus.setText("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
+            }
+        }
+    }//GEN-LAST:event_tgbDeleteObjectActionPerformed
 
     private void tgbCopyObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbCopyObjActionPerformed
         copyObj =(LinkedHashMap<Integer, AbstractObj>) selectedObjs.clone();
@@ -1952,42 +1906,150 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             glCanvas.repaint();
         }
     }//GEN-LAST:event_tgbPasteObjActionPerformed
+    
+    /**
+     * Update rendering according to current selection. Called when the selection is changed.
+     */
+    public void selectionChanged() {
+        displayedPaths.clear();
+        pnlObjectSettings.clear();
+        
+        if(selectedObjs.isEmpty()) {
+            lblStatus.setText("Object deselected.");
+            tgbDeselect.setEnabled(false);
+            pnlObjectSettings.doLayout();
+            pnlObjectSettings.validate();
+            pnlObjectSettings.repaint();
 
-    private void tgbShowAxisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAxisActionPerformed
-        glCanvas.repaint();
-    }//GEN-LAST:event_tgbShowAxisActionPerformed
+            glCanvas.requestFocusInWindow();
+            return;
+        }
+        
+        // Check if any are paths/path points linked to selected objs
+        for(AbstractObj obj : selectedObjs.values()) {
+            int pathid = -1;
+            
+            if(obj instanceof PathPointObj)
+                pathid = ((PathPointObj) obj).path.pathID;
+            else if(obj.data.containsKey("CommonPath_ID"))
+                pathid = (short) obj.data.get("CommonPath_ID");
+            
+            if(pathid == -1)
+                continue;
+            
+            // Display path if it is linked to object
+            if(displayedPaths.get(pathid) == null)
+                displayedPaths.put(pathid, (PathPointObj) globalPathPointList.get(pathid));
+        }
+        
+        // Check if the selected objects' classes are the same
+        Class cls = null; boolean allthesame = true;
+        if(selectedObjs.size() > 1) {
+            for(AbstractObj selectedObj : selectedObjs.values()) {
+                if(cls != null && cls != selectedObj.getClass()) {
+                    allthesame = false;
+                    break;
+                } else if(cls == null)
+                    cls = selectedObj.getClass();
+            }
+        }
+        
+        // If all selected objects are the same type, add all properties
+        if(allthesame) {
+            for(AbstractObj selectedObj : selectedObjs.values()) {
+                if(selectedObj instanceof PathPointObj) {
+                    PathPointObj selectedPathPoint =(PathPointObj)selectedObj;
+                    PathObj path = selectedPathPoint.path;
+                    lblStatus.setText(String.format("Selected [%3$d] %1$s(%2$s), point %4$d",
+                                path.data.get("name"), path.stage.stageName, path.pathID, selectedPathPoint.getIndex()) + ".");
+                    tgbDeselect.setEnabled(true);
+                    selectedPathPoint.getProperties(pnlObjectSettings);
+                }
+                else {
+                    String layer = selectedObj.layerKey.equals("common") ? "Common" : selectedObj.getLayerName();
+                    lblStatus.setText("Selected " + selectedObj.name + "(" + selectedObj.stage.stageName + ", " + layer + ").");
+                    tgbDeselect.setEnabled(true);
+                    
+                    LinkedList layerlist = new LinkedList();
+                    layerlist.add("Common");
+                    for(int l = 0; l < 26; l++) {
+                        String layerstring = String.format("Layer%1$c", (char) ('A' + l));
+                        if(curZoneArc.objects.containsKey(layerstring.toLowerCase()))
+                            layerlist.add(layerstring);
+                    }
+                    
+                    if(selectedObj.getClass() != PathPointObj.class) {
+                        pnlObjectSettings.addCategory("obj_general", "General");
+                        if(selectedObj.getClass() != StartObj.class && selectedObj.getClass() != DebugObj.class)
+                            pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name, "Default");
+                        if(isGalaxyMode)
+                            pnlObjectSettings.addField("zone", "Zone", "list", galaxyArchive.zoneList, selectedObj.stage.stageName, "Default");
+                        pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer, "Default");
+                    }
 
-    private void tgbShowCamerasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowCamerasActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowCamerasActionPerformed
+                    selectedObj.getProperties(pnlObjectSettings);
+                }
+            }
 
-    private void tgbShowGravityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowGravityActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowGravityActionPerformed
-
-    private void tgbShowAreasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAreasActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowAreasActionPerformed
-
-    private void tgbShowPathsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowPathsActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowPathsActionPerformed
-
-    private void tgbDeselectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeselectActionPerformed
-        for(AbstractObj obj : selectedObjs.values())
-            addRerenderTask("zone:"+obj.stage.stageName);
-        selectedObjs.clear();
-        selectionChanged();
-        glCanvas.repaint();
-    }//GEN-LAST:event_tgbDeselectActionPerformed
-
-    private void btnDeleteZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteZoneActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnDeleteZoneActionPerformed
-
-    private void btnDeleteScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteScenarioActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnDeleteScenarioActionPerformed
+            if(selectedObjs.size() > 1) {
+                pnlObjectSettings.removeField("pos_x"); pnlObjectSettings.removeField("pos_y"); pnlObjectSettings.removeField("pos_z");
+                pnlObjectSettings.removeField("pnt0_x"); pnlObjectSettings.removeField("pnt0_y"); pnlObjectSettings.removeField("pnt0_z");
+                pnlObjectSettings.removeField("pnt1_x"); pnlObjectSettings.removeField("pnt1_y"); pnlObjectSettings.removeField("pnt1_z");
+                pnlObjectSettings.removeField("pnt2_x"); pnlObjectSettings.removeField("pnt2_y"); pnlObjectSettings.removeField("pnt2_z");
+                
+                
+                
+                pnlObjectSettings.addCategory("Group_Move", "Group_Move");
+                pnlObjectSettings.addField("group_move_x", "Step X Pos", "float", null,0.0f, "");//adding movement input fields
+                pnlObjectSettings.addField("group_move_y", "Step Y Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_move_z", "Step Z Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_x", "Move X", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_y", "Move Y", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_z", "Move Z", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_a", "Move all", "float", null,0.0f, "");
+                
+                pnlObjectSettings.addCategory("Group_Rotate", "Group_Rotate");
+                pnlObjectSettings.addField("group_rotate_center_x", "Center X Pos", "float", null,0.0f, "");//adding rotations input fields
+                pnlObjectSettings.addField("group_rotate_center_y", "Center Y Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_center_z", "Center Z Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_angle_x", "Rotate X", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_angle_y", "Rotate Y", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_angle_z", "Rotate Z", "float", null,0.0f, "");
+                
+                pnlObjectSettings.addCategory("Group_Copy", "Group_Copy");
+                pnlObjectSettings.addField("group_copy_offset_x", "offest X", "float", null,0.0f, "");//adding copy input fields
+                pnlObjectSettings.addField("group_copy_offset_y", "offest Y", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_copy_offset_z", "offest Z", "float", null,0.0f, "");
+            }
+            	this.g_center_x = 0;//reset values if selected objects changed
+            	this.g_center_y =0;
+            	this.g_center_z =0;
+            	this.g_angle_x =0;
+            	this.g_angle_y =0;
+            	this.g_angle_z =0;
+            	this.g_move_step_a =0;
+            	this.g_move_step_x =0;
+            	this.g_move_step_y =0;
+            	this.g_move_step_z =0;
+            	this.g_move_x =0;
+            	this.g_move_y =0;
+            	this.g_move_z =0;
+            	this.g_offset_x=0;
+            	this.g_offset_y=0;
+            	this.g_offset_z=0;
+            	
+        }
+        
+        if(selectedObjs.size() > 1) {
+            lblStatus.setText("Multiple objects selected.(" + selectedObjs.size() + ").");
+        }
+        
+        pnlObjectSettings.doLayout();
+        pnlObjectSettings.validate();
+        pnlObjectSettings.repaint();
+        
+        glCanvas.requestFocusInWindow();
+    }
     
     public void pasteObject(AbstractObj obj) {
         addingObject = obj.getFileType() + "|" + obj.name;
@@ -2114,6 +2176,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         undoList.add(new UndoEntry(type, obj));
         undoIndex++;
+    }
+    
+    /**
+     * Rerenders all objects in all zones.
+     */
+    public void renderAllObjects() {
+        for(String zone : zoneArchives.keySet())
+            rerenderTasks.add("zone:" + zone);
+        
+        glCanvas.repaint();
     }
     
     /**
@@ -2530,7 +2602,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             globalPathPointList.remove(uniqueID);
             if(obj.path.getPoints().isEmpty()) {
                 obj.path.stage.paths.remove(obj.path);
-                //obj.path.deleteStorage();
                 globalPathList.remove(obj.path.uniqueID);
                 
                 rerenderTasks.add("zone:"+obj.path.stage.stageName);
@@ -3033,82 +3104,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         unsavedChanges = true;
     }
-
+    
     // -------------------------------------------------------------------------------------------------------------------------
-    // Actual renderer
+    // Actual galaxy scene renderer
     
-    public void makeFullscreen() {
-        fullScreen = new JFrame(this.getTitle());
-        fullScreen.addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                
-            }
-
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_F) {
-                    fullScreen.setExtendedState(Frame.NORMAL);
-                    fullScreen.setVisible(false);
-                    fullScreen.dispose();
-                    System.out.println("cleanup");
-                }
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {
-            }
-        });
-        
-        fullScreen.addWindowListener(new WindowListener() {
-            @Override
-            public void windowOpened(WindowEvent e) {}
-
-            @Override
-            public void windowClosing(WindowEvent e) {
-                glCanvas.requestFocusInWindow();
-                setVisible(true);
-            }
-
-            @Override
-            public void windowClosed(WindowEvent e) {}
-
-            @Override
-            public void windowIconified(WindowEvent e) {}
-
-            @Override
-            public void windowDeiconified(WindowEvent e) {}
-
-            @Override
-            public void windowActivated(WindowEvent e) {}
-
-            @Override
-            public void windowDeactivated(WindowEvent e) {}
-        });
-        
-        fullScreen.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-        fullScreen.setExtendedState(Frame.MAXIMIZED_BOTH);
-        fullScreen.setUndecorated(true);
-        
-        
-        com.jogamp.opengl.GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
-        caps.setSampleBuffers(true);
-        caps.setNumSamples(8);
-        caps.setHardwareAccelerated(true);
-        fullCanvas = new GLCanvas(caps);
-        fullCanvas.setSharedContext(RendererCache.refContext);
-        fullCanvas.addGLEventListener(renderer = new GalaxyEditorForm.GalaxyRenderer(true));
-        fullCanvas.addMouseListener(renderer);
-        fullCanvas.addMouseMotionListener(renderer);
-        fullCanvas.addMouseWheelListener(renderer);
-        fullCanvas.addKeyListener(renderer);
-        
-        fullScreen.add(fullCanvas);
-        fullScreen.setVisible(true);
-    }
-    
-    public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
-        public class AsyncPrerenderer implements Runnable {
+    private class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
+        private class AsyncPrerenderer implements Runnable {
+            private final GL2 gl;
+            
             public AsyncPrerenderer(GL2 gl) {
                 this.gl = gl;
             }
@@ -3116,50 +3119,45 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             @Override
             public void run() {
                 try {
-                    
                     gl.getContext().makeCurrent();
                     
-                    if(parentForm == null) {
-                        for(AbstractObj obj : globalObjList.values()) {
+                    if (isGalaxyMode) {
+                        for (AbstractObj obj : globalObjList.values()) {
                             obj.initRenderer(renderInfo);
                             obj.oldName = obj.name;
                         }
-
-                        for(PathObj obj : globalPathList.values())
+                        
+                        for (PathObj obj : globalPathList.values()) {
                             obj.prerender(renderInfo);
+                        }
                     }
-
+                    
                     renderInfo.renderMode = GLRenderer.RenderMode.PICKING; renderAllObjects(gl);
                     renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
                     renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
-
+                    
                     gl.getContext().release();
                     glCanvas.repaint();
-                    setStatusText();
-                } catch(GLException ex) {
-                    lblStatus.setText("Failed to render level!" + ex.getMessage());
+                    setDefaultStatus();
+                }
+                catch(GLException ex) {
                     lblStatus.setForeground(Color.red);
-                    lblStatus.repaint();
-                    System.out.println("rip");
+                    lblStatus.setText("Failed to render level!" + ex.getMessage());
+                    System.out.println(ex);
                 }
             }
-            private final GL2 gl;
         }
         
-        public GalaxyRenderer(boolean isFullscreen) {
-            super();
-            fullscreen = true;
-            fov =(float)((70f * Math.PI) / 180f);
-        }
+        private static final float FOV = (float)((70.0 * Math.PI) / 180.0);
+        private static final float Z_NEAR = 0.001f;
+        private static final float Z_FAR = 1000f;
         
         public GalaxyRenderer() {
             super();
-            fov = (float) ((70f * Math.PI) / 180f);
         }
         
         @Override
         public void init(GLAutoDrawable glad) {
-            
             GL2 gl = glad.getGL().getGL2();
             
             RendererCache.setRefContext(glad.getContext());
@@ -3170,25 +3168,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE;
             
             // Place the camera behind the first entrance
+            AbstractObj startObj = getScenarioStart();
             
-            StageArchive firstzone = zoneArchives.get(galaxyName);
-            StartObj start = null;
-            for(AbstractObj obj : firstzone.objects.get("common")) {
-                if(obj instanceof StartObj) {
-                    start = (StartObj) obj;
-                    break;
-                }
-            }
-            
-            if(start != null) {
+            if(startObj != null) {
                 camDistance = 0.125f;
                 
-                camTarget.x = start.position.x / SCALE_DOWN;
-                camTarget.y = start.position.y / SCALE_DOWN;
-                camTarget.z = start.position.z / SCALE_DOWN;
+                camTarget.x = startObj.position.x / SCALE_DOWN;
+                camTarget.y = startObj.position.y / SCALE_DOWN;
+                camTarget.z = startObj.position.z / SCALE_DOWN;
                 
                 camRotation.y =(float)Math.PI / 8f;
-                camRotation.x =(-start.rotation.y - 90f) *(float)Math.PI / 180f;
+                camRotation.x =(-startObj.rotation.y - 90f) *(float)Math.PI / 180f;
             }
             
             updateCamera();
@@ -3198,7 +3188,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             gl.glFrontFace(GL2.GL_CW);
             
-            gl.glClearColor(0f, 0f, 0.125f, 1f);
+            gl.glClearColor(0.118f, 0.118f, 0.784f, 1f);
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
             lblStatus.setText("Prerendering "+(isGalaxyMode?"galaxy":"zone")+", please wait...");
             
@@ -3497,7 +3487,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             // Rendering pass 1 -- fakecolor rendering
             // the results are used to determine which object is clicked
             
-            gl.glClearColor(1f, 1f, 1f, 1f);
+            gl.glClearColor(0.118f, 0.118f, 0.784f, 1f);
             gl.glClearDepth(1f);
             gl.glClearStencil(0);
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_STENCIL_BUFFER_BIT);
@@ -3533,7 +3523,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             gl.glReadPixels(mousePos.x - 1, glad.getSurfaceHeight() - mousePos.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV,
                                                                                                                                 pickingFrameBuffer);
             gl.glReadPixels(mousePos.x, glad.getSurfaceHeight() - mousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
-            pickingDepth = -(zFar * zNear /(pickingDepthBuffer.get(0) *(zFar - zNear) - zFar));
+            pickingDepth = -(Z_FAR * Z_NEAR /(pickingDepthBuffer.get(0) *(Z_FAR - Z_NEAR) - Z_FAR));
             
             if (Settings.getDebugFakeColor()) {
                 glad.swapBuffers();
@@ -3543,7 +3533,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             // Rendering pass 2 -- standard rendering
             //(what the user will see)
 
-            gl.glClearColor(0f, 0f, 0.125f, 1f);
+            gl.glClearColor(0.118f, 0.118f, 0.784f, 1f);
             gl.glClearDepth(1f);
             gl.glClearStencil(0);
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_STENCIL_BUFFER_BIT);
@@ -3639,14 +3629,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             float aspectRatio =(float)width /(float)height;
             gl.glMatrixMode(GL2.GL_PROJECTION);
             gl.glLoadIdentity();
-            float ymax = zNear *(float)Math.tan(0.5f * fov);
-            gl.glFrustum(
-                    -ymax * aspectRatio, ymax * aspectRatio,
+            float ymax = Z_NEAR *(float)Math.tan(0.5f * FOV);
+            gl.glFrustum(-ymax * aspectRatio, ymax * aspectRatio,
                     -ymax, ymax,
-                    zNear, zFar);
+                    Z_NEAR, Z_FAR);
             
-            pixelFactorX =(2f * (float) Math.tan(fov * 0.5f) * aspectRatio) / (float) width;
-            pixelFactorY =(2f * (float) Math.tan(fov * 0.5f)) / (float) height;
+            pixelFactorX =(2f * (float) Math.tan(FOV * 0.5f) * aspectRatio) / (float) width;
+            pixelFactorY =(2f * (float) Math.tan(FOV * 0.5f)) / (float) height;
         }
         
         public void updateCamera() {
@@ -3848,12 +3837,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     if(!addingObject.isEmpty()) {
                         addingObject = "";
                         tgbAddObject.setSelected(false);
-                        setStatusText();
+                        setDefaultStatus();
                     }
                     else if(deletingObjects) {
                         deletingObjects = false;
                         tgbDeleteObject.setSelected(false);
-                        setStatusText();
+                        setDefaultStatus();
                     }
                 }
                 else {
@@ -3870,14 +3859,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         if(!shiftpressed) {
                             addingObject = "";
                             tgbAddObject.setSelected(false);
-                            setStatusText();
+                            setDefaultStatus();
                         }
                     } else if(deletingObjects) {
                         deleteObject(objid);
                         if(!shiftpressed)  {
                             deletingObjects = false;
                             tgbDeleteObject.setSelected(false);
-                            setStatusText();
+                            setDefaultStatus();
                         }                    
                     }
                     else {
@@ -4196,24 +4185,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 return;
             }
             
-            // Fullscreen Toggle
-            if(keyCode == KeyEvent.VK_F) {
-                makeFullscreen();
-                
-                if(fullscreen) {
-                    setVisible(false);
-                    fullscreen = false;
-                } else if(!fullscreen) {
-                    System.out.println("Attempting to exit fullscreen mode...");
-                    
-                    fullScreen.dispatchEvent(new WindowEvent(fullScreen, WindowEvent.WINDOW_CLOSING));
-                    glCanvas.requestFocusInWindow();
-                    setVisible(true);
-                }
-                
-                return;
-            }
-            
             // Arrow Key Shortcuts
             Vector3 delta = new Vector3();
             Vector3 finaldelta = new Vector3();
@@ -4258,10 +4229,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 e.getComponent().repaint();
             }
         }
-        
-        public final float fov;
-        public final float zNear = 0.001f;
-        public final float zFar = 1000f;
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -106,8 +106,7 @@ public class ExternalFile implements FileBase {
 
     @Override
     public int readInt() throws IOException {
-        try
-        {
+        try {
             int ret = file.readInt();
             
             if (!isBigEndian) {

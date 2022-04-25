@@ -314,7 +314,7 @@ public class BmdRenderer extends GLRenderer {
             if(mat.constAlphaSel[i] !=(byte)0xFF)
                 frag.append("    konst.a = ").append(a_konstsel[mat.constAlphaSel[i]]).append(";\n");
             if(mat.tevOrder[i].texMap !=(byte)0xFF && mat.tevOrder[i].texcoordID !=(byte)0xFF)
-                frag.append(String.format("    texcolor = texture2D(texture%1$d, gl_TexCoord[%2$d].st);\n",
+                frag.append(String.format("    texcolor = texture2D(texture%1$d, gl_TexCoord[%2$d].xy);\n",
                     mat.tevOrder[i].texMap, mat.tevOrder[i].texcoordID));
             frag.append("    rascolor = gl_Color;\n");
             // TODO: take mat.TevOrder[i].ChanId into account

@@ -170,7 +170,7 @@ public class PathObj {
 
     public Bcsv createStorage(String filePath) {
         try {
-            if (this.stage.mapArc.fileExists(filePath)) {
+            if (stage.mapArc.fileExists(filePath)) {
                 return new Bcsv(stage.mapArc.openFile(filePath));
             }
             else {

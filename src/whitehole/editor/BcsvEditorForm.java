@@ -40,6 +40,9 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     }
     
     private void toggleShortcutVisibility() {
+        tableModel.setRowCount(0);
+        tableModel.setColumnCount(0);
+        
         boolean isSmg1 = Whitehole.getCurrentGameType() == 1;
         
         sep1.setVisible(!isSmg1);
@@ -63,11 +66,9 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             tbArchiveName.setText("/StageData/CocoonExGalaxy/CocoonExGalaxyScenario.arc");
             tbFileName.setText("/CocoonExGalaxyScenario/ScenarioData.bcsv");
         }
-        else if (isSmg1) {
+        else {
             tbArchiveName.setText("/StageData/RedBlueExGalaxy/RedBlueExGalaxyScenario.arc");
             tbFileName.setText("/RedBlueExGalaxyScenario/ScenarioData.bcsv");
-            
-            subAstroNamePlateData.setVisible(false);
         }
     }
     

@@ -132,7 +132,7 @@ public class AreaShapeRenderer extends GLRenderer {
         gl.glTranslatef(0f, 0f, 0f);
         gl.glRotatef(90f, 1f, 0f, 0f);
         glu.gluQuadricDrawStyle(sphere, GLU.GLU_LINE);
-        glu.gluSphere(sphere, SIZE, 28, 8);
+        glu.gluSphere(sphere, SIZE, 16, 8);
         glu.gluDeleteQuadric(sphere);
         gl.glTranslatef(0f, 0f, 0f);
     }
@@ -145,7 +145,7 @@ public class AreaShapeRenderer extends GLRenderer {
         gl.glTranslatef(0f, 1000f, 0f);
         gl.glRotatef(90f, 1f, 0f, 0f);
         glu.gluQuadricDrawStyle(cylinder, GLU.GLU_LINE);
-        glu.gluCylinder(cylinder, SIZE, SIZE, SIZE * 2, 28, 1);
+        glu.gluCylinder(cylinder, SIZE, SIZE, SIZE * 2, 16, 1);
         glu.gluDeleteQuadric(cylinder);
         gl.glTranslatef(0f, 0f, 0f);
     }

@@ -190,6 +190,8 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         resultLayer = null;
         tempObjectType = objectType;
         txtSearchObj.setText("");
+        txtObjId.setText("");
+        txtSearchObj.requestFocus();
         
         populate();
         
@@ -214,6 +216,8 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         resultLayer = null;
         tempObjectType = "";
         txtSearchObj.setText("");
+        txtObjId.setText("");
+        txtSearchObj.requestFocus();
         
         // Reload nodes and make selection from object name
         populate();
@@ -277,8 +281,16 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
             resultLayer = (String)cmoLayer.getSelectedItem();
         }
         
-        resultName = txtObjId.getText();
-        validResult = true;
+        String maybeResult = txtObjId.getText().trim();
+        
+        if (maybeResult.isEmpty()) {
+            validResult = false;
+        }
+        else {
+            resultName = maybeResult;
+            validResult = true;
+        }
+        
         setVisible(false);
     }
 
