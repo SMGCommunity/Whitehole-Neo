@@ -1376,7 +1376,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         curScenario = galaxyArchive.scenarioData.get(curScenarioID);
 
         DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
-        listZones.removeAll();
+        zonelist.removeAllElements();
         
         for(String zone : galaxyArchive.zoneList) {
             int layermask = curScenario.getInt(zone);
@@ -4025,8 +4025,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     camTarget.x += finaldelta.x * 0.005f;
                     camTarget.y += finaldelta.y * 0.005f;
                     camTarget.z += finaldelta.z * 0.005f;
+                    
                     updateCamera();
-                    e.getComponent().repaint();
+                    glCanvas.repaint();
                 }
             }
         }
