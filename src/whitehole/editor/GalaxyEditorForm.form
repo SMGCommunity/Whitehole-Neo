@@ -34,6 +34,9 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Edit"/>
           </Properties>
+          <Events>
+            <EventHandler event="menuSelected" listener="javax.swing.event.MenuListener" parameters="javax.swing.event.MenuEvent" handler="mnuEditMenuSelected"/>
+          </Events>
           <SubComponents>
             <Menu class="javax.swing.JMenu" name="mnuCopy">
               <Properties>
@@ -504,8 +507,8 @@
                       <SubComponents>
                         <Component class="javax.swing.JList" name="listZones">
                           <Properties>
-                            <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
-                              <StringArray count="0"/>
+                            <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                              <Connection code="new DefaultListModel()" type="code"/>
                             </Property>
                             <Property name="selectionMode" type="int" value="0"/>
                           </Properties>

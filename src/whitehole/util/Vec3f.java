@@ -82,6 +82,18 @@ public class Vec3f implements Cloneable {
         z = a.z - b.z;
     }
     
+    public void scale(float scalar) {
+        x *= scalar;
+        y *= scalar;
+        z *= scalar;
+    }
+    
+    public void scale(float scalar, Vec3f that) {
+        this.x = scalar * that.x;
+        this.y = scalar * that.y;
+        this.z = scalar * that.z;
+    }
+    
     public float length() {
         return (float)Math.sqrt(x * x + y * y + z * z);
     }
