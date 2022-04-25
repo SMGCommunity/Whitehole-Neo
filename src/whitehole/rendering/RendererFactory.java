@@ -33,7 +33,7 @@ import whitehole.smg.object.PositionObj;
 import whitehole.smg.object.SoundObj;
 import whitehole.smg.object.StageObj;
 import whitehole.util.Color4;
-import whitehole.util.Vector3;
+import whitehole.util.Vec3f;
 
 public final class RendererFactory {
     private static final String[] SHAPE_MODEL_COMPATIBILITY = {
@@ -61,7 +61,7 @@ public final class RendererFactory {
         return createDummyCubeRenderer();
     }
     
-    public static GLRenderer tryCreateBtiRenderer(GLRenderer.RenderInfo info, String objModelName, Vector3 pt1, Vector3 pt2, boolean vertical) {
+    public static GLRenderer tryCreateBtiRenderer(GLRenderer.RenderInfo info, String objModelName, Vec3f pt1, Vec3f pt2, boolean vertical) {
         BtiRenderer bmdRenderer = new BtiRenderer(info, objModelName, pt1, pt2, vertical);
 
         if (bmdRenderer.isValidBtiTexture()) {
@@ -323,25 +323,25 @@ public final class RendererFactory {
     private static GLRenderer tryCreateBtiRenderer(GLRenderer.RenderInfo info, String btiName, AbstractObj obj) {
         switch(btiName) {
             case "Flag":
-                return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
+                return tryCreateBtiRenderer(info, btiName, new Vec3f(0f,150f,0f), new Vec3f(0f,-150f,600f), true);
             case "FlagRaceA":
-                return tryCreateBtiRenderer(info, btiName, new Vector3(0f,75f,0f), new Vector3(0f,-75f,300f), true);
+                return tryCreateBtiRenderer(info, btiName, new Vec3f(0f,75f,0f), new Vec3f(0f,-75f,300f), true);
             case "FlagSurfing":
-                return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
+                return tryCreateBtiRenderer(info, btiName, new Vec3f(0f,150f,0f), new Vec3f(0f,-150f,600f), true);
             case "FlagTamakoro":
-                return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
+                return tryCreateBtiRenderer(info, btiName, new Vec3f(0f,150f,0f), new Vec3f(0f,-150f,600f), true);
             case "FlagPeachCastleA":
-                return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
+                return tryCreateBtiRenderer(info, btiName, new Vec3f(0f,150f,0f), new Vec3f(0f,-150f,600f), true);
             case "FlagPeachCastleB":
-                return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
+                return tryCreateBtiRenderer(info, btiName, new Vec3f(0f,150f,0f), new Vec3f(0f,-150f,600f), true);
             case "FlagPeachCastleC":
-                return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
+                return tryCreateBtiRenderer(info, btiName, new Vec3f(0f,150f,0f), new Vec3f(0f,-150f,600f), true);
             case "FlagKoopaA":
-                return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
+                return tryCreateBtiRenderer(info, btiName, new Vec3f(0f,150f,0f), new Vec3f(0f,-150f,600f), true);
             case "FlagKoopaB":
-                return tryCreateBtiRenderer(info, btiName, new Vector3(0f,75f,0f), new Vector3(0f,-75f,600f), true);
+                return tryCreateBtiRenderer(info, btiName, new Vec3f(0f,75f,0f), new Vec3f(0f,-75f,600f), true);
             case "FlagKoopaCastle":
-                return tryCreateBtiRenderer(info, btiName, new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
+                return tryCreateBtiRenderer(info, btiName, new Vec3f(0f,150f,0f), new Vec3f(0f,-150f,600f), true);
         }
         
         return null;
@@ -361,16 +361,16 @@ public final class RendererFactory {
             case "DinoPackun":
             case "DinoPackunVs1": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("DinoPackun"),
-                    new MultiRendererInfo("DinoPackunTailBall", new Vector3(0f, 150f, -750f), new Vector3(0f, 90f, 0f))
+                    new MultiRendererInfo("DinoPackunTailBall", new Vec3f(0f, 150f, -750f), new Vec3f(0f, 90f, 0f))
             );
             case "DinoPackunVs2": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("DinoPackun2"),
-                    new MultiRendererInfo("DinoPackunTailBall", new Vector3(0f, 150f, -750f), new Vector3(0f, 90f, 0f))
+                    new MultiRendererInfo("DinoPackunTailBall", new Vec3f(0f, 150f, -750f), new Vec3f(0f, 90f, 0f))
             );
             case "KoopaJrCastle": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("KoopaJrCastleBody"),
-                    new MultiRendererInfo("KoopaJrCastleHead", new Vector3(0f, 2750f, 0f)),
-                    new MultiRendererInfo("KoopaJrCastleCapsule", new Vector3(0f, 3475f, 0f))
+                    new MultiRendererInfo("KoopaJrCastleHead", new Vec3f(0f, 2750f, 0f)),
+                    new MultiRendererInfo("KoopaJrCastleCapsule", new Vec3f(0f, 3475f, 0f))
             );
             case "KoopaJrCastleWindUp": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("Fan"),
@@ -378,11 +378,11 @@ public final class RendererFactory {
             );
             case "KoopaJrRobot": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("KoopaJrRobot"),
-                    new MultiRendererInfo("KoopaJrRobotPod", new Vector3(0f, 1000f, 0f))
+                    new MultiRendererInfo("KoopaJrRobotPod", new Vec3f(0f, 1000f, 0f))
             );
             case "OtaRockTank": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("OtaRockTank"),
-                    new MultiRendererInfo("OtaRockChief", new Vector3(0f, 500f, 0f))
+                    new MultiRendererInfo("OtaRockChief", new Vec3f(0f, 500f, 0f))
             );
             case "SkeletalFishBoss": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("SkeletalFishBoss"),
@@ -396,7 +396,7 @@ public final class RendererFactory {
             // Enemy
             case "CocoSambo": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("CocoSamboBody"),
-                    new MultiRendererInfo("CocoSamboHead", new Vector3(0f, 325f ,0f))
+                    new MultiRendererInfo("CocoSamboHead", new Vec3f(0f, 325f ,0f))
             );
             case "BegomanSpike": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("BegomanSpike"),
@@ -409,8 +409,8 @@ public final class RendererFactory {
             );
             case "ElectricBazooka": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("ElectricBazooka"),
-                    new MultiRendererInfo("WaterBazookaCapsule", new Vector3(0f, 495f, 0f)),
-                    new MultiRendererInfo("MogucchiShooter", new Vector3(0f, 335f, 0f))
+                    new MultiRendererInfo("WaterBazookaCapsule", new Vec3f(0f, 495f, 0f)),
+                    new MultiRendererInfo("MogucchiShooter", new Vec3f(0f, 335f, 0f))
             );
             case "GliderBazooka":
             case "GliderShooter":
@@ -420,7 +420,7 @@ public final class RendererFactory {
             );
             case "Grapyon": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("GrapyonBody"),
-                    new MultiRendererInfo("GrapyonHead", new Vector3(0f, 80f, 0f))
+                    new MultiRendererInfo("GrapyonHead", new Vec3f(0f, 80f, 0f))
             );
             case "HammerHeadPackun": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("PackunFlower"),
@@ -440,12 +440,12 @@ public final class RendererFactory {
             );
             case "JumpGuarder": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("JumpGuarder"),
-                    new MultiRendererInfo("JumpGuarderHead", new Vector3(0f, 65f, 0f), new Vector3(), new Vector3(0.8f, 0.8f, 0.8f))
+                    new MultiRendererInfo("JumpGuarderHead", new Vec3f(0f, 65f, 0f), new Vec3f(), new Vec3f(0.8f, 0.8f, 0.8f))
             );
             case "Kiraira": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("Kiraira", new Vector3(0f, 50f, 0f)),
-                    new MultiRendererInfo("KirairaChain", new Vector3(0f, -110f, 0f)),
-                    new MultiRendererInfo("KirairaFixPointBottom", new Vector3(0f, -125f, 0f))
+                    new MultiRendererInfo("Kiraira", new Vec3f(0f, 50f, 0f)),
+                    new MultiRendererInfo("KirairaChain", new Vec3f(0f, -110f, 0f)),
+                    new MultiRendererInfo("KirairaFixPointBottom", new Vec3f(0f, -125f, 0f))
             );
             case "Mogu": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("Mogu"),
@@ -453,15 +453,15 @@ public final class RendererFactory {
             );
             case "Nyoropon": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("NyoroponBody"),
-                    new MultiRendererInfo("NyoroponHead", new Vector3(0f, 500f, 0f), new Vector3(90f, 0f, 0f))
+                    new MultiRendererInfo("NyoroponHead", new Vec3f(0f, 500f, 0f), new Vec3f(90f, 0f, 0f))
             );
             case "Patakuri": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("Kuribo"),
-                    new MultiRendererInfo("PatakuriWing", new Vector3(0f,15f,-25f))
+                    new MultiRendererInfo("PatakuriWing", new Vec3f(0f,15f,-25f))
             );
             case "PatakuriBig": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("KuriboChief"),
-                    new MultiRendererInfo("PatakuriWingBig", new Vector3(0f, 750f, 200f), new Vector3(0f, 90f, 0f))
+                    new MultiRendererInfo("PatakuriWingBig", new Vec3f(0f, 750f, 200f), new Vec3f(0f, 90f, 0f))
             );
             case "Torpedo": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("Torpedo"),
@@ -469,8 +469,8 @@ public final class RendererFactory {
             );
             case "WaterBazooka": return tryCreateMultiRenderer(info,
                     new MultiRendererInfo("WaterBazooka"),
-                    new MultiRendererInfo("WaterBazookaCapsule", new Vector3(0f, 495f, 0f)),
-                    new MultiRendererInfo("MogucchiShooter", new Vector3(0f, 335f, 0f))
+                    new MultiRendererInfo("WaterBazookaCapsule", new Vec3f(0f, 495f, 0f)),
+                    new MultiRendererInfo("MogucchiShooter", new Vec3f(0f, 335f, 0f))
             );
             
             // MapObj
@@ -491,11 +491,11 @@ public final class RendererFactory {
                     new MultiRendererInfo("YoshiNest")
             );
             case "YoshiFruit": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("YoshiFruit", new Vector3(0f, 65f, 0f)),
+                    new MultiRendererInfo("YoshiFruit", new Vec3f(0f, 65f, 0f)),
                     new MultiRendererInfo("YoshiFruitStem")
             );
             case "YoshiFruitBig": return tryCreateMultiRenderer(info,
-                    new MultiRendererInfo("YoshiFruitBig", new Vector3(0f, 115f, 0f)),
+                    new MultiRendererInfo("YoshiFruitBig", new Vec3f(0f, 115f, 0f)),
                     new MultiRendererInfo("YoshiFruitStemBig")
             );
         }
@@ -506,8 +506,8 @@ public final class RendererFactory {
     private static void tryOffsetBmdRenderer(BmdRenderer renderer, String objModelName, AbstractObj obj) {
         // Set new vectors here because they reference shared vectors by default
         switch(objModelName) {
-            case "DashFruit": renderer.translation = new Vector3(0f, 55f, 0f); break;
-            case "EarthenPipe": renderer.translation = new Vector3(0f, 100f, 0f); break;
+            case "DashFruit": renderer.translation = new Vec3f(0f, 55f, 0f); break;
+            case "EarthenPipe": renderer.translation = new Vec3f(0f, 100f, 0f); break;
         }
     }
     

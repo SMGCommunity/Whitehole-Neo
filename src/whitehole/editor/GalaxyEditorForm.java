@@ -21,18 +21,10 @@ import com.jogamp.opengl.awt.GLCanvas;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Point;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
@@ -51,8 +43,8 @@ import whitehole.util.CheckBoxList;
 import whitehole.util.Matrix4;
 import whitehole.util.PropertyGrid;
 import whitehole.util.RotationMatrix;
-import whitehole.util.Vector2;
-import whitehole.util.Vector3;
+import whitehole.util.Vec2f;
+import whitehole.util.Vec3f;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     private static final float SCALE_DOWN = 10000f;
@@ -99,6 +91,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private String addingObject = "";
     private String addingObjectOnLayer = "";
     
+    private static final Vec3f COPY_POSITION = new Vec3f(0f, 0f, 0f);
+    private static final Vec3f COPY_ROTATION = new Vec3f(0f, 0f, 0f);
+    private static final Vec3f COPY_SCALE = new Vec3f(1f, 1f, 1f);
+    
     // Rendering
     private GalaxyRenderer renderer;
     private GLRenderer.RenderInfo renderInfo;
@@ -112,9 +108,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // Camera & view
     private Matrix4 modelViewMatrix;
     private float camDistance = 1.0f;
-    private final Vector2 camRotation = new Vector2(0.0f, 0.0f);
-    private final Vector3 camPosition = new Vector3(0.0f, 0.0f, 0.0f);
-    private Vector3 camTarget = new Vector3(0.0f, 0.0f, 0.0f);
+    private final Vec2f camRotation = new Vec2f(0.0f, 0.0f);
+    private final Vec3f camPosition = new Vec3f(0.0f, 0.0f, 0.0f);
+    private Vec3f camTarget = new Vec3f(0.0f, 0.0f, 0.0f);
     private boolean isUpsideDown = false;
     
     // Controls
@@ -473,6 +469,52 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
+    private void closeEditor() {
+        if (isGalaxyMode) {
+            for (GalaxyEditorForm form : zoneEditors.values()) {
+                form.dispose();
+            }
+            
+            // Save renderer preferences
+            Settings.setShowAreas(tgbShowAreas.isSelected());
+            Settings.setShowCameras(tgbShowCameras.isSelected());
+            Settings.setShowGravity(tgbShowGravity.isSelected());
+            Settings.setShowPaths(tgbShowPaths.isSelected());
+            Settings.setShowAxis(tgbShowAxis.isSelected());
+            
+            if(unsavedChanges) {
+                // Should we really scrap our changes?
+                int res = JOptionPane.showConfirmDialog(
+                        this, "Save your changes?", Whitehole.NAME,
+                        JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE
+                );
+
+                switch (res) {
+                    case JOptionPane.CANCEL_OPTION:
+                        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+                        return;
+                    case JOptionPane.YES_OPTION:
+                        if (res == JOptionPane.YES_OPTION) {
+                            saveChanges();
+                        }
+                    default:
+                        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                        break;
+                }
+            }
+            
+            // Close stages
+            for (StageArchive stageArc : zoneArchives.values()) {
+                stageArc.close();
+            }
+        }
+        else {
+            if (unsavedChanges) {
+                parentForm.unsavedChanges = true;
+            }
+        }
+    }
+    
     private AbstractObj getScenarioStart() {
         if (!isGalaxyMode) {
             return null;
@@ -626,171 +668,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         glCanvas.repaint();
     }
     
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-    // All code below this needs to be reorganized and revised...
-    //
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
     // -------------------------------------------------------------------------------------------------------------------------
-    
-    /**
-     * Called when translating through the shortcut key G
-     * @param shiftDown will move slower if shift is pressed
-     * @param ctrlDown will snap to values if ctrl is pressed
-     */
-    public void keyTranslating(boolean shiftDown, boolean ctrlDown) {
-        Vector3 delta = new Vector3();
-        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
-        if(lastDist == 0)
-            lastDist = curDist;
-        float pol = 10f;
-
-        if(shiftDown)
-            pol *= 0.1;
-
-        if(curDist < lastDist)
-            pol *= -1;
-        if(startingMousePos.y < mousePos.y)
-            pol *= -1;
-
-        if(keyAxis != null) switch(keyAxis) {
-            case "all":
-                float objz = depthUnderCursor;
-
-                float xdelta = (startingMousePos.x - mousePos.x) * pixelFactorX * objz * SCALE_DOWN;
-                float ydelta = (startingMousePos.y - mousePos.y) * -pixelFactorY * objz * SCALE_DOWN;
-
-                delta = new Vector3(
-                       (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
-                        ydelta *(float)Math.cos(camRotation.y),
-                        -(xdelta *(float)Math.cos(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x)));
-                applySubzoneRotation(delta);
-                System.out.println(delta);
-                break;
-            case "x":
-                delta.x = pol * Math.abs(lastDist - curDist);
-                break;
-            case "y":
-                delta.y += pol * Math.abs(lastDist - curDist);
-                break;
-            case "z":
-                delta.z += pol * Math.abs(lastDist - curDist);
-                break;
-            default:
-                break;
-        }
-
-        offsetSelectionBy(delta);
-
-        lastDist = curDist;
-        rerenderTasks.add("zone:" + curZone);
-        pnlObjectSettings.repaint();
-        glCanvas.repaint();
-        unsavedChanges = true;
-    }
-    
-    /**
-     * Called when scaling through the shortcut key S
-     * @param shiftDown will move slower if shift is pressed
-     * @param ctrlDown will snap to increments if ctrl is pressed
-     */
-    public void keyScaling(boolean shiftDown, boolean ctrlDown) {
-        // calculate dist from the position where we began scaling
-        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
-        if(lastDist == 0)
-            lastDist = curDist;
-        
-        int polarity = 1;
-        float speed = 0.01f;
-        
-        // raise sensitivity?
-        if(ctrlDown)
-            speed *= 5;
-        
-        if(shiftDown)
-            speed *= 0.1f;
-
-        
-        if(curDist < lastDist) // we're moving closer to object center
-            polarity *= -1;
-        if(startingMousePos.y < mousePos.y)
-            polarity *= -1;
-
-        
-        Vector3 delta = new Vector3();
-        if(keyAxis != null) switch(keyAxis) {
-            case "all":
-                delta.x += polarity * Math.abs(lastDist - curDist) * speed;
-                delta.y += polarity * Math.abs(lastDist - curDist) * speed;
-                delta.z += polarity * Math.abs(lastDist - curDist) * speed;
-                break;
-            case "x":
-                delta.x += polarity * Math.abs(lastDist - curDist) * speed;
-                break;
-            case "y":
-                delta.y += polarity * Math.abs(lastDist - curDist) * speed;
-                break;
-            case "z":
-                delta.z += polarity * Math.abs(lastDist - curDist) * speed;
-                break;
-        }
-
-        
-        if(ctrlDown)
-            scaleSelectionBy(delta, 0.10f * polarity);
-        else
-            scaleSelectionBy(delta);
-        
-        lastDist = curDist;
-        rerenderTasks.add("zone:" + curZone);
-        pnlObjectSettings.repaint();
-        glCanvas.repaint();
-        unsavedChanges = true;
-    }
-    
-    /**
-     * Called when rotating through the shortcut key R
-     * @param shiftDown will move slower if shift is pressed
-     * @param ctrlDown will snap if ctrl is pressed
-     */
-    public void keyRotating(boolean shiftDown, boolean ctrlDown) {
-        Vector3 delta = new Vector3();
-        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
-        if(lastDist == 0)
-            lastDist = curDist;
-        float pol = 0.1f;
-
-        if(shiftDown)
-            pol *= 0.1;
-
-        if(curDist < lastDist)
-            pol *= -1;
-        if(startingMousePos.y < mousePos.y)
-            pol *= -1;
-
-        if(keyAxis != null) switch(keyAxis) {
-            case "x":
-                delta.x += pol * Math.abs(lastDist - curDist);
-                break;
-            case "y":
-                delta.y += pol * Math.abs(lastDist - curDist);
-                break;
-            case "z":
-                delta.z += pol * Math.abs(lastDist - curDist);
-                break;
-            default:
-                break;
-        }
-
-        rotateSelectionBy(delta);
-
-        lastDist = curDist;
-        rerenderTasks.add("zone:" + curZone);
-        pnlObjectSettings.repaint();
-        glCanvas.repaint();
-        unsavedChanges = true;
-    }
     
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content
@@ -1294,49 +1172,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowOpened
     
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        if (isGalaxyMode) {
-            for (GalaxyEditorForm form : zoneEditors.values()) {
-                form.dispose();
-            }
-            
-            // Save renderer preferences
-            Settings.setShowAreas(tgbShowAreas.isSelected());
-            Settings.setShowCameras(tgbShowCameras.isSelected());
-            Settings.setShowGravity(tgbShowGravity.isSelected());
-            Settings.setShowPaths(tgbShowPaths.isSelected());
-            Settings.setShowAxis(tgbShowAxis.isSelected());
-            
-            if(unsavedChanges) {
-                // Should we really scrap our changes?
-                int res = JOptionPane.showConfirmDialog(
-                        this, "Save your changes?", Whitehole.NAME,
-                        JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE
-                );
-
-                switch (res) {
-                    case JOptionPane.CANCEL_OPTION:
-                        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-                        return;
-                    case JOptionPane.YES_OPTION:
-                        if (res == JOptionPane.YES_OPTION) {
-                            saveChanges();
-                        }
-                    default:
-                        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                        break;
-                }
-            }
-            
-            // Close stages
-            for (StageArchive stageArc : zoneArchives.values()) {
-                stageArc.close();
-            }
-        }
-        else {
-            if (unsavedChanges) {
-                parentForm.unsavedChanges = true;
-            }
-        }
+        closeEditor();
     }//GEN-LAST:event_formWindowClosing
 
     private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
@@ -1348,360 +1184,133 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_mniSaveActionPerformed
 
     private void mniCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniCloseActionPerformed
-        if(unsavedChanges) {
-            int res = JOptionPane.showConfirmDialog(this, "Save your changes?", Whitehole.NAME,
-                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-            
-            if(res == JOptionPane.CANCEL_OPTION) {
-                setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-                return;
-            } else {
-                setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                if(res == JOptionPane.YES_OPTION)
-                    saveChanges();
-            }
-        }
-        Settings.setShowAreas(tgbShowAreas.isSelected());
-        Settings.setShowCameras(tgbShowCameras.isSelected());
-        Settings.setShowGravity(tgbShowGravity.isSelected());
-        Settings.setShowPaths(tgbShowPaths.isSelected());
-        Settings.setShowAxis(tgbShowAxis.isSelected());
-        
+        closeEditor();
         dispose();
     }//GEN-LAST:event_mniCloseActionPerformed
 
     private void itmPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionCopyActionPerformed
-        if(selectedObjs.size() == 1) {
-            for(AbstractObj selectedObj : selectedObjs.values()) {
-                Vector3 posToCopy = (Vector3) selectedObj.position.clone();
-                
-                // Parse clipboard
-                Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
-                String newClip = "";
-                try {
-                    Transferable contents = c.getContents(null);
-                    boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
-                    String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
-                    
-                    
-                    if(data.contains("pos") && data.contains("rot") && data.contains("scl"))
-                    {
-                        newClip += "pos" + posToCopy.x + "," + posToCopy.y + "," + posToCopy.z + ",\n";
-                        newClip += data.substring(data.indexOf("rot"));
-                    } else {
-                        newClip = "pos" + posToCopy.x + "," + posToCopy.y + "," + posToCopy.z + ",\nrot0,0,0\nscl0,0,0,";
-                    }
-                    
-                    // write data
-                    StringSelection selection = new StringSelection(newClip);
-                    c.setContents(selection, selection);
-                } catch (UnsupportedFlavorException | IOException ex) {
-                    Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-                    lblStatus.setText(ex.getMessage());
-                    return;
-                }
-                
-                itmPositionPaste.setText("Position(" + posToCopy.x + ", " + posToCopy.y + ", " + posToCopy.z + ")");
-                lblStatus.setText("Copied position " + posToCopy.x + ", " + posToCopy.y + ", " + posToCopy.z + ".");
-            }
+        if (selectedObjs.size() == 1) {
+            AbstractObj obj = selectedObjs.values().iterator().next();
+            COPY_POSITION.set(obj.position);
+            
+            String posString = COPY_POSITION.toString();
+            itmPositionPaste.setText(String.format("Position (%s)", posString));
+            lblStatus.setText(String.format("Copied position %s.", posString));
         }
     }//GEN-LAST:event_itmPositionCopyActionPerformed
     
     private void itmRotationCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationCopyActionPerformed
-        if(selectedObjs.size() == 1) {
-            for(AbstractObj selectedObj : selectedObjs.values()) {
-                if(selectedObj instanceof PathPointObj)
-                    return;
-                
-                Vector3 rotToCopy = (Vector3) selectedObj.rotation.clone();
-                
-                // Parse clipboard
-                Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
-                String newClip = "";
-                try {
-                    Transferable contents = c.getContents(null);
-                    boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
-                    String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
-                    
-                    if(data.contains("pos") && data.contains("rot") && data.contains("scl"))
-                    {
-                        newClip += data.substring(0, data.indexOf("rot") + 3);
-                        newClip += rotToCopy.x + "," + rotToCopy.y + "," + rotToCopy.z + ",\n";
-                        newClip += data.substring(data.indexOf("scl"));
-                    } else {
-                        newClip = "pos0,0,0,\nrot" + rotToCopy.x + "," + rotToCopy.y + "," + rotToCopy.z + ",\nscl0,0,0,";
-                    }
-                    
-                    // write data
-                    StringSelection selection = new StringSelection(newClip);
-                    c.setContents(selection, selection);
-                } catch (UnsupportedFlavorException | IOException ex) {
-                    Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-                    lblStatus.setText(ex.getMessage());
-                    return;
-                }
-                
-                itmRotationPaste.setText("Rotation(" + rotToCopy.x + ", " + rotToCopy.y + ", " + rotToCopy.z + ")");
-                lblStatus.setText("Copied rotation " + rotToCopy.x + ", " + rotToCopy.y + ", " + rotToCopy.z + ".");
-            }
+        if (selectedObjs.size() == 1) {
+            AbstractObj obj = selectedObjs.values().iterator().next();
+            COPY_ROTATION.set(obj.rotation);
+            
+            String rotString = COPY_ROTATION.toString();
+            itmRotationPaste.setText(String.format("Rotation (%s)", rotString));
+            lblStatus.setText(String.format("Copied rotation %s.", rotString));
         }
     }//GEN-LAST:event_itmRotationCopyActionPerformed
 
     private void itmScaleCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScaleCopyActionPerformed
-        if(selectedObjs.size() == 1) {
-            for(AbstractObj selectedObj : selectedObjs.values()) {
-                if(selectedObj instanceof PathPointObj || selectedObj instanceof PositionObj || selectedObj instanceof StageObj)
-                    return;
-                
-                Vector3 scaleToCopy = (Vector3) selectedObj.scale.clone();
-
-                // Parse clipboard
-                Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
-                String newClip = "";
-                try {
-                    Transferable contents = c.getContents(null);
-                    boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
-                    String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
-                    
-                    
-                    if(data.contains("pos") && data.contains("rot") && data.contains("scl"))
-                    {
-                        newClip += data.substring(0, data.indexOf("scl") + 3);
-                        newClip += scaleToCopy.x + "," + scaleToCopy.y + "," + scaleToCopy.z + ",";
-                    } else {
-                        newClip = "pos0,0,0,\nrot0,0,0,\nscl" + scaleToCopy.x + "," + scaleToCopy.y + "," + scaleToCopy.z + ",";
-                    }
-                    
-                    // write data
-                    StringSelection selection = new StringSelection(newClip);
-                    c.setContents(selection, selection);
-                } catch (UnsupportedFlavorException | IOException ex) {
-                    Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-                    lblStatus.setText(ex.getMessage());
-                    return;
-                }
-                
-                itmScalePaste.setText("Scale(" + scaleToCopy.x + ", " + scaleToCopy.y + ", " + scaleToCopy.z + ")");
-                lblStatus.setText("Copied scale " + scaleToCopy.x + ", " + scaleToCopy.y + ", " + scaleToCopy.z + ".");
-            }
+        if (selectedObjs.size() == 1) {
+            AbstractObj obj = selectedObjs.values().iterator().next();
+            COPY_SCALE.set(obj.scale);
+            
+            String scaleString = COPY_SCALE.toString();
+            itmScalePaste.setText(String.format("Scale (%s)", scaleString));
+            lblStatus.setText(String.format("Copied scale %s.", scaleString));
         }
     }//GEN-LAST:event_itmScaleCopyActionPerformed
 
     private void itmPositionPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionPasteActionPerformed
-        Vector3 copyPos = new Vector3();
+        Vec3f offset = new Vec3f();
         
-        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
-        try {
-            Transferable contents = c.getContents(null);
-            boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
-            String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
-            
-            if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
-            {
-                String posData = "," + data.substring(data.indexOf("pos") + 3, data.indexOf("rot")); // ,X,Y,Z,\n
+        for (AbstractObj obj : selectedObjs.values()) {
+            if (obj instanceof PathPointObj) {
+                PathPointObj pointObj = (PathPointObj)obj;
+                offset.subtract(COPY_POSITION, pointObj.position);
                 
-                if(posData.contains(","))
-                {
-                    int indexOfNumber = posData.indexOf(",") + 1;
-                    
-                    float posX = Float.parseFloat(posData.substring(indexOfNumber, posData.indexOf(",", indexOfNumber)));
-                    
-                    indexOfNumber = posData.indexOf(",", indexOfNumber) + 1;
-                    float posY = Float.parseFloat(posData.substring(indexOfNumber, posData.indexOf(",", indexOfNumber)));
-                    
-                    indexOfNumber = posData.indexOf(",", indexOfNumber) + 1;
-                    float posZ = Float.parseFloat(posData.substring(indexOfNumber, posData.indexOf(",", indexOfNumber)));
-                    
-                    copyPos = new Vector3(posX, posY, posZ);
-                }
+                pointObj.position.set(COPY_POSITION);
+                pointObj.point1.add(offset);
+                pointObj.point2.add(offset);
                 
-            } else
-            {
-                lblStatus.setText("Clipboard does not contain pos/rot/scl!");
-                return;
-            }
-        } catch (UnsupportedFlavorException | IOException ex) {
-            Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-            lblStatus.setText(ex.getMessage());
-            return;
-        }
-        
-        
-        for(AbstractObj selectedObj : selectedObjs.values()) {
-            if(selectedObj instanceof StageObj)
-                return;
-            
-            if(selectedObj instanceof PathPointObj) {
-                PathPointObj selectedPathPoint =(PathPointObj) selectedObj;
-                
-                Vector3 oldpos =(Vector3) selectedPathPoint.position.clone();
-                Vector3 newpos =(Vector3) copyPos.clone();
-                Vector3 pnt1pos = new Vector3(
-                       (newpos.x - oldpos.x) + selectedPathPoint.point1.x,
-                       (newpos.y - oldpos.y) + selectedPathPoint.point1.y,
-                       (newpos.z - oldpos.z) + selectedPathPoint.point1.z
-                );
-                Vector3 pnt2pos = new Vector3(
-                       (newpos.x - oldpos.x) + selectedPathPoint.point2.x,
-                       (newpos.y - oldpos.y) + selectedPathPoint.point2.y,
-                       (newpos.z - oldpos.z) + selectedPathPoint.point2.z
-                );
-                
-                selectedPathPoint.position = newpos;
-                selectedPathPoint.point1 = pnt1pos;
-                selectedPathPoint.point2 = pnt2pos;
-                
-                pnlObjectSettings.setFieldValue("pnt0_x", selectedPathPoint.position.x);
-                pnlObjectSettings.setFieldValue("pnt0_y", selectedPathPoint.position.y);
-                pnlObjectSettings.setFieldValue("pnt0_z", selectedPathPoint.position.z);
-                pnlObjectSettings.setFieldValue("pnt1_x", selectedPathPoint.point1.x);
-                pnlObjectSettings.setFieldValue("pnt1_y", selectedPathPoint.point1.y);
-                pnlObjectSettings.setFieldValue("pnt1_z", selectedPathPoint.point1.z);
-                pnlObjectSettings.setFieldValue("pnt2_x", selectedPathPoint.point2.x);
-                pnlObjectSettings.setFieldValue("pnt2_y", selectedPathPoint.point2.y);
-                pnlObjectSettings.setFieldValue("pnt2_z", selectedPathPoint.point2.z);
+                pnlObjectSettings.setFieldValue("pnt0_x", pointObj.position.x);
+                pnlObjectSettings.setFieldValue("pnt0_y", pointObj.position.y);
+                pnlObjectSettings.setFieldValue("pnt0_z", pointObj.position.z);
+                pnlObjectSettings.setFieldValue("pnt1_x", pointObj.point1.x);
+                pnlObjectSettings.setFieldValue("pnt1_y", pointObj.point1.y);
+                pnlObjectSettings.setFieldValue("pnt1_z", pointObj.point1.z);
+                pnlObjectSettings.setFieldValue("pnt2_x", pointObj.point2.x);
+                pnlObjectSettings.setFieldValue("pnt2_y", pointObj.point2.y);
+                pnlObjectSettings.setFieldValue("pnt2_z", pointObj.point2.z);
                 pnlObjectSettings.repaint();
                 
-                rerenderTasks.add("path:" + selectedPathPoint.path.uniqueID);
-                rerenderTasks.add("zone:" + selectedPathPoint.stage.stageName);
-            } else {
-                addUndoEntry("changeObj", selectedObj);
+                rerenderTasks.add("path:" + pointObj.path.uniqueID);
+                rerenderTasks.add("zone:" + pointObj.stage.stageName);
+            }
+            else {
+                addUndoEntry("changeObj", obj);
                 
-                selectedObj.position = (Vector3) copyPos.clone();
-                
-                pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
-                pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
-                pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
+                obj.position.set(COPY_POSITION);
+                pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
+                pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
+                pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
                 pnlObjectSettings.repaint();
                 
-                rerenderTasks.add("object:" + selectedObj.uniqueID);
-                rerenderTasks.add("zone:" + selectedObj.stage.stageName);
+                rerenderTasks.add("object:" + obj.uniqueID);
+                rerenderTasks.add("zone:" + obj.stage.stageName);
             }
+            
+            lblStatus.setText(String.format("Pasted position %s.", COPY_POSITION.toString()));
             
             glCanvas.repaint();
-            lblStatus.setText("Pasted position " + copyPos.x + ", " + copyPos.y + ", " + copyPos.z + ".");
             unsavedChanges = true;
         }
     }//GEN-LAST:event_itmPositionPasteActionPerformed
 
     private void itmRotationPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationPasteActionPerformed
-        Vector3 copyRot = new Vector3();
-
-        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
-        try {
-            Transferable contents = c.getContents(null);
-            boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
-            String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
-
-            if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
-            {
-                String rotData = "," + data.substring(data.indexOf("rot") + 3, data.indexOf("scl")); // ,X,Y,Z,\n
-
-                if(rotData.contains(","))
-                {
-                    int indexOfComma = rotData.indexOf(",");
-
-                    float rotX = Float.parseFloat(rotData.substring(indexOfComma + 1, rotData.indexOf(",", indexOfComma + 1)));
-
-                    indexOfComma = rotData.indexOf(",", indexOfComma + 1);
-                    float rotY = Float.parseFloat(rotData.substring(indexOfComma + 1, rotData.indexOf(",", indexOfComma + 1)));
-
-                    indexOfComma = rotData.indexOf(",", indexOfComma + 1);
-                    float rotZ = Float.parseFloat(rotData.substring(indexOfComma + 1, rotData.indexOf(",", indexOfComma + 1)));
-
-                    copyRot = new Vector3(rotX, rotY, rotZ);
-                }
-            } else
-            {
-                lblStatus.setText("Clipboard does not contain pos/rot/scl!");
+        for (AbstractObj obj : selectedObjs.values()) {
+            if (obj instanceof PathPointObj) {
                 return;
             }
-        } catch (UnsupportedFlavorException | IOException ex) {
-            Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-            lblStatus.setText(ex.getMessage());
-            return;
-        }
-        
-        for(AbstractObj selectedObj : selectedObjs.values()) {
-            if(selectedObj.getClass() == PathPointObj.class)
-                return;
             
-            addUndoEntry("changeObj", selectedObj);
+            addUndoEntry("changeObj", obj);
             
-            selectedObj.rotation =(Vector3) copyRot.clone();
-            
-            pnlObjectSettings.setFieldValue("dir_x", selectedObj.rotation.x);
-            pnlObjectSettings.setFieldValue("dir_y", selectedObj.rotation.y);
-            pnlObjectSettings.setFieldValue("dir_z", selectedObj.rotation.z);
+            obj.rotation.set(COPY_ROTATION);
+            pnlObjectSettings.setFieldValue("dir_x", obj.rotation.x);
+            pnlObjectSettings.setFieldValue("dir_y", obj.rotation.y);
+            pnlObjectSettings.setFieldValue("dir_z", obj.rotation.z);
             pnlObjectSettings.repaint();
             
-            rerenderTasks.add("object:"+selectedObj.uniqueID);
-            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+            rerenderTasks.add("object:" + obj.uniqueID);
+            rerenderTasks.add("zone:" + obj.stage.stageName);
+            
+            lblStatus.setText(String.format("Pasted rotation %s.", COPY_ROTATION.toString()));
             
             glCanvas.repaint();
-            lblStatus.setText("Pasted rotation " + copyRot.x + ", " + copyRot.y + ", " + copyRot.z + ".");
             unsavedChanges = true;
         }
     }//GEN-LAST:event_itmRotationPasteActionPerformed
 
     private void itmScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScalePasteActionPerformed
-        Vector3 copyScl = new Vector3();
-
-        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
-        try {
-            Transferable contents = c.getContents(null);
-            boolean hasData = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
-            String data = hasData ? (String) contents.getTransferData(DataFlavor.stringFlavor) : "";
-
-            if(data.contains("pos") && data.contains("scl") && data.length() > data.indexOf("scl") + 3)
-            {
-                String sclData = "," + data.substring(data.indexOf("scl") + 3); // ,X,Y,Z
-
-                if(sclData.contains(","))
-                {
-                    int indexOfComma = sclData.indexOf(",");
-
-                    float sclX = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
-
-                    indexOfComma = sclData.indexOf(",", indexOfComma + 1);
-                    float sclY = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
-
-                    indexOfComma = sclData.indexOf(",", indexOfComma + 1);
-                    float sclZ = Float.parseFloat(sclData.substring(indexOfComma + 1, sclData.indexOf(",", indexOfComma + 1)));
-
-                    copyScl = new Vector3(sclX, sclY, sclZ);
-                }
-
-            } else
-            {
-                lblStatus.setText("Clipboard does not contain pos/rot/scl!");
+        for (AbstractObj obj : selectedObjs.values()) {
+            if (obj instanceof PathPointObj || obj instanceof PositionObj || obj instanceof StageObj) {
                 return;
             }
-        } catch (UnsupportedFlavorException | IOException ex) {
-            Logger.getLogger(GalaxyEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-            lblStatus.setText(ex.getMessage());
-            return;
-        }
-        
-        for(AbstractObj selectedObj : selectedObjs.values()) {
-            if(selectedObj instanceof PathPointObj || selectedObj instanceof PositionObj || selectedObj instanceof StageObj)
-                return;
             
-            addUndoEntry("changeObj", selectedObj);
+            addUndoEntry("changeObj", obj);
             
-            selectedObj.scale = (Vector3) copyScl.clone();
-            
-            pnlObjectSettings.setFieldValue("scale_x", selectedObj.scale.x);
-            pnlObjectSettings.setFieldValue("scale_y", selectedObj.scale.y);
-            pnlObjectSettings.setFieldValue("scale_z", selectedObj.scale.z);
+            obj.scale.set(COPY_SCALE);
+            pnlObjectSettings.setFieldValue("scale_x", obj.scale.x);
+            pnlObjectSettings.setFieldValue("scale_y", obj.scale.y);
+            pnlObjectSettings.setFieldValue("scale_z", obj.scale.z);
             pnlObjectSettings.repaint();
             
+            rerenderTasks.add("object:" + obj.uniqueID);
+            rerenderTasks.add("zone:" + obj.stage.stageName);
             
-            rerenderTasks.add("object:"+selectedObj.uniqueID);
-            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+            lblStatus.setText(String.format("Pasted scale %s.", COPY_SCALE.toString()));
             
             glCanvas.repaint();
-            lblStatus.setText("Pasted scale " + copyScl.x + ", " + copyScl.y + ", " + copyScl.z + ".");
             unsavedChanges = true;
         }
     }//GEN-LAST:event_itmScalePasteActionPerformed
@@ -1884,12 +1493,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 addingObject = "objinfo|" + currentTempObj.name;
                 addingObjectOnLayer = currentTempObj.layerKey;
                 
-                Vector3 temppos=new Vector3();
+                Vec3f temppos=new Vec3f();
                 temppos.x=currentTempObj.position.x+g_offset_x;
                 temppos.y=currentTempObj.position.y+g_offset_y;
                 temppos.z=currentTempObj.position.z+g_offset_z;
                 
-                Vector3 temprot=new Vector3();
+                Vec3f temprot=new Vec3f();
                 temprot.x=currentTempObj.rotation.x;
                 temprot.y=currentTempObj.rotation.y;
                 temprot.z=currentTempObj.rotation.z;
@@ -1906,6 +1515,251 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             glCanvas.repaint();
         }
     }//GEN-LAST:event_tgbPasteObjActionPerformed
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Object adding and deleting
+    
+    private void setObjectBeingAdded(String key) {
+        switch(key) {
+            case "startinfo":
+                addingObject = "startinfo|Mario";
+                addingObjectOnLayer = "common";
+                break;
+            case "soundinfo":
+                addingObject = "soundinfo|SoundEmitter";
+                addingObjectOnLayer = "common";
+                break;
+            case "generalposinfo":
+                addingObject = "generalposinfo|GeneralPos";
+                addingObjectOnLayer = "common";
+                break;
+            case "debugmoveinfo":
+                addingObject = "debugmoveinfo|DebugMovePos";
+                addingObjectOnLayer = "common";
+                break;
+            case "path":
+                addingObject = "path|null";
+                break;
+            case "pathpoint":
+                addingObject = "pathpoint|null";
+                break;
+            case "cameracubeinfo":
+                if (Whitehole.getCurrentGameType() == 2) {
+                    addingObject = "cameracubeinfo|CameraArea";
+                    addingObjectOnLayer = "common";
+                    break;
+                }
+            default:
+                if (ObjectSelectForm.openNewObjectDialog(key, curZoneArc.getLayerNames())) {
+                    addingObject = key + "|" + ObjectSelectForm.getResultName();
+                    addingObjectOnLayer = ObjectSelectForm.getResultLayer();
+                }
+                else {
+                    tgbAddObject.setSelected(false);
+                }
+                break;
+        }
+        
+        lblStatus.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
+    }
+    
+    private void addObject(Object point) {
+        // Resolve position
+        Vec3f position;
+        if(point instanceof Point) {
+            position = get3DCoords((Point)point, Math.min(pickingDepth, 1f));
+        }
+        else {
+            position = (Vec3f)point;
+        }
+        
+        // Apply zone placement
+        if(isGalaxyMode) {
+            if(zonePlacements.containsKey(curZone)) {
+                StageObj zonePlacement = zonePlacements.get(curZone);
+                Vec3f.subtract(position, zonePlacement.position, position);
+                applySubzoneRotation(position);
+            }
+        }
+        
+        // Get designated information
+        String objtype = addingObject.substring(0, addingObject.indexOf('|'));
+        String objname = addingObject.substring(addingObject.indexOf('|') + 1);
+        addingObjectOnLayer = addingObjectOnLayer.toLowerCase();
+        
+        TreeNode newNode;
+        
+        // Add new path?
+        if (objtype.equals("path")) {
+            int newPathLinkID = 0;
+
+            for (PathObj path : curZoneArc.paths) {
+                if (path.pathID >= newPathLinkID) {
+                    newPathLinkID = path.pathID + 1;
+                }
+            }
+
+            PathObj thepath = new PathObj(curZoneArc, newPathLinkID);
+            thepath.uniqueID = maxUniqueID++;
+            globalPathList.put(thepath.uniqueID, thepath);
+            curZoneArc.paths.add(thepath);
+
+            PathPointObj thepoint = new PathPointObj(thepath, position);
+            thepoint.uniqueID = maxUniqueID;
+            maxUniqueID += 3;
+            
+            globalObjList.put(thepoint.uniqueID, thepoint);
+            globalPathPointList.put(thepoint.uniqueID, thepoint);
+            thepath.getPoints().add(thepoint);
+
+            ObjListTreeNode newnode = (ObjListTreeNode)objListPathRootNode.addObject(thepath);
+            treeNodeList.put(thepath.uniqueID, newnode);
+
+            newNode = newnode.addObject(thepoint);
+            treeNodeList.put(thepoint.uniqueID, newNode);
+
+            rerenderTasks.add("path:" + thepath.uniqueID);
+            rerenderTasks.add("zone:" + curZone);
+        }
+        // Add new path point?
+        else if (objtype.equals("pathpoint")) {
+            if(selectedObjs.size() > 1)
+                return;
+
+            PathObj thepath = null;
+            for(AbstractObj obj : selectedObjs.values())
+                thepath =((PathPointObj) obj).path;
+
+            if(thepath == null)
+                return;
+
+
+            PathPointObj thepoint = new PathPointObj(thepath, position);
+            thepoint.uniqueID = maxUniqueID;
+            maxUniqueID += 3;
+            globalObjList.put(thepoint.uniqueID, thepoint);
+            globalPathPointList.put(thepoint.uniqueID, thepoint);
+            thepath.getPoints().add(thepoint);
+
+            ObjListTreeNode listnode = objListPathRootNode;
+            listnode =(ObjListTreeNode) listnode.children.get(thepath.uniqueID);
+
+            newNode = listnode.addObject(thepoint);
+            treeNodeList.put(thepoint.uniqueID, newNode);
+            
+            rerenderTasks.add("path:" + thepath.uniqueID);
+            rerenderTasks.add("zone:" + thepath.stage.stageName);
+        }
+        else {
+            newobj = null;
+            
+            switch(objtype) {
+                case "objinfo":
+                case "sound_objinfo":
+                    newobj = new LevelObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "mappartsinfo": newobj = new MapPartObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "childobjinfo": newobj = new ChildObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "planetobjinfo": newobj = new GravityObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "areaobjinfo":
+                case "sound_areaobjinfo":
+                case "design_areaobjinfo":
+                    newobj = new AreaObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "cameracubeinfo": newobj = new CameraObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "soundinfo": newobj = new SoundObj(curZoneArc, addingObjectOnLayer, position); break;
+                case "startinfo": newobj = new StartObj(curZoneArc, addingObjectOnLayer, position); break;
+                case "demoobjinfo": newobj = new CutsceneObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                case "generalposinfo": newobj = new PositionObj(curZoneArc, addingObjectOnLayer, position); break;
+                case "debugmoveinfo": newobj = new DebugObj(curZoneArc, addingObjectOnLayer, position); break;
+            }
+            
+            // Calculate UID
+            int uniqueID = 0;
+            
+            while(globalObjList.containsKey(uniqueID)
+                    || globalPathList.containsKey(uniqueID)
+                    || globalPathPointList.containsKey(uniqueID)) {
+                uniqueID++;
+            }
+            
+            if(uniqueID > maxUniqueID) {
+                maxUniqueID = uniqueID;
+            }
+            
+            // Add entry and node
+            newobj.uniqueID = uniqueID;
+            globalObjList.put(uniqueID, newobj);
+            curZoneArc.objects.get(addingObjectOnLayer).add(newobj);
+            
+            newNode = objListTreeNodes.get(objtype).addObject(newobj);
+            treeNodeList.put(uniqueID, newNode);
+            
+            // Update rendering
+            rerenderTasks.add(String.format("addobj:%1$d", uniqueID));
+            rerenderTasks.add("zone:" + curZone);
+        }
+        
+        // Update tree node model and scroll to new node
+        objListModel.reload();
+        TreePath path = new TreePath(objListModel.getPathToRoot(newNode));
+        treeObjects.setSelectionPath(path);
+        treeObjects.scrollPathToVisible(path);
+        
+        glCanvas.repaint();
+        unsavedChanges = true;
+    }
+    
+    private void deleteObject(int uniqueID) {
+        if(globalObjList.containsKey(uniqueID)) {
+            AbstractObj obj = globalObjList.get(uniqueID);
+            
+            addUndoEntry("deleteObj", obj);
+            
+            obj.stage.objects.get(obj.layerKey).remove(obj);
+            rerenderTasks.add(String.format("delobj:%1$d", uniqueID));
+            rerenderTasks.add("zone:" + obj.stage.stageName);
+
+            if(treeNodeList.containsKey(uniqueID)) {
+                DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
+                ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(uniqueID);
+                objlist.removeNodeFromParent(thenode);
+                treeNodeList.remove(uniqueID);
+            }
+        }
+        
+        if(globalPathPointList.containsKey(uniqueID)) {
+            PathPointObj obj = globalPathPointList.get(uniqueID);
+            obj.path.getPoints().remove(obj.getIndex());
+            globalPathPointList.remove(uniqueID);
+            if(obj.path.getPoints().isEmpty()) {
+                obj.path.stage.paths.remove(obj.path);
+                globalPathList.remove(obj.path.uniqueID);
+                
+                rerenderTasks.add("zone:"+obj.path.stage.stageName);
+
+                if(treeNodeList.containsKey(obj.path.uniqueID)) {
+                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
+                    ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(obj.path.uniqueID);
+                    objlist.removeNodeFromParent(thenode);
+                    treeNodeList.remove(obj.path.uniqueID);
+                    treeNodeList.remove(uniqueID);
+                }
+            }
+            else {
+                rerenderTasks.add(String.format("path:%1$d", obj.path.uniqueID));
+                rerenderTasks.add("zone:"+obj.path.stage.stageName);
+
+                if(treeNodeList.containsKey(uniqueID)) {
+                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
+                    ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(uniqueID);
+                    objlist.removeNodeFromParent(thenode);
+                    treeNodeList.remove(uniqueID);
+                }
+            }
+        }
+        
+        glCanvas.repaint();
+        unsavedChanges = true;
+    }
     
     /**
      * Update rendering according to current selection. Called when the selection is changed.
@@ -2121,9 +1975,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 case "changeObj":
                     AbstractObj obj = globalObjList.get(change.id);
                     obj.data = (Bcsv.Entry) change.data.clone();
-                    obj.position = (Vector3) change.position.clone();
-                    obj.rotation = (Vector3) change.rotation.clone();
-                    obj.scale = (Vector3) change.scale.clone();
+                    obj.position = (Vec3f) change.position.clone();
+                    obj.rotation = (Vec3f) change.rotation.clone();
+                    obj.scale = (Vec3f) change.scale.clone();
                     pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
                     pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
                     pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
@@ -2138,13 +1992,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     addingObject = "";
 
                     newobj.data =(Bcsv.Entry) change.data.clone();
-                    newobj.position =(Vector3) change.position.clone();
+                    newobj.position =(Vec3f) change.position.clone();
 
                     if(change.rotation != null)
-                        newobj.rotation =(Vector3) change.rotation.clone();
+                        newobj.rotation =(Vec3f) change.rotation.clone();
 
                     if(change.scale != null)
-                        newobj.scale =(Vector3) change.scale.clone();
+                        newobj.scale =(Vec3f) change.scale.clone();
 
                     addRerenderTask("zone:" + newobj.stage.stageName);
                     break;
@@ -2179,31 +2033,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     /**
-     * Rerenders all objects in all zones.
-     */
-    public void renderAllObjects() {
-        for(String zone : zoneArchives.keySet())
-            rerenderTasks.add("zone:" + zone);
-        
-        glCanvas.repaint();
-    }
-    
-    /**
-     * Adds {@code task} to the queue if it is not already in the rerender queue.
-     * @param task the task to add
-     */
-    public void addRerenderTask(String task) {
-        if(!rerenderTasks.contains(task))
-            rerenderTasks.add(task);
-    }
-    
-    /**
      * Attempt to apply rotation/translation of the current zone to {@code delta}.
      * @param delta the position to change
      */
-    public Vector3 applySubzoneRotation(Vector3 delta) {
+    public Vec3f applySubzoneRotation(Vec3f delta) {
         if(!isGalaxyMode)
-            return new Vector3();
+            return new Vec3f();
 
         String szkey = curZone;
         if(zonePlacements.containsKey(szkey)) {
@@ -2236,8 +2071,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         return delta;
     }
     
-    private Vector3 get3DCoords(Point pt, float depth) {
-        Vector3 ret = new Vector3(
+    private Vec3f get3DCoords(Point pt, float depth) {
+        Vec3f ret = new Vec3f(
                 camPosition.x * SCALE_DOWN,
                 camPosition.y * SCALE_DOWN,
                 camPosition.z * SCALE_DOWN);
@@ -2261,7 +2096,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * Moves the selection by {@code delta}.
      * @param delta the distance to move the selection by
      */
-    private void offsetSelectionBy(Vector3 delta) {
+    private void offsetSelectionBy(Vec3f delta) {
         unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof PathPointObj) {
@@ -2326,7 +2161,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * Rotate the selection by {@code delta}.
      * @param delta the amount to rotate by
      */
-    private void rotateSelectionBy(Vector3 delta) {
+    private void rotateSelectionBy(Vec3f delta) {
         unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
@@ -2352,7 +2187,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * Scale the selection by {@code delta}.
      * @param delta the amount to scale by
      */
-    private void scaleSelectionBy(Vector3 delta, float snap) {
+    private void scaleSelectionBy(Vec3f delta, float snap) {
         unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
@@ -2382,251 +2217,164 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
-    private void scaleSelectionBy(Vector3 delta) {
+    private void scaleSelectionBy(Vec3f delta) {
         scaleSelectionBy(delta, 0.0f);
     }
     
-    // -------------------------------------------------------------------------------------------------------------------------
-    // Object adding and deleting
-    
-    private void setObjectBeingAdded(String key) {
-        switch(key) {
-            case "startinfo":
-                addingObject = "startinfo|Mario";
-                addingObjectOnLayer = "common";
+    /**
+     * Called when translating through the shortcut key G
+     * @param shiftDown will move slower if shift is pressed
+     * @param ctrlDown will snap to values if ctrl is pressed
+     */
+    public void keyTranslating(boolean shiftDown, boolean ctrlDown) {
+        Vec3f delta = new Vec3f();
+        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
+        if(lastDist == 0)
+            lastDist = curDist;
+        float pol = 10f;
+
+        if(shiftDown)
+            pol *= 0.1;
+
+        if(curDist < lastDist)
+            pol *= -1;
+        if(startingMousePos.y < mousePos.y)
+            pol *= -1;
+
+        if(keyAxis != null) switch(keyAxis) {
+            case "all":
+                float objz = depthUnderCursor;
+
+                float xdelta = (startingMousePos.x - mousePos.x) * pixelFactorX * objz * SCALE_DOWN;
+                float ydelta = (startingMousePos.y - mousePos.y) * -pixelFactorY * objz * SCALE_DOWN;
+
+                delta = new Vec3f(
+                       (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
+                        ydelta *(float)Math.cos(camRotation.y),
+                        -(xdelta *(float)Math.cos(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x)));
+                applySubzoneRotation(delta);
+                System.out.println(delta);
                 break;
-            case "soundinfo":
-                addingObject = "soundinfo|SoundEmitter";
-                addingObjectOnLayer = "common";
+            case "x":
+                delta.x = pol * Math.abs(lastDist - curDist);
                 break;
-            case "generalposinfo":
-                addingObject = "generalposinfo|GeneralPos";
-                addingObjectOnLayer = "common";
+            case "y":
+                delta.y += pol * Math.abs(lastDist - curDist);
                 break;
-            case "debugmoveinfo":
-                addingObject = "debugmoveinfo|DebugMovePos";
-                addingObjectOnLayer = "common";
+            case "z":
+                delta.z += pol * Math.abs(lastDist - curDist);
                 break;
-            case "path":
-                addingObject = "path|null";
-                break;
-            case "pathpoint":
-                addingObject = "pathpoint|null";
-                break;
-            case "cameracubeinfo":
-                if (Whitehole.getCurrentGameType() == 2) {
-                    addingObject = "cameracubeinfo|CameraArea";
-                    addingObjectOnLayer = "common";
-                    break;
-                }
             default:
-                if (ObjectSelectForm.openNewObjectDialog(key, curZoneArc.getLayerNames())) {
-                    addingObject = key + "|" + ObjectSelectForm.getResultName();
-                    addingObjectOnLayer = ObjectSelectForm.getResultLayer();
-                }
-                else {
-                    tgbAddObject.setSelected(false);
-                }
                 break;
         }
-        
-        lblStatus.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
-    }
-    
-    private void addObject(Object point) {
-        // Resolve position
-        Vector3 position;
-        if(point instanceof Point) {
-            position = get3DCoords((Point)point, Math.min(pickingDepth, 1f));
-        }
-        else {
-            position = (Vector3)point;
-        }
-        
-        // Apply zone placement
-        if(isGalaxyMode) {
-            if(zonePlacements.containsKey(curZone)) {
-                StageObj zonePlacement = zonePlacements.get(curZone);
-                Vector3.subtract(position, zonePlacement.position, position);
-                applySubzoneRotation(position);
-            }
-        }
-        
-        // Get designated information
-        String objtype = addingObject.substring(0, addingObject.indexOf('|'));
-        String objname = addingObject.substring(addingObject.indexOf('|') + 1);
-        addingObjectOnLayer = addingObjectOnLayer.toLowerCase();
-        
-        TreeNode newNode;
-        
-        // Add new path?
-        if(objtype.equals("path")) {
-            int newPathLinkID = 0;
 
-            for (PathObj path : curZoneArc.paths) {
-                if (path.pathID >= newPathLinkID) {
-                    newPathLinkID = path.pathID + 1;
-                }
-            }
+        offsetSelectionBy(delta);
 
-            PathObj thepath = new PathObj(curZoneArc, newPathLinkID);
-            thepath.uniqueID = maxUniqueID++;
-            globalPathList.put(thepath.uniqueID, thepath);
-            curZoneArc.paths.add(thepath);
-
-            PathPointObj thepoint = new PathPointObj(thepath, position);
-            thepoint.uniqueID = maxUniqueID;
-            maxUniqueID += 3;
-            
-            globalObjList.put(thepoint.uniqueID, thepoint);
-            globalPathPointList.put(thepoint.uniqueID, thepoint);
-            thepath.getPoints().add(thepoint);
-
-            ObjListTreeNode newnode = (ObjListTreeNode)objListPathRootNode.addObject(thepath);
-            treeNodeList.put(thepath.uniqueID, newnode);
-
-            newNode = newnode.addObject(thepoint);
-            treeNodeList.put(thepoint.uniqueID, newNode);
-
-            rerenderTasks.add("path:" + thepath.uniqueID);
-            rerenderTasks.add("zone:" + curZone);
-        }
-        // Add new path point?
-        else if (objtype.equals("pathpoint")) {
-            if(selectedObjs.size() > 1)
-                return;
-
-            PathObj thepath = null;
-            for(AbstractObj obj : selectedObjs.values())
-                thepath =((PathPointObj) obj).path;
-
-            if(thepath == null)
-                return;
-
-
-            PathPointObj thepoint = new PathPointObj(thepath, position);
-            thepoint.uniqueID = maxUniqueID;
-            maxUniqueID += 3;
-            globalObjList.put(thepoint.uniqueID, thepoint);
-            globalPathPointList.put(thepoint.uniqueID, thepoint);
-            thepath.getPoints().add(thepoint);
-
-            ObjListTreeNode listnode = objListPathRootNode;
-            listnode =(ObjListTreeNode) listnode.children.get(thepath.uniqueID);
-
-            newNode = listnode.addObject(thepoint);
-            treeNodeList.put(thepoint.uniqueID, newNode);
-            
-            rerenderTasks.add("path:" + thepath.uniqueID);
-            rerenderTasks.add("zone:" + thepath.stage.stageName);
-        }
-        else {
-            newobj = null;
-            
-            switch(objtype) {
-                case "objinfo":
-                case "sound_objinfo":
-                    newobj = new LevelObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "mappartsinfo": newobj = new MapPartObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "childobjinfo": newobj = new ChildObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "planetobjinfo": newobj = new GravityObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "areaobjinfo":
-                case "sound_areaobjinfo":
-                case "design_areaobjinfo":
-                    newobj = new AreaObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "cameracubeinfo": newobj = new CameraObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "soundinfo": newobj = new SoundObj(curZoneArc, addingObjectOnLayer, position); break;
-                case "startinfo": newobj = new StartObj(curZoneArc, addingObjectOnLayer, position); break;
-                case "demoobjinfo": newobj = new CutsceneObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "generalposinfo": newobj = new PositionObj(curZoneArc, addingObjectOnLayer, position); break;
-                case "debugmoveinfo": newobj = new DebugObj(curZoneArc, addingObjectOnLayer, position); break;
-            }
-            
-            // Calculate UID
-            int uniqueID = 0;
-            
-            while(globalObjList.containsKey(uniqueID)
-                    || globalPathList.containsKey(uniqueID)
-                    || globalPathPointList.containsKey(uniqueID)) {
-                uniqueID++;
-            }
-            
-            if(uniqueID > maxUniqueID) {
-                maxUniqueID = uniqueID;
-            }
-            
-            // Add entry and node
-            newobj.uniqueID = uniqueID;
-            globalObjList.put(uniqueID, newobj);
-            curZoneArc.objects.get(addingObjectOnLayer).add(newobj);
-            
-            newNode = objListTreeNodes.get(objtype).addObject(newobj);
-            treeNodeList.put(uniqueID, newNode);
-            
-            // Update rendering
-            rerenderTasks.add(String.format("addobj:%1$d", uniqueID));
-            rerenderTasks.add("zone:" + curZone);
-        }
-        
-        // Update tree node model and scroll to new node
-        objListModel.reload();
-        TreePath path = new TreePath(objListModel.getPathToRoot(newNode));
-        treeObjects.setSelectionPath(path);
-        treeObjects.scrollPathToVisible(path);
-        
+        lastDist = curDist;
+        rerenderTasks.add("zone:" + curZone);
+        pnlObjectSettings.repaint();
         glCanvas.repaint();
         unsavedChanges = true;
     }
     
-    private void deleteObject(int uniqueID) {
-        if(globalObjList.containsKey(uniqueID)) {
-            AbstractObj obj = globalObjList.get(uniqueID);
-            
-            addUndoEntry("deleteObj", obj);
-            
-            obj.stage.objects.get(obj.layerKey).remove(obj);
-            rerenderTasks.add(String.format("delobj:%1$d", uniqueID));
-            rerenderTasks.add("zone:" + obj.stage.stageName);
-
-            if(treeNodeList.containsKey(uniqueID)) {
-                DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(uniqueID);
-                objlist.removeNodeFromParent(thenode);
-                treeNodeList.remove(uniqueID);
-            }
-        }
+    /**
+     * Called when scaling through the shortcut key S
+     * @param shiftDown will move slower if shift is pressed
+     * @param ctrlDown will snap to increments if ctrl is pressed
+     */
+    public void keyScaling(boolean shiftDown, boolean ctrlDown) {
+        // calculate dist from the position where we began scaling
+        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
+        if(lastDist == 0)
+            lastDist = curDist;
         
-        if(globalPathPointList.containsKey(uniqueID)) {
-            PathPointObj obj = globalPathPointList.get(uniqueID);
-            obj.path.getPoints().remove(obj.getIndex());
-            globalPathPointList.remove(uniqueID);
-            if(obj.path.getPoints().isEmpty()) {
-                obj.path.stage.paths.remove(obj.path);
-                globalPathList.remove(obj.path.uniqueID);
-                
-                rerenderTasks.add("zone:"+obj.path.stage.stageName);
-
-                if(treeNodeList.containsKey(obj.path.uniqueID)) {
-                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                    ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(obj.path.uniqueID);
-                    objlist.removeNodeFromParent(thenode);
-                    treeNodeList.remove(obj.path.uniqueID);
-                    treeNodeList.remove(uniqueID);
-                }
-            }
-            else {
-                rerenderTasks.add(String.format("path:%1$d", obj.path.uniqueID));
-                rerenderTasks.add("zone:"+obj.path.stage.stageName);
-
-                if(treeNodeList.containsKey(uniqueID)) {
-                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                    ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(uniqueID);
-                    objlist.removeNodeFromParent(thenode);
-                    treeNodeList.remove(uniqueID);
-                }
-            }
-        }
+        int polarity = 1;
+        float speed = 0.01f;
         
+        // raise sensitivity?
+        if(ctrlDown)
+            speed *= 5;
+        
+        if(shiftDown)
+            speed *= 0.1f;
+
+        
+        if(curDist < lastDist) // we're moving closer to object center
+            polarity *= -1;
+        if(startingMousePos.y < mousePos.y)
+            polarity *= -1;
+
+        
+        Vec3f delta = new Vec3f();
+        if(keyAxis != null) switch(keyAxis) {
+            case "all":
+                delta.x += polarity * Math.abs(lastDist - curDist) * speed;
+                delta.y += polarity * Math.abs(lastDist - curDist) * speed;
+                delta.z += polarity * Math.abs(lastDist - curDist) * speed;
+                break;
+            case "x":
+                delta.x += polarity * Math.abs(lastDist - curDist) * speed;
+                break;
+            case "y":
+                delta.y += polarity * Math.abs(lastDist - curDist) * speed;
+                break;
+            case "z":
+                delta.z += polarity * Math.abs(lastDist - curDist) * speed;
+                break;
+        }
+
+        
+        if(ctrlDown)
+            scaleSelectionBy(delta, 0.10f * polarity);
+        else
+            scaleSelectionBy(delta);
+        
+        lastDist = curDist;
+        rerenderTasks.add("zone:" + curZone);
+        pnlObjectSettings.repaint();
+        glCanvas.repaint();
+        unsavedChanges = true;
+    }
+    
+    /**
+     * Called when rotating through the shortcut key R
+     * @param shiftDown will move slower if shift is pressed
+     * @param ctrlDown will snap if ctrl is pressed
+     */
+    public void keyRotating(boolean shiftDown, boolean ctrlDown) {
+        Vec3f delta = new Vec3f();
+        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
+        if(lastDist == 0)
+            lastDist = curDist;
+        float pol = 0.1f;
+
+        if(shiftDown)
+            pol *= 0.1;
+
+        if(curDist < lastDist)
+            pol *= -1;
+        if(startingMousePos.y < mousePos.y)
+            pol *= -1;
+
+        if(keyAxis != null) switch(keyAxis) {
+            case "x":
+                delta.x += pol * Math.abs(lastDist - curDist);
+                break;
+            case "y":
+                delta.y += pol * Math.abs(lastDist - curDist);
+                break;
+            case "z":
+                delta.z += pol * Math.abs(lastDist - curDist);
+                break;
+            default:
+                break;
+        }
+
+        rotateSelectionBy(delta);
+
+        lastDist = curDist;
+        rerenderTasks.add("zone:" + curZone);
+        pnlObjectSettings.repaint();
         glCanvas.repaint();
         unsavedChanges = true;
     }
@@ -2972,11 +2720,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
             }
             
-            // Also, zones. Not finished, though
-            /*else if(selectedObj instanceof StageObj) {
-                // todo
-            }*/
-            
             // Any other object
             else {
                 if(propname.equals("name")) {
@@ -3107,6 +2850,25 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Actual galaxy scene renderer
+    
+    /**
+     * Rerenders all objects in all zones.
+     */
+    public void renderAllObjects() {
+        for(String zone : zoneArchives.keySet())
+            rerenderTasks.add("zone:" + zone);
+        
+        glCanvas.repaint();
+    }
+    
+    /**
+     * Adds {@code task} to the queue if it is not already in the rerender queue.
+     * @param task the task to add
+     */
+    public void addRerenderTask(String task) {
+        if(!rerenderTasks.contains(task))
+            rerenderTasks.add(task);
+    }
     
     private class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
         private class AsyncPrerenderer implements Runnable {
@@ -3639,22 +3401,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         public void updateCamera() {
-            Vector3 up;
+            Vec3f up;
             
             if(Math.cos(camRotation.y) < 0f) {
                 isUpsideDown = true;
-                up = new Vector3(0f, -1f, 0f);
+                up = new Vec3f(0f, -1f, 0f);
             }
             else {
                 isUpsideDown = false;
-                up = new Vector3(0f, 1f, 0f);
+                up = new Vec3f(0f, 1f, 0f);
             }
             
             camPosition.x = camDistance *(float)Math.cos(camRotation.x) *(float)Math.cos(camRotation.y);
             camPosition.y = camDistance *(float)Math.sin(camRotation.y);
             camPosition.z = camDistance *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y);
             
-            Vector3.add(camPosition, camTarget, camPosition);
+            Vec3f.add(camPosition, camTarget, camPosition);
             
             modelViewMatrix = Matrix4.lookAt(camPosition, camTarget, up);
             Matrix4.mult(Matrix4.scale(1f / SCALE_DOWN), modelViewMatrix, modelViewMatrix);
@@ -3691,7 +3453,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     xdelta *= pixelFactorX * objz * SCALE_DOWN;
                     ydelta *= -pixelFactorY * objz * SCALE_DOWN;
                     
-                    Vector3 delta = new Vector3(
+                    Vec3f delta = new Vec3f(
                            (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
                             ydelta *(float)Math.cos(camRotation.y),
                             -(xdelta *(float)Math.cos(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x)));
@@ -3979,7 +3741,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 float delta =(float)e.getPreciseWheelRotation();
                 delta =((delta < 0f) ? -1f:1f) *(float)Math.pow(delta, 2f) * 0.05f * SCALE_DOWN;
                 
-                Vector3 vdelta = new Vector3(
+                Vec3f vdelta = new Vec3f(
                         delta *(float)Math.cos(camRotation.x) *(float)Math.cos(camRotation.y),
                         delta *(float)Math.sin(camRotation.y),
                         delta *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y));
@@ -3997,7 +3759,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             } else {
                 float delta =(float)(e.getPreciseWheelRotation() * Math.min(0.1f, pickingDepth / 10f));
                 
-                Vector3 vdelta = new Vector3(
+                Vec3f vdelta = new Vec3f(
                         delta *(float)Math.cos(camRotation.x) *(float)Math.cos(camRotation.y),
                         delta *(float)Math.sin(camRotation.y),
                         delta *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y));
@@ -4163,12 +3925,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             // Jump Camera to Object TODO fix
             if(keyCode == KeyEvent.VK_SPACE && selectedObjs.size() == 1) {
                 ArrayList keyset = new ArrayList(selectedObjs.keySet());
-                Vector3 camTarg = new Vector3(
+                Vec3f camTarg = new Vec3f(
                         selectedObjs.get((int)keyset.get(0)).position.x,
                         selectedObjs.get((int)keyset.get(0)).position.y,
                         selectedObjs.get((int)keyset.get(0)).position.z);
                 
-                camTarget = (Vector3) camTarg.clone();
+                camTarget = (Vec3f) camTarg.clone();
                 
                 camTarget.x = camTarget.x / SCALE_DOWN;
                 camTarget.y = camTarget.y / SCALE_DOWN;
@@ -4186,8 +3948,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             // Arrow Key Shortcuts
-            Vector3 delta = new Vector3();
-            Vector3 finaldelta = new Vector3();
+            Vec3f delta = new Vec3f();
+            Vec3f finaldelta = new Vec3f();
 
             if(Settings.getUseWASD() ? e.getKeyCode() == KeyEvent.VK_A : e.getKeyCode() == KeyEvent.VK_LEFT) {
                 delta.x = 1;
@@ -4301,9 +4063,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // This object is used to save previous obj info for undo
     public class UndoEntry {
         public UndoEntry(AbstractObj obj) {
-            position =(Vector3) obj.position.clone();
-            rotation =(Vector3) obj.rotation.clone();
-            scale =(Vector3) obj.scale.clone();
+            position =(Vec3f) obj.position.clone();
+            rotation =(Vec3f) obj.rotation.clone();
+            scale =(Vec3f) obj.scale.clone();
             data =(Bcsv.Entry) obj.data.clone();
             id = obj.uniqueID;
             type = "changeObj";
@@ -4313,17 +4075,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         public UndoEntry(String editType, AbstractObj obj) {
-            position =(Vector3) obj.position.clone();
+            position =(Vec3f) obj.position.clone();
             
             if(obj.rotation == null)
-                rotation = new Vector3();
+                rotation = new Vec3f();
             else
-                rotation =(Vector3) obj.rotation.clone();
+                rotation =(Vec3f) obj.rotation.clone();
             
             if(obj.scale == null)
-                rotation = new Vector3();
+                rotation = new Vec3f();
             else
-                scale =(Vector3) obj.scale.clone();
+                scale =(Vec3f) obj.scale.clone();
             
             data =(Bcsv.Entry) obj.data.clone();
             id = obj.uniqueID;
@@ -4339,9 +4101,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         }
         
-        public Vector3 position;
-        public Vector3 rotation;
-        public Vector3 scale;
+        public Vec3f position;
+        public Vec3f rotation;
+        public Vec3f scale;
         public Bcsv.Entry data;
         public String type, layer, name, objType;
         public int id;

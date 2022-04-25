@@ -20,8 +20,8 @@ import java.util.*;
 import whitehole.io.FileBase;
 import whitehole.util.Color4;
 import whitehole.util.Matrix4;
-import whitehole.util.Vector2;
-import whitehole.util.Vector3;
+import whitehole.util.Vec2f;
+import whitehole.util.Vec3f;
 
 public class Bmd 
 {
@@ -52,9 +52,9 @@ public class Bmd
             }
         }
 
-        bboxMin = new Vector3(0, 0, 0);
-        bboxMax = new Vector3(0, 0, 0);
-        for (Vector3 vec : positionArray)
+        bboxMin = new Vec3f(0, 0, 0);
+        bboxMax = new Vec3f(0, 0, 0);
+        for (Vec3f vec : positionArray)
         {
             if (vec.x < bboxMin.x) bboxMin.x = vec.x;
             if (vec.y < bboxMin.y) bboxMin.y = vec.y;
@@ -198,7 +198,7 @@ public class Bmd
 
         arrayMask = 0;
         colorArray = new Color4[2][];
-        texcoordArray = new Vector2[8][];
+        texcoordArray = new Vec2f[8][];
 
         List<Integer> arrayoffsets = new ArrayList<>();
 
@@ -263,12 +263,12 @@ public class Bmd
                         switch (compsize)
                         {
                             case 0:
-                                positionArray = new Vector3[arraysize / 2]; 
-                                for (int j = 0; j < arraysize / 2; j++) positionArray[j] = new Vector3(readArrayValue(datatype, fp), readArrayValue(datatype, fp), 0f); 
+                                positionArray = new Vec3f[arraysize / 2]; 
+                                for (int j = 0; j < arraysize / 2; j++) positionArray[j] = new Vec3f(readArrayValue(datatype, fp), readArrayValue(datatype, fp), 0f); 
                                 break;
                             case 1:
-                                positionArray = new Vector3[arraysize / 3]; 
-                                for (int j = 0; j < arraysize / 3; j++) positionArray[j] = new Vector3(readArrayValue(datatype, fp), readArrayValue(datatype, fp), readArrayValue(datatype, fp)); 
+                                positionArray = new Vec3f[arraysize / 3]; 
+                                for (int j = 0; j < arraysize / 3; j++) positionArray[j] = new Vec3f(readArrayValue(datatype, fp), readArrayValue(datatype, fp), readArrayValue(datatype, fp)); 
                                 break;
                             default: throw new IOException(String.format("Bmd: unsupported position CompSize %1$d", compsize));
                         }
@@ -280,8 +280,8 @@ public class Bmd
                         switch (compsize)
                         {
                             case 0:
-                                normalArray = new Vector3[arraysize / 3]; 
-                                for (int j = 0; j < arraysize / 3; j++) normalArray[j] = new Vector3(readArrayValue(datatype, fp), readArrayValue(datatype, fp), readArrayValue(datatype, fp)); 
+                                normalArray = new Vec3f[arraysize / 3]; 
+                                for (int j = 0; j < arraysize / 3; j++) normalArray[j] = new Vec3f(readArrayValue(datatype, fp), readArrayValue(datatype, fp), readArrayValue(datatype, fp)); 
                                 break;
                             default: throw new IOException(String.format("Bmd: unsupported normal CompSize %1$d", compsize));
                         }
@@ -310,12 +310,12 @@ public class Bmd
                         switch (compsize)
                         {
                             case 0: 
-                                texcoordArray[tid] = new Vector2[arraysize]; 
-                                for (int j = 0; j < arraysize; j++) texcoordArray[tid][j] = new Vector2(readArrayValue(datatype, fp), 0f); 
+                                texcoordArray[tid] = new Vec2f[arraysize]; 
+                                for (int j = 0; j < arraysize; j++) texcoordArray[tid][j] = new Vec2f(readArrayValue(datatype, fp), 0f); 
                                 break;
                             case 1: 
-                                texcoordArray[tid] = new Vector2[arraysize / 2]; 
-                                for (int j = 0; j < arraysize / 2; j++) texcoordArray[tid][j] = new Vector2(readArrayValue(datatype, fp), readArrayValue(datatype, fp)); 
+                                texcoordArray[tid] = new Vec2f[arraysize / 2]; 
+                                for (int j = 0; j < arraysize / 2; j++) texcoordArray[tid][j] = new Vec2f(readArrayValue(datatype, fp), readArrayValue(datatype, fp)); 
                                 break;
                             default: throw new IOException(String.format("Bmd: unsupported texcoord CompSize %1$d", compsize));
                         }
@@ -435,13 +435,13 @@ public class Bmd
             jnt.unk2 = file.readByte();
             file.skip(1);
 
-            jnt.scale = new Vector3(file.readFloat(), file.readFloat(), file.readFloat());
-            jnt.rotation = new Vector3(
+            jnt.scale = new Vec3f(file.readFloat(), file.readFloat(), file.readFloat());
+            jnt.rotation = new Vec3f(
                     (float)((file.readShort() * Math.PI) / 32768f),
                     (float)((file.readShort() * Math.PI) / 32768f),
                     (float)((file.readShort() * Math.PI) / 32768f));
             file.skip(2);
-            jnt.translation = new Vector3(file.readFloat(), file.readFloat(), file.readFloat());
+            jnt.translation = new Vec3f(file.readFloat(), file.readFloat(), file.readFloat());
 
             jnt.matrix = Matrix4.SRTToMatrix(jnt.scale, jnt.rotation, jnt.translation);
 
@@ -834,10 +834,10 @@ public class Bmd
                     
                     // http://kuribo64.net/?page=post&id=20293
                     Matrix4 R = Matrix4.createRotationZ(rotate);
-                    Matrix4 S = Matrix4.scale(new Vector3(texmtx.scaleS, texmtx.scaleT, 1f));
-                    Matrix4 C = Matrix4.createTranslation(new Vector3(texmtx.centerS, texmtx.centerT, 0f));
+                    Matrix4 S = Matrix4.scale(new Vec3f(texmtx.scaleS, texmtx.scaleT, 1f));
+                    Matrix4 C = Matrix4.createTranslation(new Vec3f(texmtx.centerS, texmtx.centerT, 0f));
                     Matrix4 CI = Matrix4.invert(C);
-                    Matrix4 T = Matrix4.createTranslation(new Vector3(texmtx.transS, texmtx.transT, 0f));
+                    Matrix4 T = Matrix4.createTranslation(new Vec3f(texmtx.transS, texmtx.transT, 0f));
                     Matrix4 P;
                     
                     switch ((int)texmtx.type)
@@ -1186,7 +1186,7 @@ public class Bmd
         public short unk1;
         public byte unk2;
 
-        public Vector3 scale, rotation, translation;
+        public Vec3f scale, rotation, translation;
         public Matrix4 matrix;
         public Matrix4 finalMatrix; // matrix with parents' transforms applied
     }
@@ -1331,7 +1331,7 @@ public class Bmd
 
     private FileBase file;
 
-    public Vector3 bboxMin, bboxMax;
+    public Vec3f bboxMin, bboxMax;
 
     // INF1
     public int numVertices;
@@ -1339,10 +1339,10 @@ public class Bmd
 
     // VTX1
     public int arrayMask;
-    public Vector3[] positionArray;
-    public Vector3[] normalArray;
+    public Vec3f[] positionArray;
+    public Vec3f[] normalArray;
     public Color4[][] colorArray;
-    public Vector2[][] texcoordArray;
+    public Vec2f[][] texcoordArray;
 
     // SHP1
     public Batch[] batches;

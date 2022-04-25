@@ -22,11 +22,11 @@ import java.util.List;
 import whitehole.rendering.GLRenderer;
 import whitehole.smg.Bcsv;
 import whitehole.util.PropertyGrid;
-import whitehole.util.Vector3;
+import whitehole.util.Vec3f;
 
 public class PathPointObj extends AbstractObj {
     public PathObj path;
-    public Vector3 point1, point2;
+    public Vec3f point1, point2;
     
     @Override
     public String getFileType() {
@@ -42,13 +42,13 @@ public class PathPointObj extends AbstractObj {
         point2 = getVector("pnt2");
     }
     
-    public PathPointObj(PathObj path, Vector3 pos) {
+    public PathPointObj(PathObj path, Vec3f pos) {
         super(path.stage, "common", new Bcsv.Entry(), "PathPoint");
         
         this.path = path;
         position = pos;
-        point1 = (Vector3)pos.clone();
-        point2 = (Vector3)pos.clone();
+        point1 = (Vec3f)pos.clone();
+        point2 = (Vec3f)pos.clone();
         
         data.put("id", (short)getIndex());
         putVector("pnt0", position);

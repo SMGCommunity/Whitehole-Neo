@@ -19,7 +19,7 @@ package whitehole.smg.object;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.PropertyGrid;
-import whitehole.util.Vector3;
+import whitehole.util.Vec3f;
 
 public class SoundObj extends AbstractObj {
     @Override
@@ -35,12 +35,12 @@ public class SoundObj extends AbstractObj {
         scale = getVector("scale");
     }
     
-    public SoundObj(StageArchive stage, String layerKey, Vector3 pos) {
+    public SoundObj(StageArchive stage, String layerKey, Vec3f pos) {
         super(stage, layerKey, new Bcsv.Entry(), "SoundEmitter");
         
         position = pos;
-        rotation = new Vector3(0f, 0f, 0f);
-        scale = new Vector3(1f, 1f, 1f);
+        rotation = new Vec3f(0f, 0f, 0f);
+        scale = new Vec3f(1f, 1f, 1f);
         
         data.put("name", name);
         putVector("pos", position);

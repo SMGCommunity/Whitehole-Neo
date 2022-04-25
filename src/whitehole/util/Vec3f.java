@@ -16,20 +16,20 @@
  */
 package whitehole.util;
 
-public class Vector3 implements Cloneable {
+public class Vec3f implements Cloneable {
     public float x, y, z;
     
-    public Vector3() {
+    public Vec3f() {
         this(0.0f, 0.0f, 0.0f);
     }
     
-    public Vector3(float x, float y, float z) {
+    public Vec3f(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
     
-    public Vector3(Vector3 that) {
+    public Vec3f(Vec3f that) {
         this.x = that.x;
         this.y = that.y;
         this.z = that.z;
@@ -50,18 +50,50 @@ public class Vector3 implements Cloneable {
         }
     }
     
+    // -------------------------------------------------------------------------------------------------------------------------
+    
+    public void set(Vec3f that) {
+        this.x = that.x;
+        this.y = that.y;
+        this.z = that.z;
+    }
+    
+    public void add(Vec3f that) {
+        this.x += that.x;
+        this.y += that.y;
+        this.z += that.z;
+    }
+    
+    public void add(Vec3f a, Vec3f b) {
+        x = a.x + b.x;
+        y = a.y + b.y;
+        z = a.z + b.z;
+    }
+    
+    public void subtract(Vec3f that) {
+        this.x -= that.x;
+        this.y -= that.y;
+        this.z -= that.z;
+    }
+    
+    public void subtract(Vec3f a, Vec3f b) {
+        x = a.x - b.x;
+        y = a.y - b.y;
+        z = a.z - b.z;
+    }
+    
     public float length() {
         return (float)Math.sqrt(x * x + y * y + z * z);
     }
     
-    public Vector3 multiplyScalar(float val) {
+    public Vec3f multiplyScalar(float val) {
         this.x *= val;
         this.y *= val;
         this.z *= val;
         return this;
     }
     
-    public static boolean roughlyEqual(Vector3 a, Vector3 b) {
+    public static boolean roughlyEqual(Vec3f a, Vec3f b) {
         float epsilon = 0.00001f;
         
         if (Math.abs(a.x - b.x) > epsilon)
@@ -74,14 +106,14 @@ public class Vector3 implements Cloneable {
         return true;
     }
     
-    public static void transform(Vector3 v, Matrix4 m, Vector3 out) {
+    public static void transform(Vec3f v, Matrix4 m, Vec3f out) {
         float x = v.x * m.m[0] + v.y * m.m[4] + v.z * m.m[8] + m.m[12],
               y = v.x * m.m[1] + v.y * m.m[5] + v.z * m.m[9] + m.m[13],
               z = v.x * m.m[2] + v.y * m.m[6] + v.z * m.m[10] + m.m[14];
         out.x = x; out.y = y; out.z = z;
     }
     
-    public static void normalize(Vector3 v, Vector3 out) {
+    public static void normalize(Vec3f v, Vec3f out) {
         float len = v.length();
         if (len < 0.000001f) len = 1f;
         float x = v.x / len,
@@ -90,19 +122,19 @@ public class Vector3 implements Cloneable {
         out.x = x; out.y = y; out.z = z;
     }
     
-    public static void add(Vector3 a, Vector3 b, Vector3 out) {
+    public static void add(Vec3f a, Vec3f b, Vec3f out) {
         out.x = a.x + b.x;
         out.y = a.y + b.y;
         out.z = a.z + b.z;
     }
     
-    public static void subtract(Vector3 a, Vector3 b, Vector3 out) {
+    public static void subtract(Vec3f a, Vec3f b, Vec3f out) {
         out.x = a.x - b.x;
         out.y = a.y - b.y;
         out.z = a.z - b.z;
     }
     
-    public static void cross(Vector3 a, Vector3 b, Vector3 out) {
+    public static void cross(Vec3f a, Vec3f b, Vec3f out) {
         float x = a.y * b.z - a.z * b.y,
               y = a.z * b.x - a.x * b.z,
               z = a.x * b.y - a.y * b.x;

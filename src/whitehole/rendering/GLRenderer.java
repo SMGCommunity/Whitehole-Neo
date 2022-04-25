@@ -17,7 +17,7 @@
 package whitehole.rendering;
 
 import com.jogamp.opengl.*;
-import whitehole.util.Vector3;
+import whitehole.util.Vec3f;
 
 public abstract class GLRenderer {
     /**
@@ -39,9 +39,9 @@ public abstract class GLRenderer {
     
     // -------------------------------------------------------------------------------------------------------------------------
     
-    static final Vector3 TRANSLATION = new Vector3(0f, 0f, 0f);
-    static final Vector3 ROTATION = new Vector3(0f, 0f, 0f);
-    static final Vector3 SCALE = new Vector3(1f, 1f, 1f);
+    static final Vec3f TRANSLATION = new Vec3f(0f, 0f, 0f);
+    static final Vec3f ROTATION = new Vec3f(0f, 0f, 0f);
+    static final Vec3f SCALE = new Vec3f(1f, 1f, 1f);
     
     protected int[] displayLists;
     

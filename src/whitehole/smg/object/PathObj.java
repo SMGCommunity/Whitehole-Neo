@@ -28,7 +28,7 @@ import whitehole.rendering.GLRenderer;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.Color4;
-import whitehole.util.Vector3;
+import whitehole.util.Vec3f;
 
 public class PathObj {
     private static final Color4 DUMMY_COLOR = new Color4(0f, 0f, 0f, 0f);
@@ -291,22 +291,22 @@ public class PathObj {
             
             Iterator<PathPointObj> iter = points.iterator();
             PathPointObj point = (PathPointObj)iter.next();
-            Vector3 start = point.position;
+            Vec3f start = point.position;
             gl.glVertex3f(start.x, start.y, start.z);
             
             for (int p = 1; p < end; p++) {
-                Vector3 p1 = point.position;
-                Vector3 p2 = point.point2;
+                Vec3f p1 = point.position;
+                Vec3f p2 = point.point2;
                 
                 if (!iter.hasNext()) {
                     iter = points.iterator();
                 }
                 
                 point = (PathPointObj)iter.next();
-                Vector3 p3 = point.point1;
-                Vector3 p4 = point.position;
+                Vec3f p3 = point.point1;
+                Vec3f p4 = point.position;
                 
-                if ((Vector3.roughlyEqual(p1, p2)) && (Vector3.roughlyEqual(p3, p4))) {
+                if ((Vec3f.roughlyEqual(p1, p2)) && (Vec3f.roughlyEqual(p3, p4))) {
                     gl.glVertex3f(p4.x, p4.y, p4.z);
                 }
                 else {

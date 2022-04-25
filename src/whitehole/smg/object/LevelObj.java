@@ -20,7 +20,7 @@ import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.PropertyGrid;
-import whitehole.util.Vector3;
+import whitehole.util.Vec3f;
 
 public class LevelObj extends AbstractObj {
     @Override
@@ -40,12 +40,12 @@ public class LevelObj extends AbstractObj {
         scale = getVector("scale");
     }
     
-    public LevelObj(StageArchive stage, String layerKey, String objName, Vector3 pos) {
+    public LevelObj(StageArchive stage, String layerKey, String objName, Vec3f pos) {
         super(stage, layerKey, new Bcsv.Entry(), objName);
         
         position = pos;
-        rotation = new Vector3(0f, 0f, 0f);
-        scale = new Vector3(1f, 1f, 1f);
+        rotation = new Vec3f(0f, 0f, 0f);
+        scale = new Vec3f(1f, 1f, 1f);
         
         data.put("name", name);
         putVector("pos", position);

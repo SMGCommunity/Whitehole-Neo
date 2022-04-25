@@ -24,13 +24,13 @@ import whitehole.io.RarcFile;
 import whitehole.smg.Bti;
 import whitehole.smg.ImageUtils.FilterMode;
 import whitehole.smg.ImageUtils.WrapMode;
-import whitehole.util.Vector3;
+import whitehole.util.Vec3f;
 
 public class BtiRenderer extends GLRenderer {
     private RarcFile archive = null;
     private Bti btiData = null;
-    private Vector3 point1 = null;
-    private Vector3 point2 = null;
+    private Vec3f point1 = null;
+    private Vec3f point2 = null;
     private int texID;
     private boolean isVertical;
     
@@ -38,7 +38,7 @@ public class BtiRenderer extends GLRenderer {
         return btiData != null;
     }
     
-    BtiRenderer(RenderInfo info, String objModelName, Vector3 pt1, Vector3 pt2, boolean vertical) {
+    BtiRenderer(RenderInfo info, String objModelName, Vec3f pt1, Vec3f pt2, boolean vertical) {
         // Get file paths
         String arcPath = Whitehole.createResourceArcPath(objModelName);
         String btiPath = String.format("/%s/%s.bti", objModelName, objModelName);

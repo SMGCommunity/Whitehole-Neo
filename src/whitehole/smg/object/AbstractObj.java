@@ -27,11 +27,11 @@ import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.smg.StageHelper;
 import whitehole.util.PropertyGrid;
-import whitehole.util.Vector3;
+import whitehole.util.Vec3f;
 
 public abstract class AbstractObj {
     public String name, layerKey, oldName;
-    public Vector3 position, rotation, scale;
+    public Vec3f position, rotation, scale;
     public StageArchive stage;
     public Bcsv.Entry data;
     public ObjectDB.Info objdbInfo;
@@ -66,14 +66,14 @@ public abstract class AbstractObj {
     // -------------------------------------------------------------------------------------------------------------------------
     // Helper functions
     
-    protected final Vector3 getVector(String prefix) {
+    protected final Vec3f getVector(String prefix) {
         float x = (float)data.getOrDefault(prefix + "_x", 0.0f);
         float y = (float)data.getOrDefault(prefix + "_y", 0.0f);
         float z = (float)data.getOrDefault(prefix + "_z", 0.0f);
-        return new Vector3(x, y, z);
+        return new Vec3f(x, y, z);
     }
     
-    protected final void putVector(String prefix, Vector3 vector) {
+    protected final void putVector(String prefix, Vec3f vector) {
         data.put(prefix + "_x", vector.x);
         data.put(prefix + "_y", vector.y);
         data.put(prefix + "_z", vector.z);

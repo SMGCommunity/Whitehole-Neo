@@ -18,12 +18,12 @@ package whitehole.rendering;
 
 import com.jogamp.opengl.GL2;
 import java.util.List;
-import whitehole.util.Vector3;
+import whitehole.util.Vec3f;
 
 public class MultiRenderer extends GLRenderer {
     public static class MultiRendererInfo {
         String modelName;
-        Vector3 position, rotation, scale;
+        Vec3f position, rotation, scale;
         GLRenderer renderer;
         
         public MultiRendererInfo(String modelname) {
@@ -33,21 +33,21 @@ public class MultiRenderer extends GLRenderer {
             scale = SCALE;
         }
         
-        public MultiRendererInfo(String modelname, Vector3 pos) {
+        public MultiRendererInfo(String modelname, Vec3f pos) {
             modelName = modelname;
             position = pos;
             rotation = ROTATION;
             scale = SCALE;
         }
         
-        public MultiRendererInfo(String modelname, Vector3 pos, Vector3 dir) {
+        public MultiRendererInfo(String modelname, Vec3f pos, Vec3f dir) {
             modelName = modelname;
             position = pos;
             rotation = dir;
             scale = SCALE;
         }
         
-        public MultiRendererInfo(String modelname, Vector3 pos, Vector3 dir, Vector3 size) {
+        public MultiRendererInfo(String modelname, Vec3f pos, Vec3f dir, Vec3f size) {
             modelName = modelname;
             position = pos;
             rotation = dir;
@@ -90,9 +90,9 @@ public class MultiRenderer extends GLRenderer {
                 continue;
             }
             
-            Vector3 translation = multiInfo.position;
-            Vector3 rotation = multiInfo.rotation;
-            Vector3 scale = multiInfo.scale;
+            Vec3f translation = multiInfo.position;
+            Vec3f rotation = multiInfo.rotation;
+            Vec3f scale = multiInfo.scale;
             
             gl.glPushMatrix();
             

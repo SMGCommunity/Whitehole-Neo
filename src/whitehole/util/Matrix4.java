@@ -43,7 +43,7 @@ public class Matrix4 {
                 0f, 0f, 0f, 1f);
     }
     
-    public static Matrix4 scale(Vector3 factor) {
+    public static Matrix4 scale(Vec3f factor) {
         return new Matrix4(
                 factor.x, 0f, 0f, 0f,
                 0f, factor.y, 0f, 0f,
@@ -84,7 +84,7 @@ public class Matrix4 {
                 0f, 0f, 0f, 1f);
     }
     
-    public static Matrix4 createTranslation(Vector3 trans) {
+    public static Matrix4 createTranslation(Vec3f trans) {
         return new Matrix4(
                 1f, 0f, 0f, 0f,
                 0f, 1f, 0f, 0f,
@@ -92,7 +92,7 @@ public class Matrix4 {
                 trans.x, trans.y, trans.z, 1f);
     }
     
-    public static Matrix4 SRTToMatrix(Vector3 scale, Vector3 rot, Vector3 trans) {
+    public static Matrix4 SRTToMatrix(Vec3f scale, Vec3f rot, Vec3f trans) {
         Matrix4 ret = new Matrix4();
 
         Matrix4 mscale = Matrix4.scale(scale);
@@ -153,17 +153,17 @@ public class Matrix4 {
     }
     
     
-    public static Matrix4 lookAt(Vector3 eye, Vector3 target, Vector3 up) {
-        Vector3 z = new Vector3(); Vector3.subtract(eye, target, z); Vector3.normalize(z, z);
-        Vector3 x = new Vector3(); Vector3.cross(up, z, x); Vector3.normalize(x, x);
-        Vector3 y = new Vector3(); Vector3.cross(z, x, y); Vector3.normalize(y, y);
+    public static Matrix4 lookAt(Vec3f eye, Vec3f target, Vec3f up) {
+        Vec3f z = new Vec3f(); Vec3f.subtract(eye, target, z); Vec3f.normalize(z, z);
+        Vec3f x = new Vec3f(); Vec3f.cross(up, z, x); Vec3f.normalize(x, x);
+        Vec3f y = new Vec3f(); Vec3f.cross(z, x, y); Vec3f.normalize(y, y);
         
         Matrix4 rot = new Matrix4(
                 x.x, y.x, z.x, 0f,
                 x.y, y.y, z.y, 0f,
                 x.z, y.z, z.z, 0f,
                 0f, 0f, 0f, 1f);
-        Matrix4 trans = Matrix4.createTranslation(new Vector3(-eye.x, -eye.y, -eye.z));
+        Matrix4 trans = Matrix4.createTranslation(new Vec3f(-eye.x, -eye.y, -eye.z));
         
         Matrix4.mult(trans, rot, trans);
         return trans;

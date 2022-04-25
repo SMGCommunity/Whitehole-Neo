@@ -22,10 +22,10 @@ import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderInfo;
 import whitehole.util.Color4;
-import whitehole.util.Vector3;
+import whitehole.util.Vec3f;
 
 public class BlackHoleRenderer extends GLRenderer {
-    public BlackHoleRenderer(RenderInfo info, int arg0, Vector3 areascale, Shape shape, boolean area) {
+    public BlackHoleRenderer(RenderInfo info, int arg0, Vec3f areascale, Shape shape, boolean area) {
         sclBlackHole = (arg0 < 0 ? 1000 : arg0) / 1000f;
         sclArea = areascale;
         renderBlackHoleRange = new BmdRenderer(info, "BlackHoleRange");
@@ -99,7 +99,7 @@ public class BlackHoleRenderer extends GLRenderer {
     public BmdRenderer renderBlackHole;
     public BmdRenderer renderBlackHoleRange;
     public AreaShapeRenderer renderAreaShape;
-    public Vector3 sclArea;
+    public Vec3f sclArea;
     public float sclBlackHole;
     public boolean hasArea;
 }

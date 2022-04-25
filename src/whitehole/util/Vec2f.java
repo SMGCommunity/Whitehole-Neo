@@ -16,19 +16,19 @@
  */
 package whitehole.util;
 
-public class Vector2 implements Cloneable {
+public class Vec2f implements Cloneable {
     public float x, y;
     
-    public Vector2() {
+    public Vec2f() {
         this(0.0f, 0.0f);
     }
     
-    public Vector2(float x, float y) {
+    public Vec2f(float x, float y) {
         this.x = x;
         this.y = y;
     }
     
-    public Vector2(Vector2 that) {
+    public Vec2f(Vec2f that) {
         this.x = that.x;
         this.y = that.y;
     }
@@ -48,11 +48,13 @@ public class Vector2 implements Cloneable {
         }
     }
     
+    // -------------------------------------------------------------------------------------------------------------------------
+    
     public float length() {
         return (float)Math.hypot(x, y);
     }
     
-    public static boolean roughlyEqual(Vector2 a, Vector2 b) {
+    public static boolean roughlyEqual(Vec2f a, Vec2f b) {
         float epsilon = 0.00001f;
         
         if (Math.abs(a.x - b.x) > epsilon)
@@ -63,7 +65,7 @@ public class Vector2 implements Cloneable {
         return true;
     }
     
-    public static void normalize(Vector2 in, Vector2 out) {
+    public static void normalize(Vec2f in, Vec2f out) {
         float len = in.length();
         
         if (len < 0.000001f)
@@ -73,12 +75,12 @@ public class Vector2 implements Cloneable {
         out.y = in.y / len;
     }
     
-    public static void add(Vector2 a, Vector2 b, Vector2 out) {
+    public static void add(Vec2f a, Vec2f b, Vec2f out) {
         out.x = a.x + b.x;
         out.y = a.y + b.y;
     }
     
-    public static void subtract(Vector2 a, Vector2 b, Vector2 out) {
+    public static void subtract(Vec2f a, Vec2f b, Vec2f out) {
         out.x = a.x - b.x;
         out.y = a.y - b.y;
     }
