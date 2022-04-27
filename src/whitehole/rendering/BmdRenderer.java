@@ -28,10 +28,10 @@ import whitehole.smg.Bva;
 import whitehole.smg.ImageUtils.FilterMode;
 import whitehole.smg.ImageUtils.WrapMode;
 import whitehole.util.Color4;
-import whitehole.util.Matrix4;
+import whitehole.math.Matrix4;
 import whitehole.util.SuperFastHash;
-import whitehole.util.Vec2f;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec2f;
+import whitehole.math.Vec3f;
 
 public class BmdRenderer extends GLRenderer {
     private void uploadTexture(GL2 gl, int id) {

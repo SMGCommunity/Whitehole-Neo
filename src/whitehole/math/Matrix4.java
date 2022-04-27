@@ -13,7 +13,7 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.util;
+package whitehole.math;
 
 public class Matrix4 {
     public Matrix4() {

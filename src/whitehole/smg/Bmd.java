@@ -19,9 +19,9 @@ import java.io.*;
 import java.util.*;
 import whitehole.io.FileBase;
 import whitehole.util.Color4;
-import whitehole.util.Matrix4;
-import whitehole.util.Vec2f;
-import whitehole.util.Vec3f;
+import whitehole.math.Matrix4;
+import whitehole.math.Vec2f;
+import whitehole.math.Vec3f;
 
 public class Bmd 
 {

@@ -28,7 +28,7 @@ import whitehole.rendering.GLRenderer;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.Color4;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public class PathObj {
     private static final Color4 DUMMY_COLOR = new Color4(0f, 0f, 0f, 0f);

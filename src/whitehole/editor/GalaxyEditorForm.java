@@ -40,11 +40,11 @@ import whitehole.smg.GalaxyArchive;
 import whitehole.smg.StageArchive;
 import whitehole.smg.object.*;
 import whitehole.util.CheckBoxList;
-import whitehole.util.Matrix4;
+import whitehole.math.Matrix4;
 import whitehole.util.PropertyGrid;
-import whitehole.util.RotationMatrix;
-import whitehole.util.Vec2f;
-import whitehole.util.Vec3f;
+import whitehole.math.RotationMatrix;
+import whitehole.math.Vec2f;
+import whitehole.math.Vec3f;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     private static final float SCALE_DOWN = 10000f;

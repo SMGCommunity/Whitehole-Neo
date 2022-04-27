@@ -1,4 +1,4 @@
-package whitehole.util;
+package whitehole.math;
 
 public class RotationMatrix 
 {

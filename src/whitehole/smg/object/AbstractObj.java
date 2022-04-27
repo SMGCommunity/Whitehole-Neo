@@ -27,7 +27,7 @@ import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.smg.StageHelper;
 import whitehole.util.PropertyGrid;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public abstract class AbstractObj {
     public String name, layerKey, oldName;

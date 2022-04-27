@@ -19,7 +19,7 @@ package whitehole.smg.object;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.PropertyGrid;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public class DebugObj extends AbstractObj {
     @Override

@@ -18,7 +18,7 @@ package whitehole.rendering.outdated;
 import com.jogamp.opengl.*;
 import java.io.IOException;
 import whitehole.rendering.BmdRenderer;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public class PoleRenderer extends BmdRenderer {
     public PoleRenderer(RenderInfo info, Vec3f scale, String type) throws IOException {

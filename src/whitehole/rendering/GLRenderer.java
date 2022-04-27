@@ -17,7 +17,7 @@
 package whitehole.rendering;
 
 import com.jogamp.opengl.*;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public abstract class GLRenderer {
     /**

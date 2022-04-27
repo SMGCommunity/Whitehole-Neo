@@ -22,7 +22,7 @@ import java.util.List;
 import whitehole.rendering.GLRenderer;
 import whitehole.smg.Bcsv;
 import whitehole.util.PropertyGrid;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public class PathPointObj extends AbstractObj {
     public PathObj path;

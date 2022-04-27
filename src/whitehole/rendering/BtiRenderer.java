@@ -24,7 +24,7 @@ import whitehole.io.RarcFile;
 import whitehole.smg.Bti;
 import whitehole.smg.ImageUtils.FilterMode;
 import whitehole.smg.ImageUtils.WrapMode;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public class BtiRenderer extends GLRenderer {
     private RarcFile archive = null;

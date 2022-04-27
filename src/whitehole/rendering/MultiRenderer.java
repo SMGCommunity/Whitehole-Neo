@@ -18,7 +18,7 @@ package whitehole.rendering;
 
 import com.jogamp.opengl.GL2;
 import java.util.List;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public class MultiRenderer extends GLRenderer {
     public static class MultiRendererInfo {

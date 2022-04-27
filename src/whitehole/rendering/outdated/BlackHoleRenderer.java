@@ -22,7 +22,7 @@ import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderInfo;
 import whitehole.util.Color4;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public class BlackHoleRenderer extends GLRenderer {
     public BlackHoleRenderer(RenderInfo info, int arg0, Vec3f areascale, Shape shape, boolean area) {

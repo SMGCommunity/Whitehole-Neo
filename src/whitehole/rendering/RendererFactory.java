@@ -33,7 +33,7 @@ import whitehole.smg.object.PositionObj;
 import whitehole.smg.object.SoundObj;
 import whitehole.smg.object.StageObj;
 import whitehole.util.Color4;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public final class RendererFactory {
     private static final String[] SHAPE_MODEL_COMPATIBILITY = {

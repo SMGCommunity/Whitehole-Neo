@@ -20,7 +20,7 @@ import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.PropertyGrid;
-import whitehole.util.Vec3f;
+import whitehole.math.Vec3f;
 
 public class CameraObj extends AbstractObj {
     @Override
