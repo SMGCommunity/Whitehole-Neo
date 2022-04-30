@@ -92,10 +92,6 @@ public final class RendererFactory {
     // -------------------------------------------------------------------------------------------------------------------------
     // Model name substitution
     
-    public static boolean isShapeModelObject(String objModelName) {
-        return Arrays.binarySearch(SHAPE_MODEL_COMPATIBILITY, objModelName.toLowerCase()) >= 0;
-    }
-    
     private static String getAreaShapeModelName(AbstractObj obj) {
         if (obj.objdbInfo.areaShape().equalsIgnoreCase("Any")) {
             int areaShapeNo = (short)obj.data.getOrDefault("AreaShapeNo", (short)-1);
@@ -147,9 +143,6 @@ public final class RendererFactory {
         // Their cache keys match their objModelName that was created by getSubstitutedModelName
         if (obj instanceof AreaObj || obj instanceof CameraObj) {
             return objModelName;
-        }
-        else if (obj instanceof ChildObj) {
-            return "childobj";
         }
         else if (obj instanceof CutsceneObj) {
             return "cutsceneobj";
@@ -250,10 +243,7 @@ public final class RendererFactory {
     }
     
     private static GLRenderer tryCreateRendererForObjectType(GLRenderer.RenderInfo info, String objModelName, AbstractObj obj) {
-        if (obj instanceof ChildObj) {
-            return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(1f, 0.5f, 0.5f), true);
-        }
-        else if (obj instanceof CutsceneObj) {
+        if (obj instanceof CutsceneObj) {
             return new CubeRenderer(100f, new Color4(1f, 0.5f, 0.5f), new Color4(1.0f, 1.0f, 0.3f), true);
         }
         else if (obj instanceof DebugObj) {
