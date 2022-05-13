@@ -16,8 +16,6 @@
  */
 package whitehole.editor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JFrame;
@@ -25,9 +23,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import whitehole.Settings;
 import whitehole.Whitehole;
 import whitehole.db.ObjectDB;
 
@@ -66,9 +61,8 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
     private final DefaultMutableTreeNode normalRoot;
     private final SearchNode searchRoot = new SearchNode();
     private final LinkedList<ObjectCategoryNode> categoryNodes = new LinkedList();
-    private final HashMap<String, ObjectSelectNode> objectNodesLookup = new HashMap();
     
-    private ObjectSelectNode selectedNode;
+    private ObjectDB.ObjectInfo selectedNode;
     private String resultName, resultLayer;
     private String tempObjectType;
     private boolean validResult;
@@ -89,37 +83,32 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
     // Node initialization and declaration
     
     private void initNodes() {
-        JSONArray catInfoHolder = ObjectDB.getCategories();
-        
-        for (int i = 0 ; i < catInfoHolder.length() ; i++) {
-            JSONObject catInfo = catInfoHolder.getJSONObject(i);
-            String key = catInfo.getString("Key");
-            String description = catInfo.getString("Description");
-            
-            ObjectCategoryNode node = new ObjectCategoryNode(key, description);
+        for (ObjectDB.CategoryInfo info : ObjectDB.getCategories()) {
+            ObjectCategoryNode node = new ObjectCategoryNode(info.toString(), info.getDescription());
             categoryNodes.add(node);
             normalRoot.add(node);
         }
     }
     
-    private static boolean isAllowedNodeInfo(ObjectDB.Info info, int game, String type) {
-        return (info.games() & game) != 0 && (type.equals("") || info.destFile(game).equalsIgnoreCase(type));
+    private static boolean isAllowedNode(ObjectDB.ObjectInfo info, String category, int game, String type) {
+        if (info.games() < 4 && (game & info.games()) == 0) {
+            return false;
+        }
+        
+        if (!type.equals("") && !info.destFile(game).equalsIgnoreCase(type)) {
+            return false;
+        }
+        
+        return info.category().equalsIgnoreCase(category);
     }
     
     private class ObjectCategoryNode extends DefaultMutableTreeNode {
         final String key, description;
-        final List<ObjectSelectNode> myObjectNodes = new ArrayList(200);
         
         ObjectCategoryNode(String identifier, String desc) {
             super(null, true);
             key = identifier;
             description = desc;
-            
-            ObjectDB.getAllObjectInfos().stream().filter(i -> i.category().equals(key)).forEach(i -> {
-                ObjectSelectNode objNode = new ObjectSelectNode(i);
-                myObjectNodes.add(objNode);
-                objectNodesLookup.put(i.toString().toLowerCase(), objNode);
-            });
         }
         
         @Override
@@ -129,30 +118,11 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         
         void populate(int game, String type) {
             removeAllChildren();
+            ObjectDB.getObjectInfos().values().stream().filter(i -> isAllowedNode(i, key, game, type)).forEach(i -> add(i));
             
-            // TODO: This does not need to be called everytime, change this!
-            myObjectNodes.sort((n1, n2) -> n1.toString().compareToIgnoreCase(n2.toString()));
-            myObjectNodes.stream().filter(n -> isAllowedNodeInfo(n.getInfo(), game, type)).forEach(n -> { add(n); });
-        }
-    }
-    
-    private class ObjectSelectNode extends DefaultMutableTreeNode {
-        ObjectSelectNode(ObjectDB.Info dbinfo) {
-            super(dbinfo, false);
-        }
-        
-        @Override
-        public String toString() {
-            if (Settings.getDisplaySimpleNameDB()) {
-                return ((ObjectDB.Info)userObject).simpleName();
+            if (children != null) {
+                children.sort((n1, n2) -> n1.toString().compareTo(n2.toString()));
             }
-            else {
-                return ((ObjectDB.Info)userObject).toString();
-            }
-        }
-        
-        ObjectDB.Info getInfo() {
-            return (ObjectDB.Info)userObject;
         }
     }
     
@@ -178,6 +148,17 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         
         normalModel.reload();
         treeObjects.setModel(normalModel);
+    }
+    
+    private void unpopulate() {
+        for (ObjectCategoryNode node : categoryNodes) {
+            node.removeAllChildren();
+        }
+        
+        searchRoot.removeAllChildren();
+        
+        normalModel.reload();
+        searchModel.reload();
     }
     
     public void showNewObject(String objectType, List<String> layerNames) {
@@ -225,8 +206,8 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
         
         String objkey = objectName.toLowerCase();
         
-        if (objectNodesLookup.containsKey(objkey)) {
-            TreePath path = new TreePath(normalModel.getPathToRoot(objectNodesLookup.get(objkey)));
+        if (ObjectDB.getObjectInfos().containsKey(objkey)) {
+            TreePath path = new TreePath(normalModel.getPathToRoot(ObjectDB.getObjectInfos().get(objkey)));
             treeObjects.setSelectionPath(path);
         }
         else {
@@ -240,29 +221,28 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
     
     private void fetchInfoFromSelection() {
         if (selectedNode != null) {
-            ObjectDB.Info info = selectedNode.getInfo();
-            txtObjId.setText(info.toString());
-            lblInternalName.setText(String.format("%s (%s)", info.toString(), info.className(Whitehole.getCurrentGameType())));
+            txtObjId.setText(selectedNode.internalName());
+            lblInternalName.setText(String.format("%s (%s)", selectedNode.internalName(), selectedNode.className(Whitehole.getCurrentGameType())));
             
             String games = "";
             
-            if ((info.games() & 1) == 1) {
+            if ((selectedNode.games() & 1) == 1) {
                 games += games.length() > 0 ? ", SMG1" : "SMG1";
             }
-            if ((info.games() & 2) == 2) {
+            if ((selectedNode.games() & 2) == 2) {
                 games += games.length() > 0 ? ", SMG2" : "SMG2";
             }
-            if ((info.games() & 4) == 4) {
+            if ((selectedNode.games() & 4) == 4) {
                 games += games.length() > 0 ? ", Custom" : "Custom";
             }
             
             lblDispGames.setText(games);
-            lblDispArchive.setText(info.destArchive());
-            lblDispPlacementList.setText(info.destFile(Whitehole.getCurrentGameType()));
-            txtDispDescription.setText(info.description());
-            txtDispClassNotes.setText(info.classNotes(Whitehole.getCurrentGameType()));
-            lblDispIsUnused.setVisible(info.isUnused());
-            lblDispIsLeftover.setVisible(info.isLeftover());
+            lblDispArchive.setText(selectedNode.destArchive());
+            lblDispPlacementList.setText(selectedNode.destFile(Whitehole.getCurrentGameType()));
+            txtDispDescription.setText(selectedNode.description());
+            txtDispClassNotes.setText(selectedNode.classDescription(Whitehole.getCurrentGameType()));
+            lblDispIsUnused.setVisible(selectedNode.isUnused());
+            lblDispIsLeftover.setVisible(selectedNode.isLeftover());
         }
         else {
             lblInternalName.setText("(Nothing selected)");
@@ -337,6 +317,11 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
 
         setTitle("Select Object");
         setIconImage(Whitehole.ICON);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         treeObjects.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
@@ -621,8 +606,8 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
     private void treeObjectsValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_treeObjectsValueChanged
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)treeObjects.getLastSelectedPathComponent();
         
-        if (node != null && node instanceof ObjectSelectNode) {
-            selectedNode = (ObjectSelectNode)node;
+        if (node != null && node instanceof ObjectDB.ObjectInfo) {
+            selectedNode = (ObjectDB.ObjectInfo)node;
         }
         else {
             selectedNode = null;
@@ -648,18 +633,16 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
             searchRoot.removeAllChildren();
             int game = Whitehole.getCurrentGameType();
             
-            for (ObjectSelectNode node : objectNodesLookup.values()) {
-                ObjectDB.Info info = node.getInfo();
-                
-                if ((game & info.games()) == 0) {
+            for (ObjectDB.ObjectInfo info : ObjectDB.getObjectInfos().values()) {
+                if (info.games() < 4 && (game & info.games()) == 0) {
                     continue;
                 }
                 if (!tempObjectType.equals("") && !tempObjectType.equalsIgnoreCase(info.destFile(game))) {
                     continue;
                 }
                 
-                if (info.toString().toLowerCase().contains(searchcase) || info.simpleName().toLowerCase().contains(searchcase)) {
-                    searchRoot.add(node);
+                if (info.toString().toLowerCase().contains(searchcase) || info.internalName().toLowerCase().contains(searchcase)) {
+                    searchRoot.add(info);
                 }
             }
             
@@ -668,6 +651,10 @@ public final class ObjectSelectForm extends javax.swing.JDialog {
             treeObjects.setModel(searchModel);
         }
     }//GEN-LAST:event_txtSearchObjKeyReleased
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        unpopulate();
+    }//GEN-LAST:event_formWindowClosing
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnConfirm;

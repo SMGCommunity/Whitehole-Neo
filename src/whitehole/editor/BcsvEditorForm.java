@@ -91,7 +91,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void handleUseResourceShortcut(String bcsvName) {
         String stage = getTextInput("Enter the stage's file name: ");
         
-        if (!stage.isEmpty()) {
+        if (stage != null && !stage.isEmpty()) {
             String archiveName = String.format("/StageData/%s/%sUseResource.arc", stage, stage);
             bcsvName = String.format("/Stage/csv/%s", bcsvName);
             handleShortcut(archiveName, bcsvName);
@@ -1186,7 +1186,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void subScenarioDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subScenarioDataActionPerformed
         String stage = getTextInput("Enter the stage's file name: ");
         
-        if (!stage.isEmpty()) {
+        if (stage != null && !stage.isEmpty()) {
             String archiveName = String.format("/StageData/%s/%sScenario.arc", stage, stage);
             String bcsvName = String.format("/%sScenario/ScenarioData.bcsv", stage);
             handleShortcut(archiveName, bcsvName);
@@ -1196,7 +1196,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void subGalaxyInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subGalaxyInfoActionPerformed
         String stage = getTextInput("Enter the stage's file name: ");
         
-        if (!stage.isEmpty()) {
+        if (stage != null && !stage.isEmpty()) {
             String archiveName = String.format("/StageData/%s/%sScenario.arc", stage, stage);
             String bcsvName = String.format("/%sScenario/GalaxyInfo.bcsv", stage);
             handleShortcut(archiveName, bcsvName);
@@ -1206,7 +1206,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void subZoneListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subZoneListActionPerformed
         String stage = getTextInput("Enter the stage's file name: ");
         
-        if (!stage.isEmpty()) {
+        if (stage != null && !stage.isEmpty()) {
             String archiveName = String.format("/StageData/%s/%sScenario.arc", stage, stage);
             String bcsvName = String.format("/%sScenario/ZoneList.bcsv", stage);
             handleShortcut(archiveName, bcsvName);
@@ -1216,7 +1216,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void subCameraParamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subCameraParamActionPerformed
         String stage = getTextInput("Enter the stage's file name: ");
         
-        if (!stage.isEmpty()) {
+        if (stage != null && !stage.isEmpty()) {
             String archiveName;
             
             if (Whitehole.getCurrentGameType() == 1) {
@@ -1233,7 +1233,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void subLightDataZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subLightDataZoneActionPerformed
         String stage = getTextInput("Enter the stage's file name: ");
         
-        if (!stage.isEmpty()) {
+        if (stage != null && !stage.isEmpty()) {
             String archiveName;
             String bcsvName;
             

@@ -25,62 +25,70 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import javax.swing.tree.DefaultMutableTreeNode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import whitehole.io.ExternalFilesystem;
 
 public final class ObjectDB {
     private ObjectDB() {}
     
     private static final String SOURCE_URL = "https://raw.githubusercontent.com/SunakazeKun/galaxydatabase/main/objectdb.json";
     private static final File FILE = new File("data/objectdb.json");
-    private static final HashMap<String, Info> INFOS = new HashMap();
-    private static final Info NULL_INFO = new NullInfo();
-    private static JSONObject DATABASE;
     
-    public static void init() {
-        // TODO: The error handling of this is meh. This needs to be improved.
+    private static final HashMap<String, ObjectInfo> OBJECT_INFOS = new HashMap();
+    private static final HashMap<String, ClassInfo> CLASS_INFOS = new HashMap();
+    private static final List<CategoryInfo> CATEGORY_INFOS = new LinkedList();
+    
+    public static void init(boolean checkUpdate) {
+        JSONObject database = null;
+        
+        // Database exists? Try looking for an updated one.
         if (FILE.exists()) {
-            try(FileReader reader = new FileReader(FILE)) {
-                DATABASE = new JSONObject(new JSONTokener(reader));
-            
-                // Is there a new version of the database available?
-                JSONObject temp = download();
-                
-                if (temp != null) {
-                    long myTimeStamp = DATABASE.getLong("Timestamp");
-                    long newTimeStamp = temp.getLong("Timestamp");
-                    
-                    if (myTimeStamp < newTimeStamp) {
-                        DATABASE = temp;
-                        write();
-                    }
-                }
+            try (FileReader reader = new FileReader(FILE)) {
+                database = new JSONObject(new JSONTokener(reader));
             }
             catch(IOException ex) {
                 System.err.println(ex);
                 return;
             }
-        }
-        
-        if (DATABASE == null) {
-            DATABASE = download();
-            write();
-        }
-        
-        if (DATABASE != null) {
-            JSONObject objectsRoot = DATABASE.getJSONObject("Objects");
-            JSONObject classesRoot = DATABASE.getJSONObject("Classes");
             
-            for (String objname : objectsRoot.keySet()) {
-                ActualInfo info = new ActualInfo(objname);
-                INFOS.put(objname.toLowerCase(), info);
-                
-                JSONObject rawInfo = objectsRoot.getJSONObject(objname);
-                info.objInfo = rawInfo;
+            // Is there a new version of the database available?
+            if (checkUpdate) {
+                JSONObject temp = download();
+
+                if (temp != null) {
+                    Date tsCurrent = new Date(database.getLong("Timestamp"));
+                    Date tsDownloaded = new Date(temp.getLong("Timestamp"));
+
+                    if (tsDownloaded.after(tsCurrent)) {
+                        database = temp;
+                        write(database);
+                    }
+                }
             }
+        }
+        
+        // No database exists? -> Download one
+        if (database == null) {
+            database = download();
+            
+            if (database != null) {
+                write(database);
+                loadDatabase(database);
+            }
+        }
+        
+        // Otherwise, parse its contents
+        else {
+            loadDatabase(database);
         }
     }
     
@@ -113,224 +121,432 @@ public final class ObjectDB {
         return newDb;
     }
     
-    private static void write() {
-        try(FileWriter writer = new FileWriter(FILE)) {
-            DATABASE.write(writer);
+    private static void write(JSONObject database) {
+        try (FileWriter writer = new FileWriter(FILE)) {
+            database.write(writer);
         }
         catch(IOException ex) {
-            System.err.println(ex);
+            System.err.println("Could not write");
         }
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
     
-    public static Collection<Info> getAllObjectInfos() {
-        return INFOS.values();
-    }
-    
-    public static JSONArray getCategories() {
-        return DATABASE.getJSONArray("Categories");
-    }
-    
-    public static Info getObjectInfo(String objname) {
-        String key = objname.toLowerCase();
+    private static void loadDatabase(JSONObject database) {
+        OBJECT_INFOS.clear();
+        CLASS_INFOS.clear();
+        CATEGORY_INFOS.clear();
         
-        if (INFOS.containsKey(key)) {
-            return INFOS.get(key);
+        // Parse class information
+        JSONArray classesRoot = database.getJSONArray("Classes");
+        
+        for (int i = 0 ; i < classesRoot.length() ; i++) {
+            ClassInfo info = new ClassInfo(classesRoot.getJSONObject(i));
+            CLASS_INFOS.put(info.internalName.toLowerCase(), info);
+        }
+        
+        // Parse object information
+        JSONArray objectsRoot = database.getJSONArray("Objects");
+        
+        for (int i = 0 ; i < objectsRoot.length() ; i++) {
+            ObjectInfo info = new ObjectInfo(objectsRoot.getJSONObject(i));
+            OBJECT_INFOS.put(info.internalName.toLowerCase(), info);
+        }
+        
+        // Parse category information
+        JSONArray categoriesRoot = database.getJSONArray("Categories");
+        
+        for (int i = 0 ; i < categoriesRoot.length() ; i++) {
+            JSONObject rawInfo = categoriesRoot.getJSONObject(i);
+            CATEGORY_INFOS.add(new CategoryInfo(rawInfo));
+        }
+    }
+    
+    private static void overwriteDatabase(JSONObject overwrite) {
+        // Parse class information
+        JSONArray classesRoot = overwrite.getJSONArray("Classes");
+        
+        for (int i = 0 ; i < classesRoot.length() ; i++) {
+            JSONObject rawInfo = classesRoot.getJSONObject(i);
+            String key = rawInfo.getString("InternalName").toLowerCase();
+            
+            if (CLASS_INFOS.containsKey(key)) {
+                ClassInfo info = CLASS_INFOS.get(key);
+                info.parse(rawInfo);
+            }
+            else {
+                ClassInfo info = new ClassInfo(rawInfo);
+                CLASS_INFOS.put(key, info);
+            }
+        }
+        
+        // Parse object information
+        JSONArray objectsRoot = overwrite.getJSONArray("Objects");
+        
+        for (int i = 0 ; i < objectsRoot.length() ; i++) {
+            JSONObject rawInfo = objectsRoot.getJSONObject(i);
+            String key = rawInfo.getString("InternalName").toLowerCase();
+            
+            if (OBJECT_INFOS.containsKey(key)) {
+                ObjectInfo info = OBJECT_INFOS.get(key);
+                info.parse(rawInfo);
+            }
+            else {
+                ObjectInfo info = new ObjectInfo(rawInfo);
+                OBJECT_INFOS.put(key, info);
+            }
+        }
+    }
+    
+    public static boolean tryOverwriteWithProjectDatabase(ExternalFilesystem filesystem) {
+        if (filesystem.fileExists("/objectdb.json")) {
+            JSONObject overwrite;
+            
+            try (FileReader reader = new FileReader(filesystem.getFileName("/objectdb.json"))) {
+                overwrite = new JSONObject(new JSONTokener(reader));
+            }
+            catch(IOException ex) {
+                System.err.println(ex);
+                return false;
+            }
+            
+            overwriteDatabase(overwrite);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    public static Map<String, ObjectInfo> getObjectInfos() {
+        return OBJECT_INFOS;
+    }
+    
+    public static ClassInfo getClassInfo(String classname) {
+        String key = classname.toLowerCase();
+        
+        if (CLASS_INFOS.containsKey(key)) {
+            return CLASS_INFOS.get(key);
         }
         else {
-            return NULL_INFO;
+            return NULL_CLASS_INFO;
         }
     }
     
-    public static abstract class Info {
-        private final String objName;
+    public static ObjectInfo getObjectInfo(String objname) {
+        String key = objname.toLowerCase();
         
-        protected Info(String objname) {
-            objName = objname;
+        if (OBJECT_INFOS.containsKey(key)) {
+            return OBJECT_INFOS.get(key);
         }
+        else {
+            return NULL_OBJECT_INFO;
+        }
+    }
+    
+    public static List<CategoryInfo> getCategories() {
+        return CATEGORY_INFOS;
+    }
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Category information
+    
+    public static final class CategoryInfo {
+        private final String identifier, description;
         
-        public abstract boolean isValid();
+        CategoryInfo(JSONObject info) {
+            identifier = info.getString("Key");
+            description = info.getString("Description");
+        }
         
         @Override
         public String toString() {
-            return objName;
+            return identifier;
         }
         
-        public String className(int game) {
-            return "<Unknown>";
-        }
-        
-        public String simpleName() {
-            return objName;
-        }
-        
-        public String description() {
-            return "";
-        }
-        
-        public String classNotes(int game) {
-            return "";
-        }
-        
-        public String category() {
-            return "unknown";
-        }
-        
-        public String areaShape() {
-            return "Any";
-        }
-        
-        public String destFile(int game) {
-            return "ObjInfo";
-        }
-        
-        public String destArchive() {
-            return "Map";
-        }
-        
-        public int games() {
-            return 0;
-        }
-        
-        public boolean isUnused() {
-            return false;
-        }
-        
-        public boolean isLeftover() {
-            return false;
-        }
-        
-        public String getParameterName(int game, String field) {
-            return field;
+        public String getDescription() {
+            return description;
         }
     }
     
-    private static final JSONObject DUMMY_CLASS = new JSONObject() {{
-        put("InternalName", "");
-        put("Notes", "");
-        put("Games", 0);
-        put("Progress", 0);
-        put("Parameters", new JSONObject());
-    }};
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Class information
     
-    public static final class ActualInfo extends Info {
-        JSONObject objInfo;
+    public static final class PropertyInfo {
+        private final String identifier;
+        private String simpleName;
+        private String type = "Integer";
+        private int games;
+        private boolean needed;
+        private String description = "";
+        private List<String> exclusives = null;
         
-        private ActualInfo(String objname) {
-            super(objname);
+        PropertyInfo(String key, JSONObject info) {
+            identifier = key;
+            simpleName = key;
+            parse(info);
         }
         
-        private JSONObject getClassInfo(int game) {
-            JSONObject classes = DATABASE.getJSONObject("Classes");
-            String className = className(game);
+        void parse(JSONObject info) {
+            simpleName = info.optString("Name", simpleName);
+            type = info.optString("Type", type);
+            games = info.optInt("Games", games);
+            needed = info.optBoolean("Needed", needed);
+            description = info.optString("Description", description);
             
-            if (classes.has(className)) {
-                return classes.getJSONObject(className);
-            }
-            else {
-                return DUMMY_CLASS;
+            JSONArray rawExclusives = info.optJSONArray("Exclusives");
+            
+            if (rawExclusives != null && !rawExclusives.isEmpty()) {
+                exclusives = new ArrayList(rawExclusives.length());
+                
+                for (int i = 0 ; i < rawExclusives.length() ; i++) {
+                    exclusives.add(rawExclusives.getString(i));
+                }
             }
         }
         
         @Override
+        public String toString() {
+            return identifier;
+        }
+        
+        public String simpleName() {
+            return simpleName;
+        }
+        
+        public int games() {
+            return games;
+        }
+        
+        public boolean needed() {
+            return needed;
+        }
+        
+        public String description() {
+            return description;
+        }
+        
+        public List<String> exclusives() {
+            return exclusives;
+        }
+    }
+    
+    public static final class ClassInfo {
+        private String internalName;
+        private String description = "";
+        private int games, progress;
+        private HashMap<String, PropertyInfo> properties;
+        
+        ClassInfo(JSONObject info) {
+            parse(info);
+        }
+        
+        ClassInfo() {
+            internalName = "<Unknown>";
+        }
+        
+        void parse(JSONObject info) {
+            internalName = info.optString("InternalName", internalName);
+            description = info.optString("Notes", internalName);
+            games = info.optInt("Games", games);
+            progress = info.optInt("Progress", progress);
+            
+            JSONObject rawParameters = info.optJSONObject("Parameters");
+            
+            if (rawParameters != null && !rawParameters.isEmpty()) {
+                properties = new HashMap(rawParameters.length());
+                
+                for (String key : rawParameters.keySet()) {
+                    JSONObject rawProperty = rawParameters.getJSONObject(key);
+                    properties.put(key, new PropertyInfo(key, rawProperty));
+                }
+            }
+        }
+        
+        @Override
+        public String toString() {
+            return internalName;
+        }
+        
+        public String description() {
+            return description;
+        }
+        
+        public int games() {
+            return games;
+        }
+        
+        public int progress() {
+            return progress;
+        }
+        
+        public String simpleParameterName(int game, String parameter, String objectName) {
+            if (properties == null || !properties.containsKey(parameter)) {
+                return parameter;
+            }
+            
+            PropertyInfo prop = properties.get(parameter);
+            
+            if (prop.games < 4 && (prop.games & game) == 0) {
+                return parameter;
+            }
+            
+            if (prop.exclusives == null || prop.exclusives.contains(objectName)) {
+                return prop.simpleName;
+            }
+            
+            return parameter;
+        }
+    }
+    
+    private static final ClassInfo NULL_CLASS_INFO = new ClassInfo();
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Object information
+    
+    public static class ObjectInfo extends DefaultMutableTreeNode {
+        private String internalName;
+        private String simpleName;
+        private String classNameSMG1 = "<Unknown>";
+        private String classNameSMG2 = "<Unknown>";
+        private String description = "";
+        private String category = "unknown";
+        private String areaShape = "Any";
+        private String destFileSMG1 = "ObjInfo";
+        private String destFileSMG2 = "ObjInfo";
+        private String destArchive = "Map";
+        private int games, progress;
+        private boolean isUnused, isLeftover;
+        private ClassInfo classInfoSMG1 = NULL_CLASS_INFO;
+        private ClassInfo classInfoSMG2 = NULL_CLASS_INFO;
+        
+        ObjectInfo(JSONObject info) {
+            super(null, false);
+            parse(info);
+        }
+        
+        ObjectInfo() {
+            super(null, false);
+            internalName = "<Unknown>";
+            simpleName = "<Unknown";
+        }
+        
         public boolean isValid() {
             return true;
         }
         
+        public void parse(JSONObject info) {
+            internalName = info.optString("InternalName", internalName);
+            classNameSMG1 = info.optString("ClassNameSMG1", classNameSMG1);
+            classNameSMG2 = info.optString("ClassNameSMG2", classNameSMG2);
+            simpleName = info.optString("Name", simpleName);
+            description = info.optString("Notes", description);
+            category = info.optString("Category", category);
+            areaShape = info.optString("AreaShape", areaShape);
+            destFileSMG1 = info.optString("ListSMG1", destFileSMG1);
+            destFileSMG2 = info.optString("ListSMG2", destFileSMG2);
+            destArchive = info.optString("File", destArchive);
+            games = info.optInt("Games", games);
+            progress = info.optInt("Progress", progress);
+            isUnused = info.optBoolean("IsUnused", isUnused);
+            isLeftover = info.optBoolean("IsLeftover", isLeftover);
+            
+            classInfoSMG1 = CLASS_INFOS.getOrDefault(classNameSMG1.toLowerCase(), NULL_CLASS_INFO);
+            classInfoSMG2 = CLASS_INFOS.getOrDefault(classNameSMG2.toLowerCase(), NULL_CLASS_INFO);
+        }
+        
         @Override
+        public String toString() {
+            return simpleName;
+        }
+        
+        public String internalName() {
+            return internalName;
+        }
+        
         public String className(int game) {
-            return objInfo.getString(game == 1 ? "ClassNameSMG1" : "ClassNameSMG2");
-        }
-        
-        @Override
-        public String simpleName() {
-            return objInfo.getString("Name");
-        }
-        
-        @Override
-        public String description() {
-            return objInfo.getString("Notes");
-        }
-        
-        @Override
-        public String classNotes(int game) {
-            return getClassInfo(game).getString("Notes");
-        }
-        
-        @Override
-        public String category() {
-            return objInfo.getString("Category");
-        }
-        
-        @Override
-        public String areaShape() {
-            return objInfo.getString("AreaShape");
-        }
-        
-        @Override
-        public String destFile(int game) {
-            return objInfo.getString(game == 1 ? "ListSMG1" : "ListSMG2");
-        }
-        
-        @Override
-        public String destArchive() {
-            return objInfo.getString("File");
-        }
-        
-        @Override
-        public int games() {
-            return objInfo.getInt("Games");
-        }
-        
-        @Override
-        public boolean isUnused() {
-            return objInfo.getBoolean("IsUnused");
-        }
-        
-        @Override
-        public boolean isLeftover() {
-            return objInfo.getBoolean("IsLeftover");
-        }
-        
-        @Override
-        public String getParameterName(int game, String name) {
-            JSONObject parametersRoot = getClassInfo(2).getJSONObject("Parameters");
-            
-            if (parametersRoot.has(name)) {
-                JSONObject paramInfo = parametersRoot.getJSONObject(name);
-                JSONArray exclusives = paramInfo.getJSONArray("Exclusives");
-                boolean isForGame = (paramInfo.getInt("Games") & game) != 0;
-                
-                if (exclusives.length() > 0) {
-                    String myName = toString();
-                    isForGame = false;
-                    
-                    for (int i = 0 ; i < exclusives.length() ; i++) {
-                        if (exclusives.getString(i).equalsIgnoreCase(myName)) {
-                            isForGame = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if (isForGame) {
-                    return paramInfo.getString("Name");
-                }
+            switch(game & 3) {
+                case 1: return classNameSMG1;
+                case 2: return classNameSMG2;
+                default: return "<Unknown>";
             }
-            
-            return name;
+        }
+        
+        public String description() {
+            return description;
+        }
+        
+        public String classDescription(int game) {
+            switch(game & 3) {
+                case 1: return classInfoSMG1.description;
+                case 2: return classInfoSMG2.description;
+                default: return "";
+            }
+        }
+        
+        public String category() {
+            return category;
+        }
+        
+        public String areaShape() {
+            return areaShape;
+        }
+        
+        public String destFile(int game) {
+            switch(game & 3) {
+                case 1: return destFileSMG1;
+                case 2: return destFileSMG2;
+                default: return "ObjInfo";
+            }
+        }
+        
+        public String destArchive() {
+            return destArchive;
+        }
+        
+        public int games() {
+            return games;
+        }
+        
+        public int progress() {
+            return progress;
+        }
+        
+        public boolean isUnused() {
+            return isUnused;
+        }
+        
+        public boolean isLeftover() {
+            return isLeftover;
+        }
+        
+        public ClassInfo classInfo(int game) {
+            switch(game & 3) {
+                case 1: return classInfoSMG1;
+                case 2: return classInfoSMG2;
+                default: return NULL_CLASS_INFO;
+            }
+        }
+        
+        public String simpleParameterName(int game, String field) {
+            switch(game & 3) {
+                case 1: return classInfoSMG1.simpleParameterName(game, field, internalName);
+                case 2: return classInfoSMG2.simpleParameterName(game, field, internalName);
+                default: return field;
+            }
         }
     }
     
-    public static final class NullInfo extends Info {
-        private NullInfo() {
-            super("<dummy>");
-        }
-        
+    public static final class NullInfo extends ObjectInfo {
         @Override
         public boolean isValid() {
             return false;
         }
+        
+        @Override
+        public void parse(JSONObject info) {
+            
+        }
     }
+    
+    private static final ObjectInfo NULL_OBJECT_INFO = new NullInfo();
 }

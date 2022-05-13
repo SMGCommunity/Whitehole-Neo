@@ -145,7 +145,7 @@ public class ExternalFilesystem implements FilesystemBase {
         throw new UnsupportedOperationException("not done lol");
     }
     
-    private String getFileName(String file) {
+    public String getFileName(String file) {
         return baseDirectory.getAbsolutePath() + file;
     }
 }

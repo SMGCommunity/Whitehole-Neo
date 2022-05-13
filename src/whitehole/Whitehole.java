@@ -67,7 +67,7 @@ public class Whitehole {
         // Initialize data
         FieldHashes.init();
         GalaxyNames.init();
-        ObjectDB.init();
+        ObjectDB.init(true);
         ModelSubstitutions.init();
         
         MAIN_FRAME = new MainFrame();

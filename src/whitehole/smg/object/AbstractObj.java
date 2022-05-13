@@ -34,7 +34,7 @@ public abstract class AbstractObj {
     public Vec3f position, rotation, scale;
     public StageArchive stage;
     public Bcsv.Entry data;
-    public ObjectDB.Info objdbInfo;
+    public ObjectDB.ObjectInfo objdbInfo;
     public GLRenderer renderer = null;
     public int uniqueID = -1;
     public boolean isHidden = false;
@@ -56,7 +56,7 @@ public abstract class AbstractObj {
     @Override
     public String toString() {
         if (objdbInfo.isValid()) {
-            return String.format("%s <%s>", objdbInfo.simpleName(), getLayerName());
+            return String.format("%s <%s>", objdbInfo.toString(), getLayerName());
         }
         else {
             return String.format("\"%s\" <%s>", name, getLayerName());
@@ -129,7 +129,7 @@ public abstract class AbstractObj {
             case "Obj_arg5":
             case "Obj_arg6":
             case "Obj_arg7":
-                String desc = objdbInfo.getParameterName(Whitehole.getCurrentGameType(), field);
+                String desc = objdbInfo.simpleParameterName(Whitehole.getCurrentGameType(), field);
                 panel.addField(field, desc, "int", null, data.getInt(field, -1), "Default");
                 break;
             

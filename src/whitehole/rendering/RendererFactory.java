@@ -25,7 +25,6 @@ import whitehole.rendering.MultiRenderer.MultiRendererInfo;
 import whitehole.smg.object.AbstractObj;
 import whitehole.smg.object.AreaObj;
 import whitehole.smg.object.CameraObj;
-import whitehole.smg.object.ChildObj;
 import whitehole.smg.object.CutsceneObj;
 import whitehole.smg.object.DebugObj;
 import whitehole.smg.object.GravityObj;
@@ -497,6 +496,7 @@ public final class RendererFactory {
         // Set new vectors here because they reference shared vectors by default
         switch(objModelName) {
             case "DashFruit": renderer.translation = new Vec3f(0f, 55f, 0f); break;
+            case "DashRing": renderer.rotation = new Vec3f(0f, 0f, 90f); break;
             case "EarthenPipe": renderer.translation = new Vec3f(0f, 100f, 0f); break;
         }
     }

@@ -25,13 +25,13 @@ import whitehole.math.Vec3f;
 public class AreaObj extends AbstractObj {
     @Override
     public String getFileType() {
-        if (Whitehole.getCurrentGameType() == 2) {
+        /*if (Whitehole.getCurrentGameType() == 2) {
             String archive = objdbInfo.destArchive().toLowerCase();
             
             if (!archive.equals("map")) {
                 return archive + "_areaobjinfo";
             }
-        }
+        }*/
         
         return "areaobjinfo";
     }

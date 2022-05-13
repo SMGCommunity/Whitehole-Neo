@@ -2869,9 +2869,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     glCanvas.repaint();
                 }
-                else if(propname.equals("DemoSkip")) {
-                    propertyChanged(propname,(Boolean) value ? 1 : -1, selectedObj.data);
-                }
                 else {
                     propertyChanged(propname, value, selectedObj.data);
                     if(propname.startsWith("Obj_arg")) {
@@ -2882,7 +2879,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             glCanvas.repaint();
                         }
                     }
-                    else if (propname.equals("ShapeModelNo") && RendererFactory.isShapeModelObject(selectedObj.name)) {
+                    else if (propname.equals("ShapeModelNo")) {
                         rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
                         rerenderTasks.add("zone:"+selectedObj.stage.stageName);
                         glCanvas.repaint();

@@ -21,6 +21,7 @@ import java.io.*;
 import java.util.*;
 import javax.swing.*;
 import whitehole.db.GalaxyNames;
+import whitehole.db.ObjectDB;
 import whitehole.editor.BcsvEditorForm;
 import whitehole.editor.GalaxyEditorForm;
 import whitehole.editor.ObjectSelectForm;
@@ -67,6 +68,11 @@ public final class MainFrame extends javax.swing.JFrame {
     private void openGameDir(String gameDir) {
         btnOpenGalaxy.setEnabled(false);
         btnBcsvEditor.setEnabled(false);
+        
+        // Reload object database if previous selected game overwrite its data
+        if (Whitehole.GAME != null && Whitehole.GAME.hasOverwrittenDB()) {
+            ObjectDB.init(false);
+        }
         
         // Load game system and store last selected game directory
         try {
@@ -336,7 +342,7 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_listGalaxyValueChanged
 
     private void listGalaxyKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listGalaxyKeyReleased
-        if (listGalaxy.getSelectedIndex() != -1) {
+        if (listGalaxy.getSelectedIndex() == -1) {
             return;
         }
         

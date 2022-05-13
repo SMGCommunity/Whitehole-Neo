@@ -47,7 +47,6 @@ public class SettingsForm extends javax.swing.JDialog {
         lblAppearance = new javax.swing.JLabel();
         lblControls = new javax.swing.JLabel();
         chkUseDarkMode = new javax.swing.JCheckBox();
-        chkDisplaySimpleNameDB = new javax.swing.JCheckBox();
         chkDebugFakeColor = new javax.swing.JCheckBox();
         chkDebugFastDrag = new javax.swing.JCheckBox();
         chkUseReverseRot = new javax.swing.JCheckBox();
@@ -100,19 +99,6 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkUseDarkMode, gridBagConstraints);
-
-        chkDisplaySimpleNameDB.setSelected(Settings.getDisplaySimpleNameDB());
-        chkDisplaySimpleNameDB.setText("Display object database names");
-        chkDisplaySimpleNameDB.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                chkDisplaySimpleNameDBItemStateChanged(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-        pnlSettings.add(chkDisplaySimpleNameDB, gridBagConstraints);
 
         chkDebugFakeColor.setSelected(Settings.getDebugFakeColor());
         chkDebugFakeColor.setText("[Debug] Render picking colors");
@@ -231,10 +217,6 @@ public class SettingsForm extends javax.swing.JDialog {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void chkDisplaySimpleNameDBItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkDisplaySimpleNameDBItemStateChanged
-        Settings.setDisplaySimpleNameDB(evt.getStateChange() == ItemEvent.SELECTED);
-    }//GEN-LAST:event_chkDisplaySimpleNameDBItemStateChanged
-
     private void chkDebugFakeColorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkDebugFakeColorItemStateChanged
         Settings.setDebugFakeColor(evt.getStateChange() == ItemEvent.SELECTED);
     }//GEN-LAST:event_chkDebugFakeColorItemStateChanged
@@ -310,7 +292,6 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JButton btnScale;
     private javax.swing.JCheckBox chkDebugFakeColor;
     private javax.swing.JCheckBox chkDebugFastDrag;
-    private javax.swing.JCheckBox chkDisplaySimpleNameDB;
     private javax.swing.JCheckBox chkUseDarkMode;
     private javax.swing.JCheckBox chkUseReverseRot;
     private javax.swing.JCheckBox chkUseWASD;
