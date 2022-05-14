@@ -346,18 +346,26 @@ public final class ObjectDB {
         
         void parse(JSONObject info) {
             internalName = info.optString("InternalName", internalName);
-            description = info.optString("Notes", internalName);
+            description = info.optString("Notes", description);
             games = info.optInt("Games", games);
             progress = info.optInt("Progress", progress);
             
             JSONObject rawParameters = info.optJSONObject("Parameters");
             
             if (rawParameters != null && !rawParameters.isEmpty()) {
-                properties = new HashMap(rawParameters.length());
+                if (properties == null) {
+                    properties = new HashMap(rawParameters.length());
+                }
                 
                 for (String key : rawParameters.keySet()) {
                     JSONObject rawProperty = rawParameters.getJSONObject(key);
-                    properties.put(key, new PropertyInfo(key, rawProperty));
+                    
+                    if (properties.containsKey(key)) {
+                        properties.get(key).parse(rawProperty);
+                    }
+                    else {
+                        properties.put(key, new PropertyInfo(key, rawProperty));
+                    }
                 }
             }
         }
