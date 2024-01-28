@@ -16,7 +16,7 @@ jobs:
     - uses: actions/setup-java@v4
       with:
         distribution: 'adopt'
-        java-version: '16'
+        java-version: '11'
     
     - run: ant
     - shell: cmd
