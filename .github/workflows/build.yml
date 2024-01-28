@@ -22,12 +22,7 @@ jobs:
     - shell: cmd
       working-directory: dist
       run: 7z a ${{github.workspace}}\\Whitehole-Neo.zip *.* -r
-    - uses: "marvinpinto/action-automatic-releases@latest"
-      if: ${{ github.event_name == 'push' }}
+    - uses: actions/upload-artifact@v4
       with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "Auto"
-        prerelease: true
-        title: "Auto Build"
-        files: |
-            *.zip
+        name: build
+        path: Whitehole-Neo.zip
