@@ -18,7 +18,7 @@ jobs:
         distribution: 'temurin'
         java-version: '16'
     
-    - run: ant -f ${{github.workspace}} -Dnb.internal.action.name=rebuild clean jar
+    - run: ant -f ${{github.workspace}} -Dnb.internal.action.name=build jar
     - shell: cmd
       working-directory: dist
       run: 7z a ${{github.workspace}}\\Whitehole-Neo.zip *.* -r
