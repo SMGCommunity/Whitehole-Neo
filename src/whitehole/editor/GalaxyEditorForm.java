@@ -304,8 +304,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         btnDeleteScenario.setVisible(false);
         btnAddZone.setVisible(false);
         btnDeleteZone.setVisible(false);
-        sep3.setVisible(false);
-        tgbShowGravity.setVisible(false);
+        
         
         // Setup the actual preview canvas
         GLProfile prof = GLProfile.getMaxFixedFunc(true);
@@ -816,9 +815,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         sep2 = new javax.swing.JToolBar.Separator();
         tgbShowAreas = new javax.swing.JToggleButton();
         sep3 = new javax.swing.JToolBar.Separator();
-        tgbShowGravity = new javax.swing.JToggleButton();
-        sep4 = new javax.swing.JToolBar.Separator();
         tgbShowCameras = new javax.swing.JToggleButton();
+        sep4 = new javax.swing.JToolBar.Separator();
+        tgbShowGravity = new javax.swing.JToggleButton();
         sep5 = new javax.swing.JToolBar.Separator();
         tgbShowAxis = new javax.swing.JToggleButton();
         lblStatus = new javax.swing.JLabel();
@@ -894,7 +893,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         pnlGLPanel.setMinimumSize(new java.awt.Dimension(10, 30));
         pnlGLPanel.setLayout(new java.awt.BorderLayout());
 
-        tlbOptions.setFloatable(false);
         tlbOptions.setRollover(true);
 
         tgbDeselect.setText("Deselect");
@@ -936,19 +934,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         tlbOptions.add(tgbShowAreas);
         tlbOptions.add(sep3);
 
-        tgbShowGravity.setSelected(true);
-        tgbShowGravity.setText("Show gravity");
-        tgbShowGravity.setFocusable(false);
-        tgbShowGravity.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowGravity.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowGravity.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowGravityActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowGravity);
-        tlbOptions.add(sep4);
-
         tgbShowCameras.setSelected(true);
         tgbShowCameras.setText("Show cameras");
         tgbShowCameras.setFocusable(false);
@@ -960,6 +945,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         });
         tlbOptions.add(tgbShowCameras);
+        tlbOptions.add(sep4);
+
+        tgbShowGravity.setSelected(true);
+        tgbShowGravity.setText("Show gravity");
+        tgbShowGravity.setFocusable(false);
+        tgbShowGravity.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowGravity.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowGravity.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbShowGravityActionPerformed(evt);
+            }
+        });
+        tlbOptions.add(tgbShowGravity);
         tlbOptions.add(sep5);
 
         tgbShowAxis.setSelected(true);
@@ -992,7 +990,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         pnlScenarios.setPreferredSize(new java.awt.Dimension(201, 200));
         pnlScenarios.setLayout(new java.awt.BorderLayout());
 
-        tlbScenarios.setFloatable(false);
         tlbScenarios.setRollover(true);
 
         lblScenarios.setText("Scenarios:");
@@ -1049,7 +1046,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         pnlZones.setLayout(new java.awt.BorderLayout());
 
         tlbZones.setBorder(null);
-        tlbZones.setFloatable(false);
         tlbZones.setRollover(true);
 
         lblZones.setText(" Zones: ");
@@ -1113,7 +1109,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         pnlLayers.setLayout(new java.awt.BorderLayout());
 
-        tlbLayers.setFloatable(false);
         tlbLayers.setRollover(true);
 
         jLabel1.setText("Layers:");
@@ -1133,7 +1128,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         pnlObjects.setPreferredSize(new java.awt.Dimension(149, 300));
         pnlObjects.setLayout(new java.awt.BorderLayout());
 
-        tlbObjects.setFloatable(false);
         tlbObjects.setRollover(true);
 
         tgbAddObject.setText("Add object");
@@ -3218,6 +3212,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         case "AreaObj":
                             if(tgbShowAreas.isSelected())
                                 obj.render(renderInfo);
+                            break;
+                        case "GravityObj":
+                            if (tgbShowGravity.isSelected()) {
+                                obj.render(renderInfo);
+                            }
                             break;
                         case "CameraObj":
                             if(tgbShowCameras.isSelected())

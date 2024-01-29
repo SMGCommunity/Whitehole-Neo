@@ -107,6 +107,10 @@ public final class RendererFactory {
         }
     }
     
+    private static String getGravityShapeModelName(GravityObj obj) {
+        return obj.name.toLowerCase();
+    }
+    
     public static String getSubstitutedModelName(String objModelName, AbstractObj obj) {
         String lowerObjModelName = objModelName.toLowerCase();
         
@@ -116,6 +120,9 @@ public final class RendererFactory {
         }
         else if (obj instanceof CameraObj) {
             return String.format("cameraobj_%s", getAreaShapeModelName(obj));
+        }
+        else if (obj instanceof GravityObj) {
+            return String.format("gravityobj_%s", getGravityShapeModelName((GravityObj)obj));
         }
         // Some objects are programmed to load an indexed model
         else if (Arrays.binarySearch(SHAPE_MODEL_COMPATIBILITY, lowerObjModelName) >= 0) {
@@ -140,7 +147,7 @@ public final class RendererFactory {
         objModelName = objModelName.toLowerCase();
 
         // Their cache keys match their objModelName that was created by getSubstitutedModelName
-        if (obj instanceof AreaObj || obj instanceof CameraObj) {
+        if (obj instanceof AreaObj || obj instanceof CameraObj || obj instanceof GravityObj) {
             return objModelName;
         }
         else if (obj instanceof CutsceneObj) {
@@ -148,9 +155,6 @@ public final class RendererFactory {
         }
         else if (obj instanceof DebugObj) {
             return "debugobj";
-        }
-        else if (obj instanceof GravityObj) {
-            return "gravityobj";
         }
         else if (obj instanceof PositionObj) {
             return "positionobj";
@@ -249,7 +253,25 @@ public final class RendererFactory {
             return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(0.8f, 0.5f, 0.1f), true);
         }
         else if (obj instanceof GravityObj) {
-            return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(0f, 0.8f, 0f), true);
+            System.out.println(objModelName);
+            switch (objModelName) {
+                case "gravityobj_globalplanegravityinbox":
+                case "gravityobj_globalcubegravity":
+                case "gravityobj_zerogravitybox":
+                    return new AreaShapeRenderer(new Color4(0f, 0.8f, 0f), AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
+                case "gravityobj_globalplanegravity":
+                case "gravityobj_globalpointgravity":
+                case "gravityobj_zerogravitysphere":
+                    return new AreaShapeRenderer(new Color4(0f, 0.8f, 0f), AreaShapeRenderer.Shape.SPHERE);
+                case "gravityobj_globalplanegravityincylinder":
+                case "gravityobj_globalbarrelgravity":
+                case "gravityobj_zerogravitycylinder":
+                    return new AreaShapeRenderer(new Color4(0f, 0.8f, 0f), AreaShapeRenderer.Shape.CYLINDER);
+                case "gravityobj_globalconegravity":
+                    return new AreaShapeRenderer(new Color4(0f, 0.8f, 0f), AreaShapeRenderer.Shape.CONE);
+                default:
+                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(0f, 0.8f, 0f), true);
+            }
         }
         else if (obj instanceof PositionObj) {
             return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(1f,0.5f,0f), true);
@@ -267,6 +289,8 @@ public final class RendererFactory {
                     return new AreaShapeRenderer(new Color4(0.3f, 1f, 1f), AreaShapeRenderer.Shape.SPHERE);
                 case "areaobj_cylinder":
                     return new AreaShapeRenderer(new Color4(0.3f, 1f, 1f), AreaShapeRenderer.Shape.CYLINDER);
+                case "areaobj_bowl":
+                    return new AreaShapeRenderer(new Color4(0.3f, 1f, 1f), AreaShapeRenderer.Shape.BOWL);
                 default:
                     return new CubeRenderer(100f, new Color4(1f, 0.5f, 0.5f), new Color4(0.3f, 1f, 1f), true);
             }
@@ -281,6 +305,8 @@ public final class RendererFactory {
                     return new AreaShapeRenderer(new Color4(0.8f, 0f, 0f), AreaShapeRenderer.Shape.SPHERE);
                 case "cameraobj_cylinder":
                     return new AreaShapeRenderer(new Color4(0.8f, 0f, 0f), AreaShapeRenderer.Shape.CYLINDER);
+                case "cameraobj_bowl":
+                    return new AreaShapeRenderer(new Color4(0.8f, 0f, 0f), AreaShapeRenderer.Shape.BOWL);
                 default: return new CubeRenderer(100f, new Color4(0.3f, 0f, 1f), new Color4(0.8f, 0f, 0f), true);
             }
         }

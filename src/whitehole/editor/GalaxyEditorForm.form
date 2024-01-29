@@ -190,7 +190,6 @@
           <SubComponents>
             <Container class="javax.swing.JToolBar" name="tlbOptions">
               <Properties>
-                <Property name="floatable" type="boolean" value="false"/>
                 <Property name="rollover" type="boolean" value="true"/>
               </Properties>
               <Constraints>
@@ -243,20 +242,6 @@
                 </Component>
                 <Component class="javax.swing.JToolBar$Separator" name="sep3">
                 </Component>
-                <Component class="javax.swing.JToggleButton" name="tgbShowGravity">
-                  <Properties>
-                    <Property name="selected" type="boolean" value="true"/>
-                    <Property name="text" type="java.lang.String" value="Show gravity"/>
-                    <Property name="focusable" type="boolean" value="false"/>
-                    <Property name="horizontalTextPosition" type="int" value="0"/>
-                    <Property name="verticalTextPosition" type="int" value="3"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowGravityActionPerformed"/>
-                  </Events>
-                </Component>
-                <Component class="javax.swing.JToolBar$Separator" name="sep4">
-                </Component>
                 <Component class="javax.swing.JToggleButton" name="tgbShowCameras">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
@@ -267,6 +252,20 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowCamerasActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JToolBar$Separator" name="sep4">
+                </Component>
+                <Component class="javax.swing.JToggleButton" name="tgbShowGravity">
+                  <Properties>
+                    <Property name="selected" type="boolean" value="true"/>
+                    <Property name="text" type="java.lang.String" value="Show gravity"/>
+                    <Property name="focusable" type="boolean" value="false"/>
+                    <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="verticalTextPosition" type="int" value="3"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowGravityActionPerformed"/>
                   </Events>
                 </Component>
                 <Component class="javax.swing.JToolBar$Separator" name="sep5">
@@ -350,7 +349,6 @@
                   <SubComponents>
                     <Container class="javax.swing.JToolBar" name="tlbScenarios">
                       <Properties>
-                        <Property name="floatable" type="boolean" value="false"/>
                         <Property name="rollover" type="boolean" value="true"/>
                       </Properties>
                       <Constraints>
@@ -442,7 +440,6 @@
                         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                           <Border info="null"/>
                         </Property>
-                        <Property name="floatable" type="boolean" value="false"/>
                         <Property name="rollover" type="boolean" value="true"/>
                       </Properties>
                       <Constraints>
@@ -538,7 +535,6 @@
               <SubComponents>
                 <Container class="javax.swing.JToolBar" name="tlbLayers">
                   <Properties>
-                    <Property name="floatable" type="boolean" value="false"/>
                     <Property name="rollover" type="boolean" value="true"/>
                   </Properties>
                   <Constraints>
@@ -601,7 +597,6 @@
                   <SubComponents>
                     <Container class="javax.swing.JToolBar" name="tlbObjects">
                       <Properties>
-                        <Property name="floatable" type="boolean" value="false"/>
                         <Property name="rollover" type="boolean" value="true"/>
                       </Properties>
                       <Constraints>

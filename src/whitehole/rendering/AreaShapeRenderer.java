@@ -18,6 +18,7 @@ package whitehole.rendering;
 
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.glu.*;
+import java.nio.DoubleBuffer;
 import whitehole.util.Color4;
 
 public class AreaShapeRenderer extends GLRenderer {
@@ -26,7 +27,9 @@ public class AreaShapeRenderer extends GLRenderer {
         CENTER_ORIGIN_BOX,
         SPHERE,
         CYLINDER,
-        BOWL;
+        BOWL,
+        
+        CONE;
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -88,40 +91,41 @@ public class AreaShapeRenderer extends GLRenderer {
         gl.glCullFace(GL2.GL_FRONT);
         
         switch(shape) {
-            case BASE_ORIGIN_BOX: makeBox(info, 500f); break;
-            case CENTER_ORIGIN_BOX: makeBox(info, 0f); break;
+            case BASE_ORIGIN_BOX: makeBox(info, 500f, SIZE); break;
+            case CENTER_ORIGIN_BOX: makeBox(info, 0f, SIZE); break;
             case SPHERE: makeSphere(info); break;
             case CYLINDER: makeCylinder(info); break;
+            case BOWL: makeBowl(info); break;
         }
         
         gl.glLineWidth(1.5f);
     }
     
-    public void makeBox(GLRenderer.RenderInfo info, float ytrans) {
+    public void makeBox(GLRenderer.RenderInfo info, float OffsetY, float Value) {
         GL2 gl = info.drawable.getGL().getGL2();
         
-        gl.glTranslatef(0f, ytrans, 0f);
+        gl.glTranslatef(0f, OffsetY, 0f);
         gl.glBegin(GL2.GL_LINE_STRIP);
-        gl.glVertex3f(SIZE, SIZE, SIZE);
-        gl.glVertex3f(-SIZE, SIZE, SIZE);
-        gl.glVertex3f(-SIZE, SIZE, -SIZE);
-        gl.glVertex3f(SIZE, SIZE, -SIZE);
-        gl.glVertex3f(SIZE, SIZE, SIZE);
-        gl.glVertex3f(SIZE, -SIZE, SIZE);
-        gl.glVertex3f(-SIZE, -SIZE, SIZE);
-        gl.glVertex3f(-SIZE, -SIZE, -SIZE);
-        gl.glVertex3f(SIZE, -SIZE, -SIZE);
-        gl.glVertex3f(SIZE, -SIZE, SIZE);
+        gl.glVertex3f(Value, Value, Value);
+        gl.glVertex3f(-Value, Value, Value);
+        gl.glVertex3f(-Value, Value, -Value);
+        gl.glVertex3f(Value, Value, -Value);
+        gl.glVertex3f(Value, Value, Value);
+        gl.glVertex3f(Value, -Value, Value);
+        gl.glVertex3f(-Value, -Value, Value);
+        gl.glVertex3f(-Value, -Value, -Value);
+        gl.glVertex3f(Value, -Value, -Value);
+        gl.glVertex3f(Value, -Value, Value);
         gl.glEnd();
         gl.glBegin(GL2.GL_LINES);
-        gl.glVertex3f(-SIZE, SIZE, SIZE);
-        gl.glVertex3f(-SIZE, -SIZE, SIZE);
-        gl.glVertex3f(-SIZE, SIZE, -SIZE);
-        gl.glVertex3f(-SIZE, -SIZE, -SIZE);
-        gl.glVertex3f(SIZE, SIZE, -SIZE);
-        gl.glVertex3f(SIZE, -SIZE, -SIZE);
+        gl.glVertex3f(-Value, Value, Value);
+        gl.glVertex3f(-Value, -Value, Value);
+        gl.glVertex3f(-Value, Value, -Value);
+        gl.glVertex3f(-Value, -Value, -Value);
+        gl.glVertex3f(Value, Value, -Value);
+        gl.glVertex3f(Value, -Value, -Value);
         gl.glEnd();
-        gl.glTranslatef(0f, 0f, 0f);
+        gl.glTranslatef(0f, -OffsetY, 0f);
     }
     
     public void makeSphere(GLRenderer.RenderInfo info) {
@@ -141,11 +145,44 @@ public class AreaShapeRenderer extends GLRenderer {
         GL2 gl = info.drawable.getGL().getGL2();
         GLU glu = new GLU();
         GLUquadric cylinder = glu.gluNewQuadric();
-        gl.glScalef(1, 0.5f, 1);
+        
+        gl.glTranslatef(0f, 500f, 0f);
+        gl.glRotatef(90f, 1f, 0f, 0f);
+        glu.gluQuadricDrawStyle(cylinder, GLU.GLU_LINE);
+        glu.gluCylinder(cylinder, SIZE, SIZE, SIZE, 28, 1);
+        glu.gluDeleteQuadric(cylinder);
+        gl.glRotatef(-90f, 1f, 0f, 0f);
+        gl.glTranslatef(0f, 0f, 0f);
+    }
+    
+    public void makeBowl(GLRenderer.RenderInfo info) {
+        GL2 gl = info.drawable.getGL().getGL2();
+        GLU glu = new GLU();
+        GLUquadric sphere = glu.gluNewQuadric();
+        
+        double[] Clip = new double[]{0, -SIZE, 0, SIZE};
+        gl.glEnable(GL2.GL_CLIP_PLANE0);
+        gl.glClipPlane(GL2.GL_CLIP_PLANE0, DoubleBuffer.wrap(Clip));
+        
+        gl.glTranslatef(0f, 0f, 0f);
+        gl.glRotatef(90f, 1f, 0f, 0f);
+        glu.gluQuadricDrawStyle(sphere, GLU.GLU_LINE);
+        glu.gluSphere(sphere, SIZE, 28, 8);
+        glu.gluDeleteQuadric(sphere);
+        gl.glTranslatef(0f, 0f, 0f);
+        
+        gl.glDisable(GL2.GL_CLIP_PLANE0);
+    }
+    
+    public void makeCone(GLRenderer.RenderInfo info) {
+        GL2 gl = info.drawable.getGL().getGL2();
+        GLU glu = new GLU();
+        GLUquadric cylinder = glu.gluNewQuadric();
+        
         gl.glTranslatef(0f, 1000f, 0f);
         gl.glRotatef(90f, 1f, 0f, 0f);
         glu.gluQuadricDrawStyle(cylinder, GLU.GLU_LINE);
-        glu.gluCylinder(cylinder, SIZE, SIZE, SIZE * 2, 16, 1);
+        glu.gluCylinder(cylinder, 0, SIZE, SIZE * 2, 28, 1);
         glu.gluDeleteQuadric(cylinder);
         gl.glTranslatef(0f, 0f, 0f);
     }
