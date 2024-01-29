@@ -32,7 +32,7 @@ import whitehole.io.FilesystemBase;
 import whitehole.smg.GameArchive;
 
 public class Whitehole {
-    public static final String NAME = "Whitehole Despaghettification";
+    public static final String NAME = "Whitehole Neo";
     public static final String WEB_URL = "https://discord.gg/k7ZKzSDsVq";
     public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
     
@@ -107,6 +107,10 @@ public class Whitehole {
     
     public static int getCurrentGameType() {
         return GAME != null ? GAME.getGameType() : 0;
+    }
+    
+    public static boolean doesArchiveExist(String archivePath) {
+        return GAME != null ? GAME.existsArchive(archivePath) : false;
     }
     
     public static FilesystemBase getCurrentGameFileSystem() {

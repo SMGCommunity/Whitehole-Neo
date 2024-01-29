@@ -105,6 +105,10 @@ public class GameArchive {
         return gameType;
     }
     
+    public boolean existsArchive(String filePath) {
+        return filesystem.fileExists(filePath);
+    }
+    
     public List<String> getGalaxyList() {
         return galaxies;
     }
