@@ -23,6 +23,8 @@ import whitehole.rendering.GLRenderer;
 import whitehole.smg.Bcsv;
 import whitehole.util.PropertyGrid;
 import whitehole.math.Vec3f;
+import whitehole.rendering.CubeRenderer;
+import whitehole.util.Color4;
 
 public class PathPointObj extends AbstractObj {
     public PathObj path;
@@ -79,7 +81,7 @@ public class PathPointObj extends AbstractObj {
     @Override
     public void closeRenderer(GLRenderer.RenderInfo info) {}
     
-    public void render(GLRenderer.RenderInfo info, int pointno) {
+    public void render(GLRenderer.RenderInfo info, int pointno, boolean useSelectColor) {
         if (info.renderMode == GLRenderer.RenderMode.TRANSLUCENT) {
             return;
         }
@@ -93,19 +95,27 @@ public class PathPointObj extends AbstractObj {
         
         gl.glPushMatrix();
         
+        CubeRenderer PointRenderer = null;
         switch(pointno) {
             case 0:
                 gl.glTranslatef(position.x, position.y, position.z);
-                path.getBigPointRenderer().render(info);
+                PointRenderer = path.getBigPointRenderer();
                 break;
             case 1:
                 gl.glTranslatef(point1.x, point1.y, point1.z);
-                path.getSmallPointRenderer().render(info);
+                PointRenderer = path.getSmallPointRenderer();
                 break;
             case 2:
                 gl.glTranslatef(point2.x, point2.y, point2.z);
-                path.getSmallPointRenderer().render(info);
+                PointRenderer = path.getSmallPointRenderer();
                 break;
+        }
+        
+        Color4 TargetColor = useSelectColor ? path.getSelectColor() : path.getColor();
+        if (PointRenderer != null) //should be impossible...
+        {
+            PointRenderer.setFillColor(TargetColor);
+            PointRenderer.render(info);
         }
         
         gl.glPopMatrix();

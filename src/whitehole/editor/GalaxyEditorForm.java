@@ -1945,7 +1945,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 continue;
             
             // Display path if it is linked to object
-            if(displayedPaths.get(pathid) == null)
+            if(displayedPaths.get(pathid) == null && obj instanceof PathPointObj)
+                displayedPaths.put(pathid, (PathPointObj) obj);
+            else if (displayedPaths.get(pathid) == null)
                 displayedPaths.put(pathid, (PathPointObj) globalPathPointList.get(pathid));
         }
         
@@ -3073,7 +3075,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         private static final float FOV = (float)((70.0 * Math.PI) / 180.0);
-        private static final float Z_NEAR = 0.001f;
+        private static final float Z_NEAR = 0.01f;
         private static final float Z_FAR = 1000f;
         
         public GalaxyRenderer() {
@@ -3256,7 +3258,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         if(mode == 1) {
                             PathPointObj ptobj = displayedPaths.get(pobj.pathID);
                             if(ptobj != null) {
-                                ptobj.render(renderInfo, selectionArg);
+                                ptobj.render(renderInfo, selectionArg, true);
                             }
                         }
                     }
@@ -3692,7 +3694,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             if(startingMousePos == null)
             {
-                System.out.println("reset startingMousePos");
+                System.out.println("startingMousePos reset!");
                 startingMousePos = new Point(1, 1);
             }
             

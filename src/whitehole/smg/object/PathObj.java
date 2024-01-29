@@ -46,7 +46,7 @@ public class PathObj {
     public int uniqueID;
     
     private List<PathPointObj> points;
-    private Color4 color;
+    private Color4 color, selectcolor;
     private CubeRenderer bigPointRenderer, smallPointRenderer;
     
     public PathObj(StageArchive stge, int id) {
@@ -121,6 +121,10 @@ public class PathObj {
         return color;
     }
     
+    public Color4 getSelectColor(){
+        return selectcolor;
+    }
+    
     public CubeRenderer getBigPointRenderer() {
         return bigPointRenderer;
     }
@@ -135,6 +139,7 @@ public class PathObj {
         float g = ((rand >>  8) & 0xFF) / 255f;
         float b =  (rand        & 0xFF) / 255f;
         color = new Color4(r, g, b, 1f);
+        selectcolor = new Color4(r+0.35f, g+0.35f, b+0.35f, 1f);
         
         bigPointRenderer = new CubeRenderer(100.0f, new Color4(1f, 1f, 1f, 1f), color, false);
         smallPointRenderer = new CubeRenderer(50.0f, new Color4(1f, 1f, 1f, 1f), color, false);
@@ -225,9 +230,9 @@ public class PathObj {
         smallPointRenderer.setFillColor(DUMMY_COLOR);
         
         for (PathPointObj point : points) {
-            point.render(info, 1);
-            point.render(info, 2);
-            point.render(info, 0);
+            point.render(info, 1, false);
+            point.render(info, 2, false);
+            point.render(info, 0, false);
         }
         
         gl.glEndList();
@@ -264,9 +269,9 @@ public class PathObj {
         smallPointRenderer.setFillColor(color);
         
         for (PathPointObj point : points) {
-            point.render(info, 1);
-            point.render(info, 2);
-            point.render(info, 0);
+            point.render(info, 1, false);
+            point.render(info, 2, false);
+            point.render(info, 0, false);
             
             gl.glColor4f(color.r, color.g, color.b, color.a);
             gl.glLineWidth(1.0F);
