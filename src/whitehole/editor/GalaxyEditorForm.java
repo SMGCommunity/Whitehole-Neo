@@ -2247,7 +2247,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * Moves the selection by {@code delta}.
      * @param delta the distance to move the selection by
      */
-    private void offsetSelectionBy(Vec3f delta) {
+    private void offsetSelectionBy(Vec3f delta, boolean isShiftKey) {
         unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof PathPointObj) {
@@ -2269,11 +2269,25 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         selectedPathPoint.point1.x += delta.x;
                         selectedPathPoint.point1.y += delta.y;
                         selectedPathPoint.point1.z += delta.z;
+                        
+                        if (isShiftKey)
+                        {
+                            selectedPathPoint.point2.x -= delta.x;
+                            selectedPathPoint.point2.y -= delta.y;
+                            selectedPathPoint.point2.z -= delta.z;
+                        }
                         break;
                     case 2:
                         selectedPathPoint.point2.x += delta.x;
                         selectedPathPoint.point2.y += delta.y;
                         selectedPathPoint.point2.z += delta.z;
+                        
+                        if (isShiftKey)
+                        {
+                            selectedPathPoint.point1.x -= delta.x;
+                            selectedPathPoint.point1.y -= delta.y;
+                            selectedPathPoint.point1.z -= delta.z;
+                        }
                         break;
                 }
 
@@ -2419,7 +2433,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 break;
         }
 
-        offsetSelectionBy(delta);
+        offsetSelectionBy(delta, shiftDown);
 
         lastDist = curDist;
         rerenderTasks.add("zone:" + curZone);
@@ -3611,7 +3625,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             ydelta *(float)Math.cos(camRotation.y),
                             -(xdelta *(float)Math.cos(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x)));
                     applySubzoneRotation(delta);
-                    offsetSelectionBy(delta);
+                    offsetSelectionBy(delta, e.isShiftDown());
                     
                     unsavedChanges = true;
                 }
@@ -3906,7 +3920,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 vdelta.z +=(xdist *(float)Math.cos(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));
                 
                 applySubzoneRotation(vdelta);
-                offsetSelectionBy(vdelta);
+                offsetSelectionBy(vdelta, e.isShiftDown());
                 
                 unsavedChanges = true;
             } else {
@@ -4098,7 +4112,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
                 if(!selectedObjs.isEmpty()) {
                     if(keyCode == Settings.getKeyPosition())
-                        offsetSelectionBy(delta.multiplyScalar(100));
+                        offsetSelectionBy(delta.multiplyScalar(100), e.isShiftDown());
                     else if(keyCode == Settings.getKeyRotation())
                         rotateSelectionBy(delta.multiplyScalar(5));
                     else if(keyCode == Settings.getKeyScale())
