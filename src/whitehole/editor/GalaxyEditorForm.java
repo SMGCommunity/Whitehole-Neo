@@ -2181,7 +2181,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 return;
         }
         
-        System.out.println("Added " + type + " with " + obj);
+        System.out.println("UNDO_STACK: Added " + type + " for " + obj);
 
         undoList.add(new UndoEntry(type, obj));
         undoIndex++;
@@ -3622,10 +3622,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     xdelta *= pixelFactorX * objz * SCALE_DOWN;
                     ydelta *= -pixelFactorY * objz * SCALE_DOWN;
                     
+                    float CamRotXSin = (float)Math.sin(camRotation.x),
+                            CamRotXCos = (float)Math.cos(camRotation.x),
+                            CamRotYSin = (float)Math.sin(camRotation.y),
+                            ComRotYCos = (float)Math.cos(camRotation.y);
+                    
                     Vec3f delta = new Vec3f(
-                           (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
-                            ydelta *(float)Math.cos(camRotation.y),
-                            -(xdelta *(float)Math.cos(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x)));
+                           (xdelta * CamRotXSin) -(ydelta * CamRotYSin * CamRotXCos),
+                            ydelta * ComRotYCos,
+                            -(xdelta * CamRotXCos) -(ydelta * CamRotYSin * CamRotXSin));
                     applySubzoneRotation(delta);
                     offsetSelectionBy(delta, e.isShiftDown());
                     
