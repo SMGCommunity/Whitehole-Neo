@@ -20,8 +20,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import whitehole.io.FilesystemBase;
 
 public class SettingsForm extends javax.swing.JDialog {
     public SettingsForm(JFrame parent) {
@@ -57,6 +60,10 @@ public class SettingsForm extends javax.swing.JDialog {
         btnPosition = new KeybindButton();
         btnRotation = new KeybindButton();
         btnScale = new KeybindButton();
+        jLabel1 = new javax.swing.JLabel();
+        txtBaseGame = new javax.swing.JTextField();
+        btnBrowseBaseGamePath = new javax.swing.JButton();
+        chkUseBetterQuality = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(String.format("%s -- Settings", Whitehole.NAME));
@@ -109,6 +116,7 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkDebugFakeColor, gridBagConstraints);
@@ -196,13 +204,59 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(btnScale, gridBagConstraints);
 
+        jLabel1.setText("Base Game Path (For objects only)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        pnlSettings.add(jLabel1, gridBagConstraints);
+
+        txtBaseGame.setText(Settings.getBaseGameDir());
+        txtBaseGame.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtBaseGameKeyReleased(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        pnlSettings.add(txtBaseGame, gridBagConstraints);
+
+        btnBrowseBaseGamePath.setText("Browse...");
+        btnBrowseBaseGamePath.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBrowseBaseGamePathActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        pnlSettings.add(btnBrowseBaseGamePath, gridBagConstraints);
+
+        chkUseBetterQuality.setSelected(Settings.getUseBetterQuality());
+        chkUseBetterQuality.setText("Better Quality (Requires closing whitehole)");
+        chkUseBetterQuality.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                chkUseBetterQualityItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        pnlSettings.add(chkUseBetterQuality, gridBagConstraints);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(pnlSettings, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(pnlSettings, javax.swing.GroupLayout.DEFAULT_SIZE, 431, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -243,6 +297,54 @@ public class SettingsForm extends javax.swing.JDialog {
         Settings.setUseDarkMode(evt.getStateChange() == ItemEvent.SELECTED);
         Whitehole.requestUpdateLAF();
     }//GEN-LAST:event_chkUseDarkModeItemStateChanged
+
+    private void txtBaseGameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBaseGameKeyReleased
+        String pth = txtBaseGame.getText();
+        setBaseGamePath(pth);
+    }//GEN-LAST:event_txtBaseGameKeyReleased
+
+    private void chkUseBetterQualityItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseBetterQualityItemStateChanged
+        Settings.setUseBetterQuality(evt.getStateChange() == ItemEvent.SELECTED);
+    }//GEN-LAST:event_chkUseBetterQualityItemStateChanged
+
+    private void btnBrowseBaseGamePathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseBaseGamePathActionPerformed
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Open a base SMG1/2 Directory");
+        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        
+        String lastGameDir = Settings.getBaseGameDir();
+        if (lastGameDir != null || lastGameDir.length() > 0) {
+            fc.setSelectedFile(new File(lastGameDir));
+        }
+        
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            String pth = fc.getSelectedFile().getPath();
+            txtBaseGame.setText(pth);
+            setBaseGamePath(pth);
+        }
+    }//GEN-LAST:event_btnBrowseBaseGamePathActionPerformed
+    
+    private void setBaseGamePath(String pth)
+    {     
+        if (pth.equals(""))
+        {
+            //Empty the path
+            Settings.setBaseGameDir("");
+            System.out.println("Base path unset.");
+            return;
+        }
+        
+        File dir = new File(pth);
+        if (dir.exists() && dir.isDirectory())
+        {
+            if (pth.endsWith("/") || pth.endsWith("\\"))
+                pth = pth.substring(0, pth.length()-1);
+            Settings.setBaseGameDir(pth);
+            System.out.println("valid Base path has been set!");
+        }
+        else
+            System.out.println("invalid path inserted!");
+    }
     
     private static class KeybindButton extends JButton {
         boolean binding = false;
@@ -287,19 +389,23 @@ public class SettingsForm extends javax.swing.JDialog {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnBrowseBaseGamePath;
     private javax.swing.JButton btnPosition;
     private javax.swing.JButton btnRotation;
     private javax.swing.JButton btnScale;
     private javax.swing.JCheckBox chkDebugFakeColor;
     private javax.swing.JCheckBox chkDebugFastDrag;
+    private javax.swing.JCheckBox chkUseBetterQuality;
     private javax.swing.JCheckBox chkUseDarkMode;
     private javax.swing.JCheckBox chkUseReverseRot;
     private javax.swing.JCheckBox chkUseWASD;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel lblAppearance;
     private javax.swing.JLabel lblControls;
     private javax.swing.JLabel lblPosition;
     private javax.swing.JLabel lblRotation;
     private javax.swing.JLabel lblScale;
     private javax.swing.JPanel pnlSettings;
+    private javax.swing.JTextField txtBaseGame;
     // End of variables declaration//GEN-END:variables
 }

@@ -307,12 +307,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         
         // Setup the actual preview canvas
-        GLProfile prof = GLProfile.getMaxFixedFunc(true);
+        boolean UseBetterQuality = Settings.getUseBetterQuality();
+        GLProfile prof = UseBetterQuality ? GLProfile.getMaxFixedFunc(true) : GLProfile.getDefault();
         GLCapabilities capabilities = new GLCapabilities(prof);
-        capabilities.setSampleBuffers(true);
-        capabilities.setNumSamples(8);
-        capabilities.setHardwareAccelerated(true);
-        capabilities.setDoubleBuffered(true);
+        if (UseBetterQuality)
+        {
+            capabilities.setSampleBuffers(true);
+            capabilities.setNumSamples(8);
+            capabilities.setHardwareAccelerated(true);
+            capabilities.setDoubleBuffered(true);
+        }
         
         glCanvas = new GLCanvas(capabilities);
         
@@ -2231,16 +2235,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 camPosition.z * SCALE_DOWN);
         depth *= SCALE_DOWN;
 
-        ret.x -=(depth *(float)Math.cos(camRotation.x) *(float)Math.cos(camRotation.y));
-        ret.y -=(depth *(float)Math.sin(camRotation.y));
-        ret.z -=(depth *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y));
+        float CamRotSinX = (float)Math.sin(camRotation.x);
+        float CamRotCosX = (float)Math.cos(camRotation.x);
+        float CamRotSinY = (float)Math.sin(camRotation.y);
+        float CamRotCosY = (float)Math.cos(camRotation.y);
+        
+        ret.x -=(depth * CamRotCosX * CamRotCosY);
+        ret.y -=(depth * CamRotSinY);
+        ret.z -=(depth * CamRotSinX * CamRotCosY);
 
-        float x =(pt.x -(glCanvas.getWidth() / 2f)) * pixelFactorX * depth;
-        float y = -(pt.y -(glCanvas.getHeight() / 2f)) * pixelFactorY * depth;
+        float x =(pt.x -(glCanvas.getWidth() *0.5f)) * pixelFactorX * depth;
+        float y = -(pt.y -(glCanvas.getHeight() *0.5f)) * pixelFactorY * depth;
 
-        ret.x +=(x *(float)Math.sin(camRotation.x)) -(y *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x));
-        ret.y += y *(float)Math.cos(camRotation.y);
-        ret.z += -(x *(float)Math.cos(camRotation.x)) -(y *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));
+        ret.x +=(x * CamRotSinX) -(y * CamRotSinY * CamRotCosX);
+        ret.y += y * CamRotCosY;
+        ret.z += -(x * CamRotCosX) -(y * CamRotSinY *CamRotSinX);
 
         return ret;
     }
@@ -3409,7 +3418,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         @Override
         public void display(GLAutoDrawable glad) {
-            if(!initializedRenderer) return;
+            if(!initializedRenderer)
+                return;
             GL2 gl = glad.getGL().getGL2();
             renderInfo.drawable = glad;
             
@@ -3594,7 +3604,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            if(!initializedRenderer) return;
+            if(!initializedRenderer)
+                return;
             
             float xdelta = e.getX() - mousePos.x;
             float ydelta = e.getY() - mousePos.y;

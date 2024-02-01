@@ -26,10 +26,12 @@ public final class Settings {
     
     // General 
     public static String getLastGameDir() { return PREFERENCES.get("whitehole_lastGameDir", null); }
+    public static String getBaseGameDir() { return PREFERENCES.get("whitehole_baseGameDir", null); }
     public static boolean getSJISNotSupported() { return PREFERENCES.getBoolean("whitehole_sjisNotSupported", false); }
     public static boolean getUseDarkMode() { return PREFERENCES.getBoolean("whitehole_useDarkMode", true); }
     
     public static void setLastGameDir(String val) { PREFERENCES.put("whitehole_lastGameDir", val); }
+    public static void setBaseGameDir(String val) { PREFERENCES.put("whitehole_baseGameDir", val); }
     public static void setSJISNotSupported(boolean val) { PREFERENCES.putBoolean("whitehole_sjisNotSupported", val); }
     public static void setUseDarkMode(boolean val) { PREFERENCES.putBoolean("whitehole_useDarkMode", val); }
     
@@ -41,6 +43,7 @@ public final class Settings {
     public static boolean getShowPaths() { return PREFERENCES.getBoolean("whitehole_showPaths", true); }
     public static boolean getDebugFakeColor() { return PREFERENCES.getBoolean("whitehole_debugFakeColor", false); }
     public static boolean getDebugFastDrag() { return PREFERENCES.getBoolean("whitehole_debugFastDrag", false); }
+    public static boolean getUseBetterQuality() { return PREFERENCES.getBoolean("whitehole_useBetterQuality", true); }
     
     public static void setShowAxis(boolean val) { PREFERENCES.putBoolean("whitehole_showAxis", val); }
     public static void setShowAreas(boolean val) { PREFERENCES.putBoolean("whitehole_showAreas", val); }
@@ -49,6 +52,7 @@ public final class Settings {
     public static void setShowPaths(boolean val) { PREFERENCES.putBoolean("whitehole_showPaths", val); }
     public static void setDebugFakeColor(boolean val) { PREFERENCES.putBoolean("whitehole_debugFakeColor", val); }
     public static void setDebugFastDrag(boolean val) { PREFERENCES.putBoolean("whitehole_debugFastDrag", val); }
+    public static void setUseBetterQuality(boolean val) { PREFERENCES.putBoolean("whitehole_useBetterQuality", val); }
     
     // Controls
     public static boolean getUseReverseRot() { return PREFERENCES.getBoolean("whitehole_useReverseRot", false); }
