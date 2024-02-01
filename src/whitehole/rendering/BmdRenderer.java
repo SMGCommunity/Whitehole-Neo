@@ -525,7 +525,7 @@ public class BmdRenderer extends GLRenderer {
             //If a model is not found, we can try looking in the base directory instead
             //We will only check ObjectData, as a vanilla game will not have models elsewhere
             String base = Settings.getBaseGameDir();
-            if (base.length() == 0)
+            if (base == null || base.length() == 0)
                 return; //No base game path set
             
             arcPath = String.format("%s/%s/%s.arc", base, "ObjectData", modelName);

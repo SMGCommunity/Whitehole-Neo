@@ -313,7 +313,7 @@ public class SettingsForm extends javax.swing.JDialog {
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         
         String lastGameDir = Settings.getBaseGameDir();
-        if (lastGameDir != null || lastGameDir.length() > 0) {
+        if (lastGameDir != null && lastGameDir.length() > 0) {
             fc.setSelectedFile(new File(lastGameDir));
         }
         
