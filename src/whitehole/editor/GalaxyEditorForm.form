@@ -214,20 +214,6 @@
                 </Component>
                 <Component class="javax.swing.JToolBar$Separator" name="sep1">
                 </Component>
-                <Component class="javax.swing.JToggleButton" name="tgbShowPaths">
-                  <Properties>
-                    <Property name="selected" type="boolean" value="true"/>
-                    <Property name="text" type="java.lang.String" value="Show paths"/>
-                    <Property name="focusable" type="boolean" value="false"/>
-                    <Property name="horizontalTextPosition" type="int" value="0"/>
-                    <Property name="verticalTextPosition" type="int" value="3"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowPathsActionPerformed"/>
-                  </Events>
-                </Component>
-                <Component class="javax.swing.JToolBar$Separator" name="sep2">
-                </Component>
                 <Component class="javax.swing.JToggleButton" name="tgbShowAreas">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
@@ -238,6 +224,20 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowAreasActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JToolBar$Separator" name="sep2">
+                </Component>
+                <Component class="javax.swing.JToggleButton" name="tgbShowPaths">
+                  <Properties>
+                    <Property name="selected" type="boolean" value="true"/>
+                    <Property name="text" type="java.lang.String" value="Show paths"/>
+                    <Property name="focusable" type="boolean" value="false"/>
+                    <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="verticalTextPosition" type="int" value="3"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowPathsActionPerformed"/>
                   </Events>
                 </Component>
                 <Component class="javax.swing.JToolBar$Separator" name="sep3">
