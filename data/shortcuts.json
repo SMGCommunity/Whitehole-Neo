@@ -20,7 +20,8 @@
 						{
 							"VariableName": "StageName"
 						}
-					]
+					],
+					"DefaultTooltip": "Contains settings for each scenario in a galaxy."
 				}, 
 				{
 					"Type": "Shortcut",
@@ -38,7 +39,8 @@
 						{
 							"VariableName": "StageName"
 						}
-					]
+					],
+					"DefaultTooltip": "Contains a list of what zones are to be used in a galaxy."
 				}, 
 				{
 					"Type": "Shortcut",
@@ -57,7 +59,8 @@
 							"VariableName": "StageName"
 						}
 					],
-					"RequiredFile": "SMG2"
+					"RequiredFile": "SMG2",
+					"DefaultTooltip": "Contains what world number the galaxy is in."
 				}, 
 				{
 					"Type": "Shortcut",
@@ -83,103 +86,14 @@
 							"VariableName": "Layer",
 							"VariableGetMessage": "Enter the layer (ex. 'LayerP' NOT 'P'):"
 						}
-					]
-				},
-				{
-					"Type": "Separator"
-				},
-				{
-					"Type": "Shortcut",
-					"DefaultName": "Camera",
-					"DefaultArchivePath": "/StageData/%s/%sMap.arc",
-					"OtherArchivePaths": [
-						{
-							"ArchivePath": "/StageData/%s.arc",
-							"RequiredFile": "SMG1"
-						}
 					],
-					"DefaultBcsvPath": "/Stage/camera/CameraParam.bcam",
-					"Variables": [
-						{
-							"VariableName": "StageName",
-							"VariableGetMessage": "Enter the stage's file name:"
-						}, 
-						{
-							"VariableName": "StageName",
-							"RequiredFile": "SMG2"
-						}
-					]
-				}, 
-				{
-					"Type": "Shortcut",
-					"DefaultName": "Light",
-					"DefaultArchivePath": "/StageData/%s/%sLight.arc",
-					"OtherArchivePaths": [
-						{
-							"ArchivePath": "/ObjectData/LightData.arc",
-							"RequiredFile": "SMG1"
-						}
-					],
-					"DefaultBcsvPath": "/Stage/csv/%sLight.bcsv",
-					"OtherBcsvPaths": [
-						{
-							"BcsvPath": "/LightData/Light%s.bcsv",
-							"RequiredFile": "SMG1"
-						}
-					],
-					"Variables": [
-						{
-							"VariableName": "StageName",
-							"VariableGetMessage": "Enter the stage's file name:"
-						}, 
-						{
-							"VariableName": "StageName",
-							"RequiredFile": "SMG2"
-						},
-						{
-							"VariableName": "StageName",
-							"RequiredFile": "SMG2"
-						}
-					]
-				}, 
-				{
-					"Type": "Shortcut",
-					"DefaultName": "LightData",
-					"DefaultArchivePath": "/LightData/LightData.arc",
-					"OtherArchivePaths": [
-						{
-							"ArchivePath": "/ObjectData/LightData.arc",
-							"RequiredFile": "SMG1"
-						}
-					],
-					"DefaultBcsvPath": "/LightData/LightData.bcsv"
-				}, 
-				{
-					"Type": "Shortcut",
-					"DefaultName": "ChangeSceneListInfo",
-					"DefaultArchivePath": "/StageData/%s/%sMap.arc",
-					"DefaultBcsvPath": "/Stage/jmp/List/ChangeSceneListInfo",
-					"Variables": [
-						{
-							"VariableName": "ZoneName",
-							"VariableGetMessage": "Enter the zone's file name:"
-						}, 
-						{
-							"VariableName": "ZoneName"
-						},
-						{
-							"VariableName": "ZoneName"
-						}
-					]
-				},
-				{
-					"Type": "Separator",
-					"RequiredFile": "SMG2"
+					"DefaultTooltip": "Contains what position and rotation the zone is at.\nZones can be added to specific layers to make them only appear when that layer is enabled."
 				},
 				{
 					"Type": "Menu",
 					"DefaultName": "UseResource",
 					"RequiredFile": "SMG2",
+					"DefaultTooltip": "Lists of files that are loaded at the same time to speed up load time.",
 					"MenuElements": [
 						{
 							"Type": "Shortcut",
@@ -376,19 +290,64 @@
 					]
 				},
 				{
+					"Type": "Separator"
+				},
+				{
 					"Type": "Shortcut",
-					"DefaultName": "StageInfo",
+					"DefaultName": "Camera",
 					"DefaultArchivePath": "/StageData/%s/%sMap.arc",
-					"DefaultBcsvPath": "/Stage/jmp/List/StageInfo",
+					"OtherArchivePaths": [
+						{
+							"ArchivePath": "/StageData/%s.arc",
+							"RequiredFile": "SMG1"
+						}
+					],
+					"DefaultBcsvPath": "/Stage/camera/CameraParam.bcam",
 					"Variables": [
 						{
-							"VariableName": "StageName",
-							"VariableGetMessage": "Enter the stage's file name:"
+							"VariableName": "ZoneName",
+							"VariableGetMessage": "Enter the zone's file name:"
 						}, 
 						{
-							"VariableName": "StageName"
+							"VariableName": "ZoneName",
+							"RequiredFile": "SMG2"
 						}
-					]
+					],
+					"DefaultTooltip": "Contains all the cameras in a zone."
+				}, 
+				{
+					"Type": "Shortcut",
+					"DefaultName": "Light",
+					"DefaultArchivePath": "/StageData/%s/%sLight.arc",
+					"OtherArchivePaths": [
+						{
+							"ArchivePath": "/ObjectData/LightData.arc",
+							"RequiredFile": "SMG1"
+						}
+					],
+					"DefaultBcsvPath": "/Stage/csv/%sLight.bcsv",
+					"OtherBcsvPaths": [
+						{
+							"BcsvPath": "/LightData/Light%s.bcsv",
+							"RequiredFile": "SMG1"
+						}
+					],
+					"Variables": [
+						{
+							"VariableName": "ZoneName",
+							"VariableGetMessage": "Enter the zone's file name:"
+						}, 
+						{
+							"VariableName": "ZoneName",
+							"RequiredFile": "SMG2"
+						},
+						{
+							"VariableName": "ZoneName",
+							"RequiredFile": "SMG2"
+						}
+					],
+					"DefaultTooltip": "A list of which lights the zone uses."
+
 				}
 			]
 		},
@@ -400,14 +359,16 @@
 					"Type": "Shortcut",
 					"DefaultName": "PlanetMapDataTable",
 					"DefaultArchivePath": "/ObjectData/PlanetMapDataTable.arc",
-					"DefaultBcsvPath": "/PlanetMapDataTable/PlanetMapDataTable.bcsv"
+					"DefaultBcsvPath": "/PlanetMapDataTable/PlanetMapDataTable.bcsv",
+					"DefaultTooltip": "Defines, configures and lists all valid planet objects in the game."
 				},
 				{
 					"Type": "Shortcut",
 					"DefaultName": "ProductMapObjDataTable",
 					"DefaultArchivePath": "/ObjectData/ProductMapObjDataTable.arc",
 					"DefaultBcsvPath": "/ProductMapObjDataTable/ProductMapObjDataTable.bcsv",
-					"RequiredFile": "SMG2"
+					"RequiredFile": "SMG2",
+					"DefaultTooltip": "Defines map objects and assigns them a class."
 				},
 				{
 					"Type": "Shortcut",
@@ -419,11 +380,13 @@
 							"RequiredFile": "SMG1"
 						}
 					],
-					"DefaultBcsvPath": "/ObjNameTable/ObjNameTable.tbl"
+					"DefaultBcsvPath": "/ObjNameTable/ObjNameTable.tbl",
+					"DefaultTooltip": "A list of English and Japanese names for objects."
 				},
 				{
 					"Type": "Menu",
 					"DefaultName": "NPCData",
+					"DefaultTooltip": "BCSV tables for some NPCs which store information on items they carry around.",
 					"MenuElements": [
 						{
 							"Type": "Shortcut",
@@ -517,61 +480,61 @@
 					]
 				},
 				{
-					"Type": "Separator"
-				},
-				{
-					"Type": "Shortcut",
-					"DefaultName": "ObjectInfluenceTable",
-					"DefaultArchivePath": "/ObjectData/MarioConst.arc",
-					"DefaultBcsvPath": "/MarioConst/ActorInfo/ObjectInfluenceTable.bcsv",
-					"RequiredFile": "SMG2"
-				},
-				{
-					"Type": "Shortcut",
-					"DefaultName": "RushInfluenceTable",
-					"DefaultArchivePath": "/ObjectData/MarioConst.arc",
-					"DefaultBcsvPath": "/MarioConst/ActorInfo/RushInfluenceTable.bcsv",
-					"RequiredFile": "SMG2"
-				},
-				{
-					"Type": "Shortcut",
-					"DefaultName": "MorphConditionTable",
-					"DefaultArchivePath": "/ObjectData/MarioConst.arc",
-					"DefaultBcsvPath": "/MarioConst/ActorInfo/MorphConditionTable.bcsv",
-					"RequiredFile": "SMG2"
-				},
-				{
 					"Type": "Shortcut",
 					"DefaultName": "AstroNamePlateData",
 					"DefaultArchivePath": "/ObjectData/AstroNamePlateData.arc",
 					"DefaultBcsvPath": "/AstroNamePlateData/AstroNamePlateData.bcsv",
-					"RequiredFile": "SMG1"
+					"RequiredFile": "SMG1",
+					"DefaultTooltip": "Defines what Comet Observatory models have labels and where these descriptions are positioned on the screen."
 				},
 				{
 					"Type": "Shortcut",
 					"DefaultName": "WorldMapCamera",
 					"DefaultArchivePath": "/ObjectData/WorldMapCamera.arc",
 					"DefaultBcsvPath": "/WorldMapCamera/ActorInfo/CameraParam.bcam",
-					"RequiredFile": "SMG2"
+					"RequiredFile": "SMG2",
+					"DefaultTooltip": "Camera data shared between all world maps."
+				},
+				{
+					"Type": "Shortcut",
+					"DefaultName": "ActorInfo",
+					"DefaultArchivePath": "/ObjectData/%s.arc",
+					"DefaultBcsvPath": "/%s/ActorInfo/%s.bcsv",
+					"Variables": [
+						{
+							"VariableName": "ObjectName",
+							"VariableGetMessage": "Enter the object's file name:"
+						}, 
+						{
+							"VariableName": "ObjectName"
+						},
+						{
+							"VariableName": "BCSVName",
+							"VariableGetMessage": "Enter the BCSV name:"
+						}
+					]
 				}
 			]
 		},
 		{
 			"DefaultName": "System",
 			"Type": "Menu",
-			"RequiredFile": "SMG2",
 			"MenuElements": [
 				{
 					"Type": "Shortcut",
 					"DefaultName": "HeapSizeExcept",
 					"DefaultArchivePath": "/ObjectData/SystemDataTable.arc",
-					"DefaultBcsvPath": "/SystemDataTable/HeapSizeExcept.bcsv"
+					"DefaultBcsvPath": "/SystemDataTable/HeapSizeExcept.bcsv",
+					"RequiredFile": "SMG2",
+					"DefaultTooltip": "Defines additional memory to allocate for a specific galaxy."
 				},
 				{
 					"Type": "Shortcut",
 					"DefaultName": "MarioFaceShipEventDataTable",
 					"DefaultArchivePath": "/ObjectData/SystemDataTable.arc",
-					"DefaultBcsvPath": "/SystemDataTable/MarioFaceShipEventDataTable.bcsv"
+					"DefaultBcsvPath": "/SystemDataTable/MarioFaceShipEventDataTable.bcsv",
+					"RequiredFile": "SMG2",
+					"DefaultTooltip": "Activates switches on Starship Mario after a certain unlock criteria."
 				},
 				
 				{
@@ -579,24 +542,59 @@
 					"DefaultName": "GalaxyWorldOrderList",
 					"DefaultArchivePath": "/ObjectData/SystemDataTable.arc",
 					"DefaultBcsvPath": "/SystemDataTable/GalaxyWorldOrderList.bcsv",
+					"RequiredFile": "SMG2",
+					"DefaultTooltip": "Defines the order of galaxies per world."
 				},
+				{
+					"Type": "Shortcut",
+					"DefaultName": "GalaxyDataTable",
+					"DefaultArchivePath": "/ObjectData/SystemDataTable.arc",
+					"DefaultBcsvPath": "/SystemDataTable/GalaxyDataTable.bcsv",
+					"RequiredFile": "SMG2",
+					"DefaultTooltip": "Defines the required number of Comet Medals to make a Comet appear in an individual galaxy and which galaxies have a Grand Star."
+				},
+
 				{
 					"Type": "Shortcut",
 					"DefaultName": "MarioFaceShipEventCastTable",
 					"DefaultArchivePath": "/ObjectData/SystemDataTable.arc",
 					"DefaultBcsvPath": "/SystemDataTable/MarioFaceShipEventCastTable.bcsv",
+					"RequiredFile": "SMG2",
+					"DefaultTooltip": "A list of demos used for Starship Mario."
 				},
 				{
 					"Type": "Shortcut",
 					"DefaultName": "WorldMapHeapGalaxy",
 					"DefaultArchivePath": "/ObjectData/SystemDataTable.arc",
 					"DefaultBcsvPath": "/SystemDataTable/WorldMapHeapGalaxy.bcsv",
+					"RequiredFile": "SMG2"
 				},
 				{
 					"Type": "Shortcut",
 					"DefaultName": "WorldMapHeapResource",
 					"DefaultArchivePath": "/ObjectData/SystemDataTable.arc",
 					"DefaultBcsvPath": "/SystemDataTable/WorldMapHeapResource.bcsv",
+					"RequiredFile": "SMG2"
+				},
+				{
+					"Type": "Shortcut",
+					"DefaultName": "LightData",
+					"DefaultArchivePath": "/LightData/LightData.arc",
+					"OtherArchivePaths": [
+						{
+							"ArchivePath": "/ObjectData/LightData.arc",
+							"RequiredFile": "SMG1"
+						}
+					],
+					"DefaultBcsvPath": "/LightData/LightData.bcsv",
+					"DefaultTooltip": "Data for all lights in the entire game."
+				},
+				{
+					"Type": "Shortcut",
+					"DefaultName": "Message ID Table",
+					"DefaultArchivePath": "/UsEnglish/MessageData/Message.arc",
+					"DefaultBcsvPath": "/usenglish/messageid.tbl",
+					"RequiredFile": "SMG1"
 				}
 			]
 		},
@@ -609,31 +607,36 @@
 					"Type": "Shortcut",
 					"DefaultName": "StageBgmInfo",
 					"DefaultArchivePath": "/AudioRes/Info/StageBgmInfo.arc",
-					"DefaultBcsvPath": "/StageBgmInfo/StageBgmInfo.bcsv"
+					"DefaultBcsvPath": "/StageBgmInfo/StageBgmInfo.bcsv",
+					"DefaultTooltip": "Defines the music to play when a music change occurs in-stage, for example when entering a warp pipe."
 				},
 				{
 					"Type": "Shortcut",
 					"DefaultName": "ScenarioBgmInfo",
 					"DefaultArchivePath": "/AudioRes/Info/StageBgmInfo.arc",
-					"DefaultBcsvPath": "/StageBgmInfo/ScenarioBgmInfo.bcsv"
+					"DefaultBcsvPath": "/StageBgmInfo/ScenarioBgmInfo.bcsv",
+					"DefaultTooltip": "Defines the default background music that plays in a specific scenario."
 				},
 				{
 					"Type": "Shortcut",
 					"DefaultName": "MultiBgmInfo",
 					"DefaultArchivePath": "/AudioRes/Info/MultiBgmInfo.arc",
-					"DefaultBcsvPath": "/MultiBgmInfo/MultiBgmInfo.bcsv"
+					"DefaultBcsvPath": "/MultiBgmInfo/MultiBgmInfo.bcsv",
+					"DefaultTooltip": "Links a BMS track to its AST track."
 				},
 				{
 					"Type": "Shortcut",
 					"DefaultName": "BgmParam",
 					"DefaultArchivePath": "/AudioRes/Info/BgmParam.arc",
-					"DefaultBcsvPath": "/BgmParam/BgmParam.bcsv"
+					"DefaultBcsvPath": "/BgmParam/BgmParam.bcsv",
+					"DefaultTooltip": "Allows for the volume of music tracks to be changed."
 				},
 				{
 					"Type": "Shortcut",
 					"DefaultName": "ActionSound",
 					"DefaultArchivePath": "/AudioRes/Info/ActionSound.arc",
-					"DefaultBcsvPath": "/ActionSound/ActionSound.bcsv"
+					"DefaultBcsvPath": "/ActionSound/ActionSound.bcsv",
+					"DefaultTooltip": "Sets sound trigger names specific to objects."
 				},
 				{
 					"Type": "Shortcut",
@@ -651,13 +654,15 @@
 					"Type": "Shortcut",
 					"DefaultName": "ParticleName",
 					"DefaultArchivePath": "/ParticleData/Effect.arc",
-					"DefaultBcsvPath": "/Effect/ParticleNames.bcsv"
+					"DefaultBcsvPath": "/Effect/ParticleNames.bcsv",
+					"DefaultTooltip": "Assigns a particle name to an ID."
 				},
 				{
 					"Type": "Shortcut",
 					"DefaultName": "AutoEffectList",
 					"DefaultArchivePath": "/ParticleData/Effect.arc",
-					"DefaultBcsvPath": "/Effect/AutoEffectList.bcsv"
+					"DefaultBcsvPath": "/Effect/AutoEffectList.bcsv",
+					"DefaultTooltip": "Automatically adds effects to objects based on several parameters."
 				}
 			]
 		},
@@ -700,7 +705,8 @@
 							"VariableName": "DemoName",
 							"RequiredFile": "SMG1"
 						}
-					]
+					],
+					"DefaultTooltip": "Defines the individual sequences with their names and length."
 				},
 				{
 					"Type": "Shortcut",
@@ -737,7 +743,8 @@
 							"VariableName": "DemoName",
 							"RequiredFile": "SMG1"
 						}
-					]
+					],
+					"DefaultTooltip": "Runs additional subsequences in parallel during a sequence."
 				},
 				{
 					"Type": "Shortcut",
@@ -774,7 +781,8 @@
 							"VariableName": "DemoName",
 							"RequiredFile": "SMG1"
 						}
-					]
+					],
+					"DefaultTooltip": "Picks up objects and can position them to a given GeneralPos and play an animation."
 				},
 				{
 					"Type": "Shortcut",
@@ -811,7 +819,8 @@
 							"VariableName": "DemoName",
 							"RequiredFile": "SMG1"
 						}
-					]
+					],
+					"DefaultTooltip": "Can position Mario/Luigi to a specific GeneralPos and play an animation."
 				},
 				{
 					"Type": "Shortcut",
@@ -848,7 +857,8 @@
 							"VariableName": "DemoName",
 							"RequiredFile": "SMG1"
 						}
-					]
+					],
+					"DefaultTooltip": "Can play cameras, which can be played one after another."
 				},
 				{
 					"Type": "Shortcut",
@@ -868,7 +878,8 @@
 							"VariableName": "DemoName",
 							"VariableGetMessage": "Enter the demo sheet name:"
 						}
-					]
+					],
+					"DefaultTooltip": "Can change music and play sound effects."
 				},
 				{
 					"Type": "Shortcut",
@@ -888,7 +899,8 @@
 							"VariableName": "DemoName",
 							"VariableGetMessage": "Enter the demo sheet name:"
 						}
-					]
+					],
+					"DefaultTooltip": "Can perform a fade out animation."
 				}
 				
 			]
