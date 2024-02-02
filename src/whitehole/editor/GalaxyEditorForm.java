@@ -816,15 +816,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         tlbOptions = new javax.swing.JToolBar();
         tgbDeselect = new javax.swing.JButton();
         sep1 = new javax.swing.JToolBar.Separator();
-        tgbShowAreas = new javax.swing.JToggleButton();
+        tgbShowAxis = new javax.swing.JToggleButton();
         sep2 = new javax.swing.JToolBar.Separator();
         tgbShowPaths = new javax.swing.JToggleButton();
         sep3 = new javax.swing.JToolBar.Separator();
+        tgbShowAreas = new javax.swing.JToggleButton();
+        sep5 = new javax.swing.JToolBar.Separator();
         tgbShowCameras = new javax.swing.JToggleButton();
         sep4 = new javax.swing.JToolBar.Separator();
         tgbShowGravity = new javax.swing.JToggleButton();
-        sep5 = new javax.swing.JToolBar.Separator();
-        tgbShowAxis = new javax.swing.JToggleButton();
         lblStatus = new javax.swing.JLabel();
         tabData = new javax.swing.JTabbedPane();
         pnlScenarioZone = new javax.swing.JSplitPane();
@@ -913,17 +913,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         tlbOptions.add(tgbDeselect);
         tlbOptions.add(sep1);
 
-        tgbShowAreas.setSelected(true);
-        tgbShowAreas.setText("Show areas");
-        tgbShowAreas.setFocusable(false);
-        tgbShowAreas.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowAreas.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowAreas.addActionListener(new java.awt.event.ActionListener() {
+        tgbShowAxis.setSelected(true);
+        tgbShowAxis.setText("Show axis");
+        tgbShowAxis.setFocusable(false);
+        tgbShowAxis.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowAxis.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowAxis.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowAreasActionPerformed(evt);
+                tgbShowAxisActionPerformed(evt);
             }
         });
-        tlbOptions.add(tgbShowAreas);
+        tlbOptions.add(tgbShowAxis);
         tlbOptions.add(sep2);
 
         tgbShowPaths.setSelected(true);
@@ -938,6 +938,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         });
         tlbOptions.add(tgbShowPaths);
         tlbOptions.add(sep3);
+
+        tgbShowAreas.setSelected(true);
+        tgbShowAreas.setText("Show areas");
+        tgbShowAreas.setFocusable(false);
+        tgbShowAreas.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowAreas.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowAreas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbShowAreasActionPerformed(evt);
+            }
+        });
+        tlbOptions.add(tgbShowAreas);
+        tlbOptions.add(sep5);
 
         tgbShowCameras.setSelected(true);
         tgbShowCameras.setText("Show cameras");
@@ -963,19 +976,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         });
         tlbOptions.add(tgbShowGravity);
-        tlbOptions.add(sep5);
-
-        tgbShowAxis.setSelected(true);
-        tgbShowAxis.setText("Show axis");
-        tgbShowAxis.setFocusable(false);
-        tgbShowAxis.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowAxis.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowAxis.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowAxisActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowAxis);
 
         pnlGLPanel.add(tlbOptions, java.awt.BorderLayout.NORTH);
 
