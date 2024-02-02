@@ -1372,6 +1372,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_itmScaleCopyActionPerformed
 
     private void itmPositionPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionPasteActionPerformed
+        if (!isAllowPasteAction())
+            return;
+        
         Vec3f offset = new Vec3f();
         
         for (AbstractObj obj : selectedObjs.values()) {
@@ -1418,6 +1421,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_itmPositionPasteActionPerformed
 
     private void itmRotationPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationPasteActionPerformed
+        if (!isAllowPasteAction())
+            return;
+                
         for (AbstractObj obj : selectedObjs.values()) {
             if (obj instanceof PathPointObj) {
                 return;
@@ -1442,6 +1448,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_itmRotationPasteActionPerformed
 
     private void itmScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScalePasteActionPerformed
+        if (!isAllowPasteAction())
+            return;
+        
         for (AbstractObj obj : selectedObjs.values()) {
             if (obj instanceof PathPointObj || obj instanceof PositionObj || obj instanceof StageObj) {
                 return;
@@ -1638,6 +1647,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_tgbCopyObjActionPerformed
 
     private void tgbPasteObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbPasteObjActionPerformed
+        if (!isAllowPasteAction()) //Might not be needed...
+            return;
+        
         tgbPasteObj.setSelected(false);
         if(copyObj != null) {
             for(AbstractObj currentTempObj : copyObj.values()) {
@@ -1671,6 +1683,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if (evt.getClickCount() > 1 && btnEditZone.isEnabled())
             openSelectedZone();
     }//GEN-LAST:event_listZonesMouseClicked
+    
+    //Ensures that you have the 3D view selected.
+    //This is used to prevent typing actual things like Object Names from pasting position rotation etc.
+    public boolean isAllowPasteAction()
+    {
+        return getFocusOwner() instanceof JRootPane || getFocusOwner() instanceof GLCanvas;
+    }
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Object adding and deleting
