@@ -3310,7 +3310,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             for (int l = 0; l < 16; l++) {
                 if((layermask & (1 << l)) != 0)
-                    gl.glCallList(objDisplayLists.get(zone + "/layer" + alphabet.charAt(l))[mode]);
+                {
+                    var x = zone + "/layer" + alphabet.charAt(l);
+                    if (!objDisplayLists.containsKey(x))
+                    {
+                        lblStatus.setText("LOAD ERROR: Cannot find "+zone+" - Layer"+alphabet.toUpperCase().charAt(l));
+                    }
+                    gl.glCallList(objDisplayLists.get(x)[mode]);
+                }
             }
             
             if (level < 5) {
@@ -3322,6 +3329,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     gl.glRotatef(subzone.rotation.x, 1f, 0f, 0f);
 
                     String zonename = subzone.name;
+                    if (!scenario.containsKey(zonename))
+                    {
+                        lblStatus.setText("LOAD ERROR: \""+zonename+"\" is used but has no Layer information in the Scenario data");
+                    }
                     renderZone(gl, scenario, zonename,(int)scenario.get(zonename), level + 1);
 
                     gl.glPopMatrix();
