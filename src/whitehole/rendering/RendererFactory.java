@@ -91,7 +91,7 @@ public final class RendererFactory {
     // -------------------------------------------------------------------------------------------------------------------------
     // Model name substitution
     
-    private static String getAreaShapeModelName(AbstractObj obj) {
+    public static String getAreaShapeModelName(AbstractObj obj) {
         if (obj.objdbInfo.areaShape().equalsIgnoreCase("Any")) {
             int areaShapeNo = (short)obj.data.getOrDefault("AreaShapeNo", (short)-1);
 
@@ -107,15 +107,23 @@ public final class RendererFactory {
         }
     }
     
-    private static String getGravityShapeModelName(GravityObj obj) {
-        return obj.name.toLowerCase() + String.format("_%d(%s,%s,%s|%s,%s,%s|%s,%s,%s,%s)",
-                obj.uniqueID,
+    public static String getGravityShapeModelName(GravityObj obj) {
+        return obj.name.toLowerCase() + String.format("_(%s,%s,%s|%s,%s,%s|%s,%s,%s,%s)",
                 obj.scale.x, obj.scale.y, obj.scale.z,
                 obj.data.get("Range"), obj.data.get("Distant"), obj.data.get("Inverse"),
                 obj.data.get("Obj_arg0"),obj.data.get("Obj_arg1"),obj.data.get("Obj_arg2"),obj.data.get("Obj_arg3"));
     }
     
-    public static String getSubstitutedModelName(String objModelName, AbstractObj obj) {
+    public static String getSubstitutedModelName(String objModelName, AbstractObj obj, boolean isNeedPrevious) {
+        
+        if (isNeedPrevious)
+        {
+            String v = null;
+            v = obj.PreviousRenderKey;
+            if (v != null)
+                return v;
+        }
+                
         String lowerObjModelName = objModelName.toLowerCase();
         
         // Areas and Cameras do not use models, but we can process their model keys already
@@ -306,6 +314,21 @@ public final class RendererFactory {
                         GravityShapeRenderer.COLOR_DEFAULT,
                         GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
                         GravityShapeRenderer.Shape.CYLINDER_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+            }
+            if (objModelName.startsWith("gravityobj_globalpointgravity_"))
+            {
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_DEFAULT,
+                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        GravityShapeRenderer.Shape.PLANET_RANGE,
                         obj.scale,
                         (float)r,
                         (float)d,

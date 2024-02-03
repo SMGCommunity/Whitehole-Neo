@@ -55,7 +55,7 @@ public class RendererCache {
     // -------------------------------------------------------------------------------------------------------------------------
     
     public static GLRenderer getObjectRenderer(GLRenderer.RenderInfo info, AbstractObj obj) {
-        String model = RendererFactory.getSubstitutedModelName(obj.name, obj);
+        String model = RendererFactory.getSubstitutedModelName(obj.name, obj, false);
         String key = RendererFactory.getSubstitutedCacheKey(model, obj);
         
         if (CACHE.containsKey(key)) {
@@ -76,7 +76,7 @@ public class RendererCache {
     }
     
     public static void closeObjectRenderer(GLRenderer.RenderInfo info, AbstractObj obj) {
-        String model = RendererFactory.getSubstitutedModelName(obj.oldName, obj);
+        String model = RendererFactory.getSubstitutedModelName(obj.oldName, obj, true);
         String key = RendererFactory.getSubstitutedCacheKey(model, obj);
         
         if (CACHE.containsKey(key)) {

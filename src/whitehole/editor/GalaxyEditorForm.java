@@ -3447,7 +3447,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             {
                                 int pathid = Integer.parseInt(task[1]);
                                 PathObj pobj = globalPathList.get(pathid);
-                                pobj.prerender(renderInfo);
+                                if (pobj != null)
+                                    pobj.prerender(renderInfo);
                             }
                             break;
                     }

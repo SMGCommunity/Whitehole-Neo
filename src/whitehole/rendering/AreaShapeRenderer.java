@@ -27,9 +27,7 @@ public class AreaShapeRenderer extends GLRenderer {
         CENTER_ORIGIN_BOX,
         SPHERE,
         CYLINDER,
-        BOWL,
-        
-        CONE;
+        BOWL;
     }
     
     // -------------------------------------------------------------------------------------------------------------------------

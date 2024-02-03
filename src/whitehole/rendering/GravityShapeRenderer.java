@@ -63,7 +63,7 @@ public class GravityShapeRenderer extends GLRenderer {
     
     private Vec3f Scale;
     private float Range;
-    private float Distance;
+    private float Distant;
     private boolean IsInverse;
     private float ObjArg0, ObjArg1, ObjArg2, ObjArg3;
     
@@ -84,7 +84,7 @@ public class GravityShapeRenderer extends GLRenderer {
         shape = shp;
         Scale = scl;
         Range = rng;
-        Distance = dst;
+        Distant = dst;
         IsInverse = inv > 0;
         ObjArg0 = arg0;
         ObjArg1 = arg1;
@@ -171,6 +171,9 @@ public class GravityShapeRenderer extends GLRenderer {
                 break;
             case CYLINDER_RANGE:
                 makeCylinder(info, DrawCol);
+                break;
+            case PLANET_RANGE:
+                makePlanet(info, DrawCol);
                 break;
         }
         gl.glLineWidth(1.5f);
@@ -376,5 +379,85 @@ public class GravityShapeRenderer extends GLRenderer {
         Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
         
         //To calculate the distance, subtract the Distant value from the Range, and figure out the scale percentage, then scale the vertexes of the sphere
+        
+        float SIZE = Range + Distant;
+        float DIST_SIZE = (Range / (SIZE));
+        int Horizontal = 8;
+        int Vertical = 16;
+        //We'll need all of this regardless because we'll need the points for Distance purposes
+        Vec3f TopPoint = new Vec3f(0, 0, -SIZE);
+        Vec3f BottomPoint = new Vec3f(0, 0, SIZE);
+        Vec3f[][] Points = new Vec3f[Horizontal][Vertical]; //[Row][VertexInRowId]
+        for(int h = 0; h < Horizontal; h++)
+        {
+            double lat0 = Math.PI * (-0.5 + (double) (h) / Horizontal);
+            double z0  = Math.sin(lat0);
+            double zr0 =  Math.cos(lat0);
+        
+            for(int v = 0; v < Vertical; v++)
+            {
+                double lng = 2 * Math.PI * (double) (v) / Vertical;
+                double x = Math.cos(lng);
+                double y = Math.sin(lng);
+
+                Vec3f p = new Vec3f((float)(SIZE * x * zr0), (float)(SIZE * y * zr0), (float)(SIZE * z0));
+                Points[h][v] = p;
+            }
+        }
+          
+        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            gl.glColor3f(Col.r, Col.g, Col.b);
+        gl.glTranslatef(0f, 0f, 0f);
+        gl.glRotatef(90f, 1f, 0f, 0f);
+        for(int h = 0; h < Horizontal; h++)
+        {
+            gl.glBegin(GL2.GL_LINE_STRIP);
+            for(int v = 0; v <= Vertical; v++)
+            {
+                Vec3f p;
+                if (v == Vertical)
+                    p = Points[h][0];
+                else
+                    p = Points[h][v];
+                gl.glVertex3f(p.x, p.y, p.z);
+                gl.glVertex3f(p.x*DIST_SIZE, p.y*DIST_SIZE, p.z*DIST_SIZE);
+                gl.glVertex3f(p.x, p.y, p.z);
+            }
+            gl.glEnd();
+        }
+        for(int v = 0; v < Vertical; v++)
+        {
+            gl.glBegin(GL2.GL_LINE_STRIP);
+            for(int h = -1; h <= Horizontal; h++)
+            {
+                Vec3f p;
+                if (h == -1)
+                    p = TopPoint;
+                else if (h == Horizontal)
+                    p = BottomPoint;
+                else
+                    p = Points[h][v];
+                gl.glVertex3f(p.x, p.y, p.z);
+            }
+            gl.glEnd();
+        }
+        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            gl.glColor3f(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
+        for(int h = 0; h < Horizontal; h++)
+        {
+            gl.glBegin(GL2.GL_LINES);
+            for(int v = 0; v <= Vertical; v++)
+            {
+                Vec3f p;
+                if (v == Vertical)
+                    p = Points[h][0];
+                else
+                    p = Points[h][v];
+                gl.glVertex3f(p.x, p.y, p.z);
+                gl.glVertex3f(p.x*DIST_SIZE, p.y*DIST_SIZE, p.z*DIST_SIZE);
+            }
+            gl.glEnd();
+        }
+        gl.glTranslatef(0f, 0f, 0f);
     }
 }

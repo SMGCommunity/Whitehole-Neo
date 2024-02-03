@@ -28,6 +28,7 @@ import whitehole.smg.StageArchive;
 import whitehole.smg.StageHelper;
 import whitehole.util.PropertyGrid;
 import whitehole.math.Vec3f;
+import whitehole.rendering.RendererFactory;
 
 public abstract class AbstractObj {
     public String name, layerKey, oldName;
@@ -38,6 +39,7 @@ public abstract class AbstractObj {
     public GLRenderer renderer = null;
     public int uniqueID = -1;
     public boolean isHidden = false;
+    public String PreviousRenderKey;
     
     public AbstractObj(StageArchive stge, String layerkey, Bcsv.Entry entry, String objname) {
         name = objname;
@@ -307,6 +309,7 @@ public abstract class AbstractObj {
         renderer = RendererCache.getObjectRenderer(info, this);
         renderer.compileDisplayLists(info);
         renderer.releaseStorage();
+        PreviousRenderKey = RendererFactory.getSubstitutedModelName(name, this, false);
     }
     
     public void closeRenderer(GLRenderer.RenderInfo info) {
