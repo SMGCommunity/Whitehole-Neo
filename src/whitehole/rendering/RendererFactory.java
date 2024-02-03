@@ -108,7 +108,10 @@ public final class RendererFactory {
     }
     
     private static String getGravityShapeModelName(GravityObj obj) {
-        return obj.name.toLowerCase();
+        return obj.name.toLowerCase() + String.format("_(%s,%s,%s|%s,%s,%s|%s,%s,%s,%s)",
+                obj.scale.x, obj.scale.y, obj.scale.z,
+                obj.data.get("Range"), obj.data.get("Distant"), obj.data.get("Inverse"),
+                obj.data.get("Obj_arg0"),obj.data.get("Obj_arg1"),obj.data.get("Obj_arg2"),obj.data.get("Obj_arg3"));
     }
     
     public static String getSubstitutedModelName(String objModelName, AbstractObj obj) {
@@ -253,25 +256,115 @@ public final class RendererFactory {
             return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(0.8f, 0.5f, 0.1f), true);
         }
         else if (obj instanceof GravityObj) {
+            //TODO: REMOVE THIS WHEN FINISHED
             System.out.println(objModelName);
-            switch (objModelName) {
-                case "gravityobj_globalplanegravityinbox":
-                case "gravityobj_globalcubegravity":
-                case "gravityobj_zerogravitybox":
-                    return new AreaShapeRenderer(new Color4(0f, 0.8f, 0f), AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
-                case "gravityobj_globalplanegravity":
-                case "gravityobj_globalpointgravity":
-                case "gravityobj_zerogravitysphere":
-                    return new AreaShapeRenderer(new Color4(0f, 0.8f, 0f), AreaShapeRenderer.Shape.SPHERE);
-                case "gravityobj_globalplanegravityincylinder":
-                case "gravityobj_globalbarrelgravity":
-                case "gravityobj_zerogravitycylinder":
-                    return new AreaShapeRenderer(new Color4(0f, 0.8f, 0f), AreaShapeRenderer.Shape.CYLINDER);
-                case "gravityobj_globalconegravity":
-                    return new AreaShapeRenderer(new Color4(0f, 0.8f, 0f), AreaShapeRenderer.Shape.CONE);
-                default:
-                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(0f, 0.8f, 0f), true);
+            
+            //No idea why I had to do it this way, but the runtime kept crashing if I didn't...
+            Object r = obj.data.get("Range");
+            Object d = obj.data.get("Distant");
+            Object i = obj.data.get("Inverse");
+            Object oa0 = obj.data.get("Obj_arg0");
+            Object oa1 = obj.data.get("Obj_arg1");
+            Object oa2 = obj.data.get("Obj_arg2");
+            Object oa3 = obj.data.get("Obj_arg3");
+            if (objModelName.startsWith("gravityobj_globalplanegravityinbox_"))
+            {
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_DEFAULT,
+                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        GravityShapeRenderer.Shape.BOX_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
             }
+            if (objModelName.startsWith("gravityobj_globalplanegravity_"))
+            {
+                if (!GravityShapeRenderer.isValid(GravityShapeRenderer.Shape.SPHERE_RANGE, (float)r))
+                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_DEFAULT,
+                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        GravityShapeRenderer.Shape.SPHERE_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+            }
+            if (objModelName.startsWith("gravityobj_globalplanegravityincylinder_"))
+            {
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_DEFAULT,
+                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        GravityShapeRenderer.Shape.CYLINDER_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+            }
+            
+            if (objModelName.startsWith("gravityobj_zerogravitybox_"))
+            {
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_ZERO,
+                        GravityShapeRenderer.COLOR_ZERO,
+                        GravityShapeRenderer.Shape.BOX_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+            }
+            
+            if (objModelName.startsWith("gravityobj_zerogravitysphere_"))
+            {
+                if (!GravityShapeRenderer.isValid(GravityShapeRenderer.Shape.SPHERE_RANGE, (float)r))
+                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_ZERO,
+                        GravityShapeRenderer.COLOR_ZERO,
+                        GravityShapeRenderer.Shape.SPHERE_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+            }
+            if (objModelName.startsWith("gravityobj_zerogravitycylinder_"))
+            {
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_ZERO,
+                        GravityShapeRenderer.COLOR_ZERO,
+                        GravityShapeRenderer.Shape.CYLINDER_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+            }
+            
+            return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
         }
         else if (obj instanceof PositionObj) {
             return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(1f,0.5f,0f), true);

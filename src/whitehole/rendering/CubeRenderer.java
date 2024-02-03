@@ -70,6 +70,14 @@ public class CubeRenderer extends GLRenderer {
         return false;
     }
 
+    //I put these here for Gravity purposes
+    @Override
+    public boolean hasSpecialScaling() { return true; }
+    @Override
+    public boolean boundToObjArg(int arg) { return true; }
+    @Override
+    public boolean boundToProperty() { return true; }
+
     @Override
     public boolean gottaRender(RenderInfo info) throws GLException {
         return info.renderMode != RenderMode.TRANSLUCENT;

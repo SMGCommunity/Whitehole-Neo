@@ -3021,6 +3021,20 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             glCanvas.repaint();
                         }
                     }
+                    else if(propname.equals("Distant")) {
+                        if(selectedObj.renderer.boundToProperty()) {
+                            rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
+                            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                            glCanvas.repaint();
+                        }
+                    }
+                    else if(propname.equals("Inverse")) {
+                        if(selectedObj.renderer.boundToProperty()) {
+                            rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
+                            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                            glCanvas.repaint();
+                        }
+                    }
                     else if(propname.equals("AreaShapeNo")) {
                         DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                         objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
