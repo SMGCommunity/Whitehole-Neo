@@ -12,7 +12,8 @@
 					"Variables": [
 						{
 							"VariableName": "StageName",
-							"VariableGetMessage": "Enter the stage's file name:"
+							"VariableGetMessage": "Enter the stage's file name:",
+							"VariableListType": "StageName"
 						}, 
 						{
 							"VariableName": "StageName"
@@ -31,7 +32,8 @@
 					"Variables": [
 						{
 							"VariableName": "StageName",
-							"VariableGetMessage": "Enter the stage's file name:"
+							"VariableGetMessage": "Enter the stage's file name:",
+							"VariableListType": "StageName"
 						}, 
 						{
 							"VariableName": "StageName"
@@ -50,7 +52,8 @@
 					"Variables": [
 						{
 							"VariableName": "StageName",
-							"VariableGetMessage": "Enter the stage's file name:"
+							"VariableGetMessage": "Enter the stage's file name:",
+							"VariableListType": "StageName"
 						}, 
 						{
 							"VariableName": "StageName"
@@ -76,7 +79,8 @@
 					"Variables": [
 						{
 							"VariableName": "StageName",
-							"VariableGetMessage": "Enter the stage's file name:"
+							"VariableGetMessage": "Enter the stage's file name:",
+							"VariableListType": "StageName"
 						},
 						{
 							"VariableName": "StageName",
@@ -103,7 +107,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -119,7 +124,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -135,7 +141,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -151,7 +158,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -167,7 +175,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -183,7 +192,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -199,7 +209,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -215,7 +226,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -231,7 +243,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -247,7 +260,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -263,7 +277,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -279,7 +294,8 @@
 							"Variables": [
 								{
 									"VariableName": "StageName",
-									"VariableGetMessage": "Enter the stage's file name:"
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
 								}, 
 								{
 									"VariableName": "StageName",
@@ -306,7 +322,8 @@
 					"Variables": [
 						{
 							"VariableName": "ZoneName",
-							"VariableGetMessage": "Enter the zone's file name:"
+							"VariableGetMessage": "Enter the zone's file name:",
+							"VariableListType": "ZoneName"
 						}, 
 						{
 							"VariableName": "ZoneName",
@@ -335,7 +352,8 @@
 					"Variables": [
 						{
 							"VariableName": "ZoneName",
-							"VariableGetMessage": "Enter the zone's file name:"
+							"VariableGetMessage": "Enter the zone's file name:",
+							"VariableListType": "ZoneName"
 						}, 
 						{
 							"VariableName": "ZoneName",
@@ -691,6 +709,7 @@
 						{
 							"VariableName": "ZoneName",
 							"VariableGetMessage": "Enter the zone's file name:",
+							"VariableListType": "ZoneName",
 							"RequiredFile": "SMG2"
 						}, 
 						{
@@ -729,6 +748,7 @@
 						{
 							"VariableName": "ZoneName",
 							"VariableGetMessage": "Enter the zone's file name:",
+							"VariableListType": "ZoneName",
 							"RequiredFile": "SMG2"
 						}, 
 						{
@@ -767,6 +787,7 @@
 						{
 							"VariableName": "ZoneName",
 							"VariableGetMessage": "Enter the zone's file name:",
+							"VariableListType": "ZoneName",
 							"RequiredFile": "SMG2"
 						}, 
 						{
@@ -805,6 +826,7 @@
 						{
 							"VariableName": "ZoneName",
 							"VariableGetMessage": "Enter the zone's file name:",
+							"VariableListType": "ZoneName",
 							"RequiredFile": "SMG2"
 						}, 
 						{
@@ -843,6 +865,7 @@
 						{
 							"VariableName": "ZoneName",
 							"VariableGetMessage": "Enter the zone's file name:",
+							"VariableListType": "ZoneName",
 							"RequiredFile": "SMG2"
 						}, 
 						{
@@ -869,7 +892,8 @@
 					"Variables": [
 						{
 							"VariableName": "ZoneName",
-							"VariableGetMessage": "Enter the zone's file name:"
+							"VariableGetMessage": "Enter the zone's file name:",
+							"VariableListType": "ZoneName"
 						}, 
 						{
 							"VariableName": "ZoneName"
@@ -890,7 +914,8 @@
 					"Variables": [
 						{
 							"VariableName": "ZoneName",
-							"VariableGetMessage": "Enter the zone's file name:"
+							"VariableGetMessage": "Enter the zone's file name:",
+							"VariableListType": "ZoneName"
 						}, 
 						{
 							"VariableName": "ZoneName"

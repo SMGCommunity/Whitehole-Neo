@@ -21,9 +21,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
+import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.*;
@@ -96,8 +101,45 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         toggleShortcutVisibility();
     }
     
-    private String getTextInput(String text) {
+    private String getTextInput(String text, String listText) {
+        if (!listText.isEmpty()) {
+            String[] listArray = getList(listText);
+            if (listArray != null) {
+                JComboBox<String> optionList = new JComboBox<>(listArray);
+                JPanel panel = new JPanel();
+                panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+                JLabel textLabel = new JLabel(text);
+                panel.add(textLabel);
+                panel.add(optionList);
+                optionList.setAlignmentX(Component.LEFT_ALIGNMENT);
+                textLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                int result = JOptionPane.showOptionDialog(this, panel, Whitehole.NAME, OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+                Object selection = optionList.getSelectedItem();
+                if (result == 0 && selection != null) {
+                    return selection.toString();
+                }
+                else {
+                    return null;
+                }
+            }
+
+        }
+        // fallback if no list or an invalid list name is provided
         return (String)JOptionPane.showInputDialog(this, text, Whitehole.NAME, JOptionPane.PLAIN_MESSAGE, null, null, null);
+    }
+    
+    private String[] getList(String listText) {
+        switch (listText) {
+            case "StageName":
+            case "GalaxyName":
+                List<String> galaxies = Whitehole.GAME.getGalaxyList();
+                return galaxies.toArray(new String[0]);
+            case "ZoneName":
+                List<String> zones = Whitehole.GAME.getZoneList();
+                return zones.toArray(new String[0]);
+            default:
+            return null;
+        }
     }
     
     private void handleShortcut(String archiveName, String bcsvName) {
@@ -119,13 +161,14 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             // Grab needed data.
             JSONObject currentVariable = variables.getJSONObject(i);
             String variableGetMessage = currentVariable.optString("VariableGetMessage");
+            String variableListType = currentVariable.optString("VariableListType");
             String variableName = currentVariable.optString("VariableName");
             String variableRequiredFile = currentVariable.optString("RequiredFile");
             
             // Don't bother adding the variable's string if the required file doesn't exist.
             if (doesRequiredFileExist(variableRequiredFile)) {
                 if (!variableGetMessage.isBlank()) {
-                    String variableInput = getTextInput(variableGetMessage);
+                    String variableInput = getTextInput(variableGetMessage, variableListType);
                     
                     // If they do not enter anything or click cancel it will not handle the shortcut.
                     if (variableInput==null || variableInput.isEmpty()) {

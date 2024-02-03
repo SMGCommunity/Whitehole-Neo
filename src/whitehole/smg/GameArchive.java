@@ -33,6 +33,7 @@ public class GameArchive {
     
     private final FilesystemBase filesystem;
     private List<String> galaxies = new ArrayList(64);
+    private List<String> zones = new ArrayList(128);
     private List<String> planets = new ArrayList(256);
     private int gameType = 0;
     private boolean hasOverwriteObjectDatabase;
@@ -52,12 +53,18 @@ public class GameArchive {
             return;
         }
         
-        // Initialize galaxy list and collect hashes
+        // Initialize galaxy and zone list and collect hashes
         for (String stage : filesystem.getDirectories("/StageData")) {
             FieldHashes.add(stage);
             
             if (filesystem.fileExists(String.format("/StageData/%1$s/%1$sScenario.arc", stage))) {
                 galaxies.add(stage);
+            }
+            
+            if (gameType == 2 && filesystem.fileExists(String.format("/StageData/%1$s/%1$sMap.arc", stage))) {
+                zones.add(stage);
+            } else if (gameType == 1 && filesystem.fileExists(String.format("/StageData/%1$s.arc", stage))) {
+                zones.add(stage);
             }
         }
         
@@ -111,6 +118,10 @@ public class GameArchive {
     
     public List<String> getGalaxyList() {
         return galaxies;
+    }
+    
+    public List<String> getZoneList() {
+        return zones;
     }
     
     public List<String> getWaterPlanetList() {
