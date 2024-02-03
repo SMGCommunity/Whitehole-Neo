@@ -108,7 +108,8 @@ public final class RendererFactory {
     }
     
     private static String getGravityShapeModelName(GravityObj obj) {
-        return obj.name.toLowerCase() + String.format("_(%s,%s,%s|%s,%s,%s|%s,%s,%s,%s)",
+        return obj.name.toLowerCase() + String.format("_%d(%s,%s,%s|%s,%s,%s|%s,%s,%s,%s)",
+                obj.uniqueID,
                 obj.scale.x, obj.scale.y, obj.scale.z,
                 obj.data.get("Range"), obj.data.get("Distant"), obj.data.get("Inverse"),
                 obj.data.get("Obj_arg0"),obj.data.get("Obj_arg1"),obj.data.get("Obj_arg2"),obj.data.get("Obj_arg3"));
@@ -334,7 +335,7 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_zerogravitysphere_"))
             {
                 if (!GravityShapeRenderer.isValid(GravityShapeRenderer.Shape.SPHERE_RANGE, (float)r))
-                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
+                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_ZERO, true);
                 return new GravityShapeRenderer(
                         GravityShapeRenderer.COLOR_ZERO,
                         GravityShapeRenderer.COLOR_ZERO,

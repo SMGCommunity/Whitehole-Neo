@@ -162,7 +162,6 @@ public class GravityShapeRenderer extends GLRenderer {
         
         Color4 DrawCol = IsInverse ? colorInverse : color;
         
-        gl.glPushMatrix();
         switch(shape) {
             case BOX_RANGE:
                 makeBox(info, DrawCol);
@@ -174,7 +173,6 @@ public class GravityShapeRenderer extends GLRenderer {
                 makeCylinder(info, DrawCol);
                 break;
         }
-        gl.glPopMatrix();
         gl.glLineWidth(1.5f);
     }
     
@@ -236,6 +234,7 @@ public class GravityShapeRenderer extends GLRenderer {
             gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
         gl.glVertex3f(ScaleXSize, -ScaleYSize, -ScaleZSize);
         gl.glEnd();
+        gl.glTranslatef(0f, -ScaleYSize, 0f);
     }
     
     // Could use some optimizations probably, but getting the colour to work was rough
@@ -325,8 +324,6 @@ public class GravityShapeRenderer extends GLRenderer {
         float ScaleHSize = BOX_SIZE * Scale.x;
         float ScaleYSize = CYLINDER_SIZE * Scale.y;
         
-        gl.glTranslatef(0f, ScaleYSize, 0f);
-        gl.glRotatef(90f, 1f, 0f, 0f);
         
         int Segments = 16;
         Vec3f[] Points = new Vec3f[Segments+1];
@@ -337,6 +334,8 @@ public class GravityShapeRenderer extends GLRenderer {
             double y = ScaleHSize * Math.sin(angle);
             Points[i] = new Vec3f((float)x, (float)y, 0);
         }
+        gl.glTranslatef(0f, ScaleYSize, 0f);
+        gl.glRotatef(90f, 1f, 0f, 0f);
         gl.glBegin(GL2.GL_LINES);
         for(int i = 0; i < Points.length-1; i++)
         {
@@ -365,6 +364,8 @@ public class GravityShapeRenderer extends GLRenderer {
             gl.glVertex3f(pNext.x, pNext.y, pNext.z + ScaleYSize);
         }
         gl.glEnd();
+        gl.glRotatef(-90f, 1f, 0f, 0f);
+        gl.glTranslatef(0f, 0f, 0f);
     }
 
     
