@@ -293,7 +293,14 @@ public final class RendererFactory {
             }
             if (objModelName.startsWith("gravityobj_globalplanegravity_"))
             {
-                if (!GravityShapeRenderer.isValid(GravityShapeRenderer.Shape.SPHERE_RANGE, (float)r))
+                if (!GravityShapeRenderer.isValid(GravityShapeRenderer.Shape.SPHERE_RANGE, obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3))
                     return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
                 return new GravityShapeRenderer(
                         GravityShapeRenderer.COLOR_DEFAULT,
@@ -338,6 +345,30 @@ public final class RendererFactory {
                         (int)oa2,
                         (int)oa3);
             }
+            if (objModelName.startsWith("gravityobj_globalconegravity_"))
+            {
+                if (!GravityShapeRenderer.isValid(GravityShapeRenderer.Shape.CONE_RANGE, obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3))
+                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_DEFAULT,
+                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        GravityShapeRenderer.Shape.CONE_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+            }
             
             if (objModelName.startsWith("gravityobj_zerogravitybox_"))
             {
@@ -357,7 +388,14 @@ public final class RendererFactory {
             
             if (objModelName.startsWith("gravityobj_zerogravitysphere_"))
             {
-                if (!GravityShapeRenderer.isValid(GravityShapeRenderer.Shape.SPHERE_RANGE, (float)r))
+                if (!GravityShapeRenderer.isValid(GravityShapeRenderer.Shape.SPHERE_RANGE, obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3))
                     return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_ZERO, true);
                 return new GravityShapeRenderer(
                         GravityShapeRenderer.COLOR_ZERO,
