@@ -3513,7 +3513,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             pickingDepth = -(Z_FAR * Z_NEAR /(pickingDepthBuffer.get(0) *(Z_FAR - Z_NEAR) - Z_FAR));
             
             if (Settings.getDebugFakeColor()) {
-                glad.swapBuffers();
+                //glad.swapBuffers();
                 return;
             }
            
