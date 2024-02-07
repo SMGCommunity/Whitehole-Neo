@@ -369,6 +369,21 @@ public final class RendererFactory {
                         (int)oa2,
                         (int)oa3);
             }
+            if (objModelName.startsWith("gravityobj_globalcubegravity_"))
+            {
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_DEFAULT,
+                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        GravityShapeRenderer.Shape.CUBE_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+            }
             
             if (objModelName.startsWith("gravityobj_zerogravitybox_"))
             {

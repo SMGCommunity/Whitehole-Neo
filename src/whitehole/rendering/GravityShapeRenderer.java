@@ -53,9 +53,10 @@ public class GravityShapeRenderer extends GLRenderer {
     
     // -------------------------------------------------------------------------------------------------------------------------
     
-    public static final Color4 COLOR_DEFAULT = new Color4(0f, 0.8f, 0f);
-    public static final Color4 COLOR_INVERSE_DEFAULT = new Color4(0.8f, 0f, 0.8f);
-    public static final Color4 COLOR_ZERO = new Color4(0f, 0.8f, 0.6f);
+    public static final Color4 COLOR_DEFAULT = new Color4(0.0f, 0.8f, 0.0f);
+    public static final Color4 COLOR_INVERSE_DEFAULT = new Color4(0.8f, 0.0f, 0.8f);
+    public static final Color4 COLOR_ZERO = new Color4(0.0f, 0.8f, 0.6f);
+    //public static final Color4 COLOR_DISTANT = new Color4(0.6f, 0.8f, 0.0f);
     
     // The base size for areas
     private static final float BOX_SIZE = 500f;
@@ -120,7 +121,7 @@ public class GravityShapeRenderer extends GLRenderer {
         {
             case SPHERE_RANGE:
             case PLANET_RANGE:
-                if (rng == -1)
+                if (rng <= 0)
                     return false;
                 return true;
                 
@@ -194,6 +195,9 @@ public class GravityShapeRenderer extends GLRenderer {
                 break;
             case CONE_RANGE:
                 makeCone(info, DrawCol);
+                break;
+            case CUBE_RANGE:
+                makeCube(info, DrawCol);
                 break;
         }
         gl.glLineWidth(1.5f);
@@ -390,6 +394,96 @@ public class GravityShapeRenderer extends GLRenderer {
         gl.glRotatef(-90f, 1f, 0f, 0f);
         gl.glTranslatef(0f, 0f, 0f);
     }
+    
+    // This was less of a nightmare to program...granted I did this one before Cones...
+    public void makePlanet(GLRenderer.RenderInfo info, Color4 Col)
+    {
+        GL2 gl = info.drawable.getGL().getGL2();
+        //Using this for Distant rendering
+        Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
+        
+        //To calculate the distance, subtract the Distant value from the Range, and figure out the scale percentage, then scale the vertexes of the sphere
+        
+        float RANGE_SIZE = Range;
+        float DISTANT_SIZE = ((Distant + Range) / Range);
+        int Horizontal = 8;
+        int Vertical = 16;
+        //We'll need all of this regardless because we'll need the points for Distance purposes
+        Vec3f TopPoint = new Vec3f(0, 0, -RANGE_SIZE);
+        Vec3f BottomPoint = new Vec3f(0, 0, RANGE_SIZE);
+        Vec3f[][] Points = new Vec3f[Horizontal][Vertical]; //[Row][VertexInRowId]
+        for(int h = 0; h < Horizontal; h++)
+        {
+            double lat0 = Math.PI * (-0.5 + (double) (h) / Horizontal);
+            double z0  = Math.sin(lat0);
+            double zr0 =  Math.cos(lat0);
+        
+            for(int v = 0; v < Vertical; v++)
+            {
+                double lng = 2 * Math.PI * (double) (v) / Vertical;
+                double x = Math.cos(lng);
+                double y = Math.sin(lng);
+
+                Vec3f p = new Vec3f((float)(RANGE_SIZE * x * zr0), (float)(RANGE_SIZE * y * zr0), (float)(RANGE_SIZE * z0));
+                Points[h][v] = p;
+            }
+        }
+          
+        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            gl.glColor3f(Col.r, Col.g, Col.b);
+        gl.glTranslatef(0f, 0f, 0f);
+        gl.glRotatef(90f, 1f, 0f, 0f);
+        for(int h = 0; h < Horizontal; h++)
+        {
+            gl.glBegin(GL2.GL_LINE_STRIP);
+            for(int v = 0; v <= Vertical; v++)
+            {
+                Vec3f p;
+                if (v == Vertical)
+                    p = Points[h][0];
+                else
+                    p = Points[h][v];
+                gl.glVertex3f(p.x, p.y, p.z);
+                gl.glVertex3f(p.x*DISTANT_SIZE, p.y*DISTANT_SIZE, p.z*DISTANT_SIZE);
+                gl.glVertex3f(p.x, p.y, p.z);
+            }
+            gl.glEnd();
+        }
+        for(int v = 0; v < Vertical; v++)
+        {
+            gl.glBegin(GL2.GL_LINE_STRIP);
+            for(int h = -1; h <= Horizontal; h++)
+            {
+                Vec3f p;
+                if (h == -1)
+                    p = TopPoint;
+                else if (h == Horizontal)
+                    p = BottomPoint;
+                else
+                    p = Points[h][v];
+                gl.glVertex3f(p.x, p.y, p.z);
+            }
+            gl.glEnd();
+        }
+        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            gl.glColor3f(Col.r, Col.g, Col.b);
+        gl.glBegin(GL2.GL_LINES);
+        for(int h = 0; h < Horizontal; h++)
+        {
+            for(int v = 0; v <= Vertical; v++)
+            {
+                Vec3f p;
+                if (v == Vertical)
+                    p = Points[h][0];
+                else
+                    p = Points[h][v];
+                gl.glVertex3f(p.x, p.y, p.z);
+                gl.glVertex3f(p.x*DISTANT_SIZE, p.y*DISTANT_SIZE, p.z*DISTANT_SIZE);
+            }
+        }
+        gl.glEnd();
+        gl.glTranslatef(0f, 0f, 0f);
+    }
 
     // This was a nightmare to program
     public void makeCone(GLRenderer.RenderInfo info, Color4 Col)
@@ -403,6 +497,7 @@ public class GravityShapeRenderer extends GLRenderer {
         float ConeRadiusTop = ObjArg1 < 0 ? 0 : ObjArg1 * 0.5f;
         float ConeCutoffHeight = (ConeHeight * ConeRadiusTop) / ConeRadiusBottom; // Refers to the top of the cylinder
         float CUR_RANGE = Range <= 0 ? 0 : Range;
+        float CUR_DISTANT = CUR_RANGE + Distant;
         
         //-- QUICC MAFFS --
         // Somehow I did not steal this from StackOverflow
@@ -411,10 +506,12 @@ public class GravityShapeRenderer extends GLRenderer {
         double A = 3.14159 - 1.5708 - angley;
         double RangeTopX = Math.cos(A) * CUR_RANGE;
         double RangeTopY = Math.sin(A) * CUR_RANGE;
+        double DistantTopX = Math.cos(A) * CUR_DISTANT;
+        double DistantTopY = Math.sin(A) * CUR_DISTANT;
         //-----------------
         
         int Segments = 16;
-        int RoundedSegments = 3;
+        int RoundedSegments = 2;
         int RoundedSegmentsT = (int)Math.abs(Math.ceil((1.5708 - A) / 0.523599));
         int RoundedSegmentsL = (int)(A / 0.3926991f)+RoundedSegments;
         int RoundedSegmentsB = (int)(A / 0.3926991f)+RoundedSegments+1;
@@ -426,6 +523,9 @@ public class GravityShapeRenderer extends GLRenderer {
         Vec3f[] PointsRangeTop = new Vec3f[Segments+1];
         Vec3f[] PointsRangeLower = new Vec3f[Segments+1];
         Vec3f[] PointsRangeBottom = new Vec3f[Segments+1];
+        Vec3f[] PointsDistantTop = new Vec3f[Segments+1];
+        Vec3f[] PointsDistantLower = new Vec3f[Segments+1];
+        Vec3f[] PointsDistantBottom = new Vec3f[Segments+1];
         Vec3f[][] PointsRangeCurveTop = new Vec3f[RoundedSegmentsT][Segments+1];
         Vec3f[][] PointsRangeCurveLower = new Vec3f[RoundedSegmentsL][Segments+1];
         Vec3f[][] PointsRangeCurveBottom = new Vec3f[RoundedSegmentsB][Segments+1];
@@ -442,11 +542,20 @@ public class GravityShapeRenderer extends GLRenderer {
             double yRL = (ConeRadiusBottom + CUR_RANGE) * Math.sin(angle);
             double xRB = (ConeRadiusBottom + RangeTopX)* Math.cos(angle);
             double yRB = (ConeRadiusBottom + RangeTopX) * Math.sin(angle);
+            double xDT = (ConeRadiusTop + DistantTopX) * Math.cos(angle);
+            double yDT = (ConeRadiusTop + DistantTopX) * Math.sin(angle);
+            double xDL = (ConeRadiusBottom + CUR_DISTANT) * Math.cos(angle);
+            double yDL = (ConeRadiusBottom + CUR_DISTANT) * Math.sin(angle);
+            double xDB = (ConeRadiusBottom + DistantTopX)* Math.cos(angle);
+            double yDB = (ConeRadiusBottom + DistantTopX) * Math.sin(angle);
             PointsRadiusTop[i] = new Vec3f((float)xT, (float)yT, 0);
             PointsRadiusBottom[i] = new Vec3f((float)xB, (float)yB, 0);
             PointsRangeTop[i] = new Vec3f((float)xRT, (float)yRT, 0);
             PointsRangeLower[i] = new Vec3f((float)xRL, (float)yRL, 0);
             PointsRangeBottom[i] = new Vec3f((float)xRB, (float)yRB, 0);
+            PointsDistantTop[i] = new Vec3f((float)xDT, (float)yDT, 0);
+            PointsDistantLower[i] = new Vec3f((float)xDL, (float)yDL, 0);
+            PointsDistantBottom[i] = new Vec3f((float)xDB, (float)yDB, 0);
             
             for (int r = 0; r < RoundedSegmentsT; r++)
             {
@@ -491,6 +600,7 @@ public class GravityShapeRenderer extends GLRenderer {
         {
             Vec3f pointCurrentTop, pointNextTop, pointCurrentBottom, pointNextBottom;
             Vec3f pointCurrentRangeTop, pointNextRangeTop, pointCurrentRangeLower, pointNextRangeLower, pointCurrentRangeBottom, pointNextRangeBottom;
+            Vec3f pointCurrentDistantTop, pointNextDistantTop, pointCurrentDistantLower, pointNextDistantLower, pointCurrentDistantBottom, pointNextDistantBottom;
             
             if (info.renderMode != GLRenderer.RenderMode.PICKING)
                 gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
@@ -499,12 +609,20 @@ public class GravityShapeRenderer extends GLRenderer {
             pointNextTop = PointsRadiusTop[i+1];
             pointCurrentBottom = PointsRadiusBottom[i];
             pointNextBottom = PointsRadiusBottom[i+1];
+            
             pointCurrentRangeTop = PointsRangeTop[i];
             pointNextRangeTop = PointsRangeTop[i+1];
             pointCurrentRangeLower = PointsRangeLower[i];
             pointNextRangeLower = PointsRangeLower[i+1];
             pointCurrentRangeBottom = PointsRangeBottom[i];
             pointNextRangeBottom = PointsRangeBottom[i+1];
+            
+            pointCurrentDistantTop = PointsDistantTop[i];
+            pointNextDistantTop = PointsDistantTop[i+1];
+            pointCurrentDistantLower = PointsDistantLower[i];
+            pointNextDistantLower = PointsDistantLower[i+1];
+            pointCurrentDistantBottom = PointsDistantBottom[i];
+            pointNextDistantBottom = PointsDistantBottom[i+1];
             
             // UPPER RING (including cutoff)
             gl.glVertex3f(pointCurrentTop.x, pointCurrentTop.y, pointCurrentTop.z + ConeCutoffHeight);
@@ -534,6 +652,31 @@ public class GravityShapeRenderer extends GLRenderer {
             {
                 gl.glVertex3f(pointCurrentTop.x, pointCurrentTop.y, pointCurrentTop.z + ConeCutoffHeight - Range);
                 gl.glVertex3f(pointNextTop.x, pointNextTop.y, pointNextTop.z + ConeCutoffHeight - Range);
+            }
+            
+            if (Distant > 0)
+            {
+                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    gl.glColor3f(Col.r, Col.g, Col.b);
+                
+                // STRAIGHT UP
+                gl.glVertex3f(pointCurrentTop.x, pointCurrentTop.y, pointCurrentTop.z + ConeCutoffHeight - (CUR_DISTANT));
+                gl.glVertex3f(pointCurrentTop.x, pointCurrentTop.y, pointCurrentTop.z + ConeCutoffHeight - CUR_RANGE);
+                
+                gl.glVertex3f(pointCurrentDistantTop.x, pointCurrentDistantTop.y, pointCurrentDistantTop.z + ConeCutoffHeight - (float)DistantTopY);
+                gl.glVertex3f(pointCurrentRangeTop.x, pointCurrentRangeTop.y, pointCurrentRangeTop.z + ConeCutoffHeight - (float)RangeTopY);
+                
+                gl.glVertex3f(pointCurrentDistantBottom.x, pointCurrentDistantBottom.y, pointCurrentDistantBottom.z + ConeHeight - (float)DistantTopY);
+                gl.glVertex3f(pointCurrentRangeBottom.x, pointCurrentRangeBottom.y, pointCurrentRangeBottom.z + ConeHeight - (float)RangeTopY);
+                
+                gl.glVertex3f(pointCurrentDistantLower.x, pointCurrentDistantLower.y, pointCurrentDistantLower.z + ConeHeight);
+                gl.glVertex3f(pointCurrentRangeLower.x, pointCurrentRangeLower.y, pointCurrentRangeLower.z + ConeHeight);
+                
+                if (ObjArg0 != 0)
+                {
+                    gl.glVertex3f(pointCurrentBottom.x, pointCurrentBottom.y, pointCurrentBottom.z + ConeHeight + CUR_DISTANT);
+                    gl.glVertex3f(pointCurrentBottom.x, pointCurrentBottom.y, pointCurrentBottom.z + ConeHeight + CUR_RANGE);
+                }
             }
             
             if (Range <= 0)
@@ -665,100 +808,423 @@ public class GravityShapeRenderer extends GLRenderer {
         gl.glTranslatef(0f, 0f, 0f);
     }
     
-    // This was less of a nightmare to program...granted I did this one before Cones...
-    public void makePlanet(GLRenderer.RenderInfo info, Color4 Col)
-    {
-        GL2 gl = info.drawable.getGL().getGL2();
-        //Using this for Distant rendering
-        Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
-        
-        //To calculate the distance, subtract the Distant value from the Range, and figure out the scale percentage, then scale the vertexes of the sphere
-        
-        float SIZE = Range + Distant;
-        float DIST_SIZE = (Range / (SIZE));
-        int Horizontal = 8;
-        int Vertical = 16;
-        //We'll need all of this regardless because we'll need the points for Distance purposes
-        Vec3f TopPoint = new Vec3f(0, 0, -SIZE);
-        Vec3f BottomPoint = new Vec3f(0, 0, SIZE);
-        Vec3f[][] Points = new Vec3f[Horizontal][Vertical]; //[Row][VertexInRowId]
-        for(int h = 0; h < Horizontal; h++)
-        {
-            double lat0 = Math.PI * (-0.5 + (double) (h) / Horizontal);
-            double z0  = Math.sin(lat0);
-            double zr0 =  Math.cos(lat0);
-        
-            for(int v = 0; v < Vertical; v++)
-            {
-                double lng = 2 * Math.PI * (double) (v) / Vertical;
-                double x = Math.cos(lng);
-                double y = Math.sin(lng);
-
-                Vec3f p = new Vec3f((float)(SIZE * x * zr0), (float)(SIZE * y * zr0), (float)(SIZE * z0));
-                Points[h][v] = p;
-            }
-        }
-          
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
-            gl.glColor3f(Col.r, Col.g, Col.b);
-        gl.glTranslatef(0f, 0f, 0f);
-        gl.glRotatef(90f, 1f, 0f, 0f);
-        for(int h = 0; h < Horizontal; h++)
-        {
-            gl.glBegin(GL2.GL_LINE_STRIP);
-            for(int v = 0; v <= Vertical; v++)
-            {
-                Vec3f p;
-                if (v == Vertical)
-                    p = Points[h][0];
-                else
-                    p = Points[h][v];
-                gl.glVertex3f(p.x, p.y, p.z);
-                gl.glVertex3f(p.x*DIST_SIZE, p.y*DIST_SIZE, p.z*DIST_SIZE);
-                gl.glVertex3f(p.x, p.y, p.z);
-            }
-            gl.glEnd();
-        }
-        for(int v = 0; v < Vertical; v++)
-        {
-            gl.glBegin(GL2.GL_LINE_STRIP);
-            for(int h = -1; h <= Horizontal; h++)
-            {
-                Vec3f p;
-                if (h == -1)
-                    p = TopPoint;
-                else if (h == Horizontal)
-                    p = BottomPoint;
-                else
-                    p = Points[h][v];
-                gl.glVertex3f(p.x, p.y, p.z);
-            }
-            gl.glEnd();
-        }
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
-            gl.glColor3f(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
-        for(int h = 0; h < Horizontal; h++)
-        {
-            gl.glBegin(GL2.GL_LINES);
-            for(int v = 0; v <= Vertical; v++)
-            {
-                Vec3f p;
-                if (v == Vertical)
-                    p = Points[h][0];
-                else
-                    p = Points[h][v];
-                gl.glVertex3f(p.x, p.y, p.z);
-                gl.glVertex3f(p.x*DIST_SIZE, p.y*DIST_SIZE, p.z*DIST_SIZE);
-            }
-            gl.glEnd();
-        }
-        gl.glTranslatef(0f, 0f, 0f);
-    }
-
-
-    // Bruh
+    // This took longer than it should've
     public void makeCube(GLRenderer.RenderInfo info, Color4 Col)
     {
+        GL2 gl = info.drawable.getGL().getGL2();
         
+        float ScaleXSize = BOX_SIZE * Math.abs(Scale.x);
+        float ScaleYSize = BOX_SIZE * Math.abs(Scale.y);
+        float ScaleZSize = BOX_SIZE * Math.abs(Scale.z);
+        float YOffset = BOX_SIZE * Scale.y; //The Y Offset doesn't care about the number being positive
+        Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
+        Color4 DownZeroCol = new Color4(COLOR_ZERO.r*0.5f, COLOR_ZERO.g*0.5f, COLOR_ZERO.b*0.5f);
+        boolean pX = (((int)ObjArg0 & 1) != 0), // X+ Axis
+                nX = (((int)ObjArg0 & 2) != 0), // X- Axis
+                pY = (((int)ObjArg1 & 1) != 0), // Y+ Axis
+                nY = (((int)ObjArg1 & 2) != 0), // Y- Axis
+                pZ = (((int)ObjArg2 & 1) != 0), // Z+ Axis
+                nZ = (((int)ObjArg2 & 2) != 0); // Z- Axis
+        boolean isNotPicking = info.renderMode != GLRenderer.RenderMode.PICKING;
+        
+        if (IsInverse)
+        {
+            //If this is an inverted area, swap the colour definitions
+            Color4 t = Col;
+            Col = DownCol;
+            DownCol = t;
+        }
+        
+        float InvRescaleX = 1, InvRescaleY = 1, InvRescaleZ = 1;
+        if (Scale.x < 0)
+            InvRescaleX = -1;
+        if (Scale.y < 0)
+            InvRescaleY = -1;
+        if (Scale.z < 0)
+            InvRescaleZ = -1;
+        gl.glTranslatef(0f, YOffset, 0f);
+        gl.glScalef(InvRescaleX, InvRescaleY, InvRescaleZ);
+
+        makeCubeFace(gl, 1, 0, 0, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, 0, 1, 0, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, 0, 0, 1, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, -1, 0, 0, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, 0, -1, 0, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, 0, 0, -1, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        
+        // Switch to the Outer
+        float rng = Range > 0 ? Range : 0;
+        float RangeXSize = ScaleXSize + rng;
+        float RangeYSize = ScaleYSize + rng;
+        float RangeZSize = ScaleZSize + rng;
+        float DistantXSize = RangeXSize + Distant;
+        float DistantYSize = RangeXSize + Distant;
+        float DistantZSize = RangeXSize + Distant;
+        
+        if (Distant > 0)
+        {
+            gl.glBegin(GL2.GL_LINES);
+            // AXIS X+
+            if (pX)
+            {
+                makeCubeLine(gl, 1, 0, 0, Col, Col, RangeXSize, ScaleYSize, ScaleZSize, DistantXSize, ScaleYSize, ScaleZSize, isNotPicking);
+                makeCubeLine(gl, 1, 0, 0, Col, Col, RangeXSize, -ScaleYSize, ScaleZSize, DistantXSize, -ScaleYSize, ScaleZSize, isNotPicking);
+                makeCubeLine(gl, 1, 0, 0, Col, Col, RangeXSize, -ScaleYSize, -ScaleZSize, DistantXSize, -ScaleYSize, -ScaleZSize, isNotPicking);
+                makeCubeLine(gl, 1, 0, 0, Col, Col, RangeXSize, ScaleYSize, -ScaleZSize, DistantXSize, ScaleYSize, -ScaleZSize, isNotPicking);
+            }
+            // AXIS X-
+            if (nX)
+            {
+                makeCubeLine(gl, -1, 0, 0, Col, Col, -RangeXSize, ScaleYSize, ScaleZSize, -DistantXSize, ScaleYSize, ScaleZSize, isNotPicking);
+                makeCubeLine(gl, -1, 0, 0, Col, Col, -RangeXSize, -ScaleYSize, ScaleZSize, -DistantXSize, -ScaleYSize, ScaleZSize, isNotPicking);
+                makeCubeLine(gl, -1, 0, 0, Col, Col, -RangeXSize, -ScaleYSize, -ScaleZSize, -DistantXSize, -ScaleYSize, -ScaleZSize, isNotPicking);
+                makeCubeLine(gl, -1, 0, 0, Col, Col, -RangeXSize, ScaleYSize, -ScaleZSize, -DistantXSize, ScaleYSize, -ScaleZSize, isNotPicking);
+            }
+            // AXIS Y+
+            if (pY)
+            {
+                makeCubeLine(gl, 0, 1, 0, Col, Col, ScaleXSize, RangeYSize, ScaleZSize, ScaleXSize, DistantYSize, ScaleZSize, isNotPicking);
+                makeCubeLine(gl, 0, 1, 0, Col, Col, ScaleXSize, RangeYSize, -ScaleZSize, ScaleXSize, DistantYSize, -ScaleZSize, isNotPicking);
+                makeCubeLine(gl, 0, 1, 0, Col, Col, -ScaleXSize, RangeYSize, -ScaleZSize, -ScaleXSize, DistantYSize, -ScaleZSize, isNotPicking);
+                makeCubeLine(gl, 0, 1, 0, Col, Col, -ScaleXSize, RangeYSize, ScaleZSize, -ScaleXSize, DistantYSize, ScaleZSize, isNotPicking);    
+            }
+            // AXIS Y-
+            if (nY)
+            {
+                makeCubeLine(gl, 0, -1, 0, Col, Col, ScaleXSize, -RangeYSize, ScaleZSize, ScaleXSize, -DistantYSize, ScaleZSize, isNotPicking);
+                makeCubeLine(gl, 0, -1, 0, Col, Col, ScaleXSize, -RangeYSize, -ScaleZSize, ScaleXSize, -DistantYSize, -ScaleZSize, isNotPicking);
+                makeCubeLine(gl, 0, -1, 0, Col, Col, -ScaleXSize, -RangeYSize, -ScaleZSize, -ScaleXSize, -DistantYSize, -ScaleZSize, isNotPicking);
+                makeCubeLine(gl, 0, -1, 0, Col, Col, -ScaleXSize, -RangeYSize, ScaleZSize, -ScaleXSize, -DistantYSize, ScaleZSize, isNotPicking);    
+            }
+            // AXIS Z+
+            if (pZ)
+            {
+                makeCubeLine(gl, 0, 0, 1, Col, Col, ScaleXSize, ScaleYSize, RangeZSize, ScaleXSize, ScaleYSize, DistantZSize, isNotPicking);
+                makeCubeLine(gl, 0, 0, 1, Col, Col, ScaleXSize, -ScaleYSize, RangeZSize, ScaleXSize, -ScaleYSize, DistantZSize, isNotPicking);
+                makeCubeLine(gl, 0, 0, 1, Col, Col, -ScaleXSize, -ScaleYSize, RangeZSize, -ScaleXSize, -ScaleYSize, DistantZSize, isNotPicking);
+                makeCubeLine(gl, 0, 0, 1, Col, Col, -ScaleXSize, ScaleYSize, RangeZSize, -ScaleXSize, ScaleYSize, DistantZSize, isNotPicking);    
+            }
+            // AXIS Z-
+            if (nZ)
+            {
+                makeCubeLine(gl, 0, 0, -1, Col, Col, ScaleXSize, ScaleYSize, -RangeZSize, ScaleXSize, ScaleYSize, -DistantZSize, isNotPicking);
+                makeCubeLine(gl, 0, 0, -1, Col, Col, ScaleXSize, -ScaleYSize, -RangeZSize, ScaleXSize, -ScaleYSize, -DistantZSize, isNotPicking);
+                makeCubeLine(gl, 0, 0, -1, Col, Col, -ScaleXSize, -ScaleYSize, -RangeZSize, -ScaleXSize, -ScaleYSize, -DistantZSize, isNotPicking);
+                makeCubeLine(gl, 0, 0, -1, Col, Col, -ScaleXSize, ScaleYSize, -RangeZSize, -ScaleXSize, ScaleYSize, -DistantZSize, isNotPicking);            
+            }
+
+            gl.glEnd();
+        }
+        
+        
+        if (Range <= 0)
+            return; //No Range? Well why bother then?
+        if (pX)
+            makeCubeFace(gl, 1, 0, 0, Col, RangeXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        if (pY)
+            makeCubeFace(gl, 0, 1, 0, Col, ScaleXSize, RangeYSize, ScaleZSize, isNotPicking);
+        if (pZ)
+            makeCubeFace(gl, 0, 0, 1, Col, ScaleXSize, ScaleYSize, RangeZSize, isNotPicking);
+        if (nX)
+            makeCubeFace(gl, -1, 0, 0, Col, RangeXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        if (nY)
+            makeCubeFace(gl, 0, -1, 0, Col, ScaleXSize, RangeYSize, ScaleZSize, isNotPicking);
+        if (nZ)
+            makeCubeFace(gl, 0, 0, -1, Col, ScaleXSize, ScaleYSize, RangeZSize, isNotPicking);
+        
+        // With the cubes drawn, it's time to connect them!
+        // I'm not starting and stopping GL over and over for these since they're just lines and not line strips
+        gl.glBegin(GL2.GL_LINES);
+        // AXIS X+
+        if (pX)
+        {
+            makeCubeLine(gl, 1, 0, 0, DownCol, Col, ScaleXSize, ScaleYSize, ScaleZSize, RangeXSize, ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeLine(gl, 1, 0, 0, DownCol, Col, ScaleXSize, -ScaleYSize, ScaleZSize, RangeXSize, -ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeLine(gl, 1, 0, 0, DownCol, Col, ScaleXSize, -ScaleYSize, -ScaleZSize, RangeXSize, -ScaleYSize, -ScaleZSize, isNotPicking);
+            makeCubeLine(gl, 1, 0, 0, DownCol, Col, ScaleXSize, ScaleYSize, -ScaleZSize, RangeXSize, ScaleYSize, -ScaleZSize, isNotPicking);
+        }
+        // AXIS X-
+        if (nX)
+        {
+            makeCubeLine(gl, -1, 0, 0, DownCol, Col, -ScaleXSize, ScaleYSize, ScaleZSize, -RangeXSize, ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeLine(gl, -1, 0, 0, DownCol, Col, -ScaleXSize, -ScaleYSize, ScaleZSize, -RangeXSize, -ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeLine(gl, -1, 0, 0, DownCol, Col, -ScaleXSize, -ScaleYSize, -ScaleZSize, -RangeXSize, -ScaleYSize, -ScaleZSize, isNotPicking);
+            makeCubeLine(gl, -1, 0, 0, DownCol, Col, -ScaleXSize, ScaleYSize, -ScaleZSize, -RangeXSize, ScaleYSize, -ScaleZSize, isNotPicking);
+        }
+        // AXIS Y+
+        if (pY)
+        {
+            makeCubeLine(gl, 0, 1, 0, DownCol, Col, ScaleXSize, ScaleYSize, ScaleZSize, ScaleXSize, RangeYSize, ScaleZSize, isNotPicking);
+            makeCubeLine(gl, 0, 1, 0, DownCol, Col, ScaleXSize, ScaleYSize, -ScaleZSize, ScaleXSize, RangeYSize, -ScaleZSize, isNotPicking);
+            makeCubeLine(gl, 0, 1, 0, DownCol, Col, -ScaleXSize, ScaleYSize, -ScaleZSize, -ScaleXSize, RangeYSize, -ScaleZSize, isNotPicking);
+            makeCubeLine(gl, 0, 1, 0, DownCol, Col, -ScaleXSize, ScaleYSize, ScaleZSize, -ScaleXSize, RangeYSize, ScaleZSize, isNotPicking);    
+        }
+        // AXIS Y-
+        if (nY)
+        {
+            makeCubeLine(gl, 0, -1, 0, DownCol, Col, ScaleXSize, -ScaleYSize, ScaleZSize, ScaleXSize, -RangeYSize, ScaleZSize, isNotPicking);
+            makeCubeLine(gl, 0, -1, 0, DownCol, Col, ScaleXSize, -ScaleYSize, -ScaleZSize, ScaleXSize, -RangeYSize, -ScaleZSize, isNotPicking);
+            makeCubeLine(gl, 0, -1, 0, DownCol, Col, -ScaleXSize, -ScaleYSize, -ScaleZSize, -ScaleXSize, -RangeYSize, -ScaleZSize, isNotPicking);
+            makeCubeLine(gl, 0, -1, 0, DownCol, Col, -ScaleXSize, -ScaleYSize, ScaleZSize, -ScaleXSize, -RangeYSize, ScaleZSize, isNotPicking);    
+        }
+        // AXIS Z+
+        if (pZ)
+        {
+            makeCubeLine(gl, 0, 0, 1, DownCol, Col, ScaleXSize, ScaleYSize, ScaleZSize, ScaleXSize, ScaleYSize, RangeZSize, isNotPicking);
+            makeCubeLine(gl, 0, 0, 1, DownCol, Col, ScaleXSize, -ScaleYSize, ScaleZSize, ScaleXSize, -ScaleYSize, RangeZSize, isNotPicking);
+            makeCubeLine(gl, 0, 0, 1, DownCol, Col, -ScaleXSize, -ScaleYSize, ScaleZSize, -ScaleXSize, -ScaleYSize, RangeZSize, isNotPicking);
+            makeCubeLine(gl, 0, 0, 1, DownCol, Col, -ScaleXSize, ScaleYSize, ScaleZSize, -ScaleXSize, ScaleYSize, RangeZSize, isNotPicking);    
+        }
+        // AXIS Z-
+        if (nZ)
+        {
+            makeCubeLine(gl, 0, 0, -1, DownCol, Col, ScaleXSize, ScaleYSize, -ScaleZSize, ScaleXSize, ScaleYSize, -RangeZSize, isNotPicking);
+            makeCubeLine(gl, 0, 0, -1, DownCol, Col, ScaleXSize, -ScaleYSize, -ScaleZSize, ScaleXSize, -ScaleYSize, -RangeZSize, isNotPicking);
+            makeCubeLine(gl, 0, 0, -1, DownCol, Col, -ScaleXSize, -ScaleYSize, -ScaleZSize, -ScaleXSize, -ScaleYSize, -RangeZSize, isNotPicking);
+            makeCubeLine(gl, 0, 0, -1, DownCol, Col, -ScaleXSize, ScaleYSize, -ScaleZSize, -ScaleXSize, ScaleYSize, -RangeZSize, isNotPicking);            
+        }
+        
+        
+        int EdgeSegments = 2; //Maybe make modular?
+        // EDGE X+/Y+
+        if (pX && pY)
+        {
+            makeCubeEdge(gl, 0, 0, 1, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, ScaleZSize, RangeXSize, ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, 1, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, -ScaleZSize, RangeXSize, ScaleYSize, -ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, 1, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, ScaleZSize, ScaleXSize, RangeYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, 1, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, -ScaleZSize, ScaleXSize, RangeYSize, -ScaleZSize, isNotPicking);
+        }
+        // EDGE X-/Y+
+        if (nX && pY)
+        {
+            makeCubeEdge(gl, 0, 0, -1, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, ScaleZSize, -RangeXSize, ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, -1, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, -ScaleZSize, -RangeXSize, ScaleYSize, -ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, -1, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, ScaleZSize, -ScaleXSize, RangeYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, -1, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, -ScaleZSize, -ScaleXSize, RangeYSize, -ScaleZSize, isNotPicking);
+        }
+        // EDGE Z+/Y+
+        if (pZ && pY)
+        {
+            makeCubeEdge(gl, 1, 0, 0, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, ScaleZSize, ScaleXSize, ScaleYSize, RangeZSize, isNotPicking);
+            makeCubeEdge(gl, 1, 0, 0, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, ScaleZSize, -ScaleXSize, ScaleYSize, RangeZSize, isNotPicking);
+            makeCubeEdge(gl, 1, 0, 0, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, ScaleZSize, ScaleXSize, RangeYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 1, 0, 0, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, ScaleZSize, -ScaleXSize, RangeYSize, ScaleZSize, isNotPicking);
+        }
+        // EDGE Z-/Y+
+        if (nZ && pY)
+        {
+            makeCubeEdge(gl, -1, 0, 0, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, -ScaleZSize, ScaleXSize, ScaleYSize, -RangeZSize, isNotPicking);
+            makeCubeEdge(gl, -1, 0, 0, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, -ScaleZSize, -ScaleXSize, ScaleYSize, -RangeZSize, isNotPicking);
+            makeCubeEdge(gl, -1, 0, 0, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, -ScaleZSize, ScaleXSize, RangeYSize, -ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, -1, 0, 0, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, -ScaleZSize, -ScaleXSize, RangeYSize, -ScaleZSize, isNotPicking);
+        }
+        
+        // EDGE X+/Z+
+        if (pX && pZ)
+        {
+            makeCubeEdge(gl, 0, 1, 0, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, ScaleZSize, RangeXSize, ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 1, 0, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, ScaleZSize, RangeXSize, -ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 1, 0, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, ScaleZSize, ScaleXSize, ScaleYSize, RangeZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 1, 0, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, ScaleZSize, ScaleXSize, -ScaleYSize, RangeZSize, isNotPicking);
+        }
+        // EDGE X+/Z-
+        if (pX && nZ)
+        {
+            makeCubeEdge(gl, 0, -1, 0, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, -ScaleZSize, RangeXSize, ScaleYSize, -ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, -1, 0, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, -ScaleZSize, RangeXSize, -ScaleYSize, -ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, -1, 0, DownCol, Col, EdgeSegments, ScaleXSize, ScaleYSize, -ScaleZSize, ScaleXSize, ScaleYSize, -RangeZSize, isNotPicking);
+            makeCubeEdge(gl, 0, -1, 0, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, -ScaleZSize, ScaleXSize, -ScaleYSize, -RangeZSize, isNotPicking);
+        }
+        // EDGE X-/Z+
+        if (nX && pZ)
+        {
+            makeCubeEdge(gl, 0, -1, 0, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, ScaleZSize, -RangeXSize, ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, -1, 0, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, ScaleZSize, -RangeXSize, -ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, -1, 0, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, ScaleZSize, -ScaleXSize, ScaleYSize, RangeZSize, isNotPicking);
+            makeCubeEdge(gl, 0, -1, 0, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, ScaleZSize, -ScaleXSize, -ScaleYSize, RangeZSize, isNotPicking);
+        }
+        // EDGE X-/Z-
+        if (nX && nZ)
+        {
+            makeCubeEdge(gl, 0, 1, 0, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, -ScaleZSize, -RangeXSize, ScaleYSize, -ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 1, 0, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, -ScaleZSize, -RangeXSize, -ScaleYSize, -ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 1, 0, DownCol, Col, EdgeSegments, -ScaleXSize, ScaleYSize, -ScaleZSize, -ScaleXSize, ScaleYSize, -RangeZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 1, 0, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, -ScaleZSize, -ScaleXSize, -ScaleYSize, -RangeZSize, isNotPicking);
+        }
+        
+        
+        // EDGE X+/Y-
+        if (pX && nY)
+        {
+            makeCubeEdge(gl, 0, 0, -1, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, ScaleZSize, RangeXSize, -ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, -1, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, -ScaleZSize, RangeXSize, -ScaleYSize, -ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, -1, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, ScaleZSize, ScaleXSize, -RangeYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, -1, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, -ScaleZSize, ScaleXSize, -RangeYSize, -ScaleZSize, isNotPicking);
+        }
+        // EDGE X-/Y-
+        if (nX && nY)
+        {
+            makeCubeEdge(gl, 0, 0, 1, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, ScaleZSize, -RangeXSize, -ScaleYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, 1, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, -ScaleZSize, -RangeXSize, -ScaleYSize, -ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, 1, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, ScaleZSize, -ScaleXSize, -RangeYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 0, 0, 1, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, -ScaleZSize, -ScaleXSize, -RangeYSize, -ScaleZSize, isNotPicking);
+        }
+        // EDGE Z+/Y-
+        if (pZ && nY)
+        {
+            makeCubeEdge(gl, -1, 0, 0, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, ScaleZSize, ScaleXSize, -ScaleYSize, RangeZSize, isNotPicking);
+            makeCubeEdge(gl, -1, 0, 0, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, ScaleZSize, -ScaleXSize, -ScaleYSize, RangeZSize, isNotPicking);
+            makeCubeEdge(gl, -1, 0, 0, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, ScaleZSize, ScaleXSize, -RangeYSize, ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, -1, 0, 0, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, ScaleZSize, -ScaleXSize, -RangeYSize, ScaleZSize, isNotPicking);
+        }
+        // EDGE Z-/Y-
+        if (nZ && nY)
+        {
+            makeCubeEdge(gl, 1, 0, 0, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, -ScaleZSize, ScaleXSize, -ScaleYSize, -RangeZSize, isNotPicking);
+            makeCubeEdge(gl, 1, 0, 0, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, -ScaleZSize, -ScaleXSize, -ScaleYSize, -RangeZSize, isNotPicking);
+            makeCubeEdge(gl, 1, 0, 0, DownCol, Col, EdgeSegments, ScaleXSize, -ScaleYSize, -ScaleZSize, ScaleXSize, -RangeYSize, -ScaleZSize, isNotPicking);
+            makeCubeEdge(gl, 1, 0, 0, DownCol, Col, EdgeSegments, -ScaleXSize, -ScaleYSize, -ScaleZSize, -ScaleXSize, -RangeYSize, -ScaleZSize, isNotPicking);
+        }
+        
+        gl.glEnd();
+        gl.glScalef(1f,1f,1f);
+        gl.glTranslatef(0f, -YOffset, 0f);
+    }
+    private void makeCubeFace(GL2 gl, int DirectionX, int DirectionY, int DirectionZ, Color4 Col, float ScaleXSize, float ScaleYSize, float ScaleZSize, boolean IsAllowColor)
+    {
+        // for the direction values, -1 = - and 1 = +
+        // 0 means "do not draw"
+        
+        float ColorFaceOffset = IsInverse ? -0.f : 0.f;
+        float OffsetX = ColorFaceOffset;
+        float OffsetY = ColorFaceOffset;
+        float OffsetZ = ColorFaceOffset;
+        float FaceX = ScaleXSize;
+        float FaceY = ScaleYSize;
+        float FaceZ = ScaleZSize;
+        if (DirectionX != 0)
+            FaceX = DirectionX > 0 ? ScaleXSize+OffsetX : -ScaleXSize-OffsetX;
+        if (DirectionY != 0)
+            FaceY = DirectionY > 0 ? ScaleYSize+OffsetY : -ScaleYSize-OffsetY;
+        if (DirectionZ != 0)
+            FaceZ = DirectionZ > 0 ? ScaleZSize+OffsetZ : -ScaleZSize-OffsetZ;
+        
+        
+        // Am I a genius for this??
+        gl.glBegin(GL2.GL_LINE_STRIP);
+        if (IsAllowColor)
+            gl.glColor3f(Col.r, Col.g, Col.b);
+        gl.glVertex3f(                  FaceX,                            FaceY,                                     FaceZ);
+        gl.glVertex3f(DirectionX != 0 ? FaceX : -FaceX,                   FaceY,          DirectionX == 0 ? FaceZ : -FaceZ);
+        gl.glVertex3f(DirectionX != 0 ? FaceX : -FaceX, DirectionY != 0 ? FaceY : -FaceY, DirectionZ != 0 ? FaceZ : -FaceZ);
+        gl.glVertex3f(                  FaceX,          DirectionY != 0 ? FaceY : -FaceY, DirectionY == 0 ? FaceZ : -FaceZ);
+        gl.glVertex3f(                  FaceX,                            FaceY,                                     FaceZ);
+        gl.glEnd();
+    }
+    private void makeCubeLine(GL2 gl, int DirectionX, int DirectionY, int DirectionZ, Color4 Col1, Color4 Col2, float X1, float Y1, float Z1, float X2, float Y2, float Z2, boolean IsAllowColor)
+    {
+        float ColorFaceOffset = IsInverse ? -0.f : 0.f;
+        float OffsetX1 = 0;
+        float OffsetY1 = 0;
+        float OffsetZ1 = 0;
+        float OffsetX2 = 0;
+        float OffsetY2 = 0;
+        float OffsetZ2 = 0;
+        if (DirectionX != 0)
+            OffsetX1 = OffsetX2 = DirectionX > 0 ? ColorFaceOffset : -ColorFaceOffset;
+        if (DirectionY != 0)
+            OffsetY1 = OffsetY2 = DirectionY > 0 ? ColorFaceOffset : -ColorFaceOffset;
+        if (DirectionZ != 0)
+            OffsetZ1 = OffsetZ2 = DirectionZ > 0 ? ColorFaceOffset : -ColorFaceOffset;
+        
+        if (IsAllowColor)
+            gl.glColor3f(Col1.r, Col1.g, Col1.b);
+        gl.glVertex3f(X1 + OffsetX1, Y1 + OffsetY1, Z1 + OffsetZ1);
+        if (IsAllowColor)
+            gl.glColor3f(Col2.r, Col2.g, Col2.b);
+        gl.glVertex3f(X2 + OffsetX2, Y2 + OffsetY2, Z2 + OffsetZ2);
+    }
+    private Vec3f[] makeCubeEdge(GL2 gl, int UseRotAxisX, int UseRotAxisY, int UseRotAxisZ, Color4 Col1, Color4 Col2, int Segments, float OriginX, float OriginY, float OriginZ, float OuterX, float OuterY, float OuterZ, boolean IsAllowColor)
+    {        
+        //Segments = 16;
+        Vec3f[] Points = new Vec3f[Segments+1];
+        Vec3f Axis = new Vec3f(OuterX - OriginX, OuterY - OriginY, OuterZ - OriginZ);
+        float Radius = 0;
+        if (Axis.x != 0)
+            Radius = Axis.x;
+        if (Axis.y != 0)
+            Radius = Axis.y;
+        if (Axis.z != 0)
+            Radius = Axis.z;
+        if (Radius == 0) //Should never occur...
+            return null;
+        for(int i = 0; i <= Segments; i++)
+        {
+            double angle = 0.25f * Math.PI * (i/(float)Segments);
+            double x = 0;
+            double y = 0;
+            double z = 0;
+            if (UseRotAxisZ != 0)
+            {
+                if (Axis.y != 0)
+                {
+                    y = Radius * Math.cos(angle);
+                    x = Radius * Math.sin(angle) * UseRotAxisZ;
+                }
+                else
+                {
+                    x = Radius * Math.cos(angle);
+                    y = Radius * Math.sin(angle) * UseRotAxisZ;
+                }
+            }
+            if (UseRotAxisY != 0)
+            {
+                if (Axis.z != 0)
+                {
+                    z = Radius * Math.cos(angle);
+                    x = Radius * Math.sin(angle) * UseRotAxisY;
+                }
+                else
+                {
+                    x = Radius * Math.cos(angle);
+                    z = Radius * Math.sin(angle) * UseRotAxisY;
+                }
+            }
+            if (UseRotAxisX != 0)
+            {
+                if (Axis.y != 0)
+                {
+                    y = Radius * Math.cos(angle);
+                    z = Radius * Math.sin(angle) * UseRotAxisX; 
+                }
+                else
+                {
+                    z = Radius * Math.cos(angle);
+                    y = Radius * Math.sin(angle) * UseRotAxisX;  
+                }
+            }
+            Points[i] = new Vec3f((float)x, (float)y, (float)z);
+        }
+        
+        for(int i = 0; i < Points.length; i++)
+        {
+            Vec3f p1 = Points[i];
+            
+//            if (IsAllowColor)
+//                gl.glColor3f(Col1.r, Col1.g, Col1.b);
+//            gl.glVertex3f(OriginX, OriginY, OriginZ);
+//            if (IsAllowColor)
+//                gl.glColor3f(Col2.r, Col2.g, Col2.b);
+//            gl.glVertex3f(OriginX + p1.x, OriginY + p1.y, OriginZ + p1.z);
+            
+            if (i == Points.length-1)
+                continue;
+            Vec3f p2 = Points[i+1];
+            if (IsAllowColor)
+                gl.glColor3f(Col2.r, Col2.g, Col2.b);
+            gl.glVertex3f(OriginX + p1.x, OriginY + p1.y, OriginZ + p1.z);
+            gl.glVertex3f(OriginX + p2.x, OriginY + p2.y, OriginZ + p2.z);
+        }
+        return Points;
     }
 }
