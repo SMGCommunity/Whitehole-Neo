@@ -387,6 +387,10 @@ public final class ObjectDB {
             return progress;
         }
         
+        public HashMap<String, PropertyInfo> properties() {
+            return properties;
+        }
+        
         public String simpleParameterName(int game, String parameter, String objectName) {
             if (properties == null || !properties.containsKey(parameter)) {
                 return parameter;

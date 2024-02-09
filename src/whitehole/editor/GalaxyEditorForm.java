@@ -31,6 +31,10 @@ import javax.swing.tree.*;
 import whitehole.Settings;
 import whitehole.Whitehole;
 import whitehole.db.GalaxyNames;
+import whitehole.db.ObjectDB;
+import whitehole.db.ObjectDB.ClassInfo;
+import whitehole.db.ObjectDB.ObjectInfo;
+import whitehole.db.ObjectDB.PropertyInfo;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderMode;
 import whitehole.rendering.RendererCache;
@@ -580,7 +584,102 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         }
     }
-
+    
+    // Checks if applicable values that are marked "Needed" in ObjectDB
+    private void checkForMissingRequiredValuesInGalaxy() {
+        List<Object[]> valuesList = new ArrayList<>();
+        
+        // Compile all the missing values into a list
+        for (StageArchive arc : zoneArchives.values()) {
+            for (List<AbstractObj> layers : arc.objects.values()) {
+                for (AbstractObj obj : layers) {
+                    Object[] valuesArray = {obj.toString(), obj.data.getInt("l_id"), getMissingRequiredValuesForObj(obj)};
+                    valuesList.add(valuesArray);
+                }
+            }
+        }
+        
+        // Warn the user about missing values
+        for (Object[] objValues : valuesList) {
+            Object name = objValues[0];
+            Object l_id = objValues[1];
+            
+            List<String> missingVals = (ArrayList<String>)objValues[2];
+            if (missingVals != null && !missingVals.isEmpty()) {
+                String missingValsString = missingVals.toString();
+                // get rid of []
+                missingValsString = missingValsString.substring(1, missingValsString.length() - 1);
+                
+                JOptionPane.showMessageDialog(this, "Warning!\nRequired value(s) not set for "+name+" (ID "+l_id+"):\n"+
+                        missingValsString, Whitehole.NAME, JOptionPane.WARNING_MESSAGE, null);
+            }
+        }
+    }
+    private List<String> getMissingRequiredValuesForObj(AbstractObj obj) {
+        List<String> missingVals = new ArrayList<>(); 
+        Collection<PropertyInfo> propertyList = getPropertyList(obj); 
+        if (propertyList != null) {
+            for (PropertyInfo propInfo : propertyList) {
+                List<String> propExclusives = propInfo.exclusives();
+                boolean appliesToObject;
+                if (propExclusives == null) {
+                    appliesToObject = true;
+                } else {
+                    appliesToObject = propExclusives.contains(obj.name);
+                }
+                
+                if (propInfo.needed() && appliesToObject) {
+                    String propName = propInfo.toString();
+                    
+                    // convert property name to be read
+                    switch (propName) {
+                        case "Rail":
+                            propName = "CommonPath_ID";
+                            break;
+                        case "Camera":
+                            propName = "CameraSetId";
+                            break;
+                        case "Group":
+                            propName = "GroupId";
+                            break;
+                        case "AppearPowerStar":
+                        case "NamePos":
+                        case "LinkNamePos":
+                        case "DemoCast":
+                        case "Message":
+                            propName = "Unsupported";
+                            break;
+                        default:
+                            break;
+                    }
+                    
+                    // add property if it exists and it's not set (-1)
+                    if (obj.data.containsKey(propName)) {
+                        if (obj.data.getInt(propName) == -1) {
+                            missingVals.add(propName);
+                        }
+                    } else if (!propName.equals("Unsupported")) {
+                        JOptionPane.showMessageDialog(this, "Warning!\nUnrecognized Property Name (Object "+obj.name+"):\n"+
+                        propName, Whitehole.NAME, JOptionPane.WARNING_MESSAGE, null);
+                    }
+                                        
+                }
+            }
+        }
+        return missingVals;
+    }
+    
+    private Collection<PropertyInfo> getPropertyList(AbstractObj obj) {
+        try {
+            ObjectInfo objectInfo = ObjectDB.getObjectInfo(obj.name);
+            ClassInfo classInfo = objectInfo.classInfo(Whitehole.getCurrentGameType());
+            HashMap<String, PropertyInfo> propList = classInfo.properties();
+            return propList.values();
+        }
+        catch (Exception ex) {
+            return null;
+        }
+    }
     private void saveChanges() {
         lblStatus.setText("Saving changes...");
         
@@ -621,6 +720,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             Settings.setShowGravity(tgbShowGravity.isSelected());
             Settings.setShowPaths(tgbShowPaths.isSelected());
             Settings.setShowAxis(tgbShowAxis.isSelected());
+            
+            checkForMissingRequiredValuesInGalaxy();
             
             if(unsavedChanges) {
                 // Should we really scrap our changes?
