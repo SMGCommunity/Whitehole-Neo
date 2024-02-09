@@ -585,7 +585,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
-    // Checks if applicable values that are marked "Needed" in ObjectDB
+    // Checks if applicable values that are marked "Needed" in ObjectDB for the current galaxy.
     private void checkForMissingRequiredValuesInGalaxy() {
         List<Object[]> valuesList = new ArrayList<>();
         
@@ -607,14 +607,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             List<String> missingVals = (ArrayList<String>)objValues[2];
             if (missingVals != null && !missingVals.isEmpty()) {
                 String missingValsString = missingVals.toString();
-                // get rid of []
-                missingValsString = missingValsString.substring(1, missingValsString.length() - 1);
+                missingValsString = missingValsString.substring(1, missingValsString.length() - 1); // Gets rid of []
                 
                 JOptionPane.showMessageDialog(this, "Warning!\nRequired value(s) not set for "+name+" (ID "+l_id+"):\n"+
                         missingValsString, Whitehole.NAME, JOptionPane.WARNING_MESSAGE, null);
             }
         }
     }
+    
+    // Checks if applicable values that are marked "Needed" in ObjectDB for an object
     private List<String> getMissingRequiredValuesForObj(AbstractObj obj) {
         List<String> missingVals = new ArrayList<>(); 
         Collection<PropertyInfo> propertyList = getPropertyList(obj); 

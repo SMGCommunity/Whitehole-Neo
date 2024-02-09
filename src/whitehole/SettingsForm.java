@@ -64,32 +64,47 @@ public class SettingsForm extends javax.swing.JDialog {
         txtBaseGame = new javax.swing.JTextField();
         btnBrowseBaseGamePath = new javax.swing.JButton();
         chkUseBetterQuality = new javax.swing.JCheckBox();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(100, 0), new java.awt.Dimension(200, 0));
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(String.format("%s -- Settings", Whitehole.NAME));
+        setBounds(new java.awt.Rectangle(0, 0, 629, 629));
         setIconImage(Whitehole.ICON);
+        setMaximumSize(new java.awt.Dimension(629, 629));
+        setPreferredSize(new java.awt.Dimension(560, 266));
         setResizable(false);
+        setSize(new java.awt.Dimension(510, 246));
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
             }
         });
+        getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        pnlSettings.setLayout(new java.awt.GridBagLayout());
+        pnlSettings.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        pnlSettings.setMaximumSize(new java.awt.Dimension(629, 629));
+        pnlSettings.setMinimumSize(new java.awt.Dimension(521, 192));
+        java.awt.GridBagLayout pnlSettingsLayout = new java.awt.GridBagLayout();
+        pnlSettingsLayout.columnWeights = new double[] {1.0, 1.0, 1.0, 1.0};
+        pnlSettings.setLayout(pnlSettingsLayout);
 
         lblAppearance.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         lblAppearance.setText("Appearance");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.PAGE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(lblAppearance, gridBagConstraints);
 
         lblControls.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         lblControls.setText("Controls");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(lblControls, gridBagConstraints);
@@ -103,6 +118,7 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkUseDarkMode, gridBagConstraints);
@@ -116,7 +132,7 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkDebugFakeColor, gridBagConstraints);
@@ -130,6 +146,7 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkDebugFastDrag, gridBagConstraints);
@@ -142,8 +159,9 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkUseReverseRot, gridBagConstraints);
@@ -156,59 +174,67 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkUseWASD, gridBagConstraints);
 
         lblPosition.setText("Position");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(lblPosition, gridBagConstraints);
 
         lblRotation.setText("Rotation");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(lblRotation, gridBagConstraints);
 
         lblScale.setText("Scale");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(lblScale, gridBagConstraints);
 
         btnPosition.setText("[not set]");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(btnPosition, gridBagConstraints);
 
         btnRotation.setText("[not set]");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(btnRotation, gridBagConstraints);
 
         btnScale.setText("[not set]");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(btnScale, gridBagConstraints);
 
         jLabel1.setText("Base Game Path (For objects only)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(jLabel1, gridBagConstraints);
 
         txtBaseGame.setText(Settings.getBaseGameDir());
@@ -219,9 +245,10 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(txtBaseGame, gridBagConstraints);
 
         btnBrowseBaseGamePath.setText("Browse...");
@@ -231,9 +258,10 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(btnBrowseBaseGamePath, gridBagConstraints);
 
         chkUseBetterQuality.setSelected(Settings.getUseBetterQuality());
@@ -245,63 +273,32 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkUseBetterQuality, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        pnlSettings.add(filler1, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        pnlSettings.add(filler2, gridBagConstraints);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(pnlSettings, javax.swing.GroupLayout.DEFAULT_SIZE, 431, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(pnlSettings, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.PAGE_START;
+        getContentPane().add(pnlSettings, gridBagConstraints);
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void chkDebugFakeColorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkDebugFakeColorItemStateChanged
-        Settings.setDebugFakeColor(evt.getStateChange() == ItemEvent.SELECTED);
-    }//GEN-LAST:event_chkDebugFakeColorItemStateChanged
-
-    private void chkDebugFastDragItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkDebugFastDragItemStateChanged
-        Settings.setDebugFastDrag(evt.getStateChange() == ItemEvent.SELECTED);
-    }//GEN-LAST:event_chkDebugFastDragItemStateChanged
-
-    private void chkUseReverseRotItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseReverseRotItemStateChanged
-        Settings.setUseReverseRot(evt.getStateChange() == ItemEvent.SELECTED);
-    }//GEN-LAST:event_chkUseReverseRotItemStateChanged
-
-    private void chkUseWASDItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseWASDItemStateChanged
-        Settings.setUseWASD(evt.getStateChange() == ItemEvent.SELECTED);
-    }//GEN-LAST:event_chkUseWASDItemStateChanged
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         Settings.setKeyPosition(((KeybindButton)btnPosition).keybind);
         Settings.setKeyRotation(((KeybindButton)btnRotation).keybind);
         Settings.setKeyScale(((KeybindButton)btnScale).keybind);
     }//GEN-LAST:event_formWindowClosing
-
-    private void chkUseDarkModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseDarkModeItemStateChanged
-        Settings.setUseDarkMode(evt.getStateChange() == ItemEvent.SELECTED);
-        Whitehole.requestUpdateLAF();
-    }//GEN-LAST:event_chkUseDarkModeItemStateChanged
-
-    private void txtBaseGameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBaseGameKeyReleased
-        String pth = txtBaseGame.getText();
-        setBaseGamePath(pth);
-    }//GEN-LAST:event_txtBaseGameKeyReleased
 
     private void chkUseBetterQualityItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseBetterQualityItemStateChanged
         Settings.setUseBetterQuality(evt.getStateChange() == ItemEvent.SELECTED);
@@ -311,18 +308,44 @@ public class SettingsForm extends javax.swing.JDialog {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Open a base SMG1/2 Directory");
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        
+
         String lastGameDir = Settings.getBaseGameDir();
         if (lastGameDir != null && lastGameDir.length() > 0) {
             fc.setSelectedFile(new File(lastGameDir));
         }
-        
+
         if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             String pth = fc.getSelectedFile().getPath();
             txtBaseGame.setText(pth);
             setBaseGamePath(pth);
         }
     }//GEN-LAST:event_btnBrowseBaseGamePathActionPerformed
+
+    private void txtBaseGameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBaseGameKeyReleased
+        String pth = txtBaseGame.getText();
+        setBaseGamePath(pth);
+    }//GEN-LAST:event_txtBaseGameKeyReleased
+
+    private void chkUseWASDItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseWASDItemStateChanged
+        Settings.setUseWASD(evt.getStateChange() == ItemEvent.SELECTED);
+    }//GEN-LAST:event_chkUseWASDItemStateChanged
+
+    private void chkUseReverseRotItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseReverseRotItemStateChanged
+        Settings.setUseReverseRot(evt.getStateChange() == ItemEvent.SELECTED);
+    }//GEN-LAST:event_chkUseReverseRotItemStateChanged
+
+    private void chkDebugFastDragItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkDebugFastDragItemStateChanged
+        Settings.setDebugFastDrag(evt.getStateChange() == ItemEvent.SELECTED);
+    }//GEN-LAST:event_chkDebugFastDragItemStateChanged
+
+    private void chkDebugFakeColorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkDebugFakeColorItemStateChanged
+        Settings.setDebugFakeColor(evt.getStateChange() == ItemEvent.SELECTED);
+    }//GEN-LAST:event_chkDebugFakeColorItemStateChanged
+
+    private void chkUseDarkModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkUseDarkModeItemStateChanged
+        Settings.setUseDarkMode(evt.getStateChange() == ItemEvent.SELECTED);
+        Whitehole.requestUpdateLAF();
+    }//GEN-LAST:event_chkUseDarkModeItemStateChanged
     
     private void setBaseGamePath(String pth)
     {     
@@ -399,6 +422,8 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JCheckBox chkUseDarkMode;
     private javax.swing.JCheckBox chkUseReverseRot;
     private javax.swing.JCheckBox chkUseWASD;
+    private javax.swing.Box.Filler filler1;
+    private javax.swing.Box.Filler filler2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel lblAppearance;
     private javax.swing.JLabel lblControls;
