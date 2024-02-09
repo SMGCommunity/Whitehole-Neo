@@ -115,8 +115,11 @@ public class StageHelper {
             bcsv.addField("SW_SLEEP", 0, -1, 0, -1);
         }
         
-        bcsv.addField("MessageId", 0, -1, 0, -1);
-        
+        if (game == 2) {
+            bcsv.addField("MessageId", 0, -1, 0, -2);
+        } else {
+            bcsv.addField("MessageId", 0, -1, 0, -1);
+        }
         if (game == 2) {
             bcsv.addField("ParamScale", 2, -1, 0, 0.0f);
         }

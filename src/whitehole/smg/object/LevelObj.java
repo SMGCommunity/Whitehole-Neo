@@ -86,7 +86,12 @@ public class LevelObj extends AbstractObj {
         data.put("ShapeModelNo", (short)-1);
         data.put("CommonPath_ID", (short)-1);
         data.put("CameraSetId", -1);
-        data.put("MessageId", -1);
+        if (Whitehole.getCurrentGameType() == 1) {
+            data.put("MessageId", -1);
+        }
+        else {
+            data.put("MessageId", -2);
+        }
     }
     
     @Override
