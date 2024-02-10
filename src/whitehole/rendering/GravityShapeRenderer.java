@@ -1349,6 +1349,20 @@ public class GravityShapeRenderer extends GLRenderer {
                     // DISTANT BOTTOM
                     gl.glVertex3f(br1.x, br1.y, br1.z);
                     gl.glVertex3f(bd1.x, bd1.y, bd1.z);
+                    
+                    // CENTER LINES
+                    gl.glVertex3f(tr1.x, tr1.y, tr1.z);
+                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+                    gl.glVertex3f(0, 0, tr1.z);
+                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        gl.glColor3f(Col.r, Col.g, Col.b);
+                    gl.glVertex3f(br1.x, br1.y, br1.z);
+                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+                    gl.glVertex3f(0, 0, br1.z);
+                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        gl.glColor3f(Col.r, Col.g, Col.b);
                 }
                 
                 if (UseTop)
@@ -1362,6 +1376,19 @@ public class GravityShapeRenderer extends GLRenderer {
                     // LINES TOP
                     gl.glVertex3f(tr1.x, tr1.y, tr1.z);
                     gl.glVertex3f(trN1.x, trN1.y, trN1.z);
+                    
+                    if (i == 0 && r == SegmentsV-1)
+                    {
+                        // DISTANT TOP
+                        gl.glVertex3f(trN1.x, trN1.y, trN1.z);
+                        gl.glVertex3f(tdN1.x, tdN1.y, tdN1.z);
+                    }
+                    else if (r != SegmentsV-1)
+                    {
+                        // DISTANT TOP
+                        gl.glVertex3f(trN1.x, trN1.y, trN1.z);
+                        gl.glVertex3f(tdN1.x, tdN1.y, tdN1.z);
+                    }
                 }
                 
                 if (UseBottom)
@@ -1375,6 +1402,19 @@ public class GravityShapeRenderer extends GLRenderer {
                     // LINES BOTTOM
                     gl.glVertex3f(br1.x, br1.y, br1.z);
                     gl.glVertex3f(brN1.x, brN1.y, brN1.z);
+                    
+                    if (i == 0 && r == SegmentsV-1)
+                    {
+                        // DISTANT BOTTOM
+                        gl.glVertex3f(brN1.x, brN1.y, brN1.z);
+                        gl.glVertex3f(bdN1.x, bdN1.y, bdN1.z);
+                    }
+                    else if (r != SegmentsV-1)
+                    {
+                        // DISTANT TOP
+                        gl.glVertex3f(brN1.x, brN1.y, brN1.z);
+                        gl.glVertex3f(bdN1.x, bdN1.y, bdN1.z);
+                    }
                 }
             }
         }
@@ -1389,11 +1429,36 @@ public class GravityShapeRenderer extends GLRenderer {
                           br1 = PointsBottom[r][i],
                           brN1 = PointsBottom[r+1][i];
 
+                    Vec3f td1 = PointsTopDistant[r][i],
+                          bd1 = PointsBottomDistant[r][i];
+                    
                     if (r == 0)
                     {
                         // LINES MIDDLE (these are always drawn)
                         gl.glVertex3f(tr1.x, tr1.y, tr1.z);
                         gl.glVertex3f(br1.x, br1.y, br1.z);
+                        
+                        // DISTANT TOP
+                        gl.glVertex3f(tr1.x, tr1.y, tr1.z);
+                        gl.glVertex3f(td1.x, td1.y, td1.z);
+
+                        // DISTANT BOTTOM
+                        gl.glVertex3f(br1.x, br1.y, br1.z);
+                        gl.glVertex3f(bd1.x, bd1.y, bd1.z);
+
+                        // CENTER LINES
+                        gl.glVertex3f(tr1.x, tr1.y, tr1.z);
+                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                            gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+                        gl.glVertex3f(0, 0, tr1.z);
+                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                            gl.glColor3f(Col.r, Col.g, Col.b);
+                        gl.glVertex3f(br1.x, br1.y, br1.z);
+                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                            gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+                        gl.glVertex3f(0, 0, br1.z);
+                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                            gl.glColor3f(Col.r, Col.g, Col.b);
                     }
                     
                     if (UseTop)
