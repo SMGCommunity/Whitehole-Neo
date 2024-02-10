@@ -17,6 +17,7 @@
 package whitehole.editor;
 
 import java.awt.Component;
+import static java.awt.event.KeyEvent.VK_ENTER;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -651,11 +652,22 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         toolbarPaths.add(lblArchive);
 
         tbArchiveName.setToolTipText("");
+        tbArchiveName.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                tbArchiveNameKeyPressed(evt);
+            }
+        });
         toolbarPaths.add(tbArchiveName);
         toolbarPaths.add(filler1);
 
         lblFile.setText("File: ");
         toolbarPaths.add(lblFile);
+
+        tbFileName.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                tbFileNameKeyPressed(evt);
+            }
+        });
         toolbarPaths.add(tbFileName);
 
         toolbarButtons.setFloatable(false);
@@ -738,7 +750,6 @@ public class BcsvEditorForm extends javax.swing.JFrame {
 
         lblColAndRow.setToolTipText("Column, Row");
         toolbarButtons.add(lblColAndRow);
-        lblColAndRow.getAccessibleContext().setAccessibleName("");
 
         tblBcsv.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -907,6 +918,18 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void tblBcsvMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblBcsvMouseClicked
         lblColAndRow.setText(getSelectedColRowFormatted());
     }//GEN-LAST:event_tblBcsvMouseClicked
+
+    private void tbArchiveNameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tbArchiveNameKeyPressed
+        if (evt.getKeyCode() == VK_ENTER) {
+            tbFileName.requestFocus();
+        }
+    }//GEN-LAST:event_tbArchiveNameKeyPressed
+
+    private void tbFileNameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tbFileNameKeyPressed
+        if (evt.getKeyCode() == VK_ENTER) {
+            populateBcsvData();
+        }
+    }//GEN-LAST:event_tbFileNameKeyPressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public javax.swing.JButton btnAddRow;
