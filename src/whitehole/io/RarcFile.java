@@ -315,6 +315,16 @@ public class RarcFile implements FilesystemBase {
         return ret;
     }
     
+    private String removeRootFromPath(String path) {
+        
+        path = pathToKey(path);
+        
+        int i = path.indexOf("/");
+        if (i != -1) {
+            return path.substring(i + 1);
+        }
+        return path;
+    }
     private int align32(int val) {
         return (val + 0x1F) & ~0x1F;
     }
@@ -467,8 +477,20 @@ public class RarcFile implements FilesystemBase {
     
     @Override
     public FileBase openFile(String filePath) throws IOException {
+        
         if (!fileEntries.containsKey(pathToKey(filePath))) {
-            throw new FileNotFoundException(filePath + " not found in RARC!");
+            boolean pathExistsNoRoot = false;
+            for (String fileEntry : fileEntries.keySet()) {
+                if (removeRootFromPath(filePath).equalsIgnoreCase(removeRootFromPath(fileEntry))) {
+                    System.out.println("Warning: Invalid root path detected.");
+                    pathExistsNoRoot = true;
+                    filePath = fileEntry;
+                }
+            }
+            
+            if (!pathExistsNoRoot) {
+                throw new FileNotFoundException(filePath + " not found in RARC!");
+            }
         }
         
         return new InRarcFile(this, filePath);
