@@ -132,6 +132,11 @@ public class GravityShapeRenderer extends GLRenderer {
                 //    return false;
                 return true;
                 
+            case CUBE_RANGE:
+                if (rng < 0)
+                    return false;
+                return true;
+                
             default:
                 return true;
         }
@@ -198,6 +203,21 @@ public class GravityShapeRenderer extends GLRenderer {
                 break;
             case CUBE_RANGE:
                 makeCube(info, DrawCol);
+                break;
+            case SEGMENT_RANGE:
+                makeSegment(info, DrawCol);
+                break;
+            case DISK_RANGE:
+                makeDisk(info, DrawCol);
+                break;
+            case TORUS_RANGE:
+                makeTorus(info, DrawCol);
+                break;
+            case WIRE_RANGE:
+                makeWire(info, DrawCol);
+                break;
+            case BARREL_RANGE:
+                makeBarrel(info, DrawCol);
                 break;
         }
         gl.glLineWidth(1.5f);
@@ -356,7 +376,7 @@ public class GravityShapeRenderer extends GLRenderer {
         Vec3f[] Points = new Vec3f[Segments+1];
         for(int i = 0; i <= Segments; i++)
         {
-            double angle = 2 * Math.PI * (i/(float)Segments);
+            double angle = 2.0 * Math.PI * (i/(float)Segments);
             double x = ScaleHSize * Math.cos(angle);
             double y = ScaleHSize * Math.sin(angle);
             Points[i] = new Vec3f((float)x, (float)y, 0);
@@ -1226,5 +1246,194 @@ public class GravityShapeRenderer extends GLRenderer {
             gl.glVertex3f(OriginX + p2.x, OriginY + p2.y, OriginZ + p2.z);
         }
         return Points;
+    }
+
+    public void makeSegment(GLRenderer.RenderInfo info, Color4 Col)
+    {
+        GL2 gl = info.drawable.getGL().getGL2();
+        
+        Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
+        boolean UseBottom = (((int)ObjArg0 & 1) != 0),
+                UseTop = (((int)ObjArg0 & 2) != 0);
+        float ValidDegrees = ObjArg1 < 0 ? 360 : Math.max(0.1f, Math.min(360, ObjArg1));
+        double DegreeAngle = ValidDegrees/180.0;
+        
+        if (IsInverse)
+        {
+            //If this is an inverted area, swap the colour definitions
+            Color4 t = Col;
+            Col = DownCol;
+            DownCol = t;
+        }
+        
+        float RANGE_SIZE = Range > 0 ? Range : 0;
+        float DISTANT_SIZE = RANGE_SIZE + Distant;
+        int Segments = (int)Math.ceil(ValidDegrees * (7.0/180.0));
+        int SegmentsV = 4;
+        
+        float ScaleYSize = (CYLINDER_SIZE*2) * Scale.y;
+        
+        //TEST
+        Vec3f[][] PointsTop = new Vec3f[SegmentsV+1][Segments+1];
+        Vec3f[][] PointsBottom = new Vec3f[SegmentsV+1][Segments+1];
+        Vec3f[][] PointsTopDistant = new Vec3f[SegmentsV+1][Segments+1];
+        Vec3f[][] PointsBottomDistant = new Vec3f[SegmentsV+1][Segments+1];
+        for(int i = 0; i <= Segments; i++)
+        {
+            double angle = DegreeAngle * Math.PI * (i/(float)Segments);
+            angle -= 1.5708;
+            
+            for (int r = 0; r <= SegmentsV; r++)
+            {
+                double angle2 = 0.5 * Math.PI * (r/(float)SegmentsV);
+                double RX = Math.cos(angle2) * RANGE_SIZE;
+                double RY = Math.sin(angle2) * RANGE_SIZE;
+                double DX = Math.cos(angle2) * DISTANT_SIZE;
+                double DY = Math.sin(angle2) * DISTANT_SIZE;
+                double xRRT = (RX) * Math.cos(angle);
+                double yRRT = (RX) * Math.sin(angle);
+                double xDRT = (DX) * Math.cos(angle);
+                double yDRT = (DX) * Math.sin(angle);
+                PointsTop[r][i] = new Vec3f((float)xRRT, (float)yRRT, 0 -(float)RY);
+                PointsBottom[r][i] = new Vec3f((float)xRRT, (float)yRRT, ScaleYSize +(float)RY);
+                PointsTopDistant[r][i] = new Vec3f((float)xDRT, (float)yDRT, 0 -(float)DY);
+                PointsBottomDistant[r][i] = new Vec3f((float)xDRT, (float)yDRT, ScaleYSize +(float)DY);
+            }
+        }
+        gl.glTranslatef(0f, ScaleYSize, 0f);
+        gl.glRotatef(90f, 1f, 0f, 0f);
+        gl.glBegin(GL2.GL_LINES);
+        for(int i = 0; i < Segments; i++)
+        {
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(Col.r, Col.g, Col.b);
+            
+            for (int r = 0; r < SegmentsV; r++)
+            {
+                Vec3f tr1 = PointsTop[r][i],
+                      tr2 = PointsTop[r][i+1];
+                Vec3f trN1 = PointsTop[r+1][i],
+                      trN2 = PointsTop[r+1][i+1];
+                Vec3f br1 = PointsBottom[r][i],
+                      br2 = PointsBottom[r][i+1];
+                Vec3f brN1 = PointsBottom[r+1][i],
+                      brN2 = PointsBottom[r+1][i+1];
+                
+                Vec3f td1 = PointsTopDistant[r][i],
+                      td2 = PointsTopDistant[r][i+1];
+                Vec3f tdN1 = PointsTopDistant[r+1][i],
+                      tdN2 = PointsTopDistant[r+1][i+1];
+                Vec3f bd1 = PointsBottomDistant[r][i],
+                      bd2 = PointsBottomDistant[r][i+1];
+                Vec3f bdN1 = PointsBottomDistant[r+1][i],
+                      bdN2 = PointsBottomDistant[r+1][i+1];
+                
+                if (r == 0)
+                {
+                    // LINES MIDDLE (these are always drawn)
+                    gl.glVertex3f(tr1.x, tr1.y, tr1.z);
+                    gl.glVertex3f(br1.x, br1.y, br1.z);
+
+                    // RING TOP
+                    gl.glVertex3f(tr1.x, tr1.y, tr1.z);
+                    gl.glVertex3f(tr2.x, tr2.y, tr2.z);
+                    
+                    // RING BOTTOM
+                    gl.glVertex3f(br1.x, br1.y, br1.z);
+                    gl.glVertex3f(br2.x, br2.y, br2.z);
+                    
+                    // DISTANT TOP
+                    gl.glVertex3f(tr1.x, tr1.y, tr1.z);
+                    gl.glVertex3f(td1.x, td1.y, td1.z);
+                    
+                    // DISTANT BOTTOM
+                    gl.glVertex3f(br1.x, br1.y, br1.z);
+                    gl.glVertex3f(bd1.x, bd1.y, bd1.z);
+                }
+                
+                if (UseTop)
+                {
+                    if (r > 0)
+                    {
+                        // RING TOP
+                        gl.glVertex3f(tr1.x, tr1.y, tr1.z);
+                        gl.glVertex3f(tr2.x, tr2.y, tr2.z);
+                    }
+                    // LINES TOP
+                    gl.glVertex3f(tr1.x, tr1.y, tr1.z);
+                    gl.glVertex3f(trN1.x, trN1.y, trN1.z);
+                }
+                
+                if (UseBottom)
+                {
+                    if (r > 0)
+                    {
+                        // RING BOTTOM
+                        gl.glVertex3f(br1.x, br1.y, br1.z);
+                        gl.glVertex3f(br2.x, br2.y, br2.z);
+                    }
+                    // LINES BOTTOM
+                    gl.glVertex3f(br1.x, br1.y, br1.z);
+                    gl.glVertex3f(brN1.x, brN1.y, brN1.z);
+                }
+            }
+        }
+        if (ValidDegrees > 0 && ValidDegrees < 360)
+        {
+            for(int i = Segments; i <= Segments; i++)
+            {
+                for (int r = 0; r < PointsTop.length-1; r++)
+                {
+                    Vec3f tr1 = PointsTop[r][i],
+                          trN1 = PointsTop[r+1][i],
+                          br1 = PointsBottom[r][i],
+                          brN1 = PointsBottom[r+1][i];
+
+                    if (r == 0)
+                    {
+                        // LINES MIDDLE (these are always drawn)
+                        gl.glVertex3f(tr1.x, tr1.y, tr1.z);
+                        gl.glVertex3f(br1.x, br1.y, br1.z);
+                    }
+                    
+                    if (UseTop)
+                    {
+                        // LINES
+                        gl.glVertex3f(tr1.x, tr1.y, tr1.z);
+                        gl.glVertex3f(trN1.x, trN1.y, trN1.z);
+                    }
+                    if (UseBottom)
+                    {
+                        // LINES
+                        gl.glVertex3f(br1.x, br1.y, br1.z);
+                        gl.glVertex3f(brN1.x, brN1.y, brN1.z);
+                    }
+                }
+            }
+        }
+        gl.glEnd();
+        gl.glRotatef(-90f, 1f, 0f, 0f);
+        gl.glTranslatef(0f, 0f, 0f);
+    }
+    
+    public void makeDisk(GLRenderer.RenderInfo info, Color4 Col)
+    {
+        
+    }
+    
+    public void makeTorus(GLRenderer.RenderInfo info, Color4 Col)
+    {
+        
+    }
+    
+    public void makeWire(GLRenderer.RenderInfo info, Color4 Col)
+    {
+        
+    }
+    
+    // The SMG2 exclusive
+    public void makeBarrel(GLRenderer.RenderInfo info, Color4 Col)
+    {
+        
     }
 }
