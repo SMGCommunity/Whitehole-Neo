@@ -1281,7 +1281,6 @@ public class GravityShapeRenderer extends GLRenderer {
         for(int i = 0; i <= Segments; i++)
         {
             double angle = DegreeAngle * Math.PI * (i/(float)Segments);
-            angle -= 1.5708;
             
             for (int r = 0; r <= SegmentsV; r++)
             {
@@ -1294,10 +1293,10 @@ public class GravityShapeRenderer extends GLRenderer {
                 double yRRT = (RX) * Math.sin(angle);
                 double xDRT = (DX) * Math.cos(angle);
                 double yDRT = (DX) * Math.sin(angle);
-                PointsTop[r][i] = new Vec3f((float)xRRT, (float)yRRT, 0 -(float)RY);
-                PointsBottom[r][i] = new Vec3f((float)xRRT, (float)yRRT, ScaleYSize +(float)RY);
-                PointsTopDistant[r][i] = new Vec3f((float)xDRT, (float)yDRT, 0 -(float)DY);
-                PointsBottomDistant[r][i] = new Vec3f((float)xDRT, (float)yDRT, ScaleYSize +(float)DY);
+                PointsTop[r][i] = new Vec3f((float)xRRT, -(float)yRRT, 0 -(float)RY);
+                PointsBottom[r][i] = new Vec3f((float)xRRT, -(float)yRRT, ScaleYSize +(float)RY);
+                PointsTopDistant[r][i] = new Vec3f((float)xDRT, -(float)yDRT, 0 -(float)DY);
+                PointsBottomDistant[r][i] = new Vec3f((float)xDRT, -(float)yDRT, ScaleYSize +(float)DY);
             }
         }
         gl.glTranslatef(0f, ScaleYSize, 0f);
