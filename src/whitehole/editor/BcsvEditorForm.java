@@ -35,6 +35,7 @@ import javax.swing.table.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import whitehole.Settings;
 import whitehole.Whitehole;
 import whitehole.io.FilesystemBase;
 import whitehole.io.RarcFile;
@@ -84,7 +85,11 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             System.out.println(ex);
         }
         
-        if (Whitehole.getCurrentGameType()==1) {
+        if (Settings.getLastBcsvArchive() != null && Settings.getLastBcsvFile() != null) {
+            tbArchiveName.setText(Settings.getLastBcsvArchive());
+            tbFileName.setText(Settings.getLastBcsvFile());
+        }
+        else if (Whitehole.getCurrentGameType()==1) {
             tbArchiveName.setText("/StageData/CocoonExGalaxy/CocoonExGalaxyScenario.arc");
             tbFileName.setText("/CocoonExGalaxyScenario/ScenarioData.bcsv");
         }
@@ -504,6 +509,10 @@ public class BcsvEditorForm extends javax.swing.JFrame {
                 
                 tableModel.addRow(row.toArray());
             }
+            
+            // Save path
+            Settings.setLastBcsvArchive(tbArchiveName.getText());
+            Settings.setLastBcsvFile(tbFileName.getText());
         }
         catch(IOException ex) {
             String errmsg = String.format("Can't open BCSV file: %s", ex.getMessage());
