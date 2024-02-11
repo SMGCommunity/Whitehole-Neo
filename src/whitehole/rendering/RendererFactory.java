@@ -332,6 +332,15 @@ public final class RendererFactory {
             }
             if (objModelName.startsWith("gravityobj_globalpointgravity_"))
             {
+                if (!GravityShapeRenderer.isValid(GravityShapeRenderer.Shape.PLANET_RANGE, obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3))
+                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
                 return new GravityShapeRenderer(
                         GravityShapeRenderer.COLOR_DEFAULT,
                         GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
@@ -390,6 +399,21 @@ public final class RendererFactory {
                         GravityShapeRenderer.COLOR_DEFAULT,
                         GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
                         GravityShapeRenderer.Shape.SEGMENT_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+            }
+            if (objModelName.startsWith("gravityobj_globaldiskgravity_"))
+            {
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_DEFAULT,
+                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        GravityShapeRenderer.Shape.DISK_RANGE,
                         obj.scale,
                         (float)r,
                         (float)d,
