@@ -234,6 +234,13 @@ public class GravityShapeRenderer extends GLRenderer {
         float ScaleYSize = BOX_SIZE * Scale.y;
         float ScaleZSize = BOX_SIZE * Scale.z;
         Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
+        if (IsInverse)
+        {
+            //If this is an inverted area, swap the colour definitions
+            Color4 t = Col;
+            Col = DownCol;
+            DownCol = t;
+        }
         
         gl.glTranslatef(0f, ScaleYSize, 0f);        
         gl.glBegin(GL2.GL_LINE_STRIP);
@@ -299,9 +306,18 @@ public class GravityShapeRenderer extends GLRenderer {
         float ColGDiff = Col.g*0.5f;
         float ColBDiff = Col.b*0.5f;
         
-        ColRDiff = (Col.r - ColRDiff) / Horizontal;
-        ColGDiff = (Col.g - ColGDiff) / Horizontal;
-        ColBDiff = (Col.b - ColBDiff) / Horizontal;
+        if (IsInverse)
+        {
+            ColRDiff = (ColRDiff - Col.r) / Horizontal;
+            ColGDiff = (ColGDiff - Col.g) / Horizontal;
+            ColBDiff = (ColBDiff - Col.b) / Horizontal;
+        }
+        else
+        {
+            ColRDiff = (Col.r - ColRDiff) / Horizontal;
+            ColGDiff = (Col.g - ColGDiff) / Horizontal;
+            ColBDiff = (Col.b - ColBDiff) / Horizontal;
+        }
         
         //Top point
         Vec3f TopPoint = new Vec3f(0, 0, -SIZE);
@@ -367,6 +383,13 @@ public class GravityShapeRenderer extends GLRenderer {
         GL2 gl = info.drawable.getGL().getGL2();
         
         Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
+        if (IsInverse)
+        {
+            //If this is an inverted area, swap the colour definitions
+            Color4 t = Col;
+            Col = DownCol;
+            DownCol = t;
+        }
                 
         float ScaleHSize = BOX_SIZE * Scale.x;
         float ScaleYSize = CYLINDER_SIZE * Scale.y;
@@ -420,8 +443,14 @@ public class GravityShapeRenderer extends GLRenderer {
     {
         GL2 gl = info.drawable.getGL().getGL2();
         //Using this for Distant rendering
-        Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
-        
+        Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f); //NOT USED....YET
+        if (IsInverse)
+        {
+            //If this is an inverted area, swap the colour definitions
+            Color4 t = Col;
+            Col = DownCol;
+            DownCol = t;
+        }
         //To calculate the distance, subtract the Distant value from the Range, and figure out the scale percentage, then scale the vertexes of the sphere
         
         float RANGE_SIZE = Range;
@@ -511,6 +540,13 @@ public class GravityShapeRenderer extends GLRenderer {
         GL2 gl = info.drawable.getGL().getGL2();
         
         Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
+        if (IsInverse)
+        {
+            //If this is an inverted area, swap the colour definitions
+            Color4 t = Col;
+            Col = DownCol;
+            DownCol = t;
+        }
                 
         float ConeRadiusBottom = BOX_SIZE * Math.abs(Scale.x); // Refers to the bottom of the cylinder
         float ConeHeight = CYLINDER_SIZE * Math.abs(Scale.y);
@@ -1504,9 +1540,8 @@ public class GravityShapeRenderer extends GLRenderer {
         int Segments = (int)Math.ceil(ValidDegrees * (7.0/180.0));
         int SegmentsV = 4;
         
-        double ScaleHSize = 500.0 * Math.max(Math.max(Scale.x, Scale.y), Scale.z);
+        double ScaleHSize = BOX_SIZE * Math.max(Math.max(Scale.x, Scale.y), Scale.z);
         
-        //TEST
         Vec3f[] Points = new Vec3f[Segments+1];
         Vec3f[][] PointsTop = new Vec3f[SegmentsV+1][Segments+1];
         Vec3f[][] PointsBottom = new Vec3f[SegmentsV+1][Segments+1];
@@ -1676,21 +1711,16 @@ public class GravityShapeRenderer extends GLRenderer {
                 Vec3f BottomRangeCur1 = PointsBottom[r][i];
                 Vec3f BottomRangeNext1 = PointsBottom[r+1][i];
                 Vec3f TopDistantCur1 = PointsTopDistant[r][i];
-                Vec3f TopDistantNext1 = PointsTopDistant[r+1][i];
+                
                 Vec3f BottomDistantCur1 = PointsBottomDistant[r][i];
-                Vec3f BottomDistantNext1 = PointsBottomDistant[r+1][i];
+                
                 
                 
                 if (i < Segments)
                 {
                     Vec3f TopRangeCur2 = PointsTop[r][i+1];
-                    Vec3f TopRangeNext2 = PointsTop[r+1][i+1];
+                    
                     Vec3f BottomRangeCur2 = PointsBottom[r][i+1];
-                    Vec3f BottomRangeNext2 = PointsBottom[r+1][i+1];
-                    Vec3f TopDistantCur2 = PointsTopDistant[r][i+1];
-                    Vec3f TopDistantNext2 = PointsTopDistant[r+1][i+1];
-                    Vec3f BottomDistantCur2 = PointsBottomDistant[r][i+1];
-                    Vec3f BottomDistantNext2 = PointsBottomDistant[r+1][i+1];
                     
                     // TOP RINGS
                     gl.glVertex3f(TopRangeCur1.x, TopRangeCur1.y, TopRangeCur1.z);
@@ -1743,7 +1773,323 @@ public class GravityShapeRenderer extends GLRenderer {
     
     public void makeTorus(GLRenderer.RenderInfo info, Color4 Col)
     {
+        GL2 gl = info.drawable.getGL().getGL2();
         
+        Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
+        if (IsInverse)
+        {
+            //If this is an inverted area, swap the colour definitions
+            Color4 t = Col;
+            Col = DownCol;
+            DownCol = t;
+        }
+        
+        boolean DisableBottom = ObjArg0 == 0,
+                UseInnerEdge = (((int)ObjArg1 & 1) != 0),
+                UseOuterEdge = (((int)ObjArg1 & 2) != 0);
+        float RingWidth = ObjArg2 < 0 ? 0 : ObjArg2 ;
+        
+        float RANGE_SIZE = Range > 0 ? Range : 0;
+        float DISTANT_SIZE = RANGE_SIZE + Distant;
+        int Segments = 16;
+        int SegmentsV = 4;
+        double ScaleHOuterSize = BOX_SIZE * Math.max(Math.max(Scale.x, Scale.y), Scale.z);
+        double ScaleHInnerSize = ScaleHOuterSize - RingWidth;
+        
+        
+        // Generation is pretty similar to a disk tbh
+        Vec3f[] PointsBaseInner = new Vec3f[Segments+1];
+        Vec3f[] PointsBaseOuter = new Vec3f[Segments+1];
+        Vec3f[][] PointsRangeTopInner = new Vec3f[SegmentsV+1][Segments+1];
+        Vec3f[][] PointsRangeBottomInner = new Vec3f[SegmentsV+1][Segments+1];
+        Vec3f[][] PointsRangeTopOuter = new Vec3f[SegmentsV+1][Segments+1];
+        Vec3f[][] PointsRangeBottomOuter = new Vec3f[SegmentsV+1][Segments+1];
+        Vec3f[][] PointsDistantTopInner = new Vec3f[SegmentsV+1][Segments+1];
+        Vec3f[][] PointsDistantBottomInner = new Vec3f[SegmentsV+1][Segments+1];
+        Vec3f[][] PointsDistantTopOuter = new Vec3f[SegmentsV+1][Segments+1];
+        Vec3f[][] PointsDistantBottomOuter = new Vec3f[SegmentsV+1][Segments+1];
+        for(int i = 0; i <= Segments; i++)
+        {
+            double angle = 2.0 * Math.PI * (i/(float)Segments);
+            double BaseInnerX = ScaleHInnerSize * Math.cos(angle);
+            double BaseInnerY = ScaleHInnerSize * Math.sin(angle);
+            double BaseOuterX = ScaleHOuterSize * Math.cos(angle);
+            double BaseOuterY = ScaleHOuterSize * Math.sin(angle);
+            PointsBaseInner[i] = new Vec3f((float)BaseInnerX, (float)BaseInnerY, 0);
+            PointsBaseOuter[i] = new Vec3f((float)BaseOuterX, (float)BaseOuterY, 0);
+            
+            for (int r = 0; r <= SegmentsV; r++)
+            {
+                double angle2 = 0.5 * Math.PI * (r/(float)SegmentsV);
+                double RangeX = Math.cos(angle2) * RANGE_SIZE;
+                double RangeY = Math.sin(angle2) * RANGE_SIZE;
+                double RangeInnerComboX = (ScaleHInnerSize - RangeX) * Math.cos(angle);
+                double RangeInnerComboY = (ScaleHInnerSize - RangeX) * Math.sin(angle);
+                double RangeOuterComboX = (ScaleHOuterSize + RangeX) * Math.cos(angle);
+                double RangeOuterComboY = (ScaleHOuterSize + RangeX) * Math.sin(angle);
+                PointsRangeTopInner[r][i] = new Vec3f((float)RangeInnerComboX, (float)RangeInnerComboY, -(float)RangeY);
+                PointsRangeBottomInner[r][i] = new Vec3f((float)RangeInnerComboX, (float)RangeInnerComboY, +(float)RangeY);
+                PointsRangeTopOuter[r][i] = new Vec3f((float)RangeOuterComboX, (float)RangeOuterComboY, -(float)RangeY);
+                PointsRangeBottomOuter[r][i] = new Vec3f((float)RangeOuterComboX, (float)RangeOuterComboY, +(float)RangeY);
+                
+                double DistantX = Math.cos(angle2) * DISTANT_SIZE;
+                double DistantY = Math.sin(angle2) * DISTANT_SIZE;
+                double DistantInnerComboX = (ScaleHInnerSize - DistantX) * Math.cos(angle);
+                double DistantInnerComboY = (ScaleHInnerSize - DistantX) * Math.sin(angle);
+                double DistantOuterComboX = (ScaleHOuterSize + DistantX) * Math.cos(angle);
+                double DistantOuterComboY = (ScaleHOuterSize + DistantX) * Math.sin(angle);
+                PointsDistantTopInner[r][i] = new Vec3f((float)DistantInnerComboX, (float)DistantInnerComboY, -(float)DistantY);
+                PointsDistantBottomInner[r][i] = new Vec3f((float)DistantInnerComboX, (float)DistantInnerComboY, +(float)DistantY);
+                PointsDistantTopOuter[r][i] = new Vec3f((float)DistantOuterComboX, (float)DistantOuterComboY, -(float)DistantY);
+                PointsDistantBottomOuter[r][i] = new Vec3f((float)DistantOuterComboX, (float)DistantOuterComboY, +(float)DistantY);
+            }
+        }
+        
+        gl.glTranslatef(0f, 0f, 0f);
+        gl.glRotatef(90f, 1f, 0f, 0f);
+        gl.glBegin(GL2.GL_LINES);
+        for(int i = 0; i < Segments; i++)
+        {
+            Vec3f BaseInnerCurrent = PointsBaseInner[i];
+            Vec3f BaseOuterCurrent = PointsBaseOuter[i];
+            Vec3f BaseInnerNext = PointsBaseInner[i+1];
+            Vec3f BaseOuterNext = PointsBaseOuter[i+1];
+            
+            // BASE DISK LINES
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+            if (RingWidth > 0)
+            {
+                gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z);
+                gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z);
+            }
+
+            // BASE DISK RINGS
+            gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z);
+            gl.glVertex3f(BaseInnerNext.x, BaseInnerNext.y, BaseInnerNext.z);
+            if (RingWidth > 0)
+            {
+                gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z);
+                gl.glVertex3f(BaseOuterNext.x, BaseOuterNext.y, BaseOuterNext.z);
+            }
+            
+            
+            // BASE DISK DISTANT
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(Col.r, Col.g, Col.b);
+            gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z - RANGE_SIZE);
+            gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z - DISTANT_SIZE);
+            if (!DisableBottom)
+            {
+                gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z + RANGE_SIZE);
+                gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z + DISTANT_SIZE);
+            }
+            if (RingWidth > 0)
+            {
+                gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z - RANGE_SIZE);
+                gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z - DISTANT_SIZE);
+                if (!DisableBottom)
+                {
+                    gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z + RANGE_SIZE);
+                    gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z + DISTANT_SIZE);
+                }
+            }
+
+            
+            // RANGE DISK LINES
+            if (RingWidth > 0)
+            {
+                gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z - RANGE_SIZE);
+                gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z - RANGE_SIZE);
+                if (!DisableBottom)
+                {
+                    gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z + RANGE_SIZE);
+                    gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z + RANGE_SIZE);
+                }
+            }
+            
+            // RANGE DISK RINGS
+            gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z - RANGE_SIZE);
+            gl.glVertex3f(BaseInnerNext.x, BaseInnerNext.y, BaseInnerNext.z - RANGE_SIZE);
+            if (RingWidth > 0)
+            {
+                gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z - RANGE_SIZE);
+                gl.glVertex3f(BaseOuterNext.x, BaseOuterNext.y, BaseOuterNext.z - RANGE_SIZE);
+            }
+
+            if (!DisableBottom)
+            {
+                gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z + RANGE_SIZE);
+                gl.glVertex3f(BaseInnerNext.x, BaseInnerNext.y, BaseInnerNext.z + RANGE_SIZE);
+                if (RingWidth > 0)
+                {
+                    gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z + RANGE_SIZE);
+                    gl.glVertex3f(BaseOuterNext.x, BaseOuterNext.y, BaseOuterNext.z + RANGE_SIZE);
+                }
+            }
+            
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+            gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z);
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(Col.r, Col.g, Col.b);
+            gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z - RANGE_SIZE);
+            if (!DisableBottom)
+            {
+                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+                gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z);
+                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    gl.glColor3f(Col.r, Col.g, Col.b);
+                gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z + RANGE_SIZE);               
+            }
+
+            
+            if (RingWidth > 0)
+            {
+                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+                gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z);
+                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    gl.glColor3f(Col.r, Col.g, Col.b);
+                gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z - RANGE_SIZE);
+                
+                if (!DisableBottom)
+                {
+                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+                    gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z);
+                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        gl.glColor3f(Col.r, Col.g, Col.b);
+                    gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z + RANGE_SIZE);
+                }
+            }
+            
+            for (int r = 0; r < SegmentsV; r++)
+            {
+                Vec3f TopRangeInnerCurrentCurrent = PointsRangeTopInner[r][i];
+                Vec3f TopRangeInnerNextCurrent = PointsRangeTopInner[r+1][i];
+                Vec3f TopRangeOuterCurrentCurrent = PointsRangeTopOuter[r][i];
+                Vec3f TopRangeOuterNextCurrent = PointsRangeTopOuter[r+1][i];
+                
+                
+                Vec3f BottomRangeInnerCurrentCurrent = PointsRangeBottomInner[r][i];
+                Vec3f BottomRangeInnerNextCurrent = PointsRangeBottomInner[r+1][i];
+                Vec3f BottomRangeOuterCurrentCurrent = PointsRangeBottomOuter[r][i];
+                Vec3f BottomRangeOuterNextCurrent = PointsRangeBottomOuter[r+1][i];
+                
+                
+                Vec3f TopRangeInnerCurrentNext = PointsRangeTopInner[r][i+1];
+                
+                Vec3f TopRangeOuterCurrentNext = PointsRangeTopOuter[r][i+1];
+                
+                
+                Vec3f BottomRangeInnerCurrentNext = PointsRangeBottomInner[r][i+1];
+                
+                Vec3f BottomRangeOuterCurrentNext = PointsRangeBottomOuter[r][i+1];
+                
+                Vec3f TopDistantInnerCurrentCurrent = PointsDistantTopInner[r][i];
+                
+                Vec3f TopDistantOuterCurrentCurrent = PointsDistantTopOuter[r][i];
+                
+                
+                
+                Vec3f BottomDistantInnerCurrentCurrent = PointsDistantBottomInner[r][i];
+                
+                Vec3f BottomDistantOuterCurrentCurrent = PointsDistantBottomOuter[r][i];
+                
+                
+                if (UseInnerEdge)
+                {
+                    // INNER TOP LOOPS
+                    gl.glVertex3f(TopRangeInnerCurrentCurrent.x, TopRangeInnerCurrentCurrent.y, TopRangeInnerCurrentCurrent.z);
+                    gl.glVertex3f(TopRangeInnerNextCurrent.x, TopRangeInnerNextCurrent.y, TopRangeInnerNextCurrent.z);
+                    
+                    // INNER TOP RINGS
+                    gl.glVertex3f(TopRangeInnerCurrentCurrent.x, TopRangeInnerCurrentCurrent.y, TopRangeInnerCurrentCurrent.z);
+                    gl.glVertex3f(TopRangeInnerCurrentNext.x, TopRangeInnerCurrentNext.y, TopRangeInnerCurrentNext.z);
+                    
+                    // INNER TOP DISTANT
+                    gl.glVertex3f(TopRangeInnerCurrentCurrent.x, TopRangeInnerCurrentCurrent.y, TopRangeInnerCurrentCurrent.z);
+                    gl.glVertex3f(TopDistantInnerCurrentCurrent.x, TopDistantInnerCurrentCurrent.y, TopDistantInnerCurrentCurrent.z);
+                    
+                    if (r == 0)
+                    {
+                        // EDGE CONNECTING LINES INNER
+                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                            gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+                        gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z);
+                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                            gl.glColor3f(Col.r, Col.g, Col.b);
+                        gl.glVertex3f(TopRangeInnerCurrentCurrent.x, TopRangeInnerCurrentCurrent.y, TopRangeInnerCurrentCurrent.z);
+                    }
+                    
+                    if (!DisableBottom)
+                    {
+                        // INNER BOTTOM LOOPS
+                        gl.glVertex3f(BottomRangeInnerCurrentCurrent.x, BottomRangeInnerCurrentCurrent.y, BottomRangeInnerCurrentCurrent.z);
+                        gl.glVertex3f(BottomRangeInnerNextCurrent.x, BottomRangeInnerNextCurrent.y, BottomRangeInnerNextCurrent.z);
+                        
+                        if (r != 0)
+                        {
+                            // INNER BOTTOM RINGS
+                            gl.glVertex3f(BottomRangeInnerCurrentCurrent.x, BottomRangeInnerCurrentCurrent.y, BottomRangeInnerCurrentCurrent.z);
+                            gl.glVertex3f(BottomRangeInnerCurrentNext.x, BottomRangeInnerCurrentNext.y, BottomRangeInnerCurrentNext.z);
+                            
+                            // INNER BOTTOM DISTANT
+                            gl.glVertex3f(BottomRangeInnerCurrentCurrent.x, BottomRangeInnerCurrentCurrent.y, BottomRangeInnerCurrentCurrent.z);
+                            gl.glVertex3f(BottomDistantInnerCurrentCurrent.x, BottomDistantInnerCurrentCurrent.y, BottomDistantInnerCurrentCurrent.z);
+                        }
+                    }
+                }
+                if (UseOuterEdge)
+                {
+                    // OUTER TOP LOOPS
+                    gl.glVertex3f(TopRangeOuterCurrentCurrent.x, TopRangeOuterCurrentCurrent.y, TopRangeOuterCurrentCurrent.z);
+                    gl.glVertex3f(TopRangeOuterNextCurrent.x, TopRangeOuterNextCurrent.y, TopRangeOuterNextCurrent.z);
+                    
+                    // OUTER TOP RINGS
+                    gl.glVertex3f(TopRangeOuterCurrentCurrent.x, TopRangeOuterCurrentCurrent.y, TopRangeOuterCurrentCurrent.z);
+                    gl.glVertex3f(TopRangeOuterCurrentNext.x, TopRangeOuterCurrentNext.y, TopRangeOuterCurrentNext.z);
+                    
+                    // OUTER DISTANT
+                    gl.glVertex3f(TopRangeOuterCurrentCurrent.x, TopRangeOuterCurrentCurrent.y, TopRangeOuterCurrentCurrent.z);
+                    gl.glVertex3f(TopDistantOuterCurrentCurrent.x, TopDistantOuterCurrentCurrent.y, TopDistantOuterCurrentCurrent.z);
+                    
+                    if (r == 0)
+                    {
+                        // EDGE CONNECTING LINES INNER
+                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                            gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+                        gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z);
+                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                            gl.glColor3f(Col.r, Col.g, Col.b);
+                        gl.glVertex3f(TopRangeOuterCurrentCurrent.x, TopRangeOuterCurrentCurrent.y, TopRangeOuterCurrentCurrent.z);
+                    }
+                    
+                    if (!DisableBottom)
+                    {
+                        // OUTER BOTTOM LOOPS
+                        gl.glVertex3f(BottomRangeOuterCurrentCurrent.x, BottomRangeOuterCurrentCurrent.y, BottomRangeOuterCurrentCurrent.z);
+                        gl.glVertex3f(BottomRangeOuterNextCurrent.x, BottomRangeOuterNextCurrent.y, BottomRangeOuterNextCurrent.z);
+                        
+                        if (r != 0)
+                        {
+                            // OUTER BOTTOM RINGS
+                            gl.glVertex3f(BottomRangeOuterCurrentCurrent.x, BottomRangeOuterCurrentCurrent.y, BottomRangeOuterCurrentCurrent.z);
+                            gl.glVertex3f(BottomRangeOuterCurrentNext.x, BottomRangeOuterCurrentNext.y, BottomRangeOuterCurrentNext.z);
+                            
+                            // OUTER BOTTOM DISTANT
+                            gl.glVertex3f(BottomRangeOuterCurrentCurrent.x, BottomRangeOuterCurrentCurrent.y, BottomRangeOuterCurrentCurrent.z);
+                            gl.glVertex3f(BottomDistantOuterCurrentCurrent.x, BottomDistantOuterCurrentCurrent.y, BottomDistantOuterCurrentCurrent.z);
+                        }
+                    }
+                }
+            }
+        }
+        gl.glEnd();
+        gl.glRotatef(-90f, 1f, 0f, 0f);
+        gl.glTranslatef(0f, 0f, 0f);
     }
     
     public void makeWire(GLRenderer.RenderInfo info, Color4 Col)
