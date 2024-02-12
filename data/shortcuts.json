@@ -94,6 +94,65 @@
 					"DefaultTooltip": "Contains what position and rotation the zone is at.\nZones can be added to specific layers to make them only appear when that layer is enabled."
 				},
 				{
+					"Type": "Separator",
+					"RequiredFile": "SMG2"
+				},
+				{
+					"Type": "Menu",
+					"DefaultName": "ZoneInfo",
+					"RequiredFile": "SMG2",
+					"MenuElements": [
+						{
+							"Type": "Shortcut",
+							"DefaultName": "InStageFlagNameTable",
+							"DefaultArchivePath": "/StageData/%s/%sZoneInfo.arc",
+							"DefaultBcsvPath": "/Stage/csv/InStageFlagNameTable.bcsv",
+							"Variables": [
+								{
+									"VariableName": "StageName",
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
+								}, 
+								{
+									"VariableName": "StageName"
+								}
+							]
+						}, 
+						{
+							"Type": "Shortcut",
+							"DefaultName": "WaterCameraFilterParam",
+							"DefaultArchivePath": "/StageData/%s/%sZoneInfo.arc",
+							"DefaultBcsvPath": "/Stage/csv/WaterCameraFilterParam.bcsv",
+							"Variables": [
+								{
+									"VariableName": "StageName",
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
+								}, 
+								{
+									"VariableName": "StageName"
+								}
+							]
+						}, 
+						{
+							"Type": "Shortcut",
+							"DefaultName": "ShadowControllerParam",
+							"DefaultArchivePath": "/StageData/%s/%sZoneInfo.arc",
+							"DefaultBcsvPath": "/Stage/csv/ShadowControllerParam.bcsv",
+							"Variables": [
+								{
+									"VariableName": "StageName",
+									"VariableGetMessage": "Enter the stage's file name:",
+									"VariableListType": "StageName"
+								}, 
+								{
+									"VariableName": "StageName"
+								}
+							]
+						}
+					]
+				},
+				{
 					"Type": "Menu",
 					"DefaultName": "UseResource",
 					"RequiredFile": "SMG2",
@@ -510,7 +569,7 @@
 					"DefaultName": "WorldMapCamera",
 					"DefaultArchivePath": "/ObjectData/WorldMapCamera.arc",
 					"DefaultBcsvPath": "/WorldMapCamera/ActorInfo/CameraParam.bcam",
-					"RequiredFile": "SMG2",
+					"RequiredFile": "/ObjectData/WorldMapCamera.arc",
 					"DefaultTooltip": "Camera data shared between all world maps."
 				},
 				{
