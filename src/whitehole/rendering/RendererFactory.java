@@ -218,19 +218,23 @@ public final class RendererFactory {
         
         // Handle simple object renderers first
         renderer = tryCreateRendererForObjectType(info, objModelName, obj);
-        if (renderer != null) return renderer;
+        if (renderer != null)
+            return renderer;
         
         // Try water planet renderer
         renderer = tryCreateRendererForWaterPlanet(info, objModelName, obj);
-        if (renderer != null) return renderer;
+        if (renderer != null)
+            return renderer;
         
         // Try create BTI texture renderer
         renderer = tryCreateBtiRenderer(info, objModelName, obj);
-        if (renderer != null) return renderer;
+        if (renderer != null)
+            return renderer;
         
         // Try create multi-renderer objects
         renderer = tryCreateRendererWithMulti(info, objModelName, obj);
-        if (renderer != null) return renderer;
+        if (renderer != null)
+            return renderer;
         
         switch(objModelName) {
             /*case "clipareaboxbottom":

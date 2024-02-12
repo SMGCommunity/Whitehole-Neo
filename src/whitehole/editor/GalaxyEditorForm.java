@@ -844,6 +844,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         treeNodeList.clear();
         objListRootNode.setUserObject(curZone);
         objListRootNode.removeAllChildren();
+        objListPathRootNode.removeAllChildren();
         
         // Populate objects
         for (Map.Entry<String, ObjListTreeNode> entry : objListTreeNodes.entrySet()) {
