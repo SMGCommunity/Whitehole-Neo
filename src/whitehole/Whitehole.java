@@ -132,4 +132,12 @@ public class Whitehole {
     public static String createResourceArcPath(String objModelName) {
         return GAME != null ? GAME.createResourceArcPath(objModelName) : null;
     }
+    
+    public static int getValidSwitchInGalaxy() {
+        return MAIN_FRAME != null ? MAIN_FRAME.getValidSwitchInGalaxy() : -1;
+    }
+    
+    public static int getValidSwitchInZone() {
+        return MAIN_FRAME != null ? MAIN_FRAME.getValidSwitchInZone() : -1;
+    }
 }

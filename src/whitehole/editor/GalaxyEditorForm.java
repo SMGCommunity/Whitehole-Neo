@@ -49,6 +49,7 @@ import whitehole.util.PropertyGrid;
 import whitehole.math.RotationMatrix;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
+import whitehole.util.SwitchUtil;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     private static final float SCALE_DOWN = 10000f;
@@ -566,19 +567,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             switch (choices[choice]) {
             case "Zone":
                 for (String zoneString : switchZoneAppearances) {
-                    replSwitchID = getValidSwitchInZone(zoneArchives.get(zoneString)); // Generate
+                    replSwitchID = zoneArchives.get(zoneString).getValidSwitchInZone(); // Generate
                     
                     if (replSwitchID !=-1)
-                        zoneArchives = replaceSwitchID(invalidSwitch, replSwitchID, zoneArchives, zoneString); // Replace
+                        zoneArchives = SwitchUtil.replaceSwitchIDInZone(invalidSwitch, replSwitchID, zoneArchives, zoneString); // Replace
                 }
                 unsavedChanges = true;
                 break;
 
             case "Galaxy":
-                replSwitchID = getValidSwitchInGalaxy(zoneArchives); // Generate
+                replSwitchID = SwitchUtil.getValidSwitchInGalaxy(zoneArchives); // Generate
                 
                 if (replSwitchID !=-1)
-                    zoneArchives = replaceSwitchID(invalidSwitch, replSwitchID, zoneArchives); // Replace
+                    zoneArchives = SwitchUtil.replaceSwitchID(invalidSwitch, replSwitchID, zoneArchives); // Replace
                 unsavedChanges = true;
                 break;
             }
@@ -4447,124 +4448,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     // Gets an unused switch id for the current zone.
     public int getValidSwitchInZone() {
-        return getValidSwitchInZone(curZoneArc);
-    }
-    
-    // Gets an unused switch id for a specified zone.  
-    public int getValidSwitchInZone(StageArchive zoneArc) {
-        // Make a list of all the used switch IDs.
-        ArrayList<Integer> list = new ArrayList<>();
-        list.addAll(getUniqueSwitchesInZone(zoneArc));
-        
-        // Generate an ID based on this list.
-        int returnedSwitchID = generateUniqueSwitchID(list, false);
-        
-        // Show a funny prompt if they've used all the valid switches.
-        if (returnedSwitchID==-1) 
-            JOptionPane.showMessageDialog(parentForm, "Congratulations! You have used 128 switches! There's no way you unintentionally did this...");
-        
-        return returnedSwitchID;
+        return curZoneArc.getValidSwitchInZone();
     }
     
     // Gets an unused switch id for the current galaxy.
     public int getValidSwitchInGalaxy() {
-        return getValidSwitchInGalaxy(zoneArchives);
-    }
-    
-    // Gets an unused switch id for a hashmap of zone archives.
-    public int getValidSwitchInGalaxy(HashMap<String, StageArchive> zoneArcs) {
-        ArrayList<Integer> list = new ArrayList<>();
-        
-        // Add the used switches across all zones given to a list.
-        for (StageArchive zone : zoneArcs.values()) {
-            list.addAll(getUniqueSwitchesInZone(zone));
-        }
-        
-        // Generate a switch ID based on this list.
-        int returnSwitchID = generateUniqueSwitchID(list, true);
-        
-        // Show a funny prompt if they've used all the valid switches.
-        if (returnSwitchID==-1) 
-            JOptionPane.showMessageDialog(parentForm, "Congratulations! You have used 128 switches! There's no way you unintentionally did this...");
-        
-        return returnSwitchID;
-    }
-    
-    // Generate a switch ID based on an array list of used switch IDs. 
-    // Specify if you want it to generate a switch between 0-127 (False) or 1000-1127 (True).
-    // This will return -1 if no valid switch ID was found.
-    public int generateUniqueSwitchID(ArrayList<Integer> list, boolean isGalaxyMode) {
-        // Set the starting switch ID based on isGalaxyMode.
-        int switchID = 0;
-        if (isGalaxyMode) {
-            switchID = 1000;
-        }
-        int startingSwitchID = switchID;
-        
-        // Go through the list and find the first unique Switch ID.
-        while (list.contains(switchID) && switchID < startingSwitchID+128) {
-            switchID++;
-        }
-        
-        // If the first switch ID that matches is not a valid switch ID, return -1.
-        if (switchID > startingSwitchID+127) {
-            switchID = -1;
-        }
-        
-        return switchID;
+        return SwitchUtil.getValidSwitchInGalaxy(zoneArchives);
     }
     
     // Returns a set hash set of all switch IDs used in the current zone.
     public Set<Integer> getUniqueSwitchesInZone() {
-        return getUniqueSwitchesInZone(curZoneArc);
-    }
-    
-    // Give a zone's StageArchive and it will return a hash set of all switch IDs used in that zone.
-    public Set<Integer> getUniqueSwitchesInZone(StageArchive zoneArc) {
-        // Using a hash set because it does not allow for duplicates
-        Set<Integer> set = new HashSet<>(); 
-        
-        String[] switchFieldList = {"SW_APPEAR", "SW_DEAD", "SW_A", "SW_B", "SW_AWAKE", "SW_PARAM", "SW_SLEEP"};
-        
-        // Grab the SwitchID for all objects
-        for (List<AbstractObj> layers : zoneArc.objects.values()) {
-            for (AbstractObj obj : layers) {
-                for (String field : switchFieldList) {
-                    int switchId = obj.data.getInt(field, -1);
-                    
-                    // Add each switch ID seen to a hash set
-                    if (switchId!=-1) {
-                        set.add(switchId);
-                    }
-                }
-            }
-        }
-        
-        return set;
-    }
-     
-    private HashMap<String, StageArchive> replaceSwitchID(int switchIdToReplace, int switchIdToReplaceWith, HashMap<String, StageArchive> zoneArcs) {
-        return replaceSwitchID(switchIdToReplace, switchIdToReplaceWith, zoneArcs, "");
-    }
-    
-    private HashMap<String, StageArchive> replaceSwitchID(int switchIdToReplace, int switchIdToReplaceWith, HashMap<String, StageArchive> zoneArcs, String zoneName) {
-        String[] switchFieldList = {"SW_APPEAR", "SW_DEAD", "SW_A", "SW_B", "SW_AWAKE", "SW_PARAM", "SW_SLEEP"};
-        
-        for (StageArchive zoneArc : zoneArcs.values()) {
-            if (zoneName.equals(zoneArc.stageName) || zoneName.isBlank()) { // for zone specific replacements
-                for (List<AbstractObj> layers : zoneArc.objects.values()) {
-                    for (AbstractObj obj : layers) {
-                        for (String field : switchFieldList) {
-                            int switchId = obj.data.getInt(field, -1);
-
-                            if (switchId == switchIdToReplace)
-                                obj.data.put(field, switchIdToReplaceWith);
-                        }
-                    }
-                }
-            }
-        }
-        
-        return zoneArcs;
+        return curZoneArc.getUniqueSwitchesInZone();
     }
 }

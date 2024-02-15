@@ -18,6 +18,7 @@ package whitehole.smg;
 
 import java.io.*;
 import java.util.*;
+import javax.swing.JOptionPane;
 import whitehole.Whitehole;
 import whitehole.io.FilesystemBase;
 import whitehole.io.RarcFile;
@@ -35,6 +36,7 @@ import whitehole.smg.object.PositionObj;
 import whitehole.smg.object.SoundObj;
 import whitehole.smg.object.StageObj;
 import whitehole.smg.object.StartObj;
+import whitehole.util.SwitchUtil;
 
 public class StageArchive {
     // IO stuff
@@ -311,5 +313,33 @@ public class StageArchive {
         
         bcsv.save();
         bcsv.close();
+    }
+    
+    // Returns a hash set of all switch IDs used in this zone.
+    public Set<Integer> getUniqueSwitchesInZone() {
+        // Using a hash set because it does not allow for duplicates
+        Set<Integer> set = new HashSet<>(); 
+        
+        String[] switchFieldList = {"SW_APPEAR", "SW_DEAD", "SW_A", "SW_B", "SW_AWAKE", "SW_PARAM", "SW_SLEEP"};
+        
+        // Grab the SwitchID for all objects
+        for (List<AbstractObj> layers : objects.values()) {
+            for (AbstractObj obj : layers) {
+                for (String field : switchFieldList) {
+                    int switchId = obj.data.getInt(field, -1);
+                    
+                    // Add each switch ID seen to a hash set
+                    if (switchId!=-1) {
+                        set.add(switchId);
+                    }
+                }
+            }
+        }
+        
+        return set;
+    }
+    
+    public int getValidSwitchInZone() {
+        return SwitchUtil.generateUniqueSwitchID(getUniqueSwitchesInZone(), false);
     }
 }

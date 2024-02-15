@@ -34,6 +34,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import whitehole.Whitehole;
 import whitehole.editor.ObjectSelectForm;
 import whitehole.editor.GalaxyEditorForm;
 
@@ -728,6 +729,7 @@ public class PropertyGrid extends JTable {
                     }
                     if (!isValidSwitchID)
                         textfield.setForeground(new Color(0xFF4040));
+                    
                 }
             });
             textfield.requestFocusInWindow();
@@ -742,11 +744,8 @@ public class PropertyGrid extends JTable {
             zoneSwitchButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent evt) {
-                    // Grab the current GalaxyEditorForm instance. Please change this if there's a better way.
-                    GalaxyEditorForm stage = ((GalaxyEditorForm) mainPanel.getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent());
-                    
                     // Get a valid zone-exclusive switch
-                    Object val = stage.getValidSwitchInZone();
+                    Object val = Whitehole.getValidSwitchInZone();
                     
                     if (!val.equals(-1)) { // only replace the value if it's valid
                         textfield.setText(String.valueOf(val));
@@ -754,6 +753,8 @@ public class PropertyGrid extends JTable {
                         // Set the field's value to the int and put this into the stage data
                         field.value = val;
                         eventListener.propertyChanged(field.name, val);
+                    } else {
+                        JOptionPane.showMessageDialog(mainPanel, "You used ALL the valid zone-exclusive switches for this zone? Impressive!\nTry using a galaxy-wide switch or make another zone.");
                     }
                 }
             });
@@ -761,11 +762,7 @@ public class PropertyGrid extends JTable {
             galaxySwitchButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent evt) {
-                    // Grab the current GalaxyEditorForm instance. Please change this if there's a better way.
-                    GalaxyEditorForm stage = ((GalaxyEditorForm) mainPanel.getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent());
-                    
-                    // Get a valid galaxy wide switch
-                    Object val = stage.getValidSwitchInGalaxy();
+                    Object val = Whitehole.getValidSwitchInGalaxy();
                     
                     if (!val.equals(-1)) { // only replace the value if it's valid
                         textfield.setText(String.valueOf(val));
@@ -773,6 +770,8 @@ public class PropertyGrid extends JTable {
                         // Set the field's value to the int and put this into the stage data
                         field.value = val;
                         eventListener.propertyChanged(field.name, val);
+                    } else {
+                        JOptionPane.showMessageDialog(mainPanel, "You used ALL the galaxy-wide switches for this galaxy? Impressive!\nTry using zone-exclusive switches if possible.");
                     }
                 }
             });

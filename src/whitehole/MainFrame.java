@@ -30,6 +30,7 @@ import whitehole.rendering.RendererCache;
 import whitehole.rendering.ShaderCache;
 import whitehole.rendering.TextureCache;
 import whitehole.smg.GameArchive;
+import whitehole.util.SwitchUtil;
 
 public final class MainFrame extends javax.swing.JFrame {
     private static class GalaxyListItem {
@@ -152,6 +153,14 @@ public final class MainFrame extends javax.swing.JFrame {
         SwingUtilities.updateComponentTreeUI(settingsDialog);
         
         ObjectSelectForm.requestUpdateLAF();
+    }
+    
+    public int getValidSwitchInGalaxy() {
+        return galaxyEditor != null ? galaxyEditor.getValidSwitchInGalaxy() : -1;
+    }
+    
+    public int getValidSwitchInZone() {
+        return galaxyEditor != null ? galaxyEditor.getValidSwitchInZone() : -1;
     }
     
     @SuppressWarnings("unchecked")
