@@ -16,8 +16,12 @@
  */
 package whitehole.rendering;
 import com.jogamp.opengl.*;
+import whitehole.math.Matrix4;
 import whitehole.math.Vec3f;
+import whitehole.smg.object.AbstractObj;
+import whitehole.smg.object.PathObj;
 import whitehole.util.Color4;
+import whitehole.util.RailUtil;
 
 /**
  *
@@ -69,6 +73,10 @@ public class GravityShapeRenderer extends GLRenderer {
     private float Distant;
     private boolean IsInverse;
     private float ObjArg0, ObjArg1, ObjArg2, ObjArg3;
+    private PathObj PathData;
+    private Vec3f WirePosition;
+    private Vec3f WireRotation;
+    private CubeRenderer PathBaseOriginCube;
     
     public GravityShapeRenderer(
             Color4 clr,
@@ -101,7 +109,11 @@ public class GravityShapeRenderer extends GLRenderer {
     }
     
     @Override
+    public boolean hasSpecialPosition() { return shape == Shape.WIRE_RANGE; }
+    @Override
     public boolean hasSpecialScaling() { return true; }
+    @Override
+    public boolean boundToPathId() { return shape == Shape.WIRE_RANGE; }
     @Override
     public boolean boundToObjArg(int arg) { return true; }
     @Override
@@ -221,6 +233,14 @@ public class GravityShapeRenderer extends GLRenderer {
                 break;
         }
         gl.glLineWidth(1.5f);
+    }
+    
+    public void setWireData(PathObj path, AbstractObj OwnerObj)
+    {
+        PathData = path;
+        PathBaseOriginCube = new CubeRenderer(100f, new Color4(1f, 1f, 1f), color, true);
+        WirePosition = OwnerObj.position;
+        WireRotation = OwnerObj.rotation;
     }
     
     // -----------------------------------------------------------------------------
@@ -2092,14 +2112,238 @@ public class GravityShapeRenderer extends GLRenderer {
         gl.glTranslatef(0f, 0f, 0f);
     }
     
+    // HEEEELLLPPPPPP
     public void makeWire(GLRenderer.RenderInfo info, Color4 Col)
     {
+        if (PathData == null)
+        {
+            if (PathBaseOriginCube != null)
+                PathBaseOriginCube.render(info);
+            return;
+        }
         
+        GL2 gl = info.drawable.getGL().getGL2();
+        
+        Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
+        if (IsInverse)
+        {
+            //If this is an inverted area, swap the colour definitions
+            Color4 t = Col;
+            Col = DownCol;
+            DownCol = t;
+        }
+        
+        float RANGE_SIZE = Range > 0 ? Range : 0;
+        float DISTANT_SIZE = RANGE_SIZE + Distant;
+        int Segments = 16;
+        int SegmentsV = 4;
+        
+        // welcome to HELL
+        
+        int numPointsInBetween = (int)(ObjArg0 < 0 ? 20 : ObjArg0) + 2;
+        double RailLength = RailUtil.getPathLength(PathData);
+        double railInterval = RailLength / (numPointsInBetween - 1);
+        
+        Vec3f[] GravityPoints = new Vec3f[numPointsInBetween - 1];
+        Vec3f[] GravityNormals = new Vec3f[numPointsInBetween - 1];
+        Vec3f[][] RingPoints = new Vec3f[numPointsInBetween - 1][Segments+1];
+        for(int i = 0; i < numPointsInBetween - 1; i++)
+        {
+            double interv = railInterval * i;
+            GravityPoints[i] = RailUtil.calcPosAtCoord(interv, PathData);
+            GravityNormals[i] = RailUtil.calcDirAtCoord(interv, PathData);
+            
+            Vec3f Cross = new Vec3f(0,1,0);
+            Vec3f.cross(Cross, GravityNormals[i], Cross);
+            Vec3f.normalize(Cross, Cross);
+            
+            for(int r = 0; r <= Segments; r++)
+            {
+                double angle = 2.0 * Math.PI * (r/(float)Segments);
+                //Taken from NoClip literally nothing else worked...
+                Matrix4 ScratchMatrix = Matrix4.fromRotation(angle, GravityNormals[i]);
+                Vec3f ScratchVecA = Matrix4.transformVec3Mat4w0(ScratchMatrix, Cross);
+                ScratchVecA.scale(Range);
+                
+                double xFinal = ScratchVecA.x + GravityPoints[i].x;
+                double yFinal = ScratchVecA.y + GravityPoints[i].y;
+                double zFinal = ScratchVecA.z + GravityPoints[i].z;
+                RingPoints[i][r] = new Vec3f((float)xFinal, (float)yFinal, (float)zFinal);
+            }
+        }
+        
+        gl.glPushMatrix();
+        gl.glRotatef(-WireRotation.x, 1f, 0f, 0f);
+        gl.glRotatef(-WireRotation.y, 0f, 1f, 0f);
+        gl.glRotatef(-WireRotation.z, 0f, 0f, 1f);
+        gl.glTranslatef(-WirePosition.x, -WirePosition.y, -WirePosition.z);
+        gl.glBegin(GL2.GL_LINE_STRIP);
+        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+        for(int i = 0; i < GravityPoints.length; i++)
+        {
+            gl.glVertex3f(GravityPoints[i].x, GravityPoints[i].y, GravityPoints[i].z);
+        }
+        gl.glEnd();
+        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            gl.glColor3f(Col.r, Col.g, Col.b);
+        gl.glBegin(GL2.GL_LINES);
+        for(int i = 0; i < GravityPoints.length; i++)
+        {
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(Col.r, Col.g, Col.b);
+            
+            
+            //gl.glVertex3f(GravityPoints[i].x, GravityPoints[i].y, GravityPoints[i].z);
+            //gl.glVertex3f(GravityPoints[i].x+GravityNormals[i].x*Range, GravityPoints[i].y+GravityNormals[i].y*Range, GravityPoints[i].z+GravityNormals[i].z*Range);
+            
+            
+            //Draw Rings
+            for(int r = 0; r < RingPoints[i].length - 1; r++)
+            {
+                Vec3f pCur = RingPoints[i][r],
+                  pNext= RingPoints[i][r+1];
+                
+                if (r%4 == 0)
+                {
+                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+                    gl.glVertex3f(GravityPoints[i].x, GravityPoints[i].y, GravityPoints[i].z);
+                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        gl.glColor3f(Col.r, Col.g, Col.b);
+                    gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+                }
+
+                
+                gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+                gl.glVertex3f(pNext.x, pNext.y, pNext.z);
+
+                //I can't make this work                
+//                if (i+1 < GravityPoints.length)
+//                {
+//                    Vec3f pPCur = RingPoints[i+1][r];                    
+//                    gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+//                    gl.glVertex3f(pPCur.x, pPCur.y, pPCur.z);
+//                }
+            }
+        }
+        gl.glEnd();
+        gl.glPopMatrix();
+        
+        
+        
+        // Keep the cube since it's a literal position
+        if (PathBaseOriginCube != null)
+            PathBaseOriginCube.render(info);
     }
     
     // The SMG2 exclusive
     public void makeBarrel(GLRenderer.RenderInfo info, Color4 Col)
     {
+        GL2 gl = info.drawable.getGL().getGL2();
         
+        float RANGE_SIZE = Range > 0 ? Range : 0;
+        float DISTANT_SIZE = RANGE_SIZE + Distant;
+        int Segments = 16;
+        int SegmentsV = Segments/2;
+        float Useless = ObjArg0 < 0 ? 500 : ObjArg0;
+        float InwardPullDistance = ObjArg1;
+        double InwardCalculation = Math.min(45, (InwardPullDistance/RANGE_SIZE) * 180/Math.PI);
+        
+        float ScaleYSize = (CYLINDER_SIZE*2) * Scale.y;
+        
+        Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
+        float ColRDiff = Col.r*0.5f;
+        float ColGDiff = Col.g*0.5f;
+        float ColBDiff = Col.b*0.5f;
+        
+        ColRDiff = (Col.r - ColRDiff) / SegmentsV;
+        ColGDiff = (Col.g - ColGDiff) / SegmentsV;
+        ColBDiff = (Col.b - ColBDiff) / SegmentsV;
+        
+        Vec3f[] Points = new Vec3f[Segments+1];
+        Vec3f[] PointsDistant = new Vec3f[Segments+1];
+        for(int i = 0; i <= Segments; i++)
+        {
+            double angle = 2.0 * Math.PI * (i/(float)Segments);
+            double x = RANGE_SIZE * Math.cos(angle);
+            double y = RANGE_SIZE * Math.sin(angle);
+            double xd = DISTANT_SIZE * Math.cos(angle);
+            double yd = DISTANT_SIZE * Math.sin(angle);
+            Points[i] = new Vec3f(-(float)x, (float)y, 0);
+            PointsDistant[i] = new Vec3f(-(float)xd, (float)yd, 0);
+        }
+        
+        gl.glTranslatef(0f, ScaleYSize, 0f);
+        gl.glRotatef(90f, 1f, 0f, 0f);
+        gl.glBegin(GL2.GL_LINES);
+        Color4 CurCol;
+        Color4 NextCol;
+        for(int i = 0; i < Points.length-1; i++)
+        {
+            Vec3f pCur = Points[i],
+                  pNext= Points[i+1];
+            
+            int ColorFrame = i % SegmentsV;
+            int ColorFrameNext = ColorFrame;
+            if (ColorFrame == SegmentsV)
+                ColorFrame = 0;
+            if (ColorFrameNext == SegmentsV)
+                ColorFrameNext = 0;
+            
+            if (IsInverse)
+            {
+                CurCol = new Color4(DownCol.r + (ColRDiff*ColorFrame), DownCol.g + (ColGDiff*ColorFrame), DownCol.b + (ColBDiff*ColorFrame));
+                NextCol = new Color4(DownCol.r + (ColRDiff*ColorFrameNext), DownCol.g + (ColGDiff*ColorFrameNext), DownCol.b + (ColBDiff*ColorFrameNext));
+            }
+            else
+            {
+                CurCol = new Color4(Col.r - (ColRDiff*ColorFrame), Col.g - (ColGDiff*ColorFrame), Col.b - (ColBDiff*ColorFrame));
+                NextCol = new Color4(Col.r - (ColRDiff*ColorFrameNext), Col.g - (ColGDiff*ColorFrameNext), Col.b - (ColBDiff*ColorFrameNext));
+            }
+            
+
+            
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(CurCol.r, CurCol.g, CurCol.b);
+        
+            // UPPER
+            gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(NextCol.r, NextCol.g, NextCol.b);
+            gl.glVertex3f(pNext.x, pNext.y, pNext.z);
+            
+            // MIDDLE
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(CurCol.r, CurCol.g, CurCol.b);
+            gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+            gl.glVertex3f(pCur.x, pCur.y, pCur.z + ScaleYSize);
+            
+            // LOWER
+            gl.glVertex3f(pCur.x, pCur.y, pCur.z + ScaleYSize);
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(NextCol.r, NextCol.g, NextCol.b);
+            gl.glVertex3f(pNext.x, pNext.y, pNext.z + ScaleYSize);
+            
+            // UPPER SPOKES
+            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                gl.glColor3f(CurCol.r, CurCol.g, CurCol.b);
+            gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+            gl.glVertex3f(0, 0, pCur.z);
+            gl.glVertex3f(pCur.x, pCur.y, pCur.z + ScaleYSize);
+            gl.glVertex3f(0, 0, pCur.z + ScaleYSize);
+            
+            // DISTANT
+            
+            Vec3f pCurD = PointsDistant[i];
+            gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+            gl.glVertex3f(pCurD.x, pCurD.y, pCurD.z);
+            gl.glVertex3f(pCur.x, pCur.y, pCur.z + ScaleYSize);
+            gl.glVertex3f(pCurD.x, pCurD.y, pCurD.z + ScaleYSize);
+            
+        }
+        gl.glEnd();
+        gl.glRotatef(-90f, 1f, 0f, 0f);
+        gl.glTranslatef(0f, 0f, 0f);
     }
 }

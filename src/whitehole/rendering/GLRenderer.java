@@ -69,7 +69,10 @@ public abstract class GLRenderer {
     public void render(RenderInfo info) throws GLException {}
     
     public boolean isScaled() { return true; }
+    public boolean hasSpecialPosition() { return false; }
+    public boolean hasSpecialRotation() { return false; }
     public boolean hasSpecialScaling() { return false; }
+    public boolean boundToPathId() { return false; }
     public boolean boundToObjArg(int arg) { return false; }
     public boolean boundToProperty() { return false; }
     

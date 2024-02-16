@@ -108,10 +108,11 @@ public final class RendererFactory {
     }
     
     public static String getGravityShapeModelName(GravityObj obj) {
-        return obj.name.toLowerCase() + String.format("_(%s,%s,%s|%s,%s,%s|%s,%s,%s,%s)",
+        return obj.name.toLowerCase() + String.format("_(%s,%s,%s|%s,%s,%s|%s,%s,%s,%s,%d)",
                 obj.scale.x, obj.scale.y, obj.scale.z,
                 obj.data.get("Range"), obj.data.get("Distant"), obj.data.get("Inverse"),
-                obj.data.get("Obj_arg0"),obj.data.get("Obj_arg1"),obj.data.get("Obj_arg2"),obj.data.get("Obj_arg3"));
+                obj.data.get("Obj_arg0"),obj.data.get("Obj_arg1"),obj.data.get("Obj_arg2"),obj.data.get("Obj_arg3"),
+                obj.data.get("CommonPath_ID"));
     }
     
     public static String getSubstitutedModelName(String objModelName, AbstractObj obj, boolean isNeedPrevious) {
@@ -270,7 +271,7 @@ public final class RendererFactory {
         }
         else if (obj instanceof GravityObj) {
             //TODO: REMOVE THIS WHEN FINISHED
-            System.out.println(objModelName);
+            //System.out.println(objModelName);
             
             //No idea why I had to do it this way, but the runtime kept crashing if I didn't...
             Object r = obj.data.get("Range");
@@ -433,6 +434,39 @@ public final class RendererFactory {
                         GravityShapeRenderer.COLOR_DEFAULT,
                         GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
                         GravityShapeRenderer.Shape.TORUS_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+            }
+            if (objModelName.startsWith("gravityobj_globalwiregravity_"))
+            {
+                var x = new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_DEFAULT,
+                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        GravityShapeRenderer.Shape.WIRE_RANGE,
+                        obj.scale,
+                        (float)r,
+                        (float)d,
+                        (int)i,
+                        (int)oa0,
+                        (int)oa1,
+                        (int)oa2,
+                        (int)oa3);
+                var y = AbstractObj.getObjectPathData(obj);
+                x.setWireData(y, obj);
+                return x;
+            }
+            if (objModelName.startsWith("gravityobj_globalbarrelgravity_"))
+            {
+                return new GravityShapeRenderer(
+                        GravityShapeRenderer.COLOR_DEFAULT,
+                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        GravityShapeRenderer.Shape.BARREL_RANGE,
                         obj.scale,
                         (float)r,
                         (float)d,

@@ -117,6 +117,17 @@ public class PathObj {
         return points;
     }
     
+    public boolean isClosed() {
+        return ((String)data.get("closed")).equals("CLOSE");
+    }
+    
+    public Vec3f getStartPosition()
+    {
+        if (points.isEmpty())
+            return new Vec3f();
+        return points.get(0).position;
+    }
+    
     public Color4 getColor() {
         return color;
     }
@@ -290,7 +301,7 @@ public class PathObj {
             
             int end = points.size();
             
-            if (((String)data.get("closed")).equals("CLOSE")) {
+            if (isClosed()) { //May as well...
                 end++;
             }
             

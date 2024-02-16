@@ -2452,6 +2452,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
                 pnlObjectSettings.repaint();
                 addRerenderTask("zone:"+selectedObj.stage.stageName);
+                if (selectedObj.renderer.hasSpecialPosition())
+                    addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
             }
             glCanvas.repaint();
         }
@@ -3092,7 +3094,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         case "scale_z": selectedObj.scale.z =(float)value; break;
                     }
 
-                    if(propname.startsWith("scale_") && selectedObj.renderer.hasSpecialScaling())
+                    if(propname.startsWith("pos_") && selectedObj.renderer.hasSpecialPosition())
+                        rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
+                    else if(propname.startsWith("dir_") && selectedObj.renderer.hasSpecialRotation())
+                        rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
+                    else if(propname.startsWith("scale_") && selectedObj.renderer.hasSpecialScaling())
                         rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
                     
                     if (selectedObj instanceof StageObj) {
@@ -3115,6 +3121,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     else if (propname.equals("ShapeModelNo")) {
                         rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
+                        rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                        glCanvas.repaint();
+                    }
+                    else if(selectedObj.renderer.boundToPathId() && propname.startsWith("CommonPath_ID")) {
+                        rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
+                        PathObj y = AbstractObj.getObjectPathData(selectedObj);
+                        if (y != null)
+                            rerenderTasks.add("path:" +  y.uniqueID);
                         rerenderTasks.add("zone:"+selectedObj.stage.stageName);
                         glCanvas.repaint();
                     }

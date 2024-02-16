@@ -92,6 +92,59 @@ public class Matrix4 {
                 trans.x, trans.y, trans.z, 1f);
     }
     
+    public static Matrix4 fromRotation(double radians, Vec3f axis)
+    {
+        Matrix4 out = new Matrix4();
+        double s, c, t;
+        double x = axis.x;
+        double y = axis.y;
+        double z = axis.z;
+        double len = Math.sqrt(x * x + y * y + z * z);
+
+        if (Math.abs(len) < 0.000001) {
+          return null;
+        }
+
+        len = 1 / len;
+        x *= len;
+        y *= len;
+        z *= len;
+
+        s = Math.sin(radians);
+        c = Math.cos(radians);
+        t = 1 - c;
+
+        // Perform rotation-specific matrix multiplication
+        out.m[0] = (float)(x * x * t + c);
+        out.m[1] = (float)(y * x * t + z * s);
+        out.m[2] = (float)(z * x * t - y * s);
+        out.m[3] = 0;
+        out.m[4] = (float)(x * y * t - z * s);
+        out.m[5] = (float)(y * y * t + c);
+        out.m[6] = (float)(z * y * t + x * s);
+        out.m[7] = 0;
+        out.m[8] = (float)(x * z * t + y * s);
+        out.m[9] = (float)(y * z * t - x * s);
+        out.m[10] = (float)(z * z * t + c);
+        out.m[11] = 0;
+        out.m[12] = 0;
+        out.m[13] = 0;
+        out.m[14] = 0;
+        out.m[15] = 1;
+        return out;
+    }
+    
+    // From Noclip.website
+    public static Vec3f transformVec3Mat4w0(Matrix4 m, Vec3f v)
+    {
+        Vec3f result = new Vec3f();
+        float x = v.x, y = v.y, z = v.z;
+        result.x = m.m[0] * x + m.m[4] * y + m.m[8] * z;
+        result.y = m.m[1] * x + m.m[5] * y + m.m[9] * z;
+        result.z = m.m[2] * x + m.m[6] * y + m.m[10] * z;
+        return result;
+    }
+    
     public static Matrix4 SRTToMatrix(Vec3f scale, Vec3f rot, Vec3f trans) {
         Matrix4 ret = new Matrix4();
 

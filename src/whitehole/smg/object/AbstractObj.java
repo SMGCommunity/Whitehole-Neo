@@ -347,4 +347,28 @@ public abstract class AbstractObj {
         
         gl.glPopMatrix();
     }
+    
+     /**
+     * Gets the Path Data for a given object.
+     * @param obj The object to get the path data for.
+     */
+    public static PathObj getObjectPathData(AbstractObj obj)
+    {
+        int pathid = -1;
+            
+        if(obj instanceof PathPointObj)
+            pathid = ((PathPointObj) obj).path.pathID;
+        else if(obj.data.containsKey("CommonPath_ID"))
+            pathid = (short) obj.data.get("CommonPath_ID");
+
+        if(pathid == -1)
+            return null;
+        
+        for(var p : obj.stage.paths)
+        {
+            if (p.pathID == pathid)
+                return p;
+        }
+        return null; //Path not found!
+    }
 }
