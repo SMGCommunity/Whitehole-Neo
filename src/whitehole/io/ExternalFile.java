@@ -23,13 +23,16 @@ import java.nio.charset.*;
 public class ExternalFile implements FileBase {
     private final RandomAccessFile file;
     private boolean isBigEndian;
+    private final String filePath;
     
     private final ByteBuffer byteBuffer = ByteBuffer.allocate(8);
     private final CharBuffer charBuffer = CharBuffer.allocate(1);
     
     public ExternalFile(String path) throws FileNotFoundException {
+        filePath = path;
         file = new RandomAccessFile(path, "rw");
         isBigEndian = false;
+        System.out.println("FILE OPEN: "+filePath);
     }
     
     @Override
@@ -40,6 +43,7 @@ public class ExternalFile implements FileBase {
     @Override
     public void close() throws IOException {
         file.close();
+        System.out.println("FILE CLOSE: "+filePath);
     }
     
     @Override

@@ -146,6 +146,7 @@ public class StageArchive {
                     loadLayeredObjects(designArc, "Placement", "AreaObjInfo");
                 }
             }
+            mapArc.close();
         }
         catch (IOException ex) {
             System.out.println(ex);
@@ -237,6 +238,7 @@ public class StageArchive {
     // Saving
     
     public void save() throws IOException {
+        mapArc = new RarcFile(filesystem.openFile(mapPath));
         saveLayeredZones();
         savePaths();
             
@@ -256,6 +258,7 @@ public class StageArchive {
         }
         
         mapArc.save();
+        mapArc.close();
     }
     
     private void saveLayeredObjects(RarcFile archive, String folder, String file) throws IOException {
