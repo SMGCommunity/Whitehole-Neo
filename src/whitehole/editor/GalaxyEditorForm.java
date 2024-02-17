@@ -2075,11 +2075,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 displayedPaths.put(pathid, (PathPointObj) obj);
             else if (displayedPaths.get(pathid) == null)
             {
-                for(var HELPME : globalPathPointList.values())
+                for(var Cur : globalPathPointList.values())
                 {
-                    if (HELPME.path == pathobj)
+                    if (Cur.path == pathobj)
                     {
-                        displayedPaths.put(pathid, (PathPointObj)HELPME);
+                        displayedPaths.put(pathid, (PathPointObj)Cur);
                         break;
                     }
                 }
@@ -3420,38 +3420,34 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 {
                     for(PathObj pobj : zonearc.paths)
                     {
-                        if (tgbShowPaths.isSelected())
-                        {
-                            pobj.render(renderInfo);
+                        boolean isRenderCurrentPath = tgbShowPaths.isSelected();
 
-                            if(mode == 1)
-                            {
-                                PathPointObj ptobj = displayedPaths.get(pobj.pathID);
-                                if(ptobj != null)
+                        if (!isRenderCurrentPath)
+                            for (PathPointObj display : displayedPaths.values()) {
+                                if (display == null)
+                                    continue;
+                                if (pobj == display.path)
                                 {
-                                    ptobj.render(renderInfo, selectionArg, true);
+                                    isRenderCurrentPath = true;
+                                    break;
                                 }
                             }
-                            continue;
-                        }
                         
-                        for(PathPointObj display : displayedPaths.values())
-                        {
-                            if (display == null)
-                                continue;
-                            
-                            if (pobj == display.path)
-                            {
-                                pobj.render(renderInfo);
+                        if (!isRenderCurrentPath)
+                            continue;
+                        
+                        pobj.render(renderInfo);                        
 
-                                if(mode == 1)
-                                {
-                                    PathPointObj ptobj = displayedPaths.get(pobj.pathID);
-                                    if(ptobj != null)
-                                    {
-                                        ptobj.render(renderInfo, selectionArg, true);
-                                    }
-                                }
+                        if(mode == 1)
+                        {
+                            for(AbstractObj aObj : selectedObjs.values())
+                            {
+                                if (!(aObj instanceof PathPointObj))
+                                    continue;
+                                PathPointObj aPthPt = (PathPointObj)aObj;
+                                if (aPthPt.path != pobj)
+                                    continue;
+                                aPthPt.render(renderInfo, selectionArg, true);
                             }
                         }
                     }
