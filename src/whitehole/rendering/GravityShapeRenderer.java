@@ -113,6 +113,8 @@ public class GravityShapeRenderer extends GLRenderer {
     @Override
     public boolean hasSpecialScaling() { return true; }
     @Override
+    public boolean hasPathConnection() { return shape == Shape.WIRE_RANGE; }
+    @Override
     public boolean boundToPathId() { return shape == Shape.WIRE_RANGE; }
     @Override
     public boolean boundToObjArg(int arg) { return true; }

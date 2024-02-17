@@ -371,4 +371,16 @@ public abstract class AbstractObj {
         }
         return null; //Path not found!
     }
+    
+    public static boolean isUsingPath(AbstractObj obj, PathObj path)
+    {
+        if (obj == null || path == null)
+            return false;
+        if (obj instanceof PathPointObj)
+            return ((PathPointObj)obj).path == path; //We want a reference comparison
+        if(!obj.data.containsKey("CommonPath_ID"))
+            return false;
+        int pathid = (short)obj.data.get("CommonPath_ID");
+        return obj.stage == path.stage && pathid == path.pathID;
+    }
 }

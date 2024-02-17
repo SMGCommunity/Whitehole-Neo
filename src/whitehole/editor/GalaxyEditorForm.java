@@ -2438,6 +2438,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pnlObjectSettings.repaint();
                 rerenderTasks.add(String.format("path:%1$d", selectedPathPoint.path.uniqueID));
                 rerenderTasks.add("zone:"+selectedPathPoint.path.stage.stageName);
+                rerenderPathOwners(selectedPathPoint.path);
             } else {
                 //if(selectedObj instanceof StageObj)
                 //    return;
@@ -4473,5 +4474,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // Returns a set hash set of all switch IDs used in the current zone.
     public Set<Integer> getUniqueSwitchesInZone() {
         return curZoneArc.getUniqueSwitchesInZone();
+    }
+    
+    public void rerenderPathOwners(PathObj path)
+    {
+        for (AbstractObj obj : globalObjList.values())
+        {
+            if (obj.renderer == null)
+                continue;
+            
+            if (!obj.renderer.hasPathConnection())
+                continue;
+            
+            if (AbstractObj.isUsingPath(obj, path))
+            {
+                addRerenderTask("object:"+Integer.toString(obj.uniqueID));
+            }
+        }
     }
 }
