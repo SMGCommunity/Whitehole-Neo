@@ -366,7 +366,7 @@ public abstract class AbstractObj {
         
         for(var p : obj.stage.paths)
         {
-            if (p.pathID == pathid)
+            if (p.pathID == pathid && obj.stage == p.stage)
                 return p;
         }
         return null; //Path not found!

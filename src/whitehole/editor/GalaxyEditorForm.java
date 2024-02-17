@@ -2062,12 +2062,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         // Check if any are paths/path points linked to selected objs
         for(AbstractObj obj : selectedObjs.values()) {
-            int pathid = -1;
-            
-            if(obj instanceof PathPointObj)
-                pathid = ((PathPointObj) obj).path.pathID;
-            else if(obj.data.containsKey("CommonPath_ID"))
-                pathid = (short) obj.data.get("CommonPath_ID");
+            PathObj pathobj = AbstractObj.getObjectPathData(obj);
+            if (pathobj == null)
+                continue;
+            int pathid = pathobj.pathID;
             
             if(pathid == -1)
                 continue;
@@ -2076,7 +2074,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(displayedPaths.get(pathid) == null && obj instanceof PathPointObj)
                 displayedPaths.put(pathid, (PathPointObj) obj);
             else if (displayedPaths.get(pathid) == null)
-                displayedPaths.put(pathid, (PathPointObj) globalPathPointList.get(pathid));
+            {
+                for(var HELPME : globalPathPointList.values())
+                {
+                    if (HELPME.path == pathobj)
+                    {
+                        displayedPaths.put(pathid, (PathPointObj)HELPME);
+                        break;
+                    }
+                }
+            }
         }
         
         // Check if the selected objects' classes are the same
@@ -3409,18 +3416,42 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     renderSelectHighlight(gl, zone);
                 
                 // path rendering -- be lazy and hijack the display lists used for the Common objects
-                if(layer.equalsIgnoreCase("common")) {
-                    for(PathObj pobj : zonearc.paths) {
-                        if(!tgbShowPaths.isSelected() && // isSelected? intuitive naming ftw :/
-                                !displayedPaths.containsKey(pobj.pathID))
+                if(layer.equalsIgnoreCase("common"))
+                {
+                    for(PathObj pobj : zonearc.paths)
+                    {
+                        if (tgbShowPaths.isSelected())
+                        {
+                            pobj.render(renderInfo);
+
+                            if(mode == 1)
+                            {
+                                PathPointObj ptobj = displayedPaths.get(pobj.pathID);
+                                if(ptobj != null)
+                                {
+                                    ptobj.render(renderInfo, selectionArg, true);
+                                }
+                            }
                             continue;
+                        }
                         
-                        pobj.render(renderInfo);
-                        
-                        if(mode == 1) {
-                            PathPointObj ptobj = displayedPaths.get(pobj.pathID);
-                            if(ptobj != null) {
-                                ptobj.render(renderInfo, selectionArg, true);
+                        for(PathPointObj display : displayedPaths.values())
+                        {
+                            if (display == null)
+                                continue;
+                            
+                            if (pobj == display.path)
+                            {
+                                pobj.render(renderInfo);
+
+                                if(mode == 1)
+                                {
+                                    PathPointObj ptobj = displayedPaths.get(pobj.pathID);
+                                    if(ptobj != null)
+                                    {
+                                        ptobj.render(renderInfo, selectionArg, true);
+                                    }
+                                }
                             }
                         }
                     }
