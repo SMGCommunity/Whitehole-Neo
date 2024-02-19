@@ -17,6 +17,7 @@
 package whitehole.rendering;
 
 import com.jogamp.opengl.GL2;
+import java.io.IOException;
 import java.util.List;
 import whitehole.math.Vec3f;
 
@@ -67,6 +68,13 @@ public class MultiRenderer extends GLRenderer {
     public void close(RenderInfo info) {
         for (MultiRendererInfo multiInfo : submodelRenderers) {
             multiInfo.renderer.close(info);
+        }
+    }
+    
+    @Override
+    public void releaseStorage() {
+        for (MultiRendererInfo multiInfo : submodelRenderers) {
+            multiInfo.renderer.releaseStorage();
         }
     }
     
