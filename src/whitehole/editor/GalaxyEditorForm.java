@@ -22,6 +22,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.*;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
+import java.awt.geom.AffineTransform;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
@@ -76,6 +79,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private CheckBoxList listLayerCheckboxes;
     private JPopupMenu popupAddItems;
     private PropertyGrid pnlObjectSettings;
+    private double DPIScaleX, DPIScaleY;
     
     // Object holders
     private int maxUniqueID = 0;
@@ -2375,8 +2379,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         ret.y -=(depth * CamRotSinY);
         ret.z -=(depth * CamRotSinX * CamRotCosY);
 
-        float x =(pt.x -(glCanvas.getWidth() *0.5f)) * pixelFactorX * depth;
-        float y = -(pt.y -(glCanvas.getHeight() *0.5f)) * pixelFactorY * depth;
+        int GLWidth = (int)(glCanvas.getWidth() * DPIScaleX);
+        int GLHeight = (int)(glCanvas.getHeight() * DPIScaleY);
+        float x =(pt.x -(GLWidth *0.5f)) * pixelFactorX * depth;
+        float y = -(pt.y -(GLHeight *0.5f)) * pixelFactorY * depth;
 
         ret.x +=(x * CamRotSinX) -(y * CamRotSinY * CamRotCosX);
         ret.y += y * CamRotCosY;
@@ -3203,6 +3209,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             rerenderTasks.add(task);
     }
     
+    public Point getDPIPoint(MouseEvent e)
+    {
+        Point newpos = e.getPoint();
+        return new Point((int)(newpos.x * DPIScaleX), (int)(newpos.y * DPIScaleY));
+    }
+    
     private class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
         private class AsyncPrerenderer implements Runnable {
             private final GL2 gl;
@@ -3653,9 +3665,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             gl.glFlush();
             
-            gl.glReadPixels(mousePos.x - 1, glad.getSurfaceHeight() - mousePos.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV,
-                                                                                                                                pickingFrameBuffer);
-            gl.glReadPixels(mousePos.x, glad.getSurfaceHeight() - mousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
+            gl.glReadPixels(mousePos.x - 1, (int)(glad.getSurfaceHeight() * DPIScaleX) - mousePos.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV, pickingFrameBuffer);
+            gl.glReadPixels(mousePos.x, (int)(glad.getSurfaceHeight() * DPIScaleY)- mousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
             pickingDepth = -(Z_FAR * Z_NEAR /(pickingDepthBuffer.get(0) *(Z_FAR - Z_NEAR) - Z_FAR));
             
             if (Settings.getDebugFakeColor()) {
@@ -3757,6 +3768,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(!initializedRenderer) return;
             
             GL2 gl = glad.getGL().getGL2();
+            GraphicsConfiguration cur = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+            AffineTransform tx = cur.getDefaultTransform();
+            DPIScaleX = tx.getScaleX();
+            DPIScaleY = tx.getScaleY();
+            width = (int)(width*DPIScaleX);
+            height = (int)(height*DPIScaleY);
             gl.glViewport(x, y, width, height);
             
             float aspectRatio =(float)width /(float)height;
@@ -3799,8 +3816,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(!initializedRenderer)
                 return;
             
-            float xdelta = e.getX() - mousePos.x;
-            float ydelta = e.getY() - mousePos.y;
+            int CurMouseX = (int)(e.getX()*DPIScaleX);
+            int CurMouseY = (int)(e.getY()*DPIScaleY);
+            float xdelta = (float)(CurMouseX - mousePos.x);
+            float ydelta = (float)(CurMouseY - mousePos.y);
             
             if(!isDragging && (Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f)) {
                 pickingCapture = true;
@@ -3816,7 +3835,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pickingCapture = false;
             }
             
-            mousePos = e.getPoint();
+            mousePos = getDPIPoint(e);
             
             if(!selectedObjs.isEmpty() && selectedObjs.containsKey(underCursor >>> 3)) {
                 if(mouseButton == MouseEvent.BUTTON1) { // left click
@@ -3898,7 +3917,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public void mouseMoved(MouseEvent e) {
             if(!initializedRenderer) return;
             
-            mousePos = e.getPoint();
+            mousePos = getDPIPoint(e);
             
             if(startingMousePos == null)
             {
@@ -3926,7 +3945,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(mouseButton != MouseEvent.NOBUTTON) return;
             
             mouseButton = e.getButton();
-            mousePos = e.getPoint();
+            mousePos = getDPIPoint(e);
             
             isDragging = false;
             keyTranslating = false;
@@ -3942,7 +3961,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(e.getButton() != mouseButton) return;
             
             mouseButton = MouseEvent.NOBUTTON;
-            mousePos = e.getPoint();
+            mousePos = getDPIPoint(e);
             boolean shiftpressed = e.isShiftDown();
             boolean ctrlpressed = e.isControlDown();
             if(keyTranslating == false && keyScaling == false && keyRotating == false) {
@@ -4113,7 +4132,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
             if(!initializedRenderer) return;
-            
+            int GLWidth = (int)(glCanvas.getWidth() * DPIScaleX);
+            int GLHeight = (int)(glCanvas.getHeight() * DPIScaleY);
+
             if(mouseButton == MouseEvent.BUTTON1 && !selectedObjs.isEmpty() && selectedObjs.containsKey(underCursor >>> 3)) {
                 float delta =(float)e.getPreciseWheelRotation();
                 delta =((delta < 0f) ? -1f:1f) *(float)Math.pow(delta, 2f) * 0.05f * SCALE_DOWN;
@@ -4123,8 +4144,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         delta *(float)Math.sin(camRotation.y),
                         delta *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y));
                 
-                float xdist = delta *(mousePos.x -(glCanvas.getWidth() / 2f)) * pixelFactorX;
-                float ydist = delta *(mousePos.y -(glCanvas.getHeight() / 2f)) * pixelFactorY;
+                float xdist = delta *(mousePos.x -(GLWidth / 2f)) * pixelFactorX;
+                float ydist = delta *(mousePos.y -(GLHeight / 2f)) * pixelFactorY;
                 vdelta.x += -(xdist *(float)Math.sin(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x));
                 vdelta.y += ydist *(float)Math.cos(camRotation.y);
                 vdelta.z +=(xdist *(float)Math.cos(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));
@@ -4141,8 +4162,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         delta *(float)Math.sin(camRotation.y),
                         delta *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y));
                 
-                float xdist = delta *(mousePos.x -(glCanvas.getWidth() / 2f)) * pixelFactorX;
-                float ydist = delta *(mousePos.y -(glCanvas.getHeight() / 2f)) * pixelFactorY;
+                float xdist = delta *(mousePos.x -(GLWidth / 2f)) * pixelFactorX;
+                float ydist = delta *(mousePos.y -(GLHeight / 2f)) * pixelFactorY;
                 vdelta.x += -(xdist *(float)Math.sin(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x));
                 vdelta.y += ydist *(float)Math.cos(camRotation.y);
                 vdelta.z +=(xdist *(float)Math.cos(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));

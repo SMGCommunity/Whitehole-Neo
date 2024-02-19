@@ -71,8 +71,6 @@ public class SettingsForm extends javax.swing.JDialog {
         setTitle(String.format("%s -- Settings", Whitehole.NAME));
         setBounds(new java.awt.Rectangle(0, 0, 629, 629));
         setIconImage(Whitehole.ICON);
-        setMaximumSize(new java.awt.Dimension(629, 629));
-        setPreferredSize(new java.awt.Dimension(560, 266));
         setResizable(false);
         setSize(new java.awt.Dimension(510, 246));
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -288,6 +286,7 @@ public class SettingsForm extends javax.swing.JDialog {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.anchor = java.awt.GridBagConstraints.PAGE_START;
+        gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
         getContentPane().add(pnlSettings, gridBagConstraints);
 
         pack();

@@ -18,8 +18,11 @@ package whitehole;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -34,13 +37,14 @@ import whitehole.smg.GameArchive;
 public class Whitehole {
     public static final String NAME = "Whitehole Neo";
     public static final String WEB_URL = "https://discord.gg/k7ZKzSDsVq";
-    public static final Image ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon.png"));
+    public static Image ICON;
     
     private static MainFrame MAIN_FRAME;
     private static FlatDarkLaf DARK_THEME;
     private static FlatLightLaf LIGHT_THEME;
     
     public static void main(String[] args) throws IOException {
+        decideIconSize();
         // Setup look and feel and set if applicable
         FlatDarkLaf.setup();
         FlatLightLaf.setup();
@@ -98,6 +102,24 @@ public class Whitehole {
             
             MAIN_FRAME.requestUpdateLAF();
         }
+    }
+    
+    public static void decideIconSize()
+    {
+        GraphicsConfiguration cur = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        AffineTransform tx = cur.getDefaultTransform();
+        var DPIScaleX = tx.getScaleX() * 32;
+        int ScaleSelection = (int)DPIScaleX;
+        
+        int MAX_SIZE = 2;
+        int SizeChoice = 160/32;
+        if (SizeChoice > MAX_SIZE)
+            SizeChoice = MAX_SIZE;
+        if (SizeChoice <= 0)
+            SizeChoice = 1;
+        SizeChoice*=32;
+        
+        ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon"+SizeChoice+".png"));
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
