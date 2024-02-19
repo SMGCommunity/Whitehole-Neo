@@ -514,6 +514,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             // Save path
             Settings.setLastBcsvArchive(tbArchiveName.getText());
             Settings.setLastBcsvFile(tbFileName.getText());
+            archive.close();
         }
         catch(IOException ex) {
             String errmsg = String.format("Can't open BCSV file: %s", ex.getMessage());
@@ -525,6 +526,17 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     }
     
     private void storeBcsv() {
+        
+        try
+        {
+            archive = new RarcFile(Whitehole.getCurrentGameFileSystem().openFile(tbArchiveName.getText()));
+            bcsv = new Bcsv(archive.openFile(tbFileName.getText()));
+        }
+        catch(IOException ex)
+        {
+            System.out.println(ex);
+        }
+        
         bcsv.entries.clear();
         
         for (int r = 0; r < tblBcsv.getRowCount(); r++) {
@@ -564,6 +576,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         try { 
             bcsv.save();
             archive.save();
+            archive.close();
         }
         catch (IOException ex) {
             System.out.println(ex);
