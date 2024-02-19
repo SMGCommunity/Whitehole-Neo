@@ -122,6 +122,28 @@ public class Whitehole {
         ICON = Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/res/icon"+SizeChoice+".png"));
     }
     
+    public static String getExceptionDump(Exception ex) {
+        StringBuilder result = new StringBuilder();
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (result.length() > 0)
+                result.append("Caused by: ");
+            result.append(cause.getClass().getName());
+            result.append(": ");
+            result.append(cause.getMessage());
+            result.append("\n");
+            for (StackTraceElement element: cause.getStackTrace()) {
+                result.append("\tat ");
+                result.append(element.getMethodName());
+                result.append("(");
+                result.append(element.getFileName());
+                result.append(":");
+                result.append(element.getLineNumber());
+                result.append(")\n");
+            }
+        }
+        return result.toString();
+    }
+    
     // -------------------------------------------------------------------------------------------------------------------------
     // Game Util
     

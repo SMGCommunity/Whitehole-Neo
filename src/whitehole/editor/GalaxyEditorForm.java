@@ -448,11 +448,37 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void setDefaultStatus() {
         if (isGalaxyMode) {
-            lblStatus.setText("Editing scenario " + listScenarios.getSelectedValue() + ", zone " + curZone + ".");
+            setStatusToInfo("Editing scenario " + listScenarios.getSelectedValue() + ", zone " + curZone + ".");
         }
         else {
-            lblStatus.setText("Editing zone " + curZone + ".");
+            setStatusToInfo("Editing zone " + curZone + ".");
         }
+    }
+    
+    public void setStatusToInfo(String msg)
+    {
+        setStatusBase(msg, tabData.getForeground(), null);
+    }
+    
+    public void setStatusToWarning(String msg)
+    {
+        setStatusBase(msg, Color.orange, null); //Could use a better colour for Light mode...
+        System.out.println(msg);
+    }
+    
+    public void setStatusToError(String msg, Exception ex)
+    {
+        setStatusBase(msg + " " + ex.getMessage(), Color.red, null);
+        System.out.println(Whitehole.getExceptionDump(ex));
+    }
+    
+    private void setStatusBase(String msg, Color colFore, Color colBack)
+    {
+        if (colFore != null)
+            lblStatus.setForeground(colFore);
+        if (colBack != null)
+            lblStatus.setBackground(colBack);
+        lblStatus.setText(msg);
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -687,7 +713,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     private void saveChanges() {
-        lblStatus.setText("Saving changes...");
+        setStatusToInfo("Saving changes...");
+        lblStatus.repaint();
         
         try {
             for (StageArchive stageArc : zoneArchives.values()) {
@@ -706,10 +733,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             unsavedChanges = false;
-            lblStatus.setText("Saved changes!");
+            setStatusToInfo("Saved changes!");
         }
         catch(IOException ex) {
-            lblStatus.setText("Failed to save changes: " + ex.getMessage() + ".");
+            setStatusToError("Failed to save changes:", ex);
             System.err.println(ex);
         }
     }
@@ -782,17 +809,28 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             
             String layerKey = "layer" + (char)('a' + layerID);
-            ret = getScenarioStartInLayer(zoneArchives.get(galaxyName).objects.get(layerKey));
+            var objectlst = zoneArchives.get(galaxyName).objects;
+            if (!objectlst.containsKey(layerKey))
+            {
+                setStatusToWarning("WARNING: "+galaxyName+" does not include Information for "+layerKey);
+            }
+            ret = getScenarioStartInLayer(objectlst.get(layerKey));
             
             if (ret != null) {
                 return ret;
             }
         }
         
+        setStatusToWarning("WARNING: MarioNo 0 could not be found in "+galaxyName+"");
         return null;
     }
     
     private AbstractObj getScenarioStartInLayer(List<AbstractObj> objects) {
+        if (objects == null)
+        {
+            System.out.println("WARNING: "+galaxyName+" provided an empty list of spawn points.");
+            return null;
+        }
         for (AbstractObj obj : objects) {
             if (!(obj instanceof StartObj)) {
                 continue;
@@ -1454,7 +1492,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             String posString = COPY_POSITION.toString();
             itmPositionPaste.setText(String.format("Position (%s)", posString));
-            lblStatus.setText(String.format("Copied position %s.", posString));
+            setStatusToInfo(String.format("Copied position %s.", posString));
         }
     }//GEN-LAST:event_itmPositionCopyActionPerformed
     
@@ -1465,7 +1503,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             String rotString = COPY_ROTATION.toString();
             itmRotationPaste.setText(String.format("Rotation (%s)", rotString));
-            lblStatus.setText(String.format("Copied rotation %s.", rotString));
+            setStatusToInfo(String.format("Copied rotation %s.", rotString));
         }
     }//GEN-LAST:event_itmRotationCopyActionPerformed
 
@@ -1476,7 +1514,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             String scaleString = COPY_SCALE.toString();
             itmScalePaste.setText(String.format("Scale (%s)", scaleString));
-            lblStatus.setText(String.format("Copied scale %s.", scaleString));
+            setStatusToInfo(String.format("Copied scale %s.", scaleString));
         }
     }//GEN-LAST:event_itmScaleCopyActionPerformed
 
@@ -1522,7 +1560,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 rerenderTasks.add("zone:" + obj.stage.stageName);
             }
             
-            lblStatus.setText(String.format("Pasted position %s.", COPY_POSITION.toString()));
+            setStatusToInfo(String.format("Pasted position %s.", COPY_POSITION.toString()));
             
             glCanvas.repaint();
             unsavedChanges = true;
@@ -1549,7 +1587,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             rerenderTasks.add("object:" + obj.uniqueID);
             rerenderTasks.add("zone:" + obj.stage.stageName);
             
-            lblStatus.setText(String.format("Pasted rotation %s.", COPY_ROTATION.toString()));
+            setStatusToInfo(String.format("Pasted rotation %s.", COPY_ROTATION.toString()));
             
             glCanvas.repaint();
             unsavedChanges = true;
@@ -1576,7 +1614,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             rerenderTasks.add("object:" + obj.uniqueID);
             rerenderTasks.add("zone:" + obj.stage.stageName);
             
-            lblStatus.setText(String.format("Pasted scale %s.", COPY_SCALE.toString()));
+            setStatusToInfo(String.format("Pasted scale %s.", COPY_SCALE.toString()));
             
             glCanvas.repaint();
             unsavedChanges = true;
@@ -1724,7 +1762,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if (selectedObjs.isEmpty()) {
             if (tgbDeleteObject.isSelected()) {
                 deletingObjects = true;
-                lblStatus.setText("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
+                setStatusToInfo("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
             }
             else {
                 deletingObjects = false;
@@ -1752,7 +1790,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void tgbCopyObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbCopyObjActionPerformed
         copyObj =(LinkedHashMap<Integer, AbstractObj>) selectedObjs.clone();
         tgbCopyObj.setSelected(false);
-        lblStatus.setText("Copied objects.");
+        setStatusToInfo("Copied objects.");
     }//GEN-LAST:event_tgbCopyObjActionPerformed
 
     private void tgbPasteObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbPasteObjActionPerformed
@@ -1783,7 +1821,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 newobj.rotation = temprot;
                 addingObject = "";
             }
-            lblStatus.setText("Pasted objects.");
+            setStatusToInfo("Pasted objects.");
             glCanvas.repaint();
         }
     }//GEN-LAST:event_tgbPasteObjActionPerformed
@@ -1844,7 +1882,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 break;
         }
         
-        lblStatus.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
+        setStatusToInfo("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
     }
     
     private void addObject(Object point) {
@@ -2054,7 +2092,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         pnlObjectSettings.clear();
         
         if(selectedObjs.isEmpty()) {
-            lblStatus.setText("Object deselected.");
+            setStatusToInfo("Object deselected.");
             tgbDeselect.setEnabled(false);
             pnlObjectSettings.doLayout();
             pnlObjectSettings.validate();
@@ -2108,14 +2146,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 if(selectedObj instanceof PathPointObj) {
                     PathPointObj selectedPathPoint =(PathPointObj)selectedObj;
                     PathObj path = selectedPathPoint.path;
-                    lblStatus.setText(String.format("Selected [%3$d] %1$s(%2$s), point %4$d",
+                    setStatusToInfo(String.format("Selected [%3$d] %1$s(%2$s), point %4$d",
                                 path.data.get("name"), path.stage.stageName, path.pathID, selectedPathPoint.getIndex()) + ".");
                     tgbDeselect.setEnabled(true);
                     selectedPathPoint.getProperties(pnlObjectSettings);
                 }
                 else {
                     String layer = selectedObj.layerKey.equals("common") ? "Common" : selectedObj.getLayerName();
-                    lblStatus.setText("Selected " + selectedObj.name + "(" + selectedObj.stage.stageName + ", " + layer + ").");
+                    setStatusToInfo("Selected " + selectedObj.name + "(" + selectedObj.stage.stageName + ", " + layer + ").");
                     tgbDeselect.setEnabled(true);
                     
                     LinkedList layerlist = new LinkedList();
@@ -2189,7 +2227,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         if(selectedObjs.size() > 1) {
-            lblStatus.setText("Multiple objects selected.(" + selectedObjs.size() + ").");
+            setStatusToInfo("Multiple objects selected.(" + selectedObjs.size() + ").");
         }
         
         pnlObjectSettings.doLayout();
@@ -2263,7 +2301,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         UndoEntry change = undoList.get(undoIndex);
         
         if(change.objType.equals("pathpoint")) {
-            lblStatus.setText("Undoing path points is currently not supported, sorry!");
+            setStatusToWarning("Undoing path points is currently not supported, sorry!");
         } else {
             switch(change.type) {
                 case "changeObj":
@@ -3248,9 +3286,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     setDefaultStatus();
                 }
                 catch(GLException ex) {
-                    lblStatus.setForeground(Color.red);
-                    lblStatus.setText("Failed to render level!" + ex.getMessage());
-                    System.out.println(ex);
+                    setStatusToError("Failed to render level!", ex);
                 }
             }
         }
@@ -3297,7 +3333,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             gl.glClearColor(0.118f, 0.118f, 0.784f, 1f);
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
-            lblStatus.setText("Prerendering "+(isGalaxyMode?"galaxy":"zone")+", please wait...");
+            setStatusToInfo("Prerendering "+(isGalaxyMode?"galaxy":"zone")+", please wait...");
             
             SwingUtilities.invokeLater(new GalaxyRenderer.AsyncPrerenderer(gl));
             
@@ -3486,7 +3522,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     var x = zone + "/layer" + alphabet.charAt(l);
                     if (!objDisplayLists.containsKey(x))
                     {
-                        lblStatus.setText("LOAD ERROR: Cannot find "+zone+" - Layer"+alphabet.toUpperCase().charAt(l));
+                        String err = "LOAD ERROR: Cannot find "+zone+" - Layer"+alphabet.toUpperCase().charAt(l);
+                        setStatusToError(err, new Exception("WHITEHOLE "+err));
                     }
                     gl.glCallList(objDisplayLists.get(x)[mode]);
                 }
@@ -3503,7 +3540,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     String zonename = subzone.name;
                     if (!scenario.containsKey(zonename))
                     {
-                        lblStatus.setText("LOAD ERROR: \""+zonename+"\" is used but has no Layer information in the Scenario data");
+                        String err = "LOAD ERROR: \""+zonename+"\" is used but has no Layer information in the Scenario data";
+                        setStatusToError(err, new Exception("WHITEHOLE "+err));
                     }
                     renderZone(gl, scenario, zonename,(int)scenario.get(zonename), level + 1);
 
@@ -3612,10 +3650,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                 }
             } catch(GLException ex) {
-                lblStatus.setText("Failed to render level!" + ex.getMessage());
+                setStatusToError("Failed to render level!", ex);
                 lblStatus.setOpaque(true);
                 lblStatus.setVisible(false);
-                lblStatus.setForeground(Color.red);
                 lblStatus.setVisible(true);
             }
         }
@@ -4254,7 +4291,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         }
                     }
                     
-                    lblStatus.setText("Unhid all objects.");
+                    setStatusToInfo("Unhid all objects.");
                 }
                 else {
                     if (selectedObjs.isEmpty()) {
@@ -4268,7 +4305,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         rerenderTasks.add("zone:" + obj.stage.stageName);
                     }
                     
-                    lblStatus.setText("Hid/unhid selection.");
+                    setStatusToInfo("Hid/unhid selection.");
                 }
                 
                 glCanvas.repaint();
@@ -4291,7 +4328,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 // Copy -- Ctrl+C
                 if (keyCode == KeyEvent.VK_C) {
                     copyObj = (LinkedHashMap<Integer, AbstractObj>)selectedObjs.clone();
-                    lblStatus.setText("Copied current selection.");
+                    setStatusToInfo("Copied current selection.");
                 }
                 // Paste -- Ctrl+V
                 else if(keyCode == KeyEvent.VK_V) {
@@ -4301,9 +4338,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             pasteObject(currentObj);
 
                         if(copyObj.size() == 1)
-                            lblStatus.setText("Pasted " + new ArrayList<>(copyObj.values()).get(0).name + ".");
+                            setStatusToInfo("Pasted " + new ArrayList<>(copyObj.values()).get(0).name + ".");
                         else
-                            lblStatus.setText("Pasted objects.");
+                            setStatusToInfo("Pasted objects.");
 
                         addingObject = "";
                         glCanvas.repaint();
