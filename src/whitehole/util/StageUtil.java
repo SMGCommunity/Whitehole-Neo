@@ -137,6 +137,9 @@ public class StageUtil {
         if (!isObjectPropertyExists(object, "MessageId"))
             return null; //This object has no talk functionality
         
+        if (isObjectPropertyNeeded(object, "MessageId"))
+            return null; //We need to invert this check
+        
         if (Whitehole.getCurrentGameType() == 1)
         {
             //Messages must always be set in SMG1
