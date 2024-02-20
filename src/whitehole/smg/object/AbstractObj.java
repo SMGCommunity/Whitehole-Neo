@@ -18,6 +18,8 @@ package whitehole.smg.object;
 
 import com.jogamp.opengl.*;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import whitehole.Whitehole;
 import whitehole.db.ObjectDB;

@@ -16,16 +16,47 @@
  */
 package whitehole.util;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.swing.JOptionPane;
 import whitehole.smg.StageArchive;
 import whitehole.smg.object.AbstractObj;
 
 public class SwitchUtil {
+    /**
+     * The max amount of switches that can be in a category (Zone of Galaxy)
+     */
+    public static final int MAX_SWITCH_NUM = 128;
+    /**
+     * The first valid Zone Switch ID.
+     */
+    public static final int MIN_ZONE_SWITCH = 0;
+    /**
+     * The max amount of Switch IDs that can be in a Zone.
+     */
+    public static final int MAX_ZONE_SWITCH = MIN_ZONE_SWITCH + MAX_SWITCH_NUM;
+    /**
+     * The first valid shared Galaxy Switch ID. (Shared between all zones)
+     */
+    public static final int MIN_GALAXY_SWITCH = 1000;
+    /**
+     * The max amount of Switch IDs that can be shared in a Galaxy. (Shared between all zones)
+     */
+    public static final int MAX_GALAXY_SWITCH = MIN_GALAXY_SWITCH + MAX_SWITCH_NUM;
+    
+    
+    /**
+     * Checks to see if the provided switch is a valid switch
+     * @param switchID The ID of the switch to validate
+     * @return True if the switch is valid, False if otherwise
+     */
+    public static boolean isValidSwitchId(int switchID)
+    {
+        return (switchID >= MIN_ZONE_SWITCH && switchID < MAX_ZONE_SWITCH) ||
+                (switchID >= MIN_GALAXY_SWITCH && switchID < MAX_GALAXY_SWITCH);
+    }
+    
     // Gets an unused switch id for a hashmap of zone archives.
     public static int getValidSwitchInGalaxy(HashMap<String, StageArchive> zoneArcs) {
         Set<Integer> list = new HashSet<>();
@@ -65,25 +96,25 @@ public class SwitchUtil {
         
         return zoneArcs;
     }
-    // Generate a switch ID based on a set of used switch IDs. 
-    // Specify if you want it to generate a switch between 0-127 (False) or 1000-1127 (True).
-    // This will return -1 if no valid switch ID was found.
 
+    /**
+     * Generate a switch ID based on a set of used switch IDs. 
+     * @param set A list of all current Switches
+     * @param isGalaxyMode Specify if you want it to generate a switch between 0-127 (False) or 1000-1127 (True).
+     * @return -1 if no valid switch ID was found.
+     */
     public static int generateUniqueSwitchID(Set<Integer> set, boolean isGalaxyMode) {
-        // Set the starting switch ID based on isGalaxyMode.
-        int switchID = 0;
-        if (isGalaxyMode) {
-            switchID = 1000;
-        }
-        int startingSwitchID = switchID;
+        // Set the starting and max switch ID based on isGalaxyMode.
+        int switchID = isGalaxyMode ? MIN_GALAXY_SWITCH : MIN_ZONE_SWITCH;
+        int maxSwitchID = isGalaxyMode ? MAX_GALAXY_SWITCH : MAX_ZONE_SWITCH;
         
         // Go through the list and find the first unique Switch ID.
-        while (set.contains(switchID) && switchID < startingSwitchID+128) {
+        while (set.contains(switchID) && switchID < maxSwitchID) {
             switchID++;
         }
         
         // If the first switch ID that matches is not a valid switch ID, return -1.
-        if (switchID > startingSwitchID+127) {
+        if (switchID >= maxSwitchID) {
             switchID = -1;
         }
         

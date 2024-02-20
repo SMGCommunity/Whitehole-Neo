@@ -35,6 +35,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import whitehole.Whitehole;
 import whitehole.io.ExternalFilesystem;
 
 public final class ObjectDB {
@@ -561,4 +562,39 @@ public final class ObjectDB {
     }
     
     private static final ObjectInfo NULL_OBJECT_INFO = new NullInfo();
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Utility
+    
+    public static PropertyInfo getPropertyInfoForObject(String objectName, String propName)
+    {
+        switch (propName) {
+            case "CommonPath_ID":
+                propName = "Rail";
+                break;
+            case "CameraSetId":
+                propName = "Camera";
+                break;
+            case "GroupId":
+                propName = "Group";
+                break;
+            case "DemoGroupId":
+                propName = "DemoCast";
+                break;
+            case "MessageId":
+                propName = "Message";
+                break;
+        }
+        
+        ObjectDB.ObjectInfo objectInfo = ObjectDB.getObjectInfo(objectName);
+        if (objectInfo == null)
+            return null;
+        ObjectDB.ClassInfo classInfo = objectInfo.classInfo(Whitehole.getCurrentGameType());
+        if (classInfo == null)
+            return null;
+        HashMap<String, ObjectDB.PropertyInfo> propList = classInfo.properties();
+        if (propList == null)
+            return null;
+        return propList.get(propName);
+    }
 }

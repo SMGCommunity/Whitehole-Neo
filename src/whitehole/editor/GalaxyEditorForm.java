@@ -34,14 +34,9 @@ import javax.swing.tree.*;
 import whitehole.Settings;
 import whitehole.Whitehole;
 import whitehole.db.GalaxyNames;
-import whitehole.db.ObjectDB;
-import whitehole.db.ObjectDB.ClassInfo;
-import whitehole.db.ObjectDB.ObjectInfo;
-import whitehole.db.ObjectDB.PropertyInfo;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderMode;
 import whitehole.rendering.RendererCache;
-import whitehole.rendering.RendererFactory;
 import whitehole.smg.Bcsv;
 import whitehole.smg.GalaxyArchive;
 import whitehole.smg.StageArchive;
@@ -52,6 +47,7 @@ import whitehole.util.PropertyGrid;
 import whitehole.math.RotationMatrix;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
+import whitehole.util.StageUtil;
 import whitehole.util.SwitchUtil;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
@@ -185,7 +181,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 loadZone(zone);
             }
             
-            checkForInvalidSwitchesInGalaxy();
+            repairInvalidSwitchesInGalaxy();
             
             // Collect zone placements
             StageArchive galaxyZone = zoneArchives.get(galaxyName);
@@ -277,6 +273,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         populateObjectNodeTree(zoneModeLayerBitmask);
     }
     
+    /**
+     * Required to change Themes
+     */
     public void requestUpdateLAF() {
         SwingUtilities.updateComponentTreeUI(this);
         SwingUtilities.updateComponentTreeUI(pnlObjectSettings);
@@ -446,6 +445,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         popupAddItems.add(menuItem);
     }
     
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Status Bar
+    
     private void setDefaultStatus() {
         if (isGalaxyMode) {
             setStatusToInfo("Editing scenario " + listScenarios.getSelectedValue() + ", zone " + curZone + ".");
@@ -480,6 +483,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             lblStatus.setBackground(colBack);
         lblStatus.setText(msg);
     }
+    
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Zone loading and saving
@@ -541,7 +545,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
-    private void checkForInvalidSwitchesInGalaxy() {
+    private void repairInvalidSwitchesInGalaxy() {
         Map<String, Set<Integer>> invalidSwitchZoneMap = new HashMap<>();
         Set<Integer> invalidSwitchList = new HashSet<>();
         String[] switchFieldList = {"SW_APPEAR", "SW_DEAD", "SW_A", "SW_B", "SW_AWAKE", "SW_PARAM", "SW_SLEEP"};
@@ -616,102 +620,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
-    // Checks if applicable values that are marked "Needed" in ObjectDB for the current galaxy.
+    /**
+     * Validates object properties for all zones
+     */
     private void checkForMissingRequiredValuesInGalaxy() {
-        List<Object[]> valuesList = new ArrayList<>();
         
-        // Compile all the missing values into a list
-        for (StageArchive arc : zoneArchives.values()) {
-            for (List<AbstractObj> layers : arc.objects.values()) {
-                for (AbstractObj obj : layers) {
-                    Object[] valuesArray = {obj.toString(), obj.data.getInt("l_id"), getMissingRequiredValuesForObj(obj)};
-                    valuesList.add(valuesArray);
-                }
-            }
+        ArrayList<String> messages = new ArrayList<>();
+        for (StageArchive arc : zoneArchives.values())
+        {
+            messages.addAll(StageUtil.validateZone(arc));
         }
         
-        // Warn the user about missing values
-        for (Object[] objValues : valuesList) {
-            Object name = objValues[0];
-            Object l_id = objValues[1];
-            
-            List<String> missingVals = (ArrayList<String>)objValues[2];
-            if (missingVals != null && !missingVals.isEmpty()) {
-                String missingValsString = missingVals.toString();
-                missingValsString = missingValsString.substring(1, missingValsString.length() - 1); // Gets rid of []
-                
-                JOptionPane.showMessageDialog(this, "Warning!\nRequired value(s) not set for "+name+" (ID "+l_id+"):\n"+
-                        missingValsString, Whitehole.NAME, JOptionPane.WARNING_MESSAGE, null);
-            }
-        }
+        String title = Whitehole.NAME+": Object Warning";
+        messages.forEach((msg) -> JOptionPane.showMessageDialog(this, msg, title, JOptionPane.WARNING_MESSAGE, null));
     }
     
-    // Checks if applicable values that are marked "Needed" in ObjectDB for an object
-    private List<String> getMissingRequiredValuesForObj(AbstractObj obj) {
-        List<String> missingVals = new ArrayList<>(); 
-        Collection<PropertyInfo> propertyList = getPropertyList(obj); 
-        if (propertyList != null) {
-            for (PropertyInfo propInfo : propertyList) {
-                List<String> propExclusives = propInfo.exclusives();
-                boolean appliesToObject;
-                if (propExclusives == null) {
-                    appliesToObject = true;
-                } else {
-                    appliesToObject = propExclusives.contains(obj.name);
-                }
-                
-                if (propInfo.needed() && appliesToObject) {
-                    String propName = propInfo.toString();
-                    
-                    // convert property name to be read
-                    switch (propName) {
-                        case "Rail":
-                            propName = "CommonPath_ID";
-                            break;
-                        case "Camera":
-                            propName = "CameraSetId";
-                            break;
-                        case "Group":
-                            propName = "GroupId";
-                            break;
-                        case "AppearPowerStar":
-                        case "NamePos":
-                        case "LinkNamePos":
-                        case "DemoCast":
-                        case "Message":
-                            propName = "Unsupported";
-                            break;
-                        default:
-                            break;
-                    }
-                    
-                    // add property if it exists and it's not set (-1)
-                    if (obj.data.containsKey(propName)) {
-                        if (obj.data.getInt(propName) == -1) {
-                            missingVals.add(propName);
-                        }
-                    } else if (!propName.equals("Unsupported")) {
-                        JOptionPane.showMessageDialog(this, "Warning!\nUnrecognized Property Name (Object "+obj.name+"):\n"+
-                        propName, Whitehole.NAME, JOptionPane.WARNING_MESSAGE, null);
-                    }
-                                        
-                }
-            }
-        }
-        return missingVals;
-    }
-    
-    private Collection<PropertyInfo> getPropertyList(AbstractObj obj) {
-        try {
-            ObjectInfo objectInfo = ObjectDB.getObjectInfo(obj.name);
-            ClassInfo classInfo = objectInfo.classInfo(Whitehole.getCurrentGameType());
-            HashMap<String, PropertyInfo> propList = classInfo.properties();
-            return propList.values();
-        }
-        catch (Exception ex) {
-            return null;
-        }
-    }
     private void saveChanges() {
         setStatusToInfo("Saving changes...");
         lblStatus.repaint();
@@ -849,6 +772,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         glCanvas.repaint();
     }
     
+    
     // -------------------------------------------------------------------------------------------------------------------------
     // Object nodes and layer presentation
     
@@ -947,896 +871,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         glCanvas.repaint();
     }
     
-    // -------------------------------------------------------------------------------------------------------------------------
-    
-    /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content
-     * of this method is always regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-
-        split = new javax.swing.JSplitPane();
-        pnlGLPanel = new javax.swing.JPanel();
-        tlbOptions = new javax.swing.JToolBar();
-        tgbDeselect = new javax.swing.JButton();
-        sep1 = new javax.swing.JToolBar.Separator();
-        tgbShowAxis = new javax.swing.JToggleButton();
-        sep2 = new javax.swing.JToolBar.Separator();
-        tgbShowPaths = new javax.swing.JToggleButton();
-        sep3 = new javax.swing.JToolBar.Separator();
-        tgbShowAreas = new javax.swing.JToggleButton();
-        sep5 = new javax.swing.JToolBar.Separator();
-        tgbShowCameras = new javax.swing.JToggleButton();
-        sep4 = new javax.swing.JToolBar.Separator();
-        tgbShowGravity = new javax.swing.JToggleButton();
-        lblStatus = new javax.swing.JLabel();
-        tabData = new javax.swing.JTabbedPane();
-        pnlScenarioZone = new javax.swing.JSplitPane();
-        pnlScenarios = new javax.swing.JPanel();
-        tlbScenarios = new javax.swing.JToolBar();
-        lblScenarios = new javax.swing.JLabel();
-        btnAddScenario = new javax.swing.JButton();
-        btnEditScenario = new javax.swing.JButton();
-        btnDeleteScenario = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        listScenarios = new javax.swing.JList();
-        pnlZones = new javax.swing.JPanel();
-        tlbZones = new javax.swing.JToolBar();
-        lblZones = new javax.swing.JLabel();
-        btnAddZone = new javax.swing.JButton();
-        btnDeleteZone = new javax.swing.JButton();
-        sepZones = new javax.swing.JToolBar.Separator();
-        btnEditZone = new javax.swing.JButton();
-        scrZones = new javax.swing.JScrollPane();
-        listZones = new javax.swing.JList();
-        pnlLayers = new javax.swing.JPanel();
-        tlbLayers = new javax.swing.JToolBar();
-        jLabel1 = new javax.swing.JLabel();
-        scrLayers = new javax.swing.JScrollPane();
-        scrObjects = new javax.swing.JSplitPane();
-        pnlObjects = new javax.swing.JPanel();
-        tlbObjects = new javax.swing.JToolBar();
-        tgbAddObject = new javax.swing.JToggleButton();
-        jSeparator4 = new javax.swing.JToolBar.Separator();
-        tgbDeleteObject = new javax.swing.JToggleButton();
-        jSeparator5 = new javax.swing.JToolBar.Separator();
-        tgbCopyObj = new javax.swing.JToggleButton();
-        jSeparator10 = new javax.swing.JToolBar.Separator();
-        tgbPasteObj = new javax.swing.JToggleButton();
-        scrObjectTree = new javax.swing.JScrollPane();
-        treeObjects = new javax.swing.JTree();
-        scrObjSettings = new javax.swing.JScrollPane();
-        menu = new javax.swing.JMenuBar();
-        mnuFile = new javax.swing.JMenu();
-        mniSave = new javax.swing.JMenuItem();
-        mniClose = new javax.swing.JMenuItem();
-        mnuEdit = new javax.swing.JMenu();
-        mnuCopy = new javax.swing.JMenu();
-        itmPositionCopy = new javax.swing.JMenuItem();
-        itmRotationCopy = new javax.swing.JMenuItem();
-        itmScaleCopy = new javax.swing.JMenuItem();
-        mnuPaste = new javax.swing.JMenu();
-        itmPositionPaste = new javax.swing.JMenuItem();
-        itmRotationPaste = new javax.swing.JMenuItem();
-        itmScalePaste = new javax.swing.JMenuItem();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle(Whitehole.NAME);
-        setIconImage(Whitehole.ICON);
-        setMinimumSize(new java.awt.Dimension(960, 720));
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowActivated(java.awt.event.WindowEvent evt) {
-                formWindowActivated(evt);
-            }
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                formWindowClosing(evt);
-            }
-            public void windowOpened(java.awt.event.WindowEvent evt) {
-                formWindowOpened(evt);
-            }
-        });
-
-        split.setDividerLocation(335);
-        split.setFocusable(false);
-
-        pnlGLPanel.setMinimumSize(new java.awt.Dimension(10, 30));
-        pnlGLPanel.setLayout(new java.awt.BorderLayout());
-
-        tlbOptions.setRollover(true);
-
-        tgbDeselect.setText("Deselect");
-        tgbDeselect.setEnabled(false);
-        tgbDeselect.setFocusable(false);
-        tgbDeselect.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbDeselect.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbDeselect.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbDeselectActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbDeselect);
-        tlbOptions.add(sep1);
-
-        tgbShowAxis.setSelected(true);
-        tgbShowAxis.setText("Show axis");
-        tgbShowAxis.setFocusable(false);
-        tgbShowAxis.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowAxis.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowAxis.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowAxisActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowAxis);
-        tlbOptions.add(sep2);
-
-        tgbShowPaths.setSelected(true);
-        tgbShowPaths.setText("Show paths");
-        tgbShowPaths.setFocusable(false);
-        tgbShowPaths.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowPaths.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowPaths.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowPathsActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowPaths);
-        tlbOptions.add(sep3);
-
-        tgbShowAreas.setSelected(true);
-        tgbShowAreas.setText("Show areas");
-        tgbShowAreas.setFocusable(false);
-        tgbShowAreas.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowAreas.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowAreas.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowAreasActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowAreas);
-        tlbOptions.add(sep5);
-
-        tgbShowCameras.setSelected(true);
-        tgbShowCameras.setText("Show cameras");
-        tgbShowCameras.setFocusable(false);
-        tgbShowCameras.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowCameras.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowCameras.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowCamerasActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowCameras);
-        tlbOptions.add(sep4);
-
-        tgbShowGravity.setSelected(true);
-        tgbShowGravity.setText("Show gravity");
-        tgbShowGravity.setFocusable(false);
-        tgbShowGravity.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowGravity.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowGravity.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowGravityActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowGravity);
-
-        pnlGLPanel.add(tlbOptions, java.awt.BorderLayout.NORTH);
-
-        lblStatus.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
-        lblStatus.setText("Booting...");
-        pnlGLPanel.add(lblStatus, java.awt.BorderLayout.PAGE_END);
-
-        split.setRightComponent(pnlGLPanel);
-
-        tabData.setMinimumSize(new java.awt.Dimension(100, 5));
-        tabData.setName(""); // NOI18N
-
-        pnlScenarioZone.setDividerLocation(200);
-        pnlScenarioZone.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        pnlScenarioZone.setLastDividerLocation(200);
-
-        pnlScenarios.setPreferredSize(new java.awt.Dimension(201, 200));
-        pnlScenarios.setLayout(new java.awt.BorderLayout());
-
-        tlbScenarios.setRollover(true);
-
-        lblScenarios.setText("Scenarios:");
-        tlbScenarios.add(lblScenarios);
-
-        btnAddScenario.setText("Add");
-        btnAddScenario.setFocusable(false);
-        btnAddScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnAddScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnAddScenario.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddScenarioActionPerformed(evt);
-            }
-        });
-        tlbScenarios.add(btnAddScenario);
-
-        btnEditScenario.setText("Edit");
-        btnEditScenario.setFocusable(false);
-        btnEditScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnEditScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnEditScenario.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEditScenarioActionPerformed(evt);
-            }
-        });
-        tlbScenarios.add(btnEditScenario);
-
-        btnDeleteScenario.setText("Delete");
-        btnDeleteScenario.setFocusable(false);
-        btnDeleteScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnDeleteScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnDeleteScenario.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDeleteScenarioActionPerformed(evt);
-            }
-        });
-        tlbScenarios.add(btnDeleteScenario);
-
-        pnlScenarios.add(tlbScenarios, java.awt.BorderLayout.PAGE_START);
-
-        listScenarios.setModel(new DefaultListModel());
-        listScenarios.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        listScenarios.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                listScenariosValueChanged(evt);
-            }
-        });
-        jScrollPane1.setViewportView(listScenarios);
-
-        pnlScenarios.add(jScrollPane1, java.awt.BorderLayout.CENTER);
-
-        pnlScenarioZone.setTopComponent(pnlScenarios);
-
-        pnlZones.setLayout(new java.awt.BorderLayout());
-
-        tlbZones.setBorder(null);
-        tlbZones.setRollover(true);
-
-        lblZones.setText(" Zones: ");
-        tlbZones.add(lblZones);
-
-        btnAddZone.setText("Add");
-        btnAddZone.setFocusable(false);
-        btnAddZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnAddZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnAddZone.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddZoneActionPerformed(evt);
-            }
-        });
-        tlbZones.add(btnAddZone);
-
-        btnDeleteZone.setText("Delete");
-        btnDeleteZone.setFocusable(false);
-        btnDeleteZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnDeleteZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnDeleteZone.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDeleteZoneActionPerformed(evt);
-            }
-        });
-        tlbZones.add(btnDeleteZone);
-        tlbZones.add(sepZones);
-
-        btnEditZone.setText("Edit individually");
-        btnEditZone.setFocusable(false);
-        btnEditZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnEditZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnEditZone.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEditZoneActionPerformed(evt);
-            }
-        });
-        tlbZones.add(btnEditZone);
-
-        pnlZones.add(tlbZones, java.awt.BorderLayout.PAGE_START);
-
-        listZones.setModel(new DefaultListModel());
-        listZones.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        listZones.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                listZonesMouseClicked(evt);
-            }
-        });
-        listZones.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                listZonesValueChanged(evt);
-            }
-        });
-        scrZones.setViewportView(listZones);
-
-        pnlZones.add(scrZones, java.awt.BorderLayout.CENTER);
-
-        pnlScenarioZone.setRightComponent(pnlZones);
-
-        tabData.addTab("Scenario/Zone", pnlScenarioZone);
-
-        pnlLayers.setLayout(new java.awt.BorderLayout());
-
-        tlbLayers.setRollover(true);
-
-        jLabel1.setText("Layers:");
-        tlbLayers.add(jLabel1);
-
-        pnlLayers.add(tlbLayers, java.awt.BorderLayout.PAGE_START);
-        pnlLayers.add(scrLayers, java.awt.BorderLayout.CENTER);
-
-        tabData.addTab("Layers", pnlLayers);
-
-        scrObjects.setDividerLocation(300);
-        scrObjects.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        scrObjects.setResizeWeight(0.5);
-        scrObjects.setFocusCycleRoot(true);
-        scrObjects.setLastDividerLocation(300);
-
-        pnlObjects.setPreferredSize(new java.awt.Dimension(149, 300));
-        pnlObjects.setLayout(new java.awt.BorderLayout());
-
-        tlbObjects.setRollover(true);
-
-        tgbAddObject.setText("Add object");
-        tgbAddObject.setFocusable(false);
-        tgbAddObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbAddObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbAddObject.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbAddObjectActionPerformed(evt);
-            }
-        });
-        tlbObjects.add(tgbAddObject);
-        tlbObjects.add(jSeparator4);
-
-        tgbDeleteObject.setText("Delete object");
-        tgbDeleteObject.setFocusable(false);
-        tgbDeleteObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbDeleteObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbDeleteObject.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbDeleteObjectActionPerformed(evt);
-            }
-        });
-        tlbObjects.add(tgbDeleteObject);
-        tlbObjects.add(jSeparator5);
-
-        tgbCopyObj.setText("Copy");
-        tgbCopyObj.setFocusable(false);
-        tgbCopyObj.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbCopyObj.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbCopyObj.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbCopyObjActionPerformed(evt);
-            }
-        });
-        tlbObjects.add(tgbCopyObj);
-        tlbObjects.add(jSeparator10);
-
-        tgbPasteObj.setText("Paste");
-        tgbPasteObj.setFocusable(false);
-        tgbPasteObj.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbPasteObj.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbPasteObj.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbPasteObjActionPerformed(evt);
-            }
-        });
-        tlbObjects.add(tgbPasteObj);
-
-        pnlObjects.add(tlbObjects, java.awt.BorderLayout.PAGE_START);
-
-        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
-        treeObjects.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
-        treeObjects.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                treeObjectsValueChanged(evt);
-            }
-        });
-        scrObjectTree.setViewportView(treeObjects);
-
-        pnlObjects.add(scrObjectTree, java.awt.BorderLayout.CENTER);
-
-        scrObjects.setTopComponent(pnlObjects);
-        scrObjects.setRightComponent(scrObjSettings);
-
-        tabData.addTab("Objects", scrObjects);
-
-        split.setTopComponent(tabData);
-        tabData.getAccessibleContext().setAccessibleDescription("");
-
-        getContentPane().add(split, java.awt.BorderLayout.CENTER);
-
-        mnuFile.setText("File");
-
-        mniSave.setAccelerator(Settings.getUseWASD() ? null : KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK)
-        );
-        mniSave.setText("Save");
-        mniSave.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mniSaveActionPerformed(evt);
-            }
-        });
-        mnuFile.add(mniSave);
-
-        mniClose.setText("Close");
-        mniClose.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mniCloseActionPerformed(evt);
-            }
-        });
-        mnuFile.add(mniClose);
-
-        menu.add(mnuFile);
-
-        mnuEdit.setText("Edit");
-        mnuEdit.addMenuListener(new javax.swing.event.MenuListener() {
-            public void menuCanceled(javax.swing.event.MenuEvent evt) {
-            }
-            public void menuDeselected(javax.swing.event.MenuEvent evt) {
-            }
-            public void menuSelected(javax.swing.event.MenuEvent evt) {
-                mnuEditMenuSelected(evt);
-            }
-        });
-
-        mnuCopy.setText("Copy");
-
-        itmPositionCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyPosition(), ActionEvent.ALT_MASK)
-        );
-        itmPositionCopy.setText("Position");
-        itmPositionCopy.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmPositionCopyActionPerformed(evt);
-            }
-        });
-        mnuCopy.add(itmPositionCopy);
-
-        itmRotationCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyRotation(), ActionEvent.ALT_MASK));
-        itmRotationCopy.setText("Rotation");
-        itmRotationCopy.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmRotationCopyActionPerformed(evt);
-            }
-        });
-        mnuCopy.add(itmRotationCopy);
-
-        itmScaleCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyScale(), ActionEvent.ALT_MASK));
-        itmScaleCopy.setText("Scale");
-        itmScaleCopy.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmScaleCopyActionPerformed(evt);
-            }
-        });
-        mnuCopy.add(itmScaleCopy);
-
-        mnuEdit.add(mnuCopy);
-
-        mnuPaste.setText("Paste");
-
-        itmPositionPaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyPosition(), ActionEvent.SHIFT_MASK));
-        itmPositionPaste.setText("Position (0.0, 0.0, 0.0)");
-        itmPositionPaste.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmPositionPasteActionPerformed(evt);
-            }
-        });
-        mnuPaste.add(itmPositionPaste);
-
-        itmRotationPaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyRotation(), ActionEvent.SHIFT_MASK));
-        itmRotationPaste.setText("Rotation (0.0, 0.0, 0.0)");
-        itmRotationPaste.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmRotationPasteActionPerformed(evt);
-            }
-        });
-        mnuPaste.add(itmRotationPaste);
-
-        itmScalePaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyScale(), ActionEvent.SHIFT_MASK));
-        itmScalePaste.setText("Scale (1.0, 1.0, 1.0)");
-        itmScalePaste.setToolTipText("");
-        itmScalePaste.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmScalePasteActionPerformed(evt);
-            }
-        });
-        mnuPaste.add(itmScalePaste);
-
-        mnuEdit.add(mnuPaste);
-
-        menu.add(mnuEdit);
-
-        setJMenuBar(menu);
-
-        pack();
-        setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
-
-    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        if (isGalaxyMode) {
-            listScenarios.setSelectedIndex(0);
-        }
-    }//GEN-LAST:event_formWindowOpened
-    
-    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        closeEditor();
-    }//GEN-LAST:event_formWindowClosing
-
-    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
-        renderAllObjects();
-    }//GEN-LAST:event_formWindowActivated
-
-    private void mniSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniSaveActionPerformed
-        saveChanges();
-    }//GEN-LAST:event_mniSaveActionPerformed
-
-    private void mniCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniCloseActionPerformed
-        closeEditor();
-        dispose();
-    }//GEN-LAST:event_mniCloseActionPerformed
-
-    private void mnuEditMenuSelected(javax.swing.event.MenuEvent evt) {//GEN-FIRST:event_mnuEditMenuSelected
-        itmPositionPaste.setText(String.format("Position (%s)", COPY_POSITION.toString()));
-        itmRotationPaste.setText(String.format("Rotation (%s)", COPY_ROTATION.toString()));
-        itmScalePaste.setText(String.format("Scale (%s)", COPY_SCALE.toString()));
-    }//GEN-LAST:event_mnuEditMenuSelected
-
-    private void itmPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionCopyActionPerformed
-        if (selectedObjs.size() == 1) {
-            AbstractObj obj = selectedObjs.values().iterator().next();
-            COPY_POSITION.set(obj.position);
-            
-            String posString = COPY_POSITION.toString();
-            itmPositionPaste.setText(String.format("Position (%s)", posString));
-            setStatusToInfo(String.format("Copied position %s.", posString));
-        }
-    }//GEN-LAST:event_itmPositionCopyActionPerformed
-    
-    private void itmRotationCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationCopyActionPerformed
-        if (selectedObjs.size() == 1) {
-            AbstractObj obj = selectedObjs.values().iterator().next();
-            COPY_ROTATION.set(obj.rotation);
-            
-            String rotString = COPY_ROTATION.toString();
-            itmRotationPaste.setText(String.format("Rotation (%s)", rotString));
-            setStatusToInfo(String.format("Copied rotation %s.", rotString));
-        }
-    }//GEN-LAST:event_itmRotationCopyActionPerformed
-
-    private void itmScaleCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScaleCopyActionPerformed
-        if (selectedObjs.size() == 1) {
-            AbstractObj obj = selectedObjs.values().iterator().next();
-            COPY_SCALE.set(obj.scale);
-            
-            String scaleString = COPY_SCALE.toString();
-            itmScalePaste.setText(String.format("Scale (%s)", scaleString));
-            setStatusToInfo(String.format("Copied scale %s.", scaleString));
-        }
-    }//GEN-LAST:event_itmScaleCopyActionPerformed
-
-    private void itmPositionPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionPasteActionPerformed
-        if (!isAllowPasteAction())
-            return;
-        
-        Vec3f offset = new Vec3f();
-        
-        for (AbstractObj obj : selectedObjs.values()) {
-            if (obj instanceof PathPointObj) {
-                PathPointObj pointObj = (PathPointObj)obj;
-                offset.subtract(COPY_POSITION, pointObj.position);
-                
-                pointObj.position.set(COPY_POSITION);
-                pointObj.point1.add(offset);
-                pointObj.point2.add(offset);
-                
-                pnlObjectSettings.setFieldValue("pnt0_x", pointObj.position.x);
-                pnlObjectSettings.setFieldValue("pnt0_y", pointObj.position.y);
-                pnlObjectSettings.setFieldValue("pnt0_z", pointObj.position.z);
-                pnlObjectSettings.setFieldValue("pnt1_x", pointObj.point1.x);
-                pnlObjectSettings.setFieldValue("pnt1_y", pointObj.point1.y);
-                pnlObjectSettings.setFieldValue("pnt1_z", pointObj.point1.z);
-                pnlObjectSettings.setFieldValue("pnt2_x", pointObj.point2.x);
-                pnlObjectSettings.setFieldValue("pnt2_y", pointObj.point2.y);
-                pnlObjectSettings.setFieldValue("pnt2_z", pointObj.point2.z);
-                pnlObjectSettings.repaint();
-                
-                rerenderTasks.add("path:" + pointObj.path.uniqueID);
-                rerenderTasks.add("zone:" + pointObj.stage.stageName);
-            }
-            else {
-                addUndoEntry("changeObj", obj);
-                
-                obj.position.set(COPY_POSITION);
-                pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
-                pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
-                pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
-                pnlObjectSettings.repaint();
-                
-                rerenderTasks.add("object:" + obj.uniqueID);
-                rerenderTasks.add("zone:" + obj.stage.stageName);
-            }
-            
-            setStatusToInfo(String.format("Pasted position %s.", COPY_POSITION.toString()));
-            
-            glCanvas.repaint();
-            unsavedChanges = true;
-        }
-    }//GEN-LAST:event_itmPositionPasteActionPerformed
-
-    private void itmRotationPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationPasteActionPerformed
-        if (!isAllowPasteAction())
-            return;
-                
-        for (AbstractObj obj : selectedObjs.values()) {
-            if (obj instanceof PathPointObj) {
-                return;
-            }
-            
-            addUndoEntry("changeObj", obj);
-            
-            obj.rotation.set(COPY_ROTATION);
-            pnlObjectSettings.setFieldValue("dir_x", obj.rotation.x);
-            pnlObjectSettings.setFieldValue("dir_y", obj.rotation.y);
-            pnlObjectSettings.setFieldValue("dir_z", obj.rotation.z);
-            pnlObjectSettings.repaint();
-            
-            rerenderTasks.add("object:" + obj.uniqueID);
-            rerenderTasks.add("zone:" + obj.stage.stageName);
-            
-            setStatusToInfo(String.format("Pasted rotation %s.", COPY_ROTATION.toString()));
-            
-            glCanvas.repaint();
-            unsavedChanges = true;
-        }
-    }//GEN-LAST:event_itmRotationPasteActionPerformed
-
-    private void itmScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScalePasteActionPerformed
-        if (!isAllowPasteAction())
-            return;
-        
-        for (AbstractObj obj : selectedObjs.values()) {
-            if (obj instanceof PathPointObj || obj instanceof PositionObj || obj instanceof StageObj) {
-                return;
-            }
-            
-            addUndoEntry("changeObj", obj);
-            
-            obj.scale.set(COPY_SCALE);
-            pnlObjectSettings.setFieldValue("scale_x", obj.scale.x);
-            pnlObjectSettings.setFieldValue("scale_y", obj.scale.y);
-            pnlObjectSettings.setFieldValue("scale_z", obj.scale.z);
-            pnlObjectSettings.repaint();
-            
-            rerenderTasks.add("object:" + obj.uniqueID);
-            rerenderTasks.add("zone:" + obj.stage.stageName);
-            
-            setStatusToInfo(String.format("Pasted scale %s.", COPY_SCALE.toString()));
-            
-            glCanvas.repaint();
-            unsavedChanges = true;
-        }
-    }//GEN-LAST:event_itmScalePasteActionPerformed
-
-    private void listScenariosValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listScenariosValueChanged
-        if (evt.getValueIsAdjusting() || listScenarios.getSelectedValue() == null) {
-            return;
-        }
-
-        curScenarioID = listScenarios.getSelectedIndex();
-        curScenario = galaxyArchive.scenarioData.get(curScenarioID);
-
-        DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
-        zonelist.removeAllElements();
-        
-        for(String zone : galaxyArchive.zoneList) {
-            int layermask = curScenario.getInt(zone);
-            String layers = "Common+";
-            
-            for (int i = 0 ; i < 16 ; i++) {
-                if ((layermask & (1 << i)) != 0) {
-                    layers += (char)('A' + i);
-                }
-            }
-            
-            if (layers.equals("Common+")) {
-                layers = "Common";
-            }
-            
-            zonelist.addElement(zone + " [" + layers + "]");
-        }
-        
-        listZones.setSelectedIndex(0);
-    }//GEN-LAST:event_listScenariosValueChanged
-
-    private void btnAddScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddScenarioActionPerformed
-        // TODO: what the peck is this?
-    }//GEN-LAST:event_btnAddScenarioActionPerformed
-
-    private void btnDeleteScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteScenarioActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnDeleteScenarioActionPerformed
-
-    private void btnEditScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditScenarioActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnEditScenarioActionPerformed
-
-    private void listZonesValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listZonesValueChanged
-        if (evt.getValueIsAdjusting() || listZones.getSelectedValue() == null) {
-            return;
-        }
-        
-        btnEditZone.setEnabled(true);
-        
-        curZone = galaxyArchive.zoneList.get(listZones.getSelectedIndex());
-        curZoneArc = zoneArchives.get(curZone);
-        
-        populateObjectNodeTree(curScenario.getInt(curZone));
-        
-        setDefaultStatus();
-        glCanvas.repaint();
-    }//GEN-LAST:event_listZonesValueChanged
-
-    private void btnAddZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddZoneActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnAddZoneActionPerformed
-
-    private void btnDeleteZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteZoneActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnDeleteZoneActionPerformed
-
-    private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditZoneActionPerformed
-        openSelectedZone();
-    }//GEN-LAST:event_btnEditZoneActionPerformed
-
-    private void tgbDeselectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeselectActionPerformed
-        for (AbstractObj obj : selectedObjs.values()) {
-            addRerenderTask("zone:" + obj.stage.stageName);
-        }
-        
-        selectedObjs.clear();
-        selectionChanged();
-        glCanvas.repaint();
-    }//GEN-LAST:event_tgbDeselectActionPerformed
-
-    private void tgbShowPathsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowPathsActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowPathsActionPerformed
-
-    private void tgbShowAreasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAreasActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowAreasActionPerformed
-
-    private void tgbShowCamerasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowCamerasActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowCamerasActionPerformed
-
-    private void tgbShowGravityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowGravityActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowGravityActionPerformed
-
-    private void tgbShowAxisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAxisActionPerformed
-        glCanvas.repaint();
-    }//GEN-LAST:event_tgbShowAxisActionPerformed
-
-    private void treeObjectsValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_treeObjectsValueChanged
-        TreePath[] paths = evt.getPaths();
-        for(TreePath path : paths) {
-            TreeNode node =(TreeNode)path.getLastPathComponent();
-            if(!(node instanceof ObjTreeNode))
-                continue;
-            
-            ObjTreeNode tnode =(ObjTreeNode)node;
-            if(!(tnode.object instanceof AbstractObj))
-                continue;
-            
-            AbstractObj obj =(AbstractObj)tnode.object;
-            if(evt.isAddedPath(path)) {
-                selectedObjs.put(obj.uniqueID, obj);
-                addRerenderTask("zone:"+obj.stage.stageName);
-            } else {
-                selectedObjs.remove(obj.uniqueID);
-                addRerenderTask("zone:"+obj.stage.stageName);
-            }
-        }
-
-        selectionArg = 0;
-        selectionChanged();
-        glCanvas.repaint();
-    }//GEN-LAST:event_treeObjectsValueChanged
-
-    private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbAddObjectActionPerformed
-        if (tgbAddObject.isSelected()) {
-            popupAddItems.show(tgbAddObject, tgbAddObject.getX(), tgbAddObject.getY() + tgbAddObject.getHeight());
-        }
-        else {
-            popupAddItems.setVisible(false);
-            setDefaultStatus();
-        }
-    }//GEN-LAST:event_tgbAddObjectActionPerformed
-
-    private void tgbDeleteObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeleteObjectActionPerformed
-        if (selectedObjs.isEmpty()) {
-            if (tgbDeleteObject.isSelected()) {
-                deletingObjects = true;
-                setStatusToInfo("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
-            }
-            else {
-                deletingObjects = false;
-                setDefaultStatus();
-            }
-        }
-        else {
-            if (tgbDeleteObject.isSelected()) {
-                List<AbstractObj> templist = new ArrayList(selectedObjs.values());
-                
-                for(AbstractObj selectedObj : templist) {
-                    selectedObjs.remove(selectedObj.uniqueID);
-                    deleteObject(selectedObj.uniqueID);
-                }
-                
-                templist.clear();
-                selectionChanged();
-            }
-            
-            treeObjects.setSelectionRow(0);
-            tgbDeleteObject.setSelected(false);
-        }
-    }//GEN-LAST:event_tgbDeleteObjectActionPerformed
-
-    private void tgbCopyObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbCopyObjActionPerformed
-        copyObj =(LinkedHashMap<Integer, AbstractObj>) selectedObjs.clone();
-        tgbCopyObj.setSelected(false);
-        setStatusToInfo("Copied objects.");
-    }//GEN-LAST:event_tgbCopyObjActionPerformed
-
-    private void tgbPasteObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbPasteObjActionPerformed
-        if (!isAllowPasteAction()) //Might not be needed...
-            return;
-        
-        tgbPasteObj.setSelected(false);
-        if(copyObj != null) {
-            for(AbstractObj currentTempObj : copyObj.values()) {
-                addingObject = "objinfo|" + currentTempObj.name;
-                addingObjectOnLayer = currentTempObj.layerKey;
-                
-                Vec3f temppos=new Vec3f();
-                temppos.x=currentTempObj.position.x+g_offset_x;
-                temppos.y=currentTempObj.position.y+g_offset_y;
-                temppos.z=currentTempObj.position.z+g_offset_z;
-                
-                Vec3f temprot=new Vec3f();
-                temprot.x=currentTempObj.rotation.x;
-                temprot.y=currentTempObj.rotation.y;
-                temprot.z=currentTempObj.rotation.z;
-                
-                addObject(temppos);
-                
-                
-                
-                addUndoEntry("addObj", newobj);
-                newobj.rotation = temprot;
-                addingObject = "";
-            }
-            setStatusToInfo("Pasted objects.");
-            glCanvas.repaint();
-        }
-    }//GEN-LAST:event_tgbPasteObjActionPerformed
-
-    private void listZonesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listZonesMouseClicked
-        if (evt.getClickCount() > 1 && btnEditZone.isEnabled())
-            openSelectedZone();
-    }//GEN-LAST:event_listZonesMouseClicked
-    
-    //Ensures that you have the 3D view selected.
-    //This is used to prevent typing actual things like Object Names from pasting position rotation etc.
-    public boolean isAllowPasteAction()
-    {
-        return getFocusOwner() instanceof JRootPane || getFocusOwner() instanceof GLCanvas;
-    }
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Object adding and deleting
@@ -2084,287 +1118,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         unsavedChanges = true;
     }
     
-    /**
-     * Update rendering according to current selection. Called when the selection is changed.
-     */
-    public void selectionChanged() {
-        displayedPaths.clear();
-        pnlObjectSettings.clear();
-        
-        if(selectedObjs.isEmpty()) {
-            setStatusToInfo("Object deselected.");
-            tgbDeselect.setEnabled(false);
-            pnlObjectSettings.doLayout();
-            pnlObjectSettings.validate();
-            pnlObjectSettings.repaint();
-
-            glCanvas.requestFocusInWindow();
-            return;
-        }
-        
-        // Check if any are paths/path points linked to selected objs
-        for(AbstractObj obj : selectedObjs.values()) {
-            PathObj pathobj = AbstractObj.getObjectPathData(obj);
-            if (pathobj == null)
-                continue;
-            int pathid = pathobj.pathID;
-            
-            if(pathid == -1)
-                continue;
-            
-            // Display path if it is linked to object
-            if(displayedPaths.get(pathid) == null && obj instanceof PathPointObj)
-                displayedPaths.put(pathid, (PathPointObj) obj);
-            else if (displayedPaths.get(pathid) == null)
-            {
-                for(var Cur : globalPathPointList.values())
-                {
-                    if (Cur.path == pathobj)
-                    {
-                        displayedPaths.put(pathid, (PathPointObj)Cur);
-                        break;
-                    }
-                }
-            }
-        }
-        
-        // Check if the selected objects' classes are the same
-        Class cls = null; boolean allthesame = true;
-        if(selectedObjs.size() > 1) {
-            for(AbstractObj selectedObj : selectedObjs.values()) {
-                if(cls != null && cls != selectedObj.getClass()) {
-                    allthesame = false;
-                    break;
-                } else if(cls == null)
-                    cls = selectedObj.getClass();
-            }
-        }
-        
-        // If all selected objects are the same type, add all properties
-        if(allthesame) {
-            for(AbstractObj selectedObj : selectedObjs.values()) {
-                if(selectedObj instanceof PathPointObj) {
-                    PathPointObj selectedPathPoint =(PathPointObj)selectedObj;
-                    PathObj path = selectedPathPoint.path;
-                    setStatusToInfo(String.format("Selected [%3$d] %1$s(%2$s), point %4$d",
-                                path.data.get("name"), path.stage.stageName, path.pathID, selectedPathPoint.getIndex()) + ".");
-                    tgbDeselect.setEnabled(true);
-                    selectedPathPoint.getProperties(pnlObjectSettings);
-                }
-                else {
-                    String layer = selectedObj.layerKey.equals("common") ? "Common" : selectedObj.getLayerName();
-                    setStatusToInfo("Selected " + selectedObj.name + "(" + selectedObj.stage.stageName + ", " + layer + ").");
-                    tgbDeselect.setEnabled(true);
-                    
-                    LinkedList layerlist = new LinkedList();
-                    layerlist.add("Common");
-                    for(int l = 0; l < 26; l++) {
-                        String layerstring = String.format("Layer%1$c", (char) ('A' + l));
-                        if(curZoneArc.objects.containsKey(layerstring.toLowerCase()))
-                            layerlist.add(layerstring);
-                    }
-                    
-                    if(selectedObj.getClass() != PathPointObj.class) {
-                        pnlObjectSettings.addCategory("obj_general", "General");
-                        if(selectedObj.getClass() != StartObj.class && selectedObj.getClass() != DebugObj.class)
-                            pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name, "Default");
-                        if(isGalaxyMode)
-                            pnlObjectSettings.addField("zone", "Zone", "list", galaxyArchive.zoneList, selectedObj.stage.stageName, "Default");
-                        pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer, "Default");
-                    }
-
-                    selectedObj.getProperties(pnlObjectSettings);
-                }
-            }
-
-            if(selectedObjs.size() > 1) {
-                pnlObjectSettings.removeField("pos_x"); pnlObjectSettings.removeField("pos_y"); pnlObjectSettings.removeField("pos_z");
-                pnlObjectSettings.removeField("pnt0_x"); pnlObjectSettings.removeField("pnt0_y"); pnlObjectSettings.removeField("pnt0_z");
-                pnlObjectSettings.removeField("pnt1_x"); pnlObjectSettings.removeField("pnt1_y"); pnlObjectSettings.removeField("pnt1_z");
-                pnlObjectSettings.removeField("pnt2_x"); pnlObjectSettings.removeField("pnt2_y"); pnlObjectSettings.removeField("pnt2_z");
-                
-                
-                
-                pnlObjectSettings.addCategory("Group_Move", "Group_Move");
-                pnlObjectSettings.addField("group_move_x", "Step X Pos", "float", null,0.0f, "");//adding movement input fields
-                pnlObjectSettings.addField("group_move_y", "Step Y Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_move_z", "Step Z Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_x", "Move X", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_y", "Move Y", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_z", "Move Z", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_a", "Move all", "float", null,0.0f, "");
-                
-                pnlObjectSettings.addCategory("Group_Rotate", "Group_Rotate");
-                pnlObjectSettings.addField("group_rotate_center_x", "Center X Pos", "float", null,0.0f, "");//adding rotations input fields
-                pnlObjectSettings.addField("group_rotate_center_y", "Center Y Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_center_z", "Center Z Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_angle_x", "Rotate X", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_angle_y", "Rotate Y", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_angle_z", "Rotate Z", "float", null,0.0f, "");
-                
-                pnlObjectSettings.addCategory("Group_Copy", "Group_Copy");
-                pnlObjectSettings.addField("group_copy_offset_x", "offest X", "float", null,0.0f, "");//adding copy input fields
-                pnlObjectSettings.addField("group_copy_offset_y", "offest Y", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_copy_offset_z", "offest Z", "float", null,0.0f, "");
-            }
-            	this.g_center_x = 0;//reset values if selected objects changed
-            	this.g_center_y =0;
-            	this.g_center_z =0;
-            	this.g_angle_x =0;
-            	this.g_angle_y =0;
-            	this.g_angle_z =0;
-            	this.g_move_step_a =0;
-            	this.g_move_step_x =0;
-            	this.g_move_step_y =0;
-            	this.g_move_step_z =0;
-            	this.g_move_x =0;
-            	this.g_move_y =0;
-            	this.g_move_z =0;
-            	this.g_offset_x=0;
-            	this.g_offset_y=0;
-            	this.g_offset_z=0;
-            	
-        }
-        
-        if(selectedObjs.size() > 1) {
-            setStatusToInfo("Multiple objects selected.(" + selectedObjs.size() + ").");
-        }
-        
-        pnlObjectSettings.doLayout();
-        pnlObjectSettings.validate();
-        pnlObjectSettings.repaint();
-        
-        glCanvas.requestFocusInWindow();
-    }
     
-    public void pasteObject(AbstractObj obj) {
-        addingObject = obj.getFileType() + "|" + obj.name;
-        addingObjectOnLayer = obj.layerKey;
-        addObject(mousePos);
-        
-        addingObject = "";
-        
-        newobj.rotation.x = obj.rotation.x; newobj.rotation.y = obj.rotation.y; newobj.rotation.z = obj.rotation.z;
-        newobj.scale.x = obj.scale.x; newobj.scale.y = obj.scale.y; newobj.scale.z = obj.scale.z;
-        addingObject="";
-        newobj.data.put("dir_x", obj.rotation.x); newobj.data.put("dir_y", obj.rotation.y); newobj.data.put("dir_z", obj.rotation.z);
-        newobj.data.put("scale_x", obj.scale.x); newobj.data.put("scale_y", obj.scale.y); newobj.data.put("scale_z", obj.scale.z);
-        newobj.data.put("Obj_arg0", obj.data.get("Obj_arg0"));
-        newobj.data.put("Obj_arg1", obj.data.get("Obj_arg1"));
-        newobj.data.put("Obj_arg2", obj.data.get("Obj_arg2"));
-        newobj.data.put("Obj_arg3", obj.data.get("Obj_arg3"));
-        newobj.data.put("Obj_arg4", obj.data.get("Obj_arg4"));
-        newobj.data.put("Obj_arg5", obj.data.get("Obj_arg5"));
-        newobj.data.put("Obj_arg6", obj.data.get("Obj_arg6"));
-        newobj.data.put("Obj_arg7", obj.data.get("Obj_arg7"));
-        newobj.data.put("SW_APPEAR", obj.data.get("SW_APPEAR"));
-        newobj.data.put("SW_DEAD", obj.data.get("SW_DEAD"));
-        newobj.data.put("SW_A", obj.data.get("SW_A"));
-        newobj.data.put("SW_B", obj.data.get("SW_B"));
-        newobj.data.put("l_id", obj.data.get("l_id"));
-        newobj.data.put("CameraSetId", obj.data.get("CameraSetId"));
-        newobj.data.put("CastId", obj.data.get("CastId"));
-        newobj.data.put("ViewGroupId", obj.data.get("ViewGroupId"));
-        newobj.data.put("ShapeModelNo", obj.data.get("ShapeModelNo"));
-        newobj.data.put("CommonPath_ID", obj.data.get("CommonPath_ID"));
-        newobj.data.put("ClippingGroupId", obj.data.get("ClippingGroupId"));
-        newobj.data.put("GroupId", obj.data.get("GroupId"));
-        newobj.data.put("DemoGroupId", obj.data.get("DemoGroupId"));
-        newobj.data.put("MapParts_ID", obj.data.get("MapParts_ID"));
-        newobj.data.put("MessageId", obj.data.get("MessageId"));
-        
-        if(Whitehole.getCurrentGameType() == 1)
-            newobj.data.put("SW_SLEEP", obj.data.get("SW_SLEEP"));
-        if(Whitehole.getCurrentGameType() == 2) {
-            newobj.data.put("SW_AWAKE", obj.data.get("SW_AWAKE"));
-            newobj.data.put("SW_PARAM", obj.data.get("SW_PARAM"));
-            newobj.data.put("ParamScale", obj.data.get("ParamScale"));
-            newobj.data.put("Obj_ID", obj.data.get("Obj_ID"));
-            newobj.data.put("GeneratorID", obj.data.get("GeneratorID"));
-        }
-        
-        newobj.renderer = obj.renderer;
-        
-        addUndoEntry("addObj", newobj);
-    }
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Object positioning
     
-    /**
-     * Decrease {@code undoIndex} and undo if possible.
-     */
-    public void undo() {
-        // Decrease undo index
-        if(undoIndex >= 1)
-            undoIndex--;
-        else // Nothing to undo
-            return;
-        
-        UndoEntry change = undoList.get(undoIndex);
-        
-        if(change.objType.equals("pathpoint")) {
-            setStatusToWarning("Undoing path points is currently not supported, sorry!");
-        } else {
-            switch(change.type) {
-                case "changeObj":
-                    AbstractObj obj = globalObjList.get(change.id);
-                    obj.data = (Bcsv.Entry) change.data.clone();
-                    obj.position = (Vec3f) change.position.clone();
-                    obj.rotation = (Vec3f) change.rotation.clone();
-                    obj.scale = (Vec3f) change.scale.clone();
-                    pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
-                    pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
-                    pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
-                    pnlObjectSettings.repaint();
-                    addRerenderTask("zone:"+obj.stage.stageName);
-                    break;
-                case "deleteObj":
-                    addingObject = change.objType + "|" + change.name;
-                    addingObjectOnLayer = change.layer;
-
-                    addObject(change.position);
-                    addingObject = "";
-
-                    newobj.data =(Bcsv.Entry) change.data.clone();
-                    newobj.position =(Vec3f) change.position.clone();
-
-                    if(change.rotation != null)
-                        newobj.rotation =(Vec3f) change.rotation.clone();
-
-                    if(change.scale != null)
-                        newobj.scale =(Vec3f) change.scale.clone();
-
-                    addRerenderTask("zone:" + newobj.stage.stageName);
-                    break;
-                case "addObj":
-                    deleteObject(change.id);
-            }
-        }
-        
-        undoList.remove(change);
-    }
-    
-    /**
-     * Adds {@code obj} to the current undo list.
-     * @param type the type of action
-     * @param obj the object that the action was performed on
-     */
-    public void addUndoEntry(String type, AbstractObj obj) {
-        if(obj instanceof PathPointObj)
-            return; // we don't support path points
-        
-        if(undoIndex != undoList.size())
-            undoList.subList(0, undoIndex);
-        if(undoIndex > 0) {
-            if(undoList.get(undoIndex - 1).type.equals(type) && undoList.get(undoIndex - 1).id == obj.uniqueID)
-                return;
-        }
-        
-        System.out.println("UNDO_STACK: Added " + type + " for " + obj);
-
-        undoList.add(new UndoEntry(type, obj));
-        undoIndex++;
-    }
-    
-    /**
+     /**
      * Attempt to apply rotation/translation of the current zone to {@code delta}.
      * @param delta the position to change
      */
@@ -2401,6 +1159,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         return delta;
     }
     
+    /**
+     * Attempt to get the 3D coordinates from a 2D point on the screen.
+     * @param pt The screen position to use
+     * @param depth The depth in 3D to get the coord of
+     * @return 
+     */
     private Vec3f get3DCoords(Point pt, float depth) {
         Vec3f ret = new Vec3f(
                 camPosition.x * SCALE_DOWN,
@@ -2575,179 +1339,185 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         scaleSelectionBy(delta, 0.0f);
     }
     
-    /**
-     * Called when translating through the shortcut key G
-     * @param shiftDown will move slower if shift is pressed
-     * @param ctrlDown will snap to values if ctrl is pressed
-     */
-//    public void keyTranslating(boolean shiftDown, boolean ctrlDown) {
-//        Vec3f delta = new Vec3f();
-//        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
-//        if(lastDist == 0)
-//            lastDist = curDist;
-//        float pol = 10f;
-//
-//        if(shiftDown)
-//            pol *= 0.1;
-//
-//        if(curDist < lastDist)
-//            pol *= -1;
-//        if(startingMousePos.y < mousePos.y)
-//            pol *= -1;
-//
-//        if(keyAxis != null) switch(keyAxis) {
-//            case "all":
-//                float objz = depthUnderCursor;
-//
-//                float xdelta = (startingMousePos.x - mousePos.x) * pixelFactorX * objz * SCALE_DOWN;
-//                float ydelta = (startingMousePos.y - mousePos.y) * -pixelFactorY * objz * SCALE_DOWN;
-//
-//                delta = new Vec3f(
-//                       (xdelta *(float)Math.sin(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.cos(camRotation.x)),
-//                        ydelta *(float)Math.cos(camRotation.y),
-//                        -(xdelta *(float)Math.cos(camRotation.x)) -(ydelta *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x)));
-//                applySubzoneRotation(delta);
-//                System.out.println(delta);
-//                break;
-//            case "x":
-//                delta.x = pol * Math.abs(lastDist - curDist);
-//                break;
-//            case "y":
-//                delta.y += pol * Math.abs(lastDist - curDist);
-//                break;
-//            case "z":
-//                delta.z += pol * Math.abs(lastDist - curDist);
-//                break;
-//            default:
-//                break;
-//        }
-//
-//        offsetSelectionBy(delta, shiftDown);
-//
-//        lastDist = curDist;
-//        rerenderTasks.add("zone:" + curZone);
-//        pnlObjectSettings.repaint();
-//        glCanvas.repaint();
-//        unsavedChanges = true;
-//    }
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Property Management
     
     /**
-     * Called when scaling through the shortcut key S
-     * @param shiftDown will move slower if shift is pressed
-     * @param ctrlDown will snap to increments if ctrl is pressed
+     * Update rendering according to current selection. Called when the selection is changed.
      */
-//    public void keyScaling(boolean shiftDown, boolean ctrlDown) {
-//        // calculate dist from the position where we began scaling
-//        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
-//        if(lastDist == 0)
-//            lastDist = curDist;
-//        
-//        int polarity = 1;
-//        float speed = 0.01f;
-//        
-//        // raise sensitivity?
-//        if(ctrlDown)
-//            speed *= 5;
-//        
-//        if(shiftDown)
-//            speed *= 0.1f;
-//
-//        
-//        if(curDist < lastDist) // we're moving closer to object center
-//            polarity *= -1;
-//        if(startingMousePos.y < mousePos.y)
-//            polarity *= -1;
-//
-//        
-//        Vec3f delta = new Vec3f();
-//        if(keyAxis != null) switch(keyAxis) {
-//            case "all":
-//                delta.x += polarity * Math.abs(lastDist - curDist) * speed;
-//                delta.y += polarity * Math.abs(lastDist - curDist) * speed;
-//                delta.z += polarity * Math.abs(lastDist - curDist) * speed;
-//                break;
-//            case "x":
-//                delta.x += polarity * Math.abs(lastDist - curDist) * speed;
-//                break;
-//            case "y":
-//                delta.y += polarity * Math.abs(lastDist - curDist) * speed;
-//                break;
-//            case "z":
-//                delta.z += polarity * Math.abs(lastDist - curDist) * speed;
-//                break;
-//        }
-//
-//        
-//        if(ctrlDown)
-//            scaleSelectionBy(delta, 0.10f * polarity);
-//        else
-//            scaleSelectionBy(delta);
-//        
-//        lastDist = curDist;
-//        rerenderTasks.add("zone:" + curZone);
-//        pnlObjectSettings.repaint();
-//        glCanvas.repaint();
-//        unsavedChanges = true;
-//    }
+    public void selectionChanged() {
+        displayedPaths.clear();
+        pnlObjectSettings.clear();
+        
+        if(selectedObjs.isEmpty()) {
+            setStatusToInfo("Object deselected.");
+            tgbDeselect.setEnabled(false);
+            pnlObjectSettings.doLayout();
+            pnlObjectSettings.validate();
+            pnlObjectSettings.repaint();
+
+            glCanvas.requestFocusInWindow();
+            return;
+        }
+        
+        // Check if any are paths/path points linked to selected objs
+        for(AbstractObj obj : selectedObjs.values()) {
+            PathObj pathobj = AbstractObj.getObjectPathData(obj);
+            if (pathobj == null)
+                continue;
+            int pathid = pathobj.pathID;
+            
+            if(pathid == -1)
+                continue;
+            
+            // Display path if it is linked to object
+            if(displayedPaths.get(pathid) == null && obj instanceof PathPointObj)
+                displayedPaths.put(pathid, (PathPointObj) obj);
+            else if (displayedPaths.get(pathid) == null)
+            {
+                for(var Cur : globalPathPointList.values())
+                {
+                    if (Cur.path == pathobj)
+                    {
+                        displayedPaths.put(pathid, (PathPointObj)Cur);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Check if the selected objects' classes are the same
+        Class cls = null; boolean allthesame = true;
+        if(selectedObjs.size() > 1) {
+            for(AbstractObj selectedObj : selectedObjs.values()) {
+                if(cls != null && cls != selectedObj.getClass()) {
+                    allthesame = false;
+                    break;
+                } else if(cls == null)
+                    cls = selectedObj.getClass();
+            }
+        }
+        
+        // If all selected objects are the same type, add all properties
+        if(allthesame) {
+            for(AbstractObj selectedObj : selectedObjs.values()) {
+                if(selectedObj instanceof PathPointObj) {
+                    PathPointObj selectedPathPoint =(PathPointObj)selectedObj;
+                    PathObj path = selectedPathPoint.path;
+                    setStatusToInfo(String.format("Selected [%3$d] %1$s(%2$s), point %4$d",
+                                path.data.get("name"), path.stage.stageName, path.pathID, selectedPathPoint.getIndex()) + ".");
+                    tgbDeselect.setEnabled(true);
+                    selectedPathPoint.getProperties(pnlObjectSettings);
+                }
+                else {
+                    String layer = selectedObj.layerKey.equals("common") ? "Common" : selectedObj.getLayerName();
+                    setStatusToInfo("Selected " + selectedObj.name + "(" + selectedObj.stage.stageName + ", " + layer + ").");
+                    tgbDeselect.setEnabled(true);
+                    
+                    LinkedList layerlist = new LinkedList();
+                    layerlist.add("Common");
+                    for(int l = 0; l < 26; l++) {
+                        String layerstring = String.format("Layer%1$c", (char) ('A' + l));
+                        if(curZoneArc.objects.containsKey(layerstring.toLowerCase()))
+                            layerlist.add(layerstring);
+                    }
+                    
+                    if(selectedObj.getClass() != PathPointObj.class) {
+                        pnlObjectSettings.addCategory("obj_general", "General");
+                        if(selectedObj.getClass() != StartObj.class && selectedObj.getClass() != DebugObj.class)
+                            pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name, "Default");
+                        if(isGalaxyMode)
+                            pnlObjectSettings.addField("zone", "Zone", "list", galaxyArchive.zoneList, selectedObj.stage.stageName, "Default");
+                        pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer, "Default");
+                    }
+
+                    selectedObj.getProperties(pnlObjectSettings);
+                }
+            }
+
+            if(selectedObjs.size() > 1) {
+                pnlObjectSettings.removeField("pos_x"); pnlObjectSettings.removeField("pos_y"); pnlObjectSettings.removeField("pos_z");
+                pnlObjectSettings.removeField("pnt0_x"); pnlObjectSettings.removeField("pnt0_y"); pnlObjectSettings.removeField("pnt0_z");
+                pnlObjectSettings.removeField("pnt1_x"); pnlObjectSettings.removeField("pnt1_y"); pnlObjectSettings.removeField("pnt1_z");
+                pnlObjectSettings.removeField("pnt2_x"); pnlObjectSettings.removeField("pnt2_y"); pnlObjectSettings.removeField("pnt2_z");
+                
+                
+                
+                pnlObjectSettings.addCategory("Group_Move", "Group_Move");
+                pnlObjectSettings.addField("group_move_x", "Step X Pos", "float", null,0.0f, "");//adding movement input fields
+                pnlObjectSettings.addField("group_move_y", "Step Y Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_move_z", "Step Z Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_x", "Move X", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_y", "Move Y", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_z", "Move Z", "float", null,0.0f, "");
+                pnlObjectSettings.addField("groupmove_a", "Move all", "float", null,0.0f, "");
+                
+                pnlObjectSettings.addCategory("Group_Rotate", "Group_Rotate");
+                pnlObjectSettings.addField("group_rotate_center_x", "Center X Pos", "float", null,0.0f, "");//adding rotations input fields
+                pnlObjectSettings.addField("group_rotate_center_y", "Center Y Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_center_z", "Center Z Pos", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_angle_x", "Rotate X", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_angle_y", "Rotate Y", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_rotate_angle_z", "Rotate Z", "float", null,0.0f, "");
+                
+                pnlObjectSettings.addCategory("Group_Copy", "Group_Copy");
+                pnlObjectSettings.addField("group_copy_offset_x", "offest X", "float", null,0.0f, "");//adding copy input fields
+                pnlObjectSettings.addField("group_copy_offset_y", "offest Y", "float", null,0.0f, "");
+                pnlObjectSettings.addField("group_copy_offset_z", "offest Z", "float", null,0.0f, "");
+            }
+            	this.g_center_x = 0;//reset values if selected objects changed
+            	this.g_center_y =0;
+            	this.g_center_z =0;
+            	this.g_angle_x =0;
+            	this.g_angle_y =0;
+            	this.g_angle_z =0;
+            	this.g_move_step_a =0;
+            	this.g_move_step_x =0;
+            	this.g_move_step_y =0;
+            	this.g_move_step_z =0;
+            	this.g_move_x =0;
+            	this.g_move_y =0;
+            	this.g_move_z =0;
+            	this.g_offset_x=0;
+            	this.g_offset_y=0;
+            	this.g_offset_z=0;
+            	
+        }
+        
+        if(selectedObjs.size() > 1) {
+            setStatusToInfo("Multiple objects selected.(" + selectedObjs.size() + ").");
+        }
+        
+        pnlObjectSettings.doLayout();
+        pnlObjectSettings.validate();
+        pnlObjectSettings.repaint();
+        
+        glCanvas.requestFocusInWindow();
+    }
     
     /**
-     * Called when rotating through the shortcut key R
-     * @param shiftDown will move slower if shift is pressed
-     * @param ctrlDown will snap if ctrl is pressed
+     * The property changing events. These methods will update the data fields for the selected objects.
+     * @param propname
+     * @param value
+     * @param data 
      */
-//    public void keyRotating(boolean shiftDown, boolean ctrlDown) {
-//        Vec3f delta = new Vec3f();
-//        float curDist = (float) Math.sqrt(Math.pow(startingMousePos.x - mousePos.x, 2) + Math.pow(startingMousePos.y - mousePos.y, 2));
-//        if(lastDist == 0)
-//            lastDist = curDist;
-//        float pol = 0.1f;
-//
-//        if(shiftDown)
-//            pol *= 0.1;
-//
-//        if(curDist < lastDist)
-//            pol *= -1;
-//        if(startingMousePos.y < mousePos.y)
-//            pol *= -1;
-//
-//        if(keyAxis != null) switch(keyAxis) {
-//            case "x":
-//                delta.x += pol * Math.abs(lastDist - curDist);
-//                break;
-//            case "y":
-//                delta.y += pol * Math.abs(lastDist - curDist);
-//                break;
-//            case "z":
-//                delta.z += pol * Math.abs(lastDist - curDist);
-//                break;
-//            default:
-//                break;
-//        }
-//
-//        rotateSelectionBy(delta);
-//
-//        lastDist = curDist;
-//        rerenderTasks.add("zone:" + curZone);
-//        pnlObjectSettings.repaint();
-//        glCanvas.repaint();
-//        unsavedChanges = true;
-//    }
-    
-    /*
-     * The property changing events. These methods will update the data fields
-     * for the selected objects.
-     */
-    
     public void propertyChanged(String propname, Object value, Bcsv.Entry data) {
         Object oldval = data.get(propname);
-        if(oldval==null) {//the movement inputs have no value before
-        	oldval=0.0f;
+        if(oldval==null)
+        {
+            oldval=0.0f; //the movement inputs have no value before
         }
-        if(oldval.getClass() == String.class) data.put(propname, value);
-        else if(oldval.getClass() == Integer.class) data.put(propname,(int)value);
-        else if(oldval.getClass() == Short.class) data.put(propname,(short)(int)value);
-        else if(oldval.getClass() == Byte.class) data.put(propname,(byte)(int)value);
-        else if(oldval.getClass() == Float.class) data.put(propname,(float)value);
+        if(oldval.getClass() == String.class)
+            data.put(propname, value);
+        else if(oldval.getClass() == Integer.class)
+            data.put(propname,(int)value);
+        else if(oldval.getClass() == Short.class)
+            data.put(propname,(short)(int)value);
+        else if(oldval.getClass() == Byte.class)
+            data.put(propname,(byte)(int)value);
+        else if(oldval.getClass() == Float.class)
+            data.put(propname,(float)value);
         else throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: " +oldval.getClass().getName());
     }
     
@@ -3224,6 +1994,200 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         unsavedChanges = true;
     }
+    
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Copy + Paste
+        
+    //Ensures that you have the 3D view selected.
+    //This is used to prevent typing actual things like Object Names from pasting position rotation etc.
+    public boolean isAllowPasteAction()
+    {
+        return getFocusOwner() instanceof JRootPane || getFocusOwner() instanceof GLCanvas;
+    }
+    
+    public void pasteObject(AbstractObj obj) {
+        addingObject = obj.getFileType() + "|" + obj.name;
+        addingObjectOnLayer = obj.layerKey;
+        addObject(mousePos);
+        
+        addingObject = "";
+        
+        newobj.rotation.x = obj.rotation.x; newobj.rotation.y = obj.rotation.y; newobj.rotation.z = obj.rotation.z;
+        newobj.scale.x = obj.scale.x; newobj.scale.y = obj.scale.y; newobj.scale.z = obj.scale.z;
+        addingObject="";
+        newobj.data.put("dir_x", obj.rotation.x); newobj.data.put("dir_y", obj.rotation.y); newobj.data.put("dir_z", obj.rotation.z);
+        newobj.data.put("scale_x", obj.scale.x); newobj.data.put("scale_y", obj.scale.y); newobj.data.put("scale_z", obj.scale.z);
+        newobj.data.put("Obj_arg0", obj.data.get("Obj_arg0"));
+        newobj.data.put("Obj_arg1", obj.data.get("Obj_arg1"));
+        newobj.data.put("Obj_arg2", obj.data.get("Obj_arg2"));
+        newobj.data.put("Obj_arg3", obj.data.get("Obj_arg3"));
+        newobj.data.put("Obj_arg4", obj.data.get("Obj_arg4"));
+        newobj.data.put("Obj_arg5", obj.data.get("Obj_arg5"));
+        newobj.data.put("Obj_arg6", obj.data.get("Obj_arg6"));
+        newobj.data.put("Obj_arg7", obj.data.get("Obj_arg7"));
+        newobj.data.put("SW_APPEAR", obj.data.get("SW_APPEAR"));
+        newobj.data.put("SW_DEAD", obj.data.get("SW_DEAD"));
+        newobj.data.put("SW_A", obj.data.get("SW_A"));
+        newobj.data.put("SW_B", obj.data.get("SW_B"));
+        newobj.data.put("l_id", obj.data.get("l_id"));
+        newobj.data.put("CameraSetId", obj.data.get("CameraSetId"));
+        newobj.data.put("CastId", obj.data.get("CastId"));
+        newobj.data.put("ViewGroupId", obj.data.get("ViewGroupId"));
+        newobj.data.put("ShapeModelNo", obj.data.get("ShapeModelNo"));
+        newobj.data.put("CommonPath_ID", obj.data.get("CommonPath_ID"));
+        newobj.data.put("ClippingGroupId", obj.data.get("ClippingGroupId"));
+        newobj.data.put("GroupId", obj.data.get("GroupId"));
+        newobj.data.put("DemoGroupId", obj.data.get("DemoGroupId"));
+        newobj.data.put("MapParts_ID", obj.data.get("MapParts_ID"));
+        newobj.data.put("MessageId", obj.data.get("MessageId"));
+        
+        if(Whitehole.getCurrentGameType() == 1)
+            newobj.data.put("SW_SLEEP", obj.data.get("SW_SLEEP"));
+        if(Whitehole.getCurrentGameType() == 2) {
+            newobj.data.put("SW_AWAKE", obj.data.get("SW_AWAKE"));
+            newobj.data.put("SW_PARAM", obj.data.get("SW_PARAM"));
+            newobj.data.put("ParamScale", obj.data.get("ParamScale"));
+            newobj.data.put("Obj_ID", obj.data.get("Obj_ID"));
+            newobj.data.put("GeneratorID", obj.data.get("GeneratorID"));
+        }
+        
+        newobj.renderer = obj.renderer;
+        
+        addUndoEntry("addObj", newobj);
+    }
+     
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Undo + Redo
+    
+    // This object is used to save previous obj info for undo
+    public class UndoEntry {
+        public UndoEntry(AbstractObj obj) {
+            position =(Vec3f) obj.position.clone();
+            rotation =(Vec3f) obj.rotation.clone();
+            scale =(Vec3f) obj.scale.clone();
+            data =(Bcsv.Entry) obj.data.clone();
+            id = obj.uniqueID;
+            type = "changeObj";
+            layer = obj.layerKey;
+            name = obj.name;
+            objType = obj.getFileType();
+        }
+        
+        public UndoEntry(String editType, AbstractObj obj) {
+            position =(Vec3f) obj.position.clone();
+            
+            if(obj.rotation == null)
+                rotation = new Vec3f();
+            else
+                rotation =(Vec3f) obj.rotation.clone();
+            
+            if(obj.scale == null)
+                rotation = new Vec3f();
+            else
+                scale =(Vec3f) obj.scale.clone();
+            
+            data =(Bcsv.Entry) obj.data.clone();
+            id = obj.uniqueID;
+            type = editType;
+            layer = obj.layerKey;
+            name = obj.name;
+            
+            if(obj instanceof PathPointObj) {
+                objType = "pathpoint";
+                parentPathId = ((PathPointObj) obj).path.pathID;
+            } else {
+                objType = obj.getFileType();
+            }
+        }
+        
+        public Vec3f position;
+        public Vec3f rotation;
+        public Vec3f scale;
+        public Bcsv.Entry data;
+        public String type, layer, name, objType;
+        public int id;
+        
+        public int parentPathId;
+    }
+    
+    /**
+     * Decrease {@code undoIndex} and undo if possible.
+     */
+    public void undo() {
+        // Decrease undo index
+        if(undoIndex >= 1)
+            undoIndex--;
+        else // Nothing to undo
+            return;
+        
+        UndoEntry change = undoList.get(undoIndex);
+        
+        if(change.objType.equals("pathpoint")) {
+            setStatusToWarning("Undoing path points is currently not supported, sorry!");
+        } else {
+            switch(change.type) {
+                case "changeObj":
+                    AbstractObj obj = globalObjList.get(change.id);
+                    obj.data = (Bcsv.Entry) change.data.clone();
+                    obj.position = (Vec3f) change.position.clone();
+                    obj.rotation = (Vec3f) change.rotation.clone();
+                    obj.scale = (Vec3f) change.scale.clone();
+                    pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
+                    pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
+                    pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
+                    pnlObjectSettings.repaint();
+                    addRerenderTask("zone:"+obj.stage.stageName);
+                    break;
+                case "deleteObj":
+                    addingObject = change.objType + "|" + change.name;
+                    addingObjectOnLayer = change.layer;
+
+                    addObject(change.position);
+                    addingObject = "";
+
+                    newobj.data =(Bcsv.Entry) change.data.clone();
+                    newobj.position =(Vec3f) change.position.clone();
+
+                    if(change.rotation != null)
+                        newobj.rotation =(Vec3f) change.rotation.clone();
+
+                    if(change.scale != null)
+                        newobj.scale =(Vec3f) change.scale.clone();
+
+                    addRerenderTask("zone:" + newobj.stage.stageName);
+                    break;
+                case "addObj":
+                    deleteObject(change.id);
+            }
+        }
+        
+        undoList.remove(change);
+    }
+    
+    /**
+     * Adds {@code obj} to the current undo list.
+     * @param type the type of action
+     * @param obj the object that the action was performed on
+     */
+    public void addUndoEntry(String type, AbstractObj obj) {
+        if(obj instanceof PathPointObj)
+            return; // we don't support path points
+        
+        if(undoIndex != undoList.size())
+            undoList.subList(0, undoIndex);
+        if(undoIndex > 0) {
+            if(undoList.get(undoIndex - 1).type.equals(type) && undoList.get(undoIndex - 1).id == obj.uniqueID)
+                return;
+        }
+        
+        System.out.println("UNDO_STACK: Added " + type + " for " + obj);
+
+        undoList.add(new UndoEntry(type, obj));
+        undoIndex++;
+    }
+    
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Actual galaxy scene renderer
@@ -4423,6 +3387,926 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Misc Utility
+    
+    // Gets an unused switch id for the current zone.
+    public int getValidSwitchInZone() {
+        return curZoneArc.getValidSwitchInZone();
+    }
+    
+    // Gets an unused switch id for the current galaxy.
+    public int getValidSwitchInGalaxy() {
+        return SwitchUtil.getValidSwitchInGalaxy(zoneArchives);
+    }
+    
+    // Returns a set hash set of all switch IDs used in the current zone.
+    public Set<Integer> getUniqueSwitchesInZone() {
+        return curZoneArc.getUniqueSwitchesInZone();
+    }
+    
+    public void rerenderPathOwners(PathObj path)
+    {
+        for (AbstractObj obj : globalObjList.values())
+        {
+            if (obj.renderer == null)
+                continue;
+            
+            if (!obj.renderer.hasPathConnection())
+                continue;
+            
+            if (AbstractObj.isUsingPath(obj, path))
+            {
+                addRerenderTask("object:"+Integer.toString(obj.uniqueID));
+            }
+        }
+    }
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    
+    /**
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content
+     * of this method is always regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        split = new javax.swing.JSplitPane();
+        pnlGLPanel = new javax.swing.JPanel();
+        tlbOptions = new javax.swing.JToolBar();
+        tgbDeselect = new javax.swing.JButton();
+        sep1 = new javax.swing.JToolBar.Separator();
+        tgbShowAxis = new javax.swing.JToggleButton();
+        sep2 = new javax.swing.JToolBar.Separator();
+        tgbShowPaths = new javax.swing.JToggleButton();
+        sep3 = new javax.swing.JToolBar.Separator();
+        tgbShowAreas = new javax.swing.JToggleButton();
+        sep5 = new javax.swing.JToolBar.Separator();
+        tgbShowCameras = new javax.swing.JToggleButton();
+        sep4 = new javax.swing.JToolBar.Separator();
+        tgbShowGravity = new javax.swing.JToggleButton();
+        lblStatus = new javax.swing.JLabel();
+        tabData = new javax.swing.JTabbedPane();
+        pnlScenarioZone = new javax.swing.JSplitPane();
+        pnlScenarios = new javax.swing.JPanel();
+        tlbScenarios = new javax.swing.JToolBar();
+        lblScenarios = new javax.swing.JLabel();
+        btnAddScenario = new javax.swing.JButton();
+        btnEditScenario = new javax.swing.JButton();
+        btnDeleteScenario = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        listScenarios = new javax.swing.JList();
+        pnlZones = new javax.swing.JPanel();
+        tlbZones = new javax.swing.JToolBar();
+        lblZones = new javax.swing.JLabel();
+        btnAddZone = new javax.swing.JButton();
+        btnDeleteZone = new javax.swing.JButton();
+        sepZones = new javax.swing.JToolBar.Separator();
+        btnEditZone = new javax.swing.JButton();
+        scrZones = new javax.swing.JScrollPane();
+        listZones = new javax.swing.JList();
+        pnlLayers = new javax.swing.JPanel();
+        tlbLayers = new javax.swing.JToolBar();
+        jLabel1 = new javax.swing.JLabel();
+        scrLayers = new javax.swing.JScrollPane();
+        scrObjects = new javax.swing.JSplitPane();
+        pnlObjects = new javax.swing.JPanel();
+        tlbObjects = new javax.swing.JToolBar();
+        tgbAddObject = new javax.swing.JToggleButton();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
+        tgbDeleteObject = new javax.swing.JToggleButton();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
+        tgbCopyObj = new javax.swing.JToggleButton();
+        jSeparator10 = new javax.swing.JToolBar.Separator();
+        tgbPasteObj = new javax.swing.JToggleButton();
+        scrObjectTree = new javax.swing.JScrollPane();
+        treeObjects = new javax.swing.JTree();
+        scrObjSettings = new javax.swing.JScrollPane();
+        menu = new javax.swing.JMenuBar();
+        mnuFile = new javax.swing.JMenu();
+        mniSave = new javax.swing.JMenuItem();
+        mniClose = new javax.swing.JMenuItem();
+        mnuEdit = new javax.swing.JMenu();
+        mnuCopy = new javax.swing.JMenu();
+        itmPositionCopy = new javax.swing.JMenuItem();
+        itmRotationCopy = new javax.swing.JMenuItem();
+        itmScaleCopy = new javax.swing.JMenuItem();
+        mnuPaste = new javax.swing.JMenu();
+        itmPositionPaste = new javax.swing.JMenuItem();
+        itmRotationPaste = new javax.swing.JMenuItem();
+        itmScalePaste = new javax.swing.JMenuItem();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle(Whitehole.NAME);
+        setIconImage(Whitehole.ICON);
+        setMinimumSize(new java.awt.Dimension(960, 720));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowActivated(java.awt.event.WindowEvent evt) {
+                formWindowActivated(evt);
+            }
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
+
+        split.setDividerLocation(335);
+        split.setFocusable(false);
+
+        pnlGLPanel.setMinimumSize(new java.awt.Dimension(10, 30));
+        pnlGLPanel.setLayout(new java.awt.BorderLayout());
+
+        tlbOptions.setRollover(true);
+
+        tgbDeselect.setText("Deselect");
+        tgbDeselect.setEnabled(false);
+        tgbDeselect.setFocusable(false);
+        tgbDeselect.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbDeselect.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbDeselect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbDeselectActionPerformed(evt);
+            }
+        });
+        tlbOptions.add(tgbDeselect);
+        tlbOptions.add(sep1);
+
+        tgbShowAxis.setSelected(true);
+        tgbShowAxis.setText("Show axis");
+        tgbShowAxis.setFocusable(false);
+        tgbShowAxis.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowAxis.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowAxis.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbShowAxisActionPerformed(evt);
+            }
+        });
+        tlbOptions.add(tgbShowAxis);
+        tlbOptions.add(sep2);
+
+        tgbShowPaths.setSelected(true);
+        tgbShowPaths.setText("Show paths");
+        tgbShowPaths.setFocusable(false);
+        tgbShowPaths.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowPaths.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowPaths.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbShowPathsActionPerformed(evt);
+            }
+        });
+        tlbOptions.add(tgbShowPaths);
+        tlbOptions.add(sep3);
+
+        tgbShowAreas.setSelected(true);
+        tgbShowAreas.setText("Show areas");
+        tgbShowAreas.setFocusable(false);
+        tgbShowAreas.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowAreas.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowAreas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbShowAreasActionPerformed(evt);
+            }
+        });
+        tlbOptions.add(tgbShowAreas);
+        tlbOptions.add(sep5);
+
+        tgbShowCameras.setSelected(true);
+        tgbShowCameras.setText("Show cameras");
+        tgbShowCameras.setFocusable(false);
+        tgbShowCameras.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowCameras.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowCameras.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbShowCamerasActionPerformed(evt);
+            }
+        });
+        tlbOptions.add(tgbShowCameras);
+        tlbOptions.add(sep4);
+
+        tgbShowGravity.setSelected(true);
+        tgbShowGravity.setText("Show gravity");
+        tgbShowGravity.setFocusable(false);
+        tgbShowGravity.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbShowGravity.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbShowGravity.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbShowGravityActionPerformed(evt);
+            }
+        });
+        tlbOptions.add(tgbShowGravity);
+
+        pnlGLPanel.add(tlbOptions, java.awt.BorderLayout.NORTH);
+
+        lblStatus.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        lblStatus.setText("Booting...");
+        pnlGLPanel.add(lblStatus, java.awt.BorderLayout.PAGE_END);
+
+        split.setRightComponent(pnlGLPanel);
+
+        tabData.setMinimumSize(new java.awt.Dimension(100, 5));
+        tabData.setName(""); // NOI18N
+
+        pnlScenarioZone.setDividerLocation(200);
+        pnlScenarioZone.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        pnlScenarioZone.setLastDividerLocation(200);
+
+        pnlScenarios.setPreferredSize(new java.awt.Dimension(201, 200));
+        pnlScenarios.setLayout(new java.awt.BorderLayout());
+
+        tlbScenarios.setRollover(true);
+
+        lblScenarios.setText("Scenarios:");
+        tlbScenarios.add(lblScenarios);
+
+        btnAddScenario.setText("Add");
+        btnAddScenario.setFocusable(false);
+        btnAddScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnAddScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnAddScenario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddScenarioActionPerformed(evt);
+            }
+        });
+        tlbScenarios.add(btnAddScenario);
+
+        btnEditScenario.setText("Edit");
+        btnEditScenario.setFocusable(false);
+        btnEditScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnEditScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnEditScenario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditScenarioActionPerformed(evt);
+            }
+        });
+        tlbScenarios.add(btnEditScenario);
+
+        btnDeleteScenario.setText("Delete");
+        btnDeleteScenario.setFocusable(false);
+        btnDeleteScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnDeleteScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnDeleteScenario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteScenarioActionPerformed(evt);
+            }
+        });
+        tlbScenarios.add(btnDeleteScenario);
+
+        pnlScenarios.add(tlbScenarios, java.awt.BorderLayout.PAGE_START);
+
+        listScenarios.setModel(new DefaultListModel());
+        listScenarios.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        listScenarios.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                listScenariosValueChanged(evt);
+            }
+        });
+        jScrollPane1.setViewportView(listScenarios);
+
+        pnlScenarios.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+
+        pnlScenarioZone.setTopComponent(pnlScenarios);
+
+        pnlZones.setLayout(new java.awt.BorderLayout());
+
+        tlbZones.setBorder(null);
+        tlbZones.setRollover(true);
+
+        lblZones.setText(" Zones: ");
+        tlbZones.add(lblZones);
+
+        btnAddZone.setText("Add");
+        btnAddZone.setFocusable(false);
+        btnAddZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnAddZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnAddZone.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddZoneActionPerformed(evt);
+            }
+        });
+        tlbZones.add(btnAddZone);
+
+        btnDeleteZone.setText("Delete");
+        btnDeleteZone.setFocusable(false);
+        btnDeleteZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnDeleteZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnDeleteZone.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteZoneActionPerformed(evt);
+            }
+        });
+        tlbZones.add(btnDeleteZone);
+        tlbZones.add(sepZones);
+
+        btnEditZone.setText("Edit individually");
+        btnEditZone.setFocusable(false);
+        btnEditZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnEditZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnEditZone.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditZoneActionPerformed(evt);
+            }
+        });
+        tlbZones.add(btnEditZone);
+
+        pnlZones.add(tlbZones, java.awt.BorderLayout.PAGE_START);
+
+        listZones.setModel(new DefaultListModel());
+        listZones.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        listZones.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                listZonesMouseClicked(evt);
+            }
+        });
+        listZones.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                listZonesValueChanged(evt);
+            }
+        });
+        scrZones.setViewportView(listZones);
+
+        pnlZones.add(scrZones, java.awt.BorderLayout.CENTER);
+
+        pnlScenarioZone.setRightComponent(pnlZones);
+
+        tabData.addTab("Scenario/Zone", pnlScenarioZone);
+
+        pnlLayers.setLayout(new java.awt.BorderLayout());
+
+        tlbLayers.setRollover(true);
+
+        jLabel1.setText("Layers:");
+        tlbLayers.add(jLabel1);
+
+        pnlLayers.add(tlbLayers, java.awt.BorderLayout.PAGE_START);
+        pnlLayers.add(scrLayers, java.awt.BorderLayout.CENTER);
+
+        tabData.addTab("Layers", pnlLayers);
+
+        scrObjects.setDividerLocation(300);
+        scrObjects.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        scrObjects.setResizeWeight(0.5);
+        scrObjects.setFocusCycleRoot(true);
+        scrObjects.setLastDividerLocation(300);
+
+        pnlObjects.setPreferredSize(new java.awt.Dimension(149, 300));
+        pnlObjects.setLayout(new java.awt.BorderLayout());
+
+        tlbObjects.setRollover(true);
+
+        tgbAddObject.setText("Add object");
+        tgbAddObject.setFocusable(false);
+        tgbAddObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbAddObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbAddObject.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbAddObjectActionPerformed(evt);
+            }
+        });
+        tlbObjects.add(tgbAddObject);
+        tlbObjects.add(jSeparator4);
+
+        tgbDeleteObject.setText("Delete object");
+        tgbDeleteObject.setFocusable(false);
+        tgbDeleteObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbDeleteObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbDeleteObject.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbDeleteObjectActionPerformed(evt);
+            }
+        });
+        tlbObjects.add(tgbDeleteObject);
+        tlbObjects.add(jSeparator5);
+
+        tgbCopyObj.setText("Copy");
+        tgbCopyObj.setFocusable(false);
+        tgbCopyObj.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbCopyObj.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbCopyObj.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbCopyObjActionPerformed(evt);
+            }
+        });
+        tlbObjects.add(tgbCopyObj);
+        tlbObjects.add(jSeparator10);
+
+        tgbPasteObj.setText("Paste");
+        tgbPasteObj.setFocusable(false);
+        tgbPasteObj.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbPasteObj.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbPasteObj.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbPasteObjActionPerformed(evt);
+            }
+        });
+        tlbObjects.add(tgbPasteObj);
+
+        pnlObjects.add(tlbObjects, java.awt.BorderLayout.PAGE_START);
+
+        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
+        treeObjects.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        treeObjects.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                treeObjectsValueChanged(evt);
+            }
+        });
+        scrObjectTree.setViewportView(treeObjects);
+
+        pnlObjects.add(scrObjectTree, java.awt.BorderLayout.CENTER);
+
+        scrObjects.setTopComponent(pnlObjects);
+        scrObjects.setRightComponent(scrObjSettings);
+
+        tabData.addTab("Objects", scrObjects);
+
+        split.setTopComponent(tabData);
+        tabData.getAccessibleContext().setAccessibleDescription("");
+
+        getContentPane().add(split, java.awt.BorderLayout.CENTER);
+
+        mnuFile.setText("File");
+
+        mniSave.setAccelerator(Settings.getUseWASD() ? null : KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK)
+        );
+        mniSave.setText("Save");
+        mniSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mniSaveActionPerformed(evt);
+            }
+        });
+        mnuFile.add(mniSave);
+
+        mniClose.setText("Close");
+        mniClose.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mniCloseActionPerformed(evt);
+            }
+        });
+        mnuFile.add(mniClose);
+
+        menu.add(mnuFile);
+
+        mnuEdit.setText("Edit");
+        mnuEdit.addMenuListener(new javax.swing.event.MenuListener() {
+            public void menuCanceled(javax.swing.event.MenuEvent evt) {
+            }
+            public void menuDeselected(javax.swing.event.MenuEvent evt) {
+            }
+            public void menuSelected(javax.swing.event.MenuEvent evt) {
+                mnuEditMenuSelected(evt);
+            }
+        });
+
+        mnuCopy.setText("Copy");
+
+        itmPositionCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyPosition(), ActionEvent.ALT_MASK)
+        );
+        itmPositionCopy.setText("Position");
+        itmPositionCopy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itmPositionCopyActionPerformed(evt);
+            }
+        });
+        mnuCopy.add(itmPositionCopy);
+
+        itmRotationCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyRotation(), ActionEvent.ALT_MASK));
+        itmRotationCopy.setText("Rotation");
+        itmRotationCopy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itmRotationCopyActionPerformed(evt);
+            }
+        });
+        mnuCopy.add(itmRotationCopy);
+
+        itmScaleCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyScale(), ActionEvent.ALT_MASK));
+        itmScaleCopy.setText("Scale");
+        itmScaleCopy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itmScaleCopyActionPerformed(evt);
+            }
+        });
+        mnuCopy.add(itmScaleCopy);
+
+        mnuEdit.add(mnuCopy);
+
+        mnuPaste.setText("Paste");
+
+        itmPositionPaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyPosition(), ActionEvent.SHIFT_MASK));
+        itmPositionPaste.setText("Position (0.0, 0.0, 0.0)");
+        itmPositionPaste.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itmPositionPasteActionPerformed(evt);
+            }
+        });
+        mnuPaste.add(itmPositionPaste);
+
+        itmRotationPaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyRotation(), ActionEvent.SHIFT_MASK));
+        itmRotationPaste.setText("Rotation (0.0, 0.0, 0.0)");
+        itmRotationPaste.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itmRotationPasteActionPerformed(evt);
+            }
+        });
+        mnuPaste.add(itmRotationPaste);
+
+        itmScalePaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyScale(), ActionEvent.SHIFT_MASK));
+        itmScalePaste.setText("Scale (1.0, 1.0, 1.0)");
+        itmScalePaste.setToolTipText("");
+        itmScalePaste.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itmScalePasteActionPerformed(evt);
+            }
+        });
+        mnuPaste.add(itmScalePaste);
+
+        mnuEdit.add(mnuPaste);
+
+        menu.add(mnuEdit);
+
+        setJMenuBar(menu);
+
+        pack();
+        setLocationRelativeTo(null);
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        if (isGalaxyMode) {
+            listScenarios.setSelectedIndex(0);
+        }
+    }//GEN-LAST:event_formWindowOpened
+    
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        closeEditor();
+    }//GEN-LAST:event_formWindowClosing
+
+    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
+        renderAllObjects();
+    }//GEN-LAST:event_formWindowActivated
+
+    private void mniSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniSaveActionPerformed
+        saveChanges();
+    }//GEN-LAST:event_mniSaveActionPerformed
+
+    private void mniCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniCloseActionPerformed
+        closeEditor();
+        dispose();
+    }//GEN-LAST:event_mniCloseActionPerformed
+
+    private void mnuEditMenuSelected(javax.swing.event.MenuEvent evt) {//GEN-FIRST:event_mnuEditMenuSelected
+        itmPositionPaste.setText(String.format("Position (%s)", COPY_POSITION.toString()));
+        itmRotationPaste.setText(String.format("Rotation (%s)", COPY_ROTATION.toString()));
+        itmScalePaste.setText(String.format("Scale (%s)", COPY_SCALE.toString()));
+    }//GEN-LAST:event_mnuEditMenuSelected
+
+    private void itmPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionCopyActionPerformed
+        if (selectedObjs.size() == 1) {
+            AbstractObj obj = selectedObjs.values().iterator().next();
+            COPY_POSITION.set(obj.position);
+            
+            String posString = COPY_POSITION.toString();
+            itmPositionPaste.setText(String.format("Position (%s)", posString));
+            setStatusToInfo(String.format("Copied position %s.", posString));
+        }
+    }//GEN-LAST:event_itmPositionCopyActionPerformed
+    
+    private void itmRotationCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationCopyActionPerformed
+        if (selectedObjs.size() == 1) {
+            AbstractObj obj = selectedObjs.values().iterator().next();
+            COPY_ROTATION.set(obj.rotation);
+            
+            String rotString = COPY_ROTATION.toString();
+            itmRotationPaste.setText(String.format("Rotation (%s)", rotString));
+            setStatusToInfo(String.format("Copied rotation %s.", rotString));
+        }
+    }//GEN-LAST:event_itmRotationCopyActionPerformed
+
+    private void itmScaleCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScaleCopyActionPerformed
+        if (selectedObjs.size() == 1) {
+            AbstractObj obj = selectedObjs.values().iterator().next();
+            COPY_SCALE.set(obj.scale);
+            
+            String scaleString = COPY_SCALE.toString();
+            itmScalePaste.setText(String.format("Scale (%s)", scaleString));
+            setStatusToInfo(String.format("Copied scale %s.", scaleString));
+        }
+    }//GEN-LAST:event_itmScaleCopyActionPerformed
+
+    private void itmPositionPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionPasteActionPerformed
+        if (!isAllowPasteAction())
+            return;
+        
+        Vec3f offset = new Vec3f();
+        
+        for (AbstractObj obj : selectedObjs.values()) {
+            if (obj instanceof PathPointObj) {
+                PathPointObj pointObj = (PathPointObj)obj;
+                offset.subtract(COPY_POSITION, pointObj.position);
+                
+                pointObj.position.set(COPY_POSITION);
+                pointObj.point1.add(offset);
+                pointObj.point2.add(offset);
+                
+                pnlObjectSettings.setFieldValue("pnt0_x", pointObj.position.x);
+                pnlObjectSettings.setFieldValue("pnt0_y", pointObj.position.y);
+                pnlObjectSettings.setFieldValue("pnt0_z", pointObj.position.z);
+                pnlObjectSettings.setFieldValue("pnt1_x", pointObj.point1.x);
+                pnlObjectSettings.setFieldValue("pnt1_y", pointObj.point1.y);
+                pnlObjectSettings.setFieldValue("pnt1_z", pointObj.point1.z);
+                pnlObjectSettings.setFieldValue("pnt2_x", pointObj.point2.x);
+                pnlObjectSettings.setFieldValue("pnt2_y", pointObj.point2.y);
+                pnlObjectSettings.setFieldValue("pnt2_z", pointObj.point2.z);
+                pnlObjectSettings.repaint();
+                
+                rerenderTasks.add("path:" + pointObj.path.uniqueID);
+                rerenderTasks.add("zone:" + pointObj.stage.stageName);
+            }
+            else {
+                addUndoEntry("changeObj", obj);
+                
+                obj.position.set(COPY_POSITION);
+                pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
+                pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
+                pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
+                pnlObjectSettings.repaint();
+                
+                rerenderTasks.add("object:" + obj.uniqueID);
+                rerenderTasks.add("zone:" + obj.stage.stageName);
+            }
+            
+            setStatusToInfo(String.format("Pasted position %s.", COPY_POSITION.toString()));
+            
+            glCanvas.repaint();
+            unsavedChanges = true;
+        }
+    }//GEN-LAST:event_itmPositionPasteActionPerformed
+
+    private void itmRotationPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationPasteActionPerformed
+        if (!isAllowPasteAction())
+            return;
+                
+        for (AbstractObj obj : selectedObjs.values()) {
+            if (obj instanceof PathPointObj) {
+                return;
+            }
+            
+            addUndoEntry("changeObj", obj);
+            
+            obj.rotation.set(COPY_ROTATION);
+            pnlObjectSettings.setFieldValue("dir_x", obj.rotation.x);
+            pnlObjectSettings.setFieldValue("dir_y", obj.rotation.y);
+            pnlObjectSettings.setFieldValue("dir_z", obj.rotation.z);
+            pnlObjectSettings.repaint();
+            
+            rerenderTasks.add("object:" + obj.uniqueID);
+            rerenderTasks.add("zone:" + obj.stage.stageName);
+            
+            setStatusToInfo(String.format("Pasted rotation %s.", COPY_ROTATION.toString()));
+            
+            glCanvas.repaint();
+            unsavedChanges = true;
+        }
+    }//GEN-LAST:event_itmRotationPasteActionPerformed
+
+    private void itmScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScalePasteActionPerformed
+        if (!isAllowPasteAction())
+            return;
+        
+        for (AbstractObj obj : selectedObjs.values()) {
+            if (obj instanceof PathPointObj || obj instanceof PositionObj || obj instanceof StageObj) {
+                return;
+            }
+            
+            addUndoEntry("changeObj", obj);
+            
+            obj.scale.set(COPY_SCALE);
+            pnlObjectSettings.setFieldValue("scale_x", obj.scale.x);
+            pnlObjectSettings.setFieldValue("scale_y", obj.scale.y);
+            pnlObjectSettings.setFieldValue("scale_z", obj.scale.z);
+            pnlObjectSettings.repaint();
+            
+            rerenderTasks.add("object:" + obj.uniqueID);
+            rerenderTasks.add("zone:" + obj.stage.stageName);
+            
+            setStatusToInfo(String.format("Pasted scale %s.", COPY_SCALE.toString()));
+            
+            glCanvas.repaint();
+            unsavedChanges = true;
+        }
+    }//GEN-LAST:event_itmScalePasteActionPerformed
+
+    private void listScenariosValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listScenariosValueChanged
+        if (evt.getValueIsAdjusting() || listScenarios.getSelectedValue() == null) {
+            return;
+        }
+
+        curScenarioID = listScenarios.getSelectedIndex();
+        curScenario = galaxyArchive.scenarioData.get(curScenarioID);
+
+        DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
+        zonelist.removeAllElements();
+        
+        for(String zone : galaxyArchive.zoneList) {
+            int layermask = curScenario.getInt(zone);
+            String layers = "Common+";
+            
+            for (int i = 0 ; i < 16 ; i++) {
+                if ((layermask & (1 << i)) != 0) {
+                    layers += (char)('A' + i);
+                }
+            }
+            
+            if (layers.equals("Common+")) {
+                layers = "Common";
+            }
+            
+            zonelist.addElement(zone + " [" + layers + "]");
+        }
+        
+        listZones.setSelectedIndex(0);
+    }//GEN-LAST:event_listScenariosValueChanged
+
+    private void btnAddScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddScenarioActionPerformed
+        // TODO: what the peck is this?
+    }//GEN-LAST:event_btnAddScenarioActionPerformed
+
+    private void btnDeleteScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteScenarioActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDeleteScenarioActionPerformed
+
+    private void btnEditScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditScenarioActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnEditScenarioActionPerformed
+
+    private void listZonesValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listZonesValueChanged
+        if (evt.getValueIsAdjusting() || listZones.getSelectedValue() == null) {
+            return;
+        }
+        
+        btnEditZone.setEnabled(true);
+        
+        curZone = galaxyArchive.zoneList.get(listZones.getSelectedIndex());
+        curZoneArc = zoneArchives.get(curZone);
+        
+        populateObjectNodeTree(curScenario.getInt(curZone));
+        
+        setDefaultStatus();
+        glCanvas.repaint();
+    }//GEN-LAST:event_listZonesValueChanged
+
+    private void btnAddZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddZoneActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnAddZoneActionPerformed
+
+    private void btnDeleteZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteZoneActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDeleteZoneActionPerformed
+
+    private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditZoneActionPerformed
+        openSelectedZone();
+    }//GEN-LAST:event_btnEditZoneActionPerformed
+
+    private void tgbDeselectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeselectActionPerformed
+        for (AbstractObj obj : selectedObjs.values()) {
+            addRerenderTask("zone:" + obj.stage.stageName);
+        }
+        
+        selectedObjs.clear();
+        selectionChanged();
+        glCanvas.repaint();
+    }//GEN-LAST:event_tgbDeselectActionPerformed
+
+    private void tgbShowPathsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowPathsActionPerformed
+        renderAllObjects();
+    }//GEN-LAST:event_tgbShowPathsActionPerformed
+
+    private void tgbShowAreasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAreasActionPerformed
+        renderAllObjects();
+    }//GEN-LAST:event_tgbShowAreasActionPerformed
+
+    private void tgbShowCamerasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowCamerasActionPerformed
+        renderAllObjects();
+    }//GEN-LAST:event_tgbShowCamerasActionPerformed
+
+    private void tgbShowGravityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowGravityActionPerformed
+        renderAllObjects();
+    }//GEN-LAST:event_tgbShowGravityActionPerformed
+
+    private void tgbShowAxisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAxisActionPerformed
+        glCanvas.repaint();
+    }//GEN-LAST:event_tgbShowAxisActionPerformed
+
+    private void treeObjectsValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_treeObjectsValueChanged
+        TreePath[] paths = evt.getPaths();
+        for(TreePath path : paths) {
+            TreeNode node =(TreeNode)path.getLastPathComponent();
+            if(!(node instanceof ObjTreeNode))
+                continue;
+            
+            ObjTreeNode tnode =(ObjTreeNode)node;
+            if(!(tnode.object instanceof AbstractObj))
+                continue;
+            
+            AbstractObj obj =(AbstractObj)tnode.object;
+            if(evt.isAddedPath(path)) {
+                selectedObjs.put(obj.uniqueID, obj);
+                addRerenderTask("zone:"+obj.stage.stageName);
+            } else {
+                selectedObjs.remove(obj.uniqueID);
+                addRerenderTask("zone:"+obj.stage.stageName);
+            }
+        }
+
+        selectionArg = 0;
+        selectionChanged();
+        glCanvas.repaint();
+    }//GEN-LAST:event_treeObjectsValueChanged
+
+    private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbAddObjectActionPerformed
+        if (tgbAddObject.isSelected()) {
+            popupAddItems.show(tgbAddObject, tgbAddObject.getX(), tgbAddObject.getY() + tgbAddObject.getHeight());
+        }
+        else {
+            popupAddItems.setVisible(false);
+            setDefaultStatus();
+        }
+    }//GEN-LAST:event_tgbAddObjectActionPerformed
+
+    private void tgbDeleteObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeleteObjectActionPerformed
+        if (selectedObjs.isEmpty()) {
+            if (tgbDeleteObject.isSelected()) {
+                deletingObjects = true;
+                setStatusToInfo("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
+            }
+            else {
+                deletingObjects = false;
+                setDefaultStatus();
+            }
+        }
+        else {
+            if (tgbDeleteObject.isSelected()) {
+                List<AbstractObj> templist = new ArrayList(selectedObjs.values());
+                
+                for(AbstractObj selectedObj : templist) {
+                    selectedObjs.remove(selectedObj.uniqueID);
+                    deleteObject(selectedObj.uniqueID);
+                }
+                
+                templist.clear();
+                selectionChanged();
+            }
+            
+            treeObjects.setSelectionRow(0);
+            tgbDeleteObject.setSelected(false);
+        }
+    }//GEN-LAST:event_tgbDeleteObjectActionPerformed
+
+    private void tgbCopyObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbCopyObjActionPerformed
+        copyObj =(LinkedHashMap<Integer, AbstractObj>) selectedObjs.clone();
+        tgbCopyObj.setSelected(false);
+        setStatusToInfo("Copied objects.");
+    }//GEN-LAST:event_tgbCopyObjActionPerformed
+
+    private void tgbPasteObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbPasteObjActionPerformed
+        if (!isAllowPasteAction()) //Might not be needed...
+            return;
+        
+        tgbPasteObj.setSelected(false);
+        if(copyObj != null) {
+            for(AbstractObj currentTempObj : copyObj.values()) {
+                addingObject = "objinfo|" + currentTempObj.name;
+                addingObjectOnLayer = currentTempObj.layerKey;
+                
+                Vec3f temppos=new Vec3f();
+                temppos.x=currentTempObj.position.x+g_offset_x;
+                temppos.y=currentTempObj.position.y+g_offset_y;
+                temppos.z=currentTempObj.position.z+g_offset_z;
+                
+                Vec3f temprot=new Vec3f();
+                temprot.x=currentTempObj.rotation.x;
+                temprot.y=currentTempObj.rotation.y;
+                temprot.z=currentTempObj.rotation.z;
+                
+                addObject(temppos);
+                
+                
+                
+                addUndoEntry("addObj", newobj);
+                newobj.rotation = temprot;
+                addingObject = "";
+            }
+            setStatusToInfo("Pasted objects.");
+            glCanvas.repaint();
+        }
+    }//GEN-LAST:event_tgbPasteObjActionPerformed
+
+    private void listZonesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listZonesMouseClicked
+        if (evt.getClickCount() > 1 && btnEditZone.isEnabled())
+            openSelectedZone();
+    }//GEN-LAST:event_listZonesMouseClicked
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddScenario;
     private javax.swing.JButton btnAddZone;
@@ -4489,92 +4373,4 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private javax.swing.JToolBar tlbZones;
     private javax.swing.JTree treeObjects;
     // End of variables declaration//GEN-END:variables
-
-    
-    // This object is used to save previous obj info for undo
-    public class UndoEntry {
-        public UndoEntry(AbstractObj obj) {
-            position =(Vec3f) obj.position.clone();
-            rotation =(Vec3f) obj.rotation.clone();
-            scale =(Vec3f) obj.scale.clone();
-            data =(Bcsv.Entry) obj.data.clone();
-            id = obj.uniqueID;
-            type = "changeObj";
-            layer = obj.layerKey;
-            name = obj.name;
-            objType = obj.getFileType();
-        }
-        
-        public UndoEntry(String editType, AbstractObj obj) {
-            position =(Vec3f) obj.position.clone();
-            
-            if(obj.rotation == null)
-                rotation = new Vec3f();
-            else
-                rotation =(Vec3f) obj.rotation.clone();
-            
-            if(obj.scale == null)
-                rotation = new Vec3f();
-            else
-                scale =(Vec3f) obj.scale.clone();
-            
-            data =(Bcsv.Entry) obj.data.clone();
-            id = obj.uniqueID;
-            type = editType;
-            layer = obj.layerKey;
-            name = obj.name;
-            
-            if(obj instanceof PathPointObj) {
-                objType = "pathpoint";
-                parentPathId = ((PathPointObj) obj).path.pathID;
-            } else {
-                objType = obj.getFileType();
-            }
-        }
-        
-        public Vec3f position;
-        public Vec3f rotation;
-        public Vec3f scale;
-        public Bcsv.Entry data;
-        public String type, layer, name, objType;
-        public int id;
-        
-        public int parentPathId;
-    }
-    
-    /*
-     * Misc Helpers
-    */
-    
-    // Gets an unused switch id for the current zone.
-    public int getValidSwitchInZone() {
-        return curZoneArc.getValidSwitchInZone();
-    }
-    
-    // Gets an unused switch id for the current galaxy.
-    public int getValidSwitchInGalaxy() {
-        return SwitchUtil.getValidSwitchInGalaxy(zoneArchives);
-    }
-    
-    // Returns a set hash set of all switch IDs used in the current zone.
-    public Set<Integer> getUniqueSwitchesInZone() {
-        return curZoneArc.getUniqueSwitchesInZone();
-    }
-    
-    public void rerenderPathOwners(PathObj path)
-    {
-        for (AbstractObj obj : globalObjList.values())
-        {
-            if (obj.renderer == null)
-                continue;
-            
-            if (!obj.renderer.hasPathConnection())
-                continue;
-            
-            if (AbstractObj.isUsingPath(obj, path))
-            {
-                addRerenderTask("object:"+Integer.toString(obj.uniqueID));
-            }
-        }
-    }
 }
