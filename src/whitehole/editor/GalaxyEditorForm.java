@@ -99,6 +99,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private static final Vec3f COPY_ROTATION = new Vec3f(0f, 0f, 0f);
     private static final Vec3f COPY_SCALE = new Vec3f(1f, 1f, 1f);
     
+    private AsyncLevelSaver levelSaver = new AsyncLevelSaver();
+    
     // Rendering
     private GalaxyRenderer renderer;
     private GLRenderer.RenderInfo renderInfo;
@@ -445,6 +447,38 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         popupAddItems.add(menuItem);
     }
     
+    /**
+     * Toggles the editing UI
+     * @param toggle 
+     */
+    private void ToggleUI(boolean toggle)
+    {
+        glCanvas.setEnabled(toggle);
+
+        tabData.setEnabled(toggle);
+        listScenarios.setEnabled(toggle);
+        listZones.setEnabled(toggle);
+        scrLayers.setEnabled(toggle);
+        btnEditZone.setEnabled(toggle);
+
+        mniSave.setEnabled(toggle);
+        mniClose.setEnabled(toggle);
+
+        treeObjects.setEnabled(toggle);
+        pnlObjectSettings.setEnabled(toggle);
+
+        itmPositionCopy.setEnabled(toggle);
+        itmRotationCopy.setEnabled(toggle);
+        itmScaleCopy.setEnabled(toggle);
+        itmPositionPaste.setEnabled(toggle);
+        itmRotationPaste.setEnabled(toggle);
+        itmScalePaste.setEnabled(toggle);
+
+        tgbAddObject.setEnabled(toggle);
+        tgbDeleteObject.setEnabled(toggle);
+        tgbCopyObj.setEnabled(toggle);
+        tgbPasteObj.setEnabled(toggle);
+    }
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Status Bar
@@ -624,7 +658,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * Validates object properties for all zones
      */
     private void checkForMissingRequiredValuesInGalaxy() {
-        
+        setStatusToInfo("Performing object validation...");
         ArrayList<String> messages = new ArrayList<>();
         for (StageArchive arc : zoneArchives.values())
         {
@@ -637,34 +671,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void saveChanges() {
         setStatusToInfo("Saving changes...");
-        lblStatus.repaint();
         
-        try {
-            for (StageArchive stageArc : zoneArchives.values()) {
-                stageArc.save();
-            }
-            
-            // Update main editor from subzone
-            if(!isGalaxyMode && parentForm != null) {
-                parentForm.updateZone(galaxyName);
-            }
-            // Update subzone editors from main editor
-            else {
-                for (GalaxyEditorForm form : zoneEditors.values()) {
-                    form.updateZone(form.galaxyName);
-                }
-            }
-            
-            unsavedChanges = false;
-            setStatusToInfo("Saved changes!");
-        }
-        catch(IOException ex) {
-            setStatusToError("Failed to save changes:", ex);
-            System.err.println(ex);
-        }
+        Thread t = new Thread(levelSaver);
+        levelSaver.CurrentThread = t;
+        t.start();
     }
     
     private void closeEditor() {
+        if (levelSaver.CurrentThread != null && levelSaver.CurrentThread.isAlive())
+        {
+            System.out.println("Cannot close mid-save!");
+            setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            return;
+        }
+        else
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        
         if (isGalaxyMode) {
             for (GalaxyEditorForm form : zoneEditors.values()) {
                 form.dispose();
@@ -693,16 +715,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     case JOptionPane.YES_OPTION:
                         if (res == JOptionPane.YES_OPTION) {
                             saveChanges();
+                            while (unsavedChanges)
+                            {
+                            }
                         }
                     default:
                         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                         break;
                 }
-            }
-            
-            // Close stages
-            for (StageArchive stageArc : zoneArchives.values()) {
-                stageArc.close();
             }
         }
         else {
@@ -766,14 +786,53 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         return null;
     }
-    
-    private void updateZone(String zone) {
-        rerenderTasks.add("zone:" + zone);
-        glCanvas.repaint();
+        
+    private class AsyncLevelSaver implements Runnable
+    {        
+        public Thread CurrentThread;
+        public AsyncLevelSaver() { }
+        
+        @Override
+        public void run()
+        {
+            renderer.clearMouse();
+            ToggleUI(false);
+            
+            try {
+                int Progress = 0;
+                int MaxProgress = zoneArchives.size();
+                for (StageArchive stageArc : zoneArchives.values())
+                {
+                    setStatusToInfo("Saving changes... ("+Progress+"/"+MaxProgress+")");
+                    System.out.println("Saving \""+stageArc.stageName+"\"");
+                    stageArc.save();
+                    Progress++;
+                }
+
+                // Update main editor from subzone
+                if(!isGalaxyMode && parentForm != null) {
+                    parentForm.updateZone(galaxyName);
+                }
+                // Update subzone editors from main editor
+                else {
+                    for (GalaxyEditorForm form : zoneEditors.values()) {
+                        form.updateZone(form.galaxyName);
+                    }
+                }
+
+                unsavedChanges = false;
+                setStatusToInfo("Saved changes!");
+            }
+            catch(IOException ex) {
+                setStatusToError("Failed to save changes:", ex);
+            }
+            
+            ToggleUI(true);
+        }
     }
     
-    
-    // -------------------------------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------------------------------
     // Object nodes and layer presentation
     
     private void initObjectNodeTree() {
@@ -2203,6 +2262,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     /**
+     * Updates a zone.
+     * @param zone 
+     */
+    private void updateZone(String zone) {
+        rerenderTasks.add("zone:" + zone);
+        glCanvas.repaint();
+    }
+    
+    /**
      * Adds {@code task} to the queue if it is not already in the rerender queue.
      * @param task the task to add
      */
@@ -2811,7 +2879,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             Matrix4.mult(Matrix4.scale(1f / SCALE_DOWN), modelViewMatrix, modelViewMatrix);
         }
         
-
+        /**
+         * Clears the state of the mouse in the renderer
+         * Use this to force unclick the user's mouse
+         */
+        public void clearMouse()
+        {
+            mouseButton = MouseEvent.NOBUTTON;
+            isDragging = false;
+            addingObject = "";
+            tgbAddObject.setSelected(false);
+        }
+        
         @Override
         public void mouseDragged(MouseEvent e) {
             if(!initializedRenderer)
