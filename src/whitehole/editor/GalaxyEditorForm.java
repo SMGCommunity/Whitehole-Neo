@@ -99,6 +99,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private static final Vec3f COPY_ROTATION = new Vec3f(0f, 0f, 0f);
     private static final Vec3f COPY_SCALE = new Vec3f(1f, 1f, 1f);
     
+    private AsyncLevelLoader levelLoader = new AsyncLevelLoader();
     private AsyncLevelSaver levelSaver = new AsyncLevelSaver();
     
     // Rendering
@@ -170,89 +171,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     public GalaxyEditorForm(String galaxy) {
         initComponents();
-        
         galaxyName = galaxy;
-        tabData.remove(1);
         
-        try {
-            // Preload all zones
-            galaxyArchive = Whitehole.GAME.openGalaxy(galaxyName);
-            zoneArchives = new HashMap(galaxyArchive.zoneList.size());
-            
-            for (String zone : galaxyArchive.zoneList) {
-                loadZone(zone);
-            }
-            
-            repairInvalidSwitchesInGalaxy();
-            
-            // Collect zone placements
-            StageArchive galaxyZone = zoneArchives.get(galaxyName);
-            
-            for (int i = 0 ; i < galaxyArchive.scenarioData.size() ; i++) {
-                Bcsv.Entry scenarioEntry = galaxyArchive.scenarioData.get(i);
-                int layerMask = scenarioEntry.getInt(galaxyName);
-                
-                if (galaxyZone.zones.containsKey("common")) {
-                    for (StageObj zonePlacement : galaxyZone.zones.get("common")) {
-                        String stageKey = String.format("%d/%s", i, zonePlacement.name);
-                        
-                        if (zonePlacements.containsKey(stageKey)) {
-                            System.out.println("Warning! Skipping duplicate stage entry " + stageKey);
-                            continue;
-                        }
-                        
-                        zonePlacements.put(stageKey, zonePlacement);
-                    }
-                }
-                
-                for (int l = 0 ; l < 16 ; l++) {
-                    if ((layerMask & (1 << l)) == 0) {
-                        continue;
-                    }
-                    
-                    String layerKey = "layer" + (char)('a' + l);
-                    
-                    if (!galaxyZone.zones.containsKey(layerKey)) {
-                        continue;
-                    }
-                    
-                    for (StageObj zonePlacement : galaxyZone.zones.get(layerKey)) {
-                        String stageKey = String.format("%d/%s", i, zonePlacement.name);
-                        
-                        if (zonePlacements.containsKey(stageKey)) {
-                            System.out.println("Warning! Skipping duplicate stage entry " + stageKey);
-                            continue;
-                        }
-                        
-                        zonePlacements.put(stageKey, zonePlacement);
-                    }
-                }
-            }
-            
-            for (List<StageObj> placements : galaxyZone.zones.values()) {
-                for (StageObj zonePlacement : placements) {
-                    if (!zonePlacements.containsKey(zonePlacement.name)) {
-                        zonePlacements.put(zonePlacement.name, zonePlacement);
-                    }
-                } 
-            }
-        }
-        catch(IOException ex) {
-            JOptionPane.showMessageDialog(null, "Failed to open the galaxy: " + ex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
-            dispose();
-            return;
-        }
-        
-        initObjectNodeTree();
-        initGUI();
-        
-        // Load scenario information
-        DefaultListModel scenlist = (DefaultListModel)listScenarios.getModel();
-
-        for(Bcsv.Entry scen : galaxyArchive.scenarioData) {
-            scenlist.addElement(String.format("[%1$d] %2$s", scen.getInt("ScenarioNo"), scen.getString("ScenarioName")));
-        }
+        Thread t = new Thread(levelLoader);
+        levelLoader.CurrentThread = t;
+        t.start();
     }
     
     public GalaxyEditorForm(GalaxyEditorForm parent, StageArchive zoneArc) {
@@ -453,7 +376,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      */
     private void ToggleUI(boolean toggle)
     {
-        glCanvas.setEnabled(toggle);
+        if (glCanvas != null)
+            glCanvas.setEnabled(toggle);
 
         tabData.setEnabled(toggle);
         listScenarios.setEnabled(toggle);
@@ -465,7 +389,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         mniClose.setEnabled(toggle);
 
         treeObjects.setEnabled(toggle);
-        pnlObjectSettings.setEnabled(toggle);
+        if (pnlObjectSettings != null)
+            pnlObjectSettings.setEnabled(toggle);
 
         itmPositionCopy.setEnabled(toggle);
         itmRotationCopy.setEnabled(toggle);
@@ -484,6 +409,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // Status Bar
     
     private void setDefaultStatus() {
+        if (levelLoader.CurrentThread != null && levelLoader.CurrentThread.isAlive())
+            return; //No default status during loading >:(
+        
         if (isGalaxyMode) {
             setStatusToInfo("Editing scenario " + listScenarios.getSelectedValue() + ", zone " + curZone + ".");
         }
@@ -658,6 +586,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * Validates object properties for all zones
      */
     private void checkForMissingRequiredValuesInGalaxy() {
+        if (zoneArchives == null)
+            return;
+        
         setStatusToInfo("Performing object validation...");
         ArrayList<String> messages = new ArrayList<>();
         for (StageArchive arc : zoneArchives.values())
@@ -678,6 +609,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     private void closeEditor() {
+        if (levelLoader.CurrentThread != null && levelLoader.CurrentThread.isAlive())
+        {
+            System.out.println("Cannot close mid-load!");
+            setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            return;
+        }
         if (levelSaver.CurrentThread != null && levelSaver.CurrentThread.isAlive())
         {
             System.out.println("Cannot close mid-save!");
@@ -787,6 +724,124 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         return null;
     }
         
+    private class AsyncLevelLoader implements Runnable
+    {
+        public Thread CurrentThread;
+        public AsyncLevelLoader()
+        {
+            
+        }
+        
+        @Override
+        public void run()
+        {
+            loadFullGalaxy();
+        }
+        
+        
+        
+        private void loadFullGalaxy()
+        {
+            tabData.remove(1);
+            ToggleUI(false);
+            try {
+                // Preload all zones
+                setStatusToInfo("Loading Scenario...");
+                galaxyArchive = Whitehole.GAME.openGalaxy(galaxyName);
+                zoneArchives = new HashMap(galaxyArchive.zoneList.size());
+
+                int Progress = 0;
+                int MaxProgress = galaxyArchive.zoneList.size();
+                for (String zone : galaxyArchive.zoneList) {
+                    setStatusToInfo("Loading Zones... ("+Progress+"/"+MaxProgress+")");
+                    System.out.println("Loading \""+zone+"\"");
+                    loadZone(zone);
+                    Progress++;
+                }
+
+                setStatusToInfo("Validating Switches...");
+                repairInvalidSwitchesInGalaxy();
+
+                // Collect zone placements
+                StageArchive galaxyZone = zoneArchives.get(galaxyName);
+
+                int MaxZoneThing = galaxyArchive.scenarioData.size();
+                for (int i = 0 ; i <  MaxZoneThing; i++) {
+                    setStatusToInfo("Preparing Zones... ("+i+"/"+MaxZoneThing+")");
+                    Bcsv.Entry scenarioEntry = galaxyArchive.scenarioData.get(i);
+                    int layerMask = scenarioEntry.getInt(galaxyName);
+
+                    if (galaxyZone.zones.containsKey("common")) {
+                        for (StageObj zonePlacement : galaxyZone.zones.get("common")) {
+                            String stageKey = String.format("%d/%s", i, zonePlacement.name);
+
+                            if (zonePlacements.containsKey(stageKey)) {
+                                System.out.println("Warning! Skipping duplicate stage entry " + stageKey);
+                                continue;
+                            }
+
+                            zonePlacements.put(stageKey, zonePlacement);
+                        }
+                    }
+
+                    for (int l = 0 ; l < 16 ; l++) {
+                        if ((layerMask & (1 << l)) == 0) {
+                            continue;
+                        }
+
+                        String layerKey = "layer" + (char)('a' + l);
+
+                        if (!galaxyZone.zones.containsKey(layerKey)) {
+                            continue;
+                        }
+
+                        for (StageObj zonePlacement : galaxyZone.zones.get(layerKey)) {
+                            String stageKey = String.format("%d/%s", i, zonePlacement.name);
+
+                            if (zonePlacements.containsKey(stageKey)) {
+                                System.out.println("Warning! Skipping duplicate stage entry " + stageKey);
+                                continue;
+                            }
+
+                            zonePlacements.put(stageKey, zonePlacement);
+                        }
+                    }
+                }
+
+                for (List<StageObj> placements : galaxyZone.zones.values()) {
+                    for (StageObj zonePlacement : placements) {
+                        if (!zonePlacements.containsKey(zonePlacement.name)) {
+                            zonePlacements.put(zonePlacement.name, zonePlacement);
+                        }
+                    } 
+                }
+            }
+            catch(IOException ex) {
+                JOptionPane.showMessageDialog(null, "Failed to open the galaxy: " + ex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+                dispose();
+                return;
+            }
+            
+            setStatusToInfo("Initilizing Object Tree...");
+            initObjectNodeTree();
+            setStatusToInfo("Initilizing GUI...");
+            initGUI();
+
+            // Load scenario information
+            DefaultListModel scenlist = (DefaultListModel)listScenarios.getModel();
+
+            for(Bcsv.Entry scen : galaxyArchive.scenarioData) {
+                scenlist.addElement(String.format("[%1$d] %2$s", scen.getInt("ScenarioNo"), scen.getString("ScenarioName")));
+            }
+            
+            if (isGalaxyMode) {
+                listScenarios.setSelectedIndex(0);
+            }
+            ToggleUI(true);
+        }
+    }
+    
     private class AsyncLevelSaver implements Runnable
     {        
         public Thread CurrentThread;
@@ -831,7 +886,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
-
+    
 // -------------------------------------------------------------------------------------------------------------------------
     // Object nodes and layer presentation
     
@@ -4022,7 +4077,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowClosing
 
     private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
-        renderAllObjects();
+        if (levelLoader.CurrentThread == null)
+            renderAllObjects();
+        else if (!levelLoader.CurrentThread.isAlive())
+            renderAllObjects();
     }//GEN-LAST:event_formWindowActivated
 
     private void mniSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniSaveActionPerformed
