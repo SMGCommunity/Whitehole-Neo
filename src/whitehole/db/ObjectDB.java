@@ -41,7 +41,7 @@ import whitehole.io.ExternalFilesystem;
 public final class ObjectDB {
     private ObjectDB() {}
     
-    private static final String SOURCE_URL = "https://raw.githubusercontent.com/SunakazeKun/galaxydatabase/main/objectdb.json";
+    private static final String SOURCE_URL = "https://raw.githubusercontent.com/SMGCommunity/galaxydatabase/main/objectdb.json";
     private static final File FILE = new File("data/objectdb.json");
     
     private static final HashMap<String, ObjectInfo> OBJECT_INFOS = new HashMap();
