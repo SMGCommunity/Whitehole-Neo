@@ -871,12 +871,12 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         for (Bcsv.Field field : bcsv.fields.values()) {
             switch(field.type) {
                 case 0:
-                case 3: row[i] = -1; break;
+                case 3: row[i] = 0; break;
                 case 1:
                 case 6: row[i] = ""; break;
                 case 2: row[i] = 0.0f; break;
-                case 4: row[i] = (short)-1; break;
-                case 5: row[i] = (byte)-1; break;
+                case 4: row[i] = (short)0; break;
+                case 5: row[i] = (byte)0; break;
             }
             
             i++;
