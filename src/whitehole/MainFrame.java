@@ -35,14 +35,23 @@ import whitehole.util.SwitchUtil;
 public final class MainFrame extends javax.swing.JFrame {
     private static class GalaxyListItem {
         final String identifier;
+        Boolean forceIdentifier;
         
         GalaxyListItem(String id) {
             identifier = id;
+            forceIdentifier = false;
         }
         
         @Override
         public String toString() {
-            return GalaxyNames.getSimplifiedStageName(identifier);
+            if (forceIdentifier)
+                return "\"" + identifier + "\"";
+            else
+                return GalaxyNames.getSimplifiedStageName(identifier);
+        }
+        
+        public void setForceIdentifier(Boolean forceId) {
+            forceIdentifier = forceId;
         }
     }
     
@@ -117,6 +126,19 @@ public final class MainFrame extends javax.swing.JFrame {
         
         btnBcsvEditor.setEnabled(true);
         lbStatusBar.setText("Successfully opened the game directory!");
+    }
+    
+    private void setForceIdentifier(Boolean forceId) {
+        SwingUtilities.invokeLater(() -> {
+            for (int i = 0; i < galaxyItems.getSize(); i++) 
+            {
+                
+                if (!Objects.equals(galaxyItems.getElementAt(i).forceIdentifier, forceId)) {
+                    galaxyItems.getElementAt(i).forceIdentifier = forceId;
+                    listGalaxy.updateUI();
+                }
+            }
+        });
     }
     
     public void openGalaxy() {
@@ -268,12 +290,20 @@ public final class MainFrame extends javax.swing.JFrame {
         lbStatusBar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
 
         listGalaxy.setModel(new DefaultListModel());
+        listGalaxy.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                listGalaxyFocusLost(evt);
+            }
+        });
         listGalaxy.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 listGalaxyMouseClicked(evt);
             }
         });
         listGalaxy.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                listGalaxyKeyPressed(evt);
+            }
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 listGalaxyKeyReleased(evt);
             }
@@ -357,6 +387,7 @@ public final class MainFrame extends javax.swing.JFrame {
     private void listGalaxyMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listGalaxyMouseClicked
         if (evt.getClickCount() > 1) {
             openGalaxy();
+            setForceIdentifier(false);
         }
     }//GEN-LAST:event_listGalaxyMouseClicked
 
@@ -365,6 +396,10 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_listGalaxyValueChanged
 
     private void listGalaxyKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listGalaxyKeyReleased
+        if (!evt.isShiftDown()) {
+            setForceIdentifier(false);
+        }
+                
         if (listGalaxy.getSelectedIndex() == -1) {
             return;
         }
@@ -377,6 +412,16 @@ public final class MainFrame extends javax.swing.JFrame {
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         forceCloseGalaxy();
     }//GEN-LAST:event_formWindowClosing
+
+    private void listGalaxyKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listGalaxyKeyPressed
+        if (evt.isShiftDown()) {
+            setForceIdentifier(true);
+        }
+    }//GEN-LAST:event_listGalaxyKeyPressed
+
+    private void listGalaxyFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_listGalaxyFocusLost
+        setForceIdentifier(false);
+    }//GEN-LAST:event_listGalaxyFocusLost
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAbout;
