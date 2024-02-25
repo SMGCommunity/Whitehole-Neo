@@ -826,7 +826,8 @@ public class Bmd
                     texmtx.transT = file.readFloat();
                     
                     texmtx.preMatrix = new Matrix4();
-                    for (int k = 0; k < 16; k++) texmtx.preMatrix.m[k] = file.readFloat();
+                    for (int k = 0; k < 16; k++)
+                        texmtx.preMatrix.m[k] = file.readFloat();
                     
                     float rotate = ((float)texmtx.rotate * (float)Math.PI) / 32768f;
                     
@@ -860,7 +861,7 @@ public class Bmd
                             P = new Matrix4();
                             break;
                     }
-                    
+                    P = texmtx.preMatrix;
                     Matrix4 resmat = new Matrix4();
                     /*Matrix4.mult(C, T, resmat);
                     Matrix4.mult(S, resmat, resmat);
@@ -873,7 +874,7 @@ public class Bmd
                     Matrix4.mult(resmat, R, resmat);
                     Matrix4.mult(resmat, CI, resmat);
                     Matrix4.mult(resmat, P, resmat);
-                    Matrix4.mult(resmat, texmtx.preMatrix, resmat);
+                    //Matrix4.mult(resmat, texmtx.preMatrix, resmat);
                     
                     /*resmat.m[3] = 0f; resmat.m[7] = 0f;
                     resmat.m[11] = 0f; resmat.m[15] = 1f;
@@ -1096,11 +1097,13 @@ public class Bmd
 
             tex.mipmapCount = file.readByte();
 
-            file.skip(3);
+            file.skip(1);
 
+            short fileBias = file.readShort();
+            tex.lodBias = ((float)fileBias) / 100.0f;
+            
             int dataoffset = file.readInt();
-            tex.image = ImageUtils.decodeTextureData(file, sectionstart + dataoffset + 0x20 + (0x20 * i), 
-                    tex.mipmapCount, tex.format, tex.width, tex.height);
+            tex.image = ImageUtils.decodeTextureData(file, sectionstart + dataoffset + 0x20 + (0x20 * i), tex.mipmapCount, tex.format, tex.width, tex.height);
             
             /*try 
             {
@@ -1324,6 +1327,7 @@ public class Bmd
         public byte magFilter;
 
         public byte mipmapCount;
+        public float lodBias;
 
         public byte[][] image; // texture data converted to ARGB
     }

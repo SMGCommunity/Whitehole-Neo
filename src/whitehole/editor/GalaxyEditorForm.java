@@ -24,6 +24,10 @@ import java.awt.Point;
 import java.awt.event.*;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.geom.AffineTransform;
 import java.io.*;
 import java.nio.*;
@@ -79,9 +83,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     // Object holders
     private int maxUniqueID = 0;
-    private final HashMap<Integer, AbstractObj> globalObjList = new HashMap();
-    private final HashMap<Integer, PathObj> globalPathList = new HashMap();
-    private final HashMap<Integer, PathPointObj> globalPathPointList = new HashMap();
+    private HashMap<Integer, AbstractObj> globalObjList = new HashMap();
+    private HashMap<Integer, PathObj> globalPathList = new HashMap();
+    private HashMap<Integer, PathPointObj> globalPathPointList = new HashMap();
     private final HashMap<Integer, AbstractObj> selectedObjs = new LinkedHashMap();
     private final HashMap<Integer, PathPointObj> displayedPaths = new LinkedHashMap();
     private final HashMap<String, StageObj> zonePlacements = new HashMap();
@@ -154,6 +158,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private float depthUnderCursor;
     private int selectionArg = 0;
     private boolean deletingObjects = false;
+    private boolean isPasteMode = false;
     
     public LinkedHashMap<Integer, AbstractObj> copyObj;
     public AbstractObj newobj; 
@@ -162,9 +167,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public boolean keyScaling, keyTranslating, keyRotating, fullscreen = false;
     public String keyAxis = "all";
     
-    public ArrayList<UndoEntry> undoList = new ArrayList();
+    public ArrayList<IUndo> undoList = new ArrayList();
     private int undoIndex = 0;
+    private UndoMultiEntry currentUndoMulti = null;
     private float lastDist;
+    
+    // If true, all closing events like Object validation and unsaved changes are skipped
+    public boolean isForceClose = false;
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Constructors and GUI Setup
@@ -196,6 +205,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         initGUI();
         
         populateObjectNodeTree(zoneModeLayerBitmask);
+        addRerenderTask("allpaths:"); //????
     }
     
     /**
@@ -428,12 +438,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public void setStatusToWarning(String msg)
     {
         setStatusBase(msg, Color.orange, null); //Could use a better colour for Light mode...
-        System.out.println(msg);
+        System.out.println("[WARNING] "+msg);
     }
     
     public void setStatusToError(String msg, Exception ex)
     {
         setStatusBase(msg + " " + ex.getMessage(), Color.red, null);
+        System.out.println("[ERROR]");
         System.out.println(Whitehole.getExceptionDump(ex));
     }
     
@@ -609,6 +620,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     private void closeEditor() {
+        
+        if (isForceClose) //Yes this bypasses EVERYTHING
+        {
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            for (GalaxyEditorForm form : zoneEditors.values())
+            {
+                form.isForceClose = this.isForceClose;
+                form.dispose();
+            }
+            return;
+        }
+        
         if (levelLoader.CurrentThread != null && levelLoader.CurrentThread.isAlive())
         {
             System.out.println("Cannot close mid-load!");
@@ -638,28 +661,33 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             checkForMissingRequiredValuesInGalaxy();
             
-            if(unsavedChanges) {
-                // Should we really scrap our changes?
-                int res = JOptionPane.showConfirmDialog(
-                        this, "Save your changes?", Whitehole.NAME,
-                        JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE
-                );
+            
+            if(!unsavedChanges)
+                return;
+            
+            setStatusToInfo("Confirming close operation...");
+            
+            // Should we really scrap our changes?
+            int res = JOptionPane.showConfirmDialog(
+                    this, "Save your changes?", Whitehole.NAME,
+                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE
+            );
 
-                switch (res) {
-                    case JOptionPane.CANCEL_OPTION:
-                        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-                        return;
-                    case JOptionPane.YES_OPTION:
-                        if (res == JOptionPane.YES_OPTION) {
-                            saveChanges();
-                            while (unsavedChanges)
-                            {
-                            }
+            switch (res) {
+                case JOptionPane.CANCEL_OPTION:
+                    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+                    setStatusToWarning("Close cancelled by user.");
+                    return;
+                case JOptionPane.YES_OPTION:
+                    if (res == JOptionPane.YES_OPTION) {
+                        saveChanges();
+                        while (unsavedChanges)
+                        {
                         }
-                    default:
-                        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                        break;
-                }
+                    }
+                default:
+                    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                    break;
             }
         }
         else {
@@ -674,7 +702,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             return null;
         }
         
-        AbstractObj ret = getScenarioStartInLayer(zoneArchives.get(galaxyName).objects.get("common"));
+        StageArchive z = zoneArchives.get(galaxyName);
+        AbstractObj ret = getScenarioStartInLayer(z.objects.get("common"));
         
         if (ret != null) {
             return ret;
@@ -866,12 +895,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
                 // Update main editor from subzone
                 if(!isGalaxyMode && parentForm != null) {
-                    parentForm.updateZone(galaxyName);
+                    parentForm.updateZonePaint(galaxyName);
                 }
                 // Update subzone editors from main editor
                 else {
                     for (GalaxyEditorForm form : zoneEditors.values()) {
-                        form.updateZone(form.galaxyName);
+                        form.updateZonePaint(form.galaxyName);
                     }
                 }
 
@@ -940,7 +969,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         continue;
                     }
                     if (!obj.layerKey.equals("common")) {
-                        int layerID = obj.layerKey.charAt(5) - 'a';
+                        int layerID = obj.layerKey.charAt(5) - (char)'a';
 
                         if ((layerMask & (1 << layerID)) == 0) {
                             continue;
@@ -956,7 +985,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         // Populate paths
         objListRootNode.add(objListPathRootNode);
         
-        for (PathObj obj : curZoneArc.paths) {
+        for (PathObj obj : curZoneArc.paths)
+        {
             ObjListTreeNode node = (ObjListTreeNode)objListPathRootNode.addObject(obj);
             treeNodeList.put(obj.uniqueID, node);
             
@@ -971,7 +1001,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void layerSelectChange(int index, boolean status) {
         String layerName = ((JCheckBox)listLayerCheckboxes.getModel().getElementAt(index)).getText();
-        int layerMask = (1 << (layerName.charAt(5) - 'A'));
+        int layerMask = (1 << (layerName.charAt(5) - ((char)'A')));
         
         if (status) {
             zoneModeLayerBitmask |= layerMask;
@@ -981,7 +1011,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         populateObjectNodeTree(zoneModeLayerBitmask);
-        rerenderTasks.add("allobjects:");
+        addRerenderTask("allobjects:");
+        addRerenderTask("allpaths:");
         glCanvas.repaint();
     }
     
@@ -1033,49 +1064,41 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         setStatusToInfo("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
     }
     
-    private void addObject(Object point) {
-        // Resolve position
-        Vec3f position;
-        if(point instanceof Point) {
-            position = get3DCoords((Point)point, Math.min(pickingDepth, 1f));
-        }
-        else {
-            position = (Vec3f)point;
-        }
+    private void addObject(Vec3f position, String objectAddString, String destLayer, String destZone, boolean isSelectAfterCreate)
+    {
+        // Set designated information        
+        if (destZone == null)
+            destZone = curZone;
         
-        // Apply zone placement
-        if(isGalaxyMode) {
-            String stageKey = String.format("%d/%s", curScenarioID, curZone);
-            if (zonePlacements.containsKey(stageKey)) {
-                StageObj zonePlacement = zonePlacements.get(stageKey);
-                Vec3f.subtract(position, zonePlacement.position, position);
-                applySubzoneRotation(position);
-            }
-        }
+        String objtype = objectAddString.substring(0, objectAddString.indexOf('|'));
+        String objname = objectAddString.substring(objectAddString.indexOf('|') + 1);
+        destLayer = destLayer.toLowerCase();
         
-        // Get designated information
-        String objtype = addingObject.substring(0, addingObject.indexOf('|'));
-        String objname = addingObject.substring(addingObject.indexOf('|') + 1);
-        addingObjectOnLayer = addingObjectOnLayer.toLowerCase();
+        StageArchive destZoneArc = zoneArchives.get(destZone);
         
         TreeNode newNode;
+        newobj = null;
         
         // Add new path?
-        if (objtype.equals("path")) {
+        if (objtype.equals("path")) 
+        {
             int newPathLinkID = 0;
 
-            for (PathObj path : curZoneArc.paths) {
-                if (path.pathID >= newPathLinkID) {
+            for (PathObj path : destZoneArc.paths)
+            {
+                if (path.pathID >= newPathLinkID)
+                {
                     newPathLinkID = path.pathID + 1;
                 }
             }
 
-            PathObj thepath = new PathObj(curZoneArc, newPathLinkID);
+            PathObj thepath = new PathObj(destZoneArc, newPathLinkID);
             thepath.uniqueID = maxUniqueID++;
             globalPathList.put(thepath.uniqueID, thepath);
-            curZoneArc.paths.add(thepath);
+            destZoneArc.paths.add(thepath);
 
             PathPointObj thepoint = new PathPointObj(thepath, position);
+            newobj = thepoint;
             thepoint.uniqueID = maxUniqueID;
             maxUniqueID += 3;
             
@@ -1089,13 +1112,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             newNode = newnode.addObject(thepoint);
             treeNodeList.put(thepoint.uniqueID, newNode);
 
-            rerenderTasks.add("path:" + thepath.uniqueID);
-            rerenderTasks.add("zone:" + curZone);
+            addRerenderTask("path:" + thepath.uniqueID);
+            addRerenderTask("zone:" + curZone);
         }
         // Add new path point?
-        else if (objtype.equals("pathpoint")) {
+        else if (objtype.equals("pathpoint"))
+        {
             if(selectedObjs.size() > 1)
+            {
+                setStatusToWarning("Select a path before adding Path Points!");
                 return;
+            }
 
             PathObj thepath = null;
             for(AbstractObj obj : selectedObjs.values())
@@ -1106,6 +1133,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
 
             PathPointObj thepoint = new PathPointObj(thepath, position);
+            newobj = thepoint;
             thepoint.uniqueID = maxUniqueID;
             maxUniqueID += 3;
             globalObjList.put(thepoint.uniqueID, thepoint);
@@ -1118,37 +1146,57 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             newNode = listnode.addObject(thepoint);
             treeNodeList.put(thepoint.uniqueID, newNode);
             
-            rerenderTasks.add("path:" + thepath.uniqueID);
-            rerenderTasks.add("zone:" + thepath.stage.stageName);
+            addRerenderTask("path:" + thepath.uniqueID);
+            addRerenderTask("zone:" + thepath.stage.stageName);
+            rerenderPathOwners(thepath);
         }
-        else {
-            newobj = null;
-            
-            switch(objtype) {
+        else
+        {
+            switch(objtype)
+            {
                 case "objinfo":
                 case "sound_objinfo":
-                    newobj = new LevelObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "mappartsinfo": newobj = new MapPartObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "childobjinfo": newobj = new ChildObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "planetobjinfo": newobj = new GravityObj(curZoneArc, addingObjectOnLayer, objname, position); break;
+                    newobj = new LevelObj(destZoneArc, destLayer, objname, position);
+                    break;
+                case "mappartsinfo":
+                    newobj = new MapPartObj(destZoneArc, destLayer, objname, position);
+                    break;
+                case "childobjinfo":
+                    newobj = new ChildObj(destZoneArc, destLayer, objname, position);
+                    break;
+                case "planetobjinfo":
+                    newobj = new GravityObj(destZoneArc, destLayer, objname, position);
+                    break;
                 case "areaobjinfo":
                 case "sound_areaobjinfo":
                 case "design_areaobjinfo":
-                    newobj = new AreaObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "cameracubeinfo": newobj = new CameraObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "soundinfo": newobj = new SoundObj(curZoneArc, addingObjectOnLayer, position); break;
-                case "startinfo": newobj = new StartObj(curZoneArc, addingObjectOnLayer, position); break;
-                case "demoobjinfo": newobj = new CutsceneObj(curZoneArc, addingObjectOnLayer, objname, position); break;
-                case "generalposinfo": newobj = new PositionObj(curZoneArc, addingObjectOnLayer, position); break;
-                case "debugmoveinfo": newobj = new DebugObj(curZoneArc, addingObjectOnLayer, position); break;
+                    newobj = new AreaObj(destZoneArc, destLayer, objname, position);
+                    break;
+                case "cameracubeinfo":
+                    newobj = new CameraObj(destZoneArc, destLayer, objname, position);
+                    break;
+                case "soundinfo":
+                    newobj = new SoundObj(destZoneArc, destLayer, position);
+                    break;
+                case "startinfo":
+                    newobj = new StartObj(destZoneArc, destLayer, position);
+                    break;
+                case "demoobjinfo":
+                    newobj = new CutsceneObj(destZoneArc, destLayer, objname, position);
+                    break;
+                case "generalposinfo":
+                    newobj = new PositionObj(destZoneArc, destLayer, position);
+                    break;
+                case "debugmoveinfo":
+                    newobj = new DebugObj(destZoneArc, destLayer, position);
+                    break;
             }
             
             // Calculate UID
             int uniqueID = 0;
             
-            while(globalObjList.containsKey(uniqueID)
-                    || globalPathList.containsKey(uniqueID)
-                    || globalPathPointList.containsKey(uniqueID)) {
+            while(globalObjList.containsKey(uniqueID) || globalPathList.containsKey(uniqueID) || globalPathPointList.containsKey(uniqueID))
+            {
                 uniqueID++;
             }
             
@@ -1159,22 +1207,26 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             // Add entry and node
             newobj.uniqueID = uniqueID;
             globalObjList.put(uniqueID, newobj);
-            curZoneArc.objects.get(addingObjectOnLayer).add(newobj);
+            destZoneArc.objects.get(destLayer).add(newobj);
             
             newNode = objListTreeNodes.get(objtype).addObject(newobj);
             treeNodeList.put(uniqueID, newNode);
             
             // Update rendering
-            rerenderTasks.add(String.format("addobj:%1$d", uniqueID));
-            rerenderTasks.add("zone:" + curZone);
+            String keyyy = String.format("addobj:%1$d", uniqueID);
+            //System.out.println(keyyy);
+            addRerenderTask(keyyy);
+            addRerenderTask("zone:" + curZone);
         }
         
         // Update tree node model and scroll to new node
         objListModel.reload();
-        TreePath path = new TreePath(objListModel.getPathToRoot(newNode));
-        treeObjects.setSelectionPath(path);
-        treeObjects.scrollPathToVisible(path);
-        
+        if (isSelectAfterCreate)
+        {
+            TreePath path = new TreePath(objListModel.getPathToRoot(newNode));
+            treeObjects.setSelectionPath(path);
+            treeObjects.scrollPathToVisible(path);
+        }
         glCanvas.repaint();
         unsavedChanges = true;
     }
@@ -1183,11 +1235,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if(globalObjList.containsKey(uniqueID)) {
             AbstractObj obj = globalObjList.get(uniqueID);
             
-            addUndoEntry("deleteObj", obj);
-            
             obj.stage.objects.get(obj.layerKey).remove(obj);
-            rerenderTasks.add(String.format("delobj:%1$d", uniqueID));
-            rerenderTasks.add("zone:" + obj.stage.stageName);
+            addRerenderTask(String.format("delobj:%1$d", uniqueID));
+            addRerenderTask("zone:" + obj.stage.stageName);
 
             if(treeNodeList.containsKey(uniqueID)) {
                 DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
@@ -1205,7 +1255,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 obj.path.stage.paths.remove(obj.path);
                 globalPathList.remove(obj.path.uniqueID);
                 
-                rerenderTasks.add("zone:"+obj.path.stage.stageName);
+                addRerenderTask("zone:"+obj.path.stage.stageName);
 
                 if(treeNodeList.containsKey(obj.path.uniqueID)) {
                     DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
@@ -1216,8 +1266,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
             }
             else {
-                rerenderTasks.add(String.format("path:%1$d", obj.path.uniqueID));
-                rerenderTasks.add("zone:"+obj.path.stage.stageName);
+                addRerenderTask(String.format("path:%1$d", obj.path.uniqueID));
+                addRerenderTask("zone:"+obj.path.stage.stageName);
 
                 if(treeNodeList.containsKey(uniqueID)) {
                     DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
@@ -1226,6 +1276,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     treeNodeList.remove(uniqueID);
                 }
             }
+            rerenderPathOwners(obj.path);
         }
         
         glCanvas.repaint();
@@ -1236,10 +1287,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // -------------------------------------------------------------------------------------------------------------------------
     // Object positioning
     
-     /**
-     * Attempt to apply rotation/translation of the current zone to {@code delta}.
-     * @param delta the position to change
-     */
+    /**
+    * Attempt to apply rotation/translation of the current zone to {@code delta}.
+    * @param delta the position to change
+    */
     public Vec3f applySubzoneRotation(Vec3f delta) {
         if(!isGalaxyMode)
             return new Vec3f();
@@ -1365,14 +1416,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pnlObjectSettings.setFieldValue("pnt2_y", selectedPathPoint.point2.y);
                 pnlObjectSettings.setFieldValue("pnt2_z", selectedPathPoint.point2.z);
                 pnlObjectSettings.repaint();
-                rerenderTasks.add(String.format("path:%1$d", selectedPathPoint.path.uniqueID));
-                rerenderTasks.add("zone:"+selectedPathPoint.path.stage.stageName);
+                addRerenderTask(String.format("path:%1$d", selectedPathPoint.path.uniqueID));
+                addRerenderTask("zone:"+selectedPathPoint.path.stage.stageName);
                 rerenderPathOwners(selectedPathPoint.path);
             } else {
                 //if(selectedObj instanceof StageObj)
                 //    return;
-                
-                addUndoEntry("changeObj", selectedObj);
                 
                 selectedObj.position.x += delta.x;
                 selectedObj.position.y += delta.y;
@@ -1399,8 +1448,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
                 return;
             
-            addUndoEntry("changeObj", selectedObj);
-            
             selectedObj.rotation.x += delta.x;
             selectedObj.rotation.y += delta.y;
             selectedObj.rotation.z += delta.z;
@@ -1424,8 +1471,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         for(AbstractObj selectedObj : selectedObjs.values()) {
             if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
                 return;
-            
-            addUndoEntry("changeObj", selectedObj);
             
             selectedObj.scale.x += delta.x;
             selectedObj.scale.y += delta.y;
@@ -1502,7 +1547,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         // Check if the selected objects' classes are the same
-        Class cls = null; boolean allthesame = true;
+        Class cls = null;
+        boolean allthesame = true;
         if(selectedObjs.size() > 1) {
             for(AbstractObj selectedObj : selectedObjs.values()) {
                 if(cls != null && cls != selectedObj.getClass()) {
@@ -1640,14 +1686,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     	float to_rotate_x=0;//angle to rotate because of the changed value
     	float to_rotate_y=0;
     	float to_rotate_z=0;
-    	if(propname.startsWith("group_copy_offset_")) {
-    		axis = propname.substring(propname.length()-1);
-    		switch(axis){//setting the copy offset
-				case "x": this.g_offset_x=(float)value;break;
-				case "y": this.g_offset_y=(float)value;break;
-				case "z": this.g_offset_z=(float)value;break;
-				default:System.out.println("invalid axis");
-			}
+    	if(propname.startsWith("group_copy_offset_"))
+        {
+            axis = propname.substring(propname.length()-1);
+            switch(axis) //setting the copy offset
+            {
+                case "x":
+                    this.g_offset_x = (float)value;
+                    break;
+                case "y":
+                    this.g_offset_y = (float)value;
+                    break;
+                case "z":
+                    this.g_offset_z = (float)value;
+                    break;
+                default:System.out.println("invalid axis");
+            }
     	}
     	if(propname.startsWith("group_rotate_center_")){
     		axis = propname.substring(propname.length()-1);
@@ -1695,249 +1749,282 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     			default:System.out.println("invalid axis");
     		}
     	}
-        for(AbstractObj selectedObj : selectedObjs.values()) {
-        	if(propname.startsWith("group_rotate_angle_")) {
-        		double newangle;
-        		double distance; //distance on the 2 other axis
-    			addUndoEntry("changeObj", selectedObj);//required for undoing
-        		switch(axis){//axis to rotate around
-	    			case "x": if(to_rotate_x!=0) {//if angele = 0 then there is noting to do
-			    				RotationMatrix a= new RotationMatrix();
-			    				a=a.yawPitchRollToMatrix(selectedObj.rotation.x*Math.PI/180,selectedObj.rotation.y*Math.PI/180,selectedObj.rotation.z*Math.PI/180);//convert the angle of the object in a rotation matrix
-			    				
-			    				double angle=to_rotate_x/180*Math.PI;//° to radians
-			    				RotationMatrix d=new RotationMatrix();//rotation matrix for rotation around x axis
-			    				d.r11=Math.cos(angle);
-			    				d.r12=-Math.sin(angle);
-			    				d.r13=0;
-			    				d.r21=Math.sin(angle);
-			    				d.r22=Math.cos(angle);
-			    				d.r23=0;
-			    				d.r31=0;
-			    				d.r32=0;
-			    				d.r33=1;
-			    				RotationMatrix c=a.multiplyMatrices(a, d);//rotate
-			    				
-			    				double[] angles=c.MatrixToYawPitchRoll(c);//get angles from matrix
-			    				selectedObj.rotation.x=(float)(180/Math.PI*angles[0]);//radians to °
-			    				selectedObj.rotation.y=(float)(180/Math.PI*angles[1]);
-			    				selectedObj.rotation.z=(float)(180/Math.PI*angles[2]);
-								if(selectedObj.position.z-this.g_center_z==0 ) {//tan has a period of pi/2; this gets the correct angle
-									if(selectedObj.position.y-this.g_center_y==0) {
-										newangle=0; //if the object is in the same place as the rotation point there is no change of it's position; this angle is only used for the position
-									}else {
-										newangle=to_rotate_x/180*Math.PI;
-									}
-								}else {
-									if(selectedObj.position.y-this.g_center_y==0) {
-										if(selectedObj.position.z-this.g_center_z>0) {
-											newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)))+Math.PI;//newangle=oldangle+arctan([object zposition-zposition rotation point]/[object yposition-yposition rotation point])
-										}else {
-											if(selectedObj.position.z-this.g_center_z<0) {
-												newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)));
-											}else {
-												newangle=0; //postion doesn't change
-											}
-										}
-									}else {
-										if(selectedObj.position.y-this.g_center_y>0) {
-											newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)));
-										}else {
-											newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)))+Math.PI;
-										}
-									}
-								}
-								distance=Math.sqrt((double)((selectedObj.position.z-this.g_center_z)*(selectedObj.position.z-this.g_center_z)+(selectedObj.position.y-this.g_center_y)*(selectedObj.position.y-this.g_center_y)));
-								selectedObj.position.z=(float)(Math.sin(newangle)*distance)+this.g_center_z;
-								selectedObj.position.y=(float)(Math.cos(newangle)*distance)+this.g_center_y;
-        					}
-							break;
-	    			case "y":if(to_rotate_y!=0) {
-			    				RotationMatrix a= new RotationMatrix();
-			    				a=a.yawPitchRollToMatrix(selectedObj.rotation.x*Math.PI/180,selectedObj.rotation.y*Math.PI/180,selectedObj.rotation.z*Math.PI/180);
-			    				double angle=-(to_rotate_y/180*Math.PI);
-			    				RotationMatrix d=new RotationMatrix();
-			    				d.r11=Math.cos(angle);//rotation matrix for rotation around y axis
-			    				d.r12=0;
-			    				d.r13=Math.sin(angle);
-			    				d.r21=0;
-			    				d.r22=1;
-			    				d.r23=0;
-			    				d.r31=-Math.sin(angle);
-			    				d.r32=0;
-			    				d.r33=Math.cos(angle);
-			    				RotationMatrix c=a.multiplyMatrices(a, d);
-			    				double[] angles=c.MatrixToYawPitchRoll(c);
-			    				selectedObj.rotation.x=(float)(180/Math.PI*angles[0]);
-			    				selectedObj.rotation.y=(float)(180/Math.PI*angles[1]);
-			    				selectedObj.rotation.z=(float)(180/Math.PI*angles[2]);
-	    				
-								if(selectedObj.position.z-this.g_center_z==0 ) {//tan has a period of pi/2; this gets the correct angle
-									if(selectedObj.position.x-this.g_center_x==0) {
-										newangle=0; //no position change
-									}else {
-										if(selectedObj.position.x-this.g_center_x>0) {
-											newangle=to_rotate_y/180*Math.PI;
-										}else {
-											newangle=to_rotate_y/180*Math.PI-Math.PI;
-										}
-									}
-								}else {
-									if(selectedObj.position.x-this.g_center_x==0) {
-										if(selectedObj.position.z-this.g_center_z>0) {
-											newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)));
-										}else {
-											if(selectedObj.position.z-this.g_center_z<0) {
-												newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)))+Math.PI;
-											}else {
-												newangle=0; //no position change
-											}
-										}
-									}else {
-										if(selectedObj.position.x-this.g_center_x>0) {
-											newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)));
-										}else {
-											newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)))+Math.PI;
-										}
-									}
-								}
-								distance=Math.sqrt((double)((selectedObj.position.z-this.g_center_z)*(selectedObj.position.z-this.g_center_z)+(selectedObj.position.x-this.g_center_x)*(selectedObj.position.x-this.g_center_x)));
-								selectedObj.position.z=(float)(Math.sin(newangle)*distance)+this.g_center_z;
-								selectedObj.position.x=(float)(Math.cos(newangle)*distance)+this.g_center_x;
-	    					}			
-							break;
-	    			case "z": if(to_rotate_z!=0) {
-	    						selectedObj.rotation.z+=to_rotate_z; //rotate around z-axis; this always works because rotation aroud z axis is done first, then y then x
-								if(selectedObj.rotation.z>360) {
-									selectedObj.rotation.z-=360;
-								}
-								if(selectedObj.rotation.z<-360) {//keep angle between -360° and 360°
-									selectedObj.rotation.z+=360;
-								}
-								if(selectedObj.position.x-this.g_center_x==0 ) {//tan has a period of pi/2; this gets the correct angle
-									if(selectedObj.position.y-this.g_center_y==0) {
-										if(selectedObj.position.x-this.g_center_x<0) {
-											newangle=to_rotate_y/180*Math.PI;
-										}else {
-											newangle=0;//no position change
-										}
-									}else {
-										if(selectedObj.position.x-this.g_center_x>0) {
-											newangle=to_rotate_z/180*Math.PI;
-										}else {
-											newangle=to_rotate_z/180*Math.PI-Math.PI;
-										}
-									}
-								}else {
-									if(selectedObj.position.x-this.g_center_x==0) {
-										if(selectedObj.position.z-this.g_center_z>0) {
-											newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)))+Math.PI;//the same as with the x axis but with the other 2 axis
-										}else {
-											if(selectedObj.position.z-this.g_center_z<0) {
-												newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)));
-											}else {
-												newangle=0;//no position change
-											}
-										}
-									}else {
-										if(selectedObj.position.x-this.g_center_x>0) {
-											newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)));
-										}else {
-											newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)))+Math.PI;
-										}
-									}
-								}
-								distance=Math.sqrt((double)((selectedObj.position.y-this.g_center_y)*(selectedObj.position.y-this.g_center_y)+(selectedObj.position.x-this.g_center_x)*(selectedObj.position.x-this.g_center_x)));
-								selectedObj.position.y=(float)(Math.sin(newangle)*distance)+this.g_center_y;
-								selectedObj.position.x=(float)(Math.cos(newangle)*distance)+this.g_center_x;
-	    					}
-							break;
-	    			default:System.out.println("Invalid axis");
-	    		}
-        		rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+        
+        //-----------------------------------------------------------------------------------
+        
+        var values = selectedObjs.values();
+        int selectedObjIdx = -1;
+        int selectedObjMax = values.size();
+        for(AbstractObj selectedObj : values) {
+            selectedObjIdx++; //Can't be bothered to put it at the end...
+            if(propname.startsWith("group_rotate_angle_")) {
+                double newangle;
+                double distance; //distance on the 2 other axis
+                //addUndoEntry("changeObj", selectedObj);//required for undoing
+                switch(axis){//axis to rotate around
+                        case "x": if(to_rotate_x!=0) {//if angele = 0 then there is noting to do
+                                                RotationMatrix a= new RotationMatrix();
+                                                a=a.yawPitchRollToMatrix(selectedObj.rotation.x*Math.PI/180,selectedObj.rotation.y*Math.PI/180,selectedObj.rotation.z*Math.PI/180);//convert the angle of the object in a rotation matrix
+
+                                                double angle=to_rotate_x/180*Math.PI;//° to radians
+                                                RotationMatrix d=new RotationMatrix();//rotation matrix for rotation around x axis
+                                                d.r11=Math.cos(angle);
+                                                d.r12=-Math.sin(angle);
+                                                d.r13=0;
+                                                d.r21=Math.sin(angle);
+                                                d.r22=Math.cos(angle);
+                                                d.r23=0;
+                                                d.r31=0;
+                                                d.r32=0;
+                                                d.r33=1;
+                                                RotationMatrix c=a.multiplyMatrices(a, d);//rotate
+
+                                                double[] angles=c.MatrixToYawPitchRoll(c);//get angles from matrix
+                                                selectedObj.rotation.x=(float)(180/Math.PI*angles[0]);//radians to °
+                                                selectedObj.rotation.y=(float)(180/Math.PI*angles[1]);
+                                                selectedObj.rotation.z=(float)(180/Math.PI*angles[2]);
+                                                        if(selectedObj.position.z-this.g_center_z==0 ) {//tan has a period of pi/2; this gets the correct angle
+                                                                if(selectedObj.position.y-this.g_center_y==0) {
+                                                                        newangle=0; //if the object is in the same place as the rotation point there is no change of it's position; this angle is only used for the position
+                                                                }else {
+                                                                        newangle=to_rotate_x/180*Math.PI;
+                                                                }
+                                                        }else {
+                                                                if(selectedObj.position.y-this.g_center_y==0) {
+                                                                        if(selectedObj.position.z-this.g_center_z>0) {
+                                                                                newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)))+Math.PI;//newangle=oldangle+arctan([object zposition-zposition rotation point]/[object yposition-yposition rotation point])
+                                                                        }else {
+                                                                                if(selectedObj.position.z-this.g_center_z<0) {
+                                                                                        newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)));
+                                                                                }else {
+                                                                                        newangle=0; //postion doesn't change
+                                                                                }
+                                                                        }
+                                                                }else {
+                                                                        if(selectedObj.position.y-this.g_center_y>0) {
+                                                                                newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)));
+                                                                        }else {
+                                                                                newangle=to_rotate_x/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.y-this.g_center_y)))+Math.PI;
+                                                                        }
+                                                                }
+                                                        }
+                                                        distance=Math.sqrt((double)((selectedObj.position.z-this.g_center_z)*(selectedObj.position.z-this.g_center_z)+(selectedObj.position.y-this.g_center_y)*(selectedObj.position.y-this.g_center_y)));
+                                                        selectedObj.position.z=(float)(Math.sin(newangle)*distance)+this.g_center_z;
+                                                        selectedObj.position.y=(float)(Math.cos(newangle)*distance)+this.g_center_y;
+                                        }
+                                                break;
+                        case "y":if(to_rotate_y!=0) {
+                                                RotationMatrix a= new RotationMatrix();
+                                                a=a.yawPitchRollToMatrix(selectedObj.rotation.x*Math.PI/180,selectedObj.rotation.y*Math.PI/180,selectedObj.rotation.z*Math.PI/180);
+                                                double angle=-(to_rotate_y/180*Math.PI);
+                                                RotationMatrix d=new RotationMatrix();
+                                                d.r11=Math.cos(angle);//rotation matrix for rotation around y axis
+                                                d.r12=0;
+                                                d.r13=Math.sin(angle);
+                                                d.r21=0;
+                                                d.r22=1;
+                                                d.r23=0;
+                                                d.r31=-Math.sin(angle);
+                                                d.r32=0;
+                                                d.r33=Math.cos(angle);
+                                                RotationMatrix c=a.multiplyMatrices(a, d);
+                                                double[] angles=c.MatrixToYawPitchRoll(c);
+                                                selectedObj.rotation.x=(float)(180/Math.PI*angles[0]);
+                                                selectedObj.rotation.y=(float)(180/Math.PI*angles[1]);
+                                                selectedObj.rotation.z=(float)(180/Math.PI*angles[2]);
+
+                                                        if(selectedObj.position.z-this.g_center_z==0 ) {//tan has a period of pi/2; this gets the correct angle
+                                                                if(selectedObj.position.x-this.g_center_x==0) {
+                                                                        newangle=0; //no position change
+                                                                }else {
+                                                                        if(selectedObj.position.x-this.g_center_x>0) {
+                                                                                newangle=to_rotate_y/180*Math.PI;
+                                                                        }else {
+                                                                                newangle=to_rotate_y/180*Math.PI-Math.PI;
+                                                                        }
+                                                                }
+                                                        }else {
+                                                                if(selectedObj.position.x-this.g_center_x==0) {
+                                                                        if(selectedObj.position.z-this.g_center_z>0) {
+                                                                                newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)));
+                                                                        }else {
+                                                                                if(selectedObj.position.z-this.g_center_z<0) {
+                                                                                        newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)))+Math.PI;
+                                                                                }else {
+                                                                                        newangle=0; //no position change
+                                                                                }
+                                                                        }
+                                                                }else {
+                                                                        if(selectedObj.position.x-this.g_center_x>0) {
+                                                                                newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)));
+                                                                        }else {
+                                                                                newangle=to_rotate_y/180*Math.PI+Math.atan((double)((selectedObj.position.z-this.g_center_z)/(selectedObj.position.x-this.g_center_x)))+Math.PI;
+                                                                        }
+                                                                }
+                                                        }
+                                                        distance=Math.sqrt((double)((selectedObj.position.z-this.g_center_z)*(selectedObj.position.z-this.g_center_z)+(selectedObj.position.x-this.g_center_x)*(selectedObj.position.x-this.g_center_x)));
+                                                        selectedObj.position.z=(float)(Math.sin(newangle)*distance)+this.g_center_z;
+                                                        selectedObj.position.x=(float)(Math.cos(newangle)*distance)+this.g_center_x;
+                                        }			
+                                                break;
+                        case "z": if(to_rotate_z!=0) {
+                                                selectedObj.rotation.z+=to_rotate_z; //rotate around z-axis; this always works because rotation aroud z axis is done first, then y then x
+                                                        if(selectedObj.rotation.z>360) {
+                                                                selectedObj.rotation.z-=360;
+                                                        }
+                                                        if(selectedObj.rotation.z<-360) {//keep angle between -360° and 360°
+                                                                selectedObj.rotation.z+=360;
+                                                        }
+                                                        if(selectedObj.position.x-this.g_center_x==0 ) {//tan has a period of pi/2; this gets the correct angle
+                                                                if(selectedObj.position.y-this.g_center_y==0) {
+                                                                        if(selectedObj.position.x-this.g_center_x<0) {
+                                                                                newangle=to_rotate_y/180*Math.PI;
+                                                                        }else {
+                                                                                newangle=0;//no position change
+                                                                        }
+                                                                }else {
+                                                                        if(selectedObj.position.x-this.g_center_x>0) {
+                                                                                newangle=to_rotate_z/180*Math.PI;
+                                                                        }else {
+                                                                                newangle=to_rotate_z/180*Math.PI-Math.PI;
+                                                                        }
+                                                                }
+                                                        }else {
+                                                                if(selectedObj.position.x-this.g_center_x==0) {
+                                                                        if(selectedObj.position.z-this.g_center_z>0) {
+                                                                                newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)))+Math.PI;//the same as with the x axis but with the other 2 axis
+                                                                        }else {
+                                                                                if(selectedObj.position.z-this.g_center_z<0) {
+                                                                                        newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)));
+                                                                                }else {
+                                                                                        newangle=0;//no position change
+                                                                                }
+                                                                        }
+                                                                }else {
+                                                                        if(selectedObj.position.x-this.g_center_x>0) {
+                                                                                newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)));
+                                                                        }else {
+                                                                                newangle=to_rotate_z/180*Math.PI+Math.atan((double)((selectedObj.position.y-this.g_center_y)/(selectedObj.position.x-this.g_center_x)))+Math.PI;
+                                                                        }
+                                                                }
+                                                        }
+                                                        distance=Math.sqrt((double)((selectedObj.position.y-this.g_center_y)*(selectedObj.position.y-this.g_center_y)+(selectedObj.position.x-this.g_center_x)*(selectedObj.position.x-this.g_center_x)));
+                                                        selectedObj.position.y=(float)(Math.sin(newangle)*distance)+this.g_center_y;
+                                                        selectedObj.position.x=(float)(Math.cos(newangle)*distance)+this.g_center_x;
+                                        }
+                                                break;
+                        default:System.out.println("Invalid axis");
+                }
+                addRerenderTask("zone:"+selectedObj.stage.stageName);
                 glCanvas.repaint();//redraw the objects
-        	}
-        	if(propname.startsWith("group_move_")){
-        		axis = propname.substring(propname.length()-1);
-        		switch (axis) {
-        			case "x":this.g_move_x=(float)value;break;
-        			case "y":this.g_move_y=(float)value;break;
-        			case "z":this.g_move_z=(float)value;break;
-        			default: System.out.println("invalid axis");
-        		}
-        	}
-        	if(propname.startsWith("groupmove")){
-        		axis = propname.substring(propname.length()-1);
-    			addUndoEntry("changeObj", selectedObj);//required for undoing
-        		switch(axis){
-        			case "x":if(moveup) {
-		        				selectedObj.position.x+=this.g_move_x;//it only moves one step at a time
-							}else {
-								selectedObj.position.x-=this.g_move_x;
-							}
-        					break;
-        			case "y":if(moveup) {
-		    	        		selectedObj.position.y+=this.g_move_y;
-							}else {
-				        		selectedObj.position.y-=this.g_move_y;
-							}
-							break;
-        			case "z":if(moveup) {
-		    	        		selectedObj.position.z+=this.g_move_z;
-							}else {
-				        		selectedObj.position.z-=this.g_move_z;
-							}
-							break;
-        			case "a":if(moveup) {
-		        				selectedObj.position.x+=this.g_move_x;//moving in all direction at once
-		    	        		selectedObj.position.y+=this.g_move_y;
-		    	        		selectedObj.position.z+=this.g_move_z;
-        					}else {
-        						selectedObj.position.x-=this.g_move_x;
-        		        		selectedObj.position.y-=this.g_move_y;
-        		        		selectedObj.position.z-=this.g_move_z;
-        					}
-							break;
-        			default:System.out.println("invalid axis");
-        		}
-        		rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+            }
+            if(propname.startsWith("group_move_")){
+                axis = propname.substring(propname.length()-1);
+                switch (axis) {
+                    case "x":this.g_move_x=(float)value;break;
+                    case "y":this.g_move_y=(float)value;break;
+                    case "z":this.g_move_z=(float)value;break;
+                    default: System.out.println("invalid axis");
+                }
+            }
+            if(propname.startsWith("groupmove")){
+                axis = propname.substring(propname.length()-1);
+                //addUndoEntry("changeObj", selectedObj);//required for undoing
+                switch(axis){
+                    case "x":if(moveup) {
+                                            selectedObj.position.x+=this.g_move_x;//it only moves one step at a time
+                                            }else {
+                                                    selectedObj.position.x-=this.g_move_x;
+                                            }
+                                    break;
+                    case "y":if(moveup) {
+                                    selectedObj.position.y+=this.g_move_y;
+                                            }else {
+                                            selectedObj.position.y-=this.g_move_y;
+                                            }
+                                            break;
+                    case "z":if(moveup) {
+                                    selectedObj.position.z+=this.g_move_z;
+                                            }else {
+                                            selectedObj.position.z-=this.g_move_z;
+                                            }
+                                            break;
+                    case "a":
+                        if(moveup)
+                        {
+                            selectedObj.position.x+=this.g_move_x;//moving in all direction at once
+                            selectedObj.position.y+=this.g_move_y;
+                            selectedObj.position.z+=this.g_move_z;
+                        }
+                        else
+                        {
+                            selectedObj.position.x-=this.g_move_x;
+                            selectedObj.position.y-=this.g_move_y;
+                            selectedObj.position.z-=this.g_move_z;
+                        }
+                        break;
+                    default:
+                        System.out.println("invalid axis");
+                }
+                addRerenderTask("zone:"+selectedObj.stage.stageName);
                 glCanvas.repaint();
-        	}
+            }
             // Path point objects, as they work a bit differently
             if(selectedObj instanceof PathPointObj) {
                 PathPointObj selectedPathPoint =(PathPointObj) selectedObj;
                 
                 // Path point coordinates
-                if(propname.startsWith("pnt")) {
+                if(propname.startsWith("pnt"))
+                {
+                    addUndoEntry(IUndo.Action.TRANSLATE, selectedPathPoint);
                     switch(propname) {
-                        case "pnt0_x": selectedPathPoint.position.x =(float)value; break;
-                        case "pnt0_y": selectedPathPoint.position.y =(float)value; break;
-                        case "pnt0_z": selectedPathPoint.position.z =(float)value; break;
-                        case "pnt1_x": selectedPathPoint.point1.x =(float)value; break;
-                        case "pnt1_y": selectedPathPoint.point1.y =(float)value; break;
-                        case "pnt1_z": selectedPathPoint.point1.z =(float)value; break;
-                        case "pnt2_x": selectedPathPoint.point2.x =(float)value; break;
-                        case "pnt2_y": selectedPathPoint.point2.y =(float)value; break;
-                        case "pnt2_z": selectedPathPoint.point2.z =(float)value; break;
+                        case "pnt0_x":
+                            selectedPathPoint.position.x = (float)value;
+                            break;
+                        case "pnt0_y":
+                            selectedPathPoint.position.y = (float)value;
+                            break;
+                        case "pnt0_z":
+                            selectedPathPoint.position.z = (float)value;
+                            break;
+                        case "pnt1_x":
+                            selectedPathPoint.point1.x = (float)value; 
+                           break;
+                        case "pnt1_y":
+                            selectedPathPoint.point1.y = (float)value;
+                            break;
+                        case "pnt1_z":
+                            selectedPathPoint.point1.z = (float)value;
+                            break;
+                        case "pnt2_x":
+                            selectedPathPoint.point2.x = (float)value;
+                            break;
+                        case "pnt2_y":
+                            selectedPathPoint.point2.y = (float)value;
+                            break;
+                        case "pnt2_z":
+                            selectedPathPoint.point2.z = (float)value;
+                            break;
                     }
                     
-                    rerenderTasks.add("path:" + selectedPathPoint.path.uniqueID);
-                    rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                    addRerenderTask("path:" + selectedPathPoint.path.uniqueID);
+                    addRerenderTask("zone:"+selectedObj.stage.stageName);
                     glCanvas.repaint();
                 }
                 
                 // Path properties
                 else if(propname.startsWith("[P]")) {
+                    addUndoEntry(IUndo.Action.PARAMETER, selectedPathPoint);
                     String property = propname.substring(3);
                     switch(property) {
                         case "closed": {
                             selectedPathPoint.path.data.put(property,(boolean) value ? "CLOSE" : "OPEN");
-                            rerenderTasks.add("path:" + selectedPathPoint.path.uniqueID);
+                            addRerenderTask("path:" + selectedPathPoint.path.uniqueID);
                             glCanvas.repaint();
                             break;
                         }
                         case "name": {
-                            selectedPathPoint.path.name =(String) value;
+                            selectedPathPoint.path.setName((String)value);
                             DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                             objlist.nodeChanged(treeNodeList.get(selectedPathPoint.path.uniqueID));
                             break;
@@ -1954,6 +2041,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
                 
                 else {
+                    addUndoEntry(IUndo.Action.PARAMETER, selectedPathPoint);
                     propertyChanged(propname, value, selectedPathPoint.data);
                 }
             }
@@ -1961,49 +2049,77 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             // Any other object
             else {
                 if(propname.equals("name")) {
+                    addUndoEntry(IUndo.Action.NAME_ZONE_LAYER, selectedObj);
                     selectedObj.name =(String)value;
                     selectedObj.loadDBInfo();
 
                     DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                     objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
 
-                    rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
-                    rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                    addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                    addRerenderTask("zone:"+selectedObj.stage.stageName);
                     glCanvas.repaint();
                 }
-                else if(propname.equals("zone")) {
+                else if(propname.equals("zone"))
+                {
+                    addUndoEntry(IUndo.Action.NAME_ZONE_LAYER, selectedObj);
+                    
                     String oldzone = selectedObj.stage.stageName;
                     String newzone =(String)value;
                     int uid = selectedObj.uniqueID;
 
-                    selectedObj.stage = zoneArchives.get(newzone);
-                    zoneArchives.get(oldzone).objects.get(selectedObj.layerKey).remove(selectedObj);
-                    if(zoneArchives.get(newzone).objects.containsKey(selectedObj.layerKey))
-                        zoneArchives.get(newzone).objects.get(selectedObj.layerKey).add(selectedObj);
-                    else {
-                        selectedObj.layerKey = "common";
-                        zoneArchives.get(newzone).objects.get(selectedObj.layerKey).add(selectedObj);
-                    }
+                    StageArchive newZoneArc = zoneArchives.get(newzone);
+                    StageArchive oldZoneArc = zoneArchives.get(oldzone);
+                    String newLayer = "common";
+                    String oldLayer = selectedObj.layerKey;
+                    if (newZoneArc.objects.containsKey(oldLayer))
+                        newLayer = oldLayer;
+                    
+                    selectedObj.stage = newZoneArc;
+                    selectedObj.layerKey = newLayer;
+                    
+                    var oldLayerData = oldZoneArc.objects.get(oldLayer);
+                    var newLayerData = newZoneArc.objects.get(newLayer);
+                    oldLayerData.remove(selectedObj);
+                    newLayerData.add(selectedObj);
 
-                    for(int z = 0; z < galaxyArchive.zoneList.size(); z++) {
-                        if(!galaxyArchive.zoneList.get(z).equals(newzone))
-                            continue;
-                        listZones.setSelectedIndex(z);
-                        break;
+                    if (selectedObjIdx == selectedObjMax-1)
+                    {
+                        ArrayList<AbstractObj> selectionSave = new ArrayList(selectedObjMax);
+                        for(var o : values)
+                            selectionSave.add(o);
+                            
+                        for(int z = 0; z < galaxyArchive.zoneList.size(); z++)
+                        {
+                            if(!galaxyArchive.zoneList.get(z).equals(newzone))
+                                continue;
+                            listZones.setSelectedIndex(z);
+                            break;
+                        } 
+                        TreePath[] paths = new TreePath[selectionSave.size()];
+                        int i = 0;
+                        for(var o : selectionSave)
+                        {
+                            selectedObjs.put(o.uniqueID, o);
+                            if(treeNodeList.containsKey(o.uniqueID))
+                            {
+                                TreeNode tn = treeNodeList.get(o.uniqueID);
+                                TreePath tp = new TreePath(((DefaultTreeModel)treeObjects.getModel()).getPathToRoot(tn));
+                                paths[i] = tp;
+                            }
+                            i++;
+                        }
+                        treeObjects.scrollPathToVisible(paths[0]);
+                        treeObjects.setSelectionPaths(paths);
+                        selectionChanged();
+                        
+                        addRerenderTask("zone:"+oldzone);
+                        addRerenderTask("zone:"+newzone);
+                        glCanvas.repaint();
                     }
-                    if(treeNodeList.containsKey(uid)) {
-                        TreeNode tn = treeNodeList.get(uid);
-                        TreePath tp = new TreePath(((DefaultTreeModel)treeObjects.getModel()).getPathToRoot(tn));
-                        treeObjects.setSelectionPath(tp);
-                        treeObjects.scrollPathToVisible(tp);
-                    }
-
-                    selectionChanged();
-                    rerenderTasks.add("zone:"+oldzone);
-                    rerenderTasks.add("zone:"+newzone);
-                    glCanvas.repaint();
                 }
                 else if(propname.equals("layer")) {
+                    addUndoEntry(IUndo.Action.NAME_ZONE_LAYER, selectedObj);
                     String oldlayer = selectedObj.layerKey;
                     String newlayer =((String)value).toLowerCase();
 
@@ -2014,78 +2130,110 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                     objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
 
-                    rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                    addRerenderTask("zone:"+selectedObj.stage.stageName);
                     glCanvas.repaint();
                 }
                 else if(propname.startsWith("pos_") || propname.startsWith("dir_") || propname.startsWith("scale_")) {
-                    switch(propname) {
-                        case "pos_x": selectedObj.position.x =(float)value; break;
-                        case "pos_y": selectedObj.position.y =(float)value; break;
-                        case "pos_z": selectedObj.position.z =(float)value; break;
-                        case "dir_x": selectedObj.rotation.x =(float)value; break;
-                        case "dir_y": selectedObj.rotation.y =(float)value; break;
-                        case "dir_z": selectedObj.rotation.z =(float)value; break;
-                        case "scale_x": selectedObj.scale.x =(float)value; break;
-                        case "scale_y": selectedObj.scale.y =(float)value; break;
-                        case "scale_z": selectedObj.scale.z =(float)value; break;
+                    
+                    if(propname.startsWith("pos_"))
+                    {
+                        if (selectedObj.renderer.hasSpecialPosition())
+                            addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                        addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
                     }
-
-                    if(propname.startsWith("pos_") && selectedObj.renderer.hasSpecialPosition())
-                        rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
-                    else if(propname.startsWith("dir_") && selectedObj.renderer.hasSpecialRotation())
-                        rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
-                    else if(propname.startsWith("scale_") && selectedObj.renderer.hasSpecialScaling())
-                        rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
+                    else if(propname.startsWith("dir_"))
+                    {
+                        if (selectedObj.renderer.hasSpecialRotation())
+                            addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                        addUndoEntry(IUndo.Action.ROTATE, selectedObj);
+                    }
+                    else if(propname.startsWith("scale_"))
+                    {
+                        if (selectedObj.renderer.hasSpecialScaling())
+                            addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                        addUndoEntry(IUndo.Action.SCALE, selectedObj);
+                    }
+                    
+                    switch(propname) {
+                        case "pos_x":
+                        selectedObj.position.x = (float)value;
+                        break;
+                        case "pos_y":
+                        selectedObj.position.y = (float)value;
+                        break;
+                        case "pos_z":
+                        selectedObj.position.z = (float)value;
+                        break;
+                        case "dir_x":
+                        selectedObj.rotation.x = (float)value;
+                        break;
+                        case "dir_y":
+                        selectedObj.rotation.y = (float)value;
+                        break;
+                        case "dir_z":
+                        selectedObj.rotation.z = (float)value;
+                        break;
+                        case "scale_x":
+                        selectedObj.scale.x = (float)value;
+                        break;
+                        case "scale_y":
+                        selectedObj.scale.y = (float)value;
+                        break;
+                        case "scale_z":
+                        selectedObj.scale.z = (float)value;
+                        break;
+                    }
                     
                     if (selectedObj instanceof StageObj) {
-                        rerenderTasks.add("zone:"+selectedObj.name);
+                        addRerenderTask("zone:"+selectedObj.name);
                     }
                     else {
-                        rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                        addRerenderTask("zone:"+selectedObj.stage.stageName);
                     }
                     glCanvas.repaint();
                 }
                 else {
+                    addUndoEntry(IUndo.Action.PARAMETER, selectedObj);
                     propertyChanged(propname, value, selectedObj.data);
                     if(propname.startsWith("Obj_arg")) {
                         int argnum = Integer.parseInt(propname.substring(7));
                         if(selectedObj.renderer.boundToObjArg(argnum)) {
-                            rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
-                            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                            addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                            addRerenderTask("zone:"+selectedObj.stage.stageName);
                             glCanvas.repaint();
                         }
                     }
                     else if (propname.equals("ShapeModelNo")) {
-                        rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
-                        rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                        addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                        addRerenderTask("zone:"+selectedObj.stage.stageName);
                         glCanvas.repaint();
                     }
                     else if(selectedObj.renderer.boundToPathId() && propname.startsWith("CommonPath_ID")) {
-                        rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
+                        addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
                         PathObj y = AbstractObj.getObjectPathData(selectedObj);
                         if (y != null)
-                            rerenderTasks.add("path:" +  y.uniqueID);
-                        rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                            addRerenderTask("path:" +  y.uniqueID);
+                        addRerenderTask("zone:"+selectedObj.stage.stageName);
                         glCanvas.repaint();
                     }
                     else if(propname.equals("Range")) {
                         if(selectedObj.renderer.boundToProperty()) {
-                            rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
-                            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                            addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                            addRerenderTask("zone:"+selectedObj.stage.stageName);
                             glCanvas.repaint();
                         }
                     }
                     else if(propname.equals("Distant")) {
                         if(selectedObj.renderer.boundToProperty()) {
-                            rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
-                            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                            addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                            addRerenderTask("zone:"+selectedObj.stage.stageName);
                             glCanvas.repaint();
                         }
                     }
                     else if(propname.equals("Inverse")) {
                         if(selectedObj.renderer.boundToProperty()) {
-                            rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
-                            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                            addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                            addRerenderTask("zone:"+selectedObj.stage.stageName);
                             glCanvas.repaint();
                         }
                     }
@@ -2093,8 +2241,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                         objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
                         if(selectedObj.getClass() == AreaObj.class || selectedObj.getClass() == CameraObj.class) {
-                            rerenderTasks.add("object:"+Integer.toString(selectedObj.uniqueID));
-                            rerenderTasks.add("zone:"+selectedObj.stage.stageName);
+                            addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                            addRerenderTask("zone:"+selectedObj.stage.stageName);
                             glCanvas.repaint();
                         }
                     }
@@ -2110,9 +2258,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     
-    // -------------------------------------------------------------------------------------------------------------------------
-    // Copy + Paste
-        
+    // This has nothing to do with Copy + Paste
     //Ensures that you have the 3D view selected.
     //This is used to prevent typing actual things like Object Names from pasting position rotation etc.
     public boolean isAllowPasteAction()
@@ -2120,164 +2266,982 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         return getFocusOwner() instanceof JRootPane || getFocusOwner() instanceof GLCanvas;
     }
     
-    public void pasteObject(AbstractObj obj) {
-        addingObject = obj.getFileType() + "|" + obj.name;
-        addingObjectOnLayer = obj.layerKey;
-        addObject(mousePos);
-        
-        addingObject = "";
-        
-        newobj.rotation.x = obj.rotation.x; newobj.rotation.y = obj.rotation.y; newobj.rotation.z = obj.rotation.z;
-        newobj.scale.x = obj.scale.x; newobj.scale.y = obj.scale.y; newobj.scale.z = obj.scale.z;
-        addingObject="";
-        newobj.data.put("dir_x", obj.rotation.x); newobj.data.put("dir_y", obj.rotation.y); newobj.data.put("dir_z", obj.rotation.z);
-        newobj.data.put("scale_x", obj.scale.x); newobj.data.put("scale_y", obj.scale.y); newobj.data.put("scale_z", obj.scale.z);
-        newobj.data.put("Obj_arg0", obj.data.get("Obj_arg0"));
-        newobj.data.put("Obj_arg1", obj.data.get("Obj_arg1"));
-        newobj.data.put("Obj_arg2", obj.data.get("Obj_arg2"));
-        newobj.data.put("Obj_arg3", obj.data.get("Obj_arg3"));
-        newobj.data.put("Obj_arg4", obj.data.get("Obj_arg4"));
-        newobj.data.put("Obj_arg5", obj.data.get("Obj_arg5"));
-        newobj.data.put("Obj_arg6", obj.data.get("Obj_arg6"));
-        newobj.data.put("Obj_arg7", obj.data.get("Obj_arg7"));
-        newobj.data.put("SW_APPEAR", obj.data.get("SW_APPEAR"));
-        newobj.data.put("SW_DEAD", obj.data.get("SW_DEAD"));
-        newobj.data.put("SW_A", obj.data.get("SW_A"));
-        newobj.data.put("SW_B", obj.data.get("SW_B"));
-        newobj.data.put("l_id", obj.data.get("l_id"));
-        newobj.data.put("CameraSetId", obj.data.get("CameraSetId"));
-        newobj.data.put("CastId", obj.data.get("CastId"));
-        newobj.data.put("ViewGroupId", obj.data.get("ViewGroupId"));
-        newobj.data.put("ShapeModelNo", obj.data.get("ShapeModelNo"));
-        newobj.data.put("CommonPath_ID", obj.data.get("CommonPath_ID"));
-        newobj.data.put("ClippingGroupId", obj.data.get("ClippingGroupId"));
-        newobj.data.put("GroupId", obj.data.get("GroupId"));
-        newobj.data.put("DemoGroupId", obj.data.get("DemoGroupId"));
-        newobj.data.put("MapParts_ID", obj.data.get("MapParts_ID"));
-        newobj.data.put("MessageId", obj.data.get("MessageId"));
-        
-        if(Whitehole.getCurrentGameType() == 1)
-            newobj.data.put("SW_SLEEP", obj.data.get("SW_SLEEP"));
-        if(Whitehole.getCurrentGameType() == 2) {
-            newobj.data.put("SW_AWAKE", obj.data.get("SW_AWAKE"));
-            newobj.data.put("SW_PARAM", obj.data.get("SW_PARAM"));
-            newobj.data.put("ParamScale", obj.data.get("ParamScale"));
-            newobj.data.put("Obj_ID", obj.data.get("Obj_ID"));
-            newobj.data.put("GeneratorID", obj.data.get("GeneratorID"));
-        }
-        
-        newobj.renderer = obj.renderer;
-        
-        addUndoEntry("addObj", newobj);
-    }
-     
     
     // -------------------------------------------------------------------------------------------------------------------------
-    // Undo + Redo
-    
-    // This object is used to save previous obj info for undo
-    public class UndoEntry {
-        public UndoEntry(AbstractObj obj) {
-            position =(Vec3f) obj.position.clone();
-            rotation =(Vec3f) obj.rotation.clone();
-            scale =(Vec3f) obj.scale.clone();
-            data =(Bcsv.Entry) obj.data.clone();
-            id = obj.uniqueID;
-            type = "changeObj";
-            layer = obj.layerKey;
-            name = obj.name;
-            objType = obj.getFileType();
+    // Copy + Paste
+        
+    public void copySelectedObjects()
+    {
+        if (selectedObjs.isEmpty())
+        {
+            setStatusToWarning("Select objects before Copying!");
+            return;
         }
         
-        public UndoEntry(String editType, AbstractObj obj) {
-            position =(Vec3f) obj.position.clone();
+        
+        LinkedHashMap<PathObj, ArrayList<PathPointObj>> pathData = new LinkedHashMap();
+        StringBuilder CopyString = new StringBuilder("WHN\n");
+        int x = 0;
+        for(var obj : selectedObjs.values())
+        {
+            if (obj instanceof PathPointObj)
+            {
+                PathPointObj pobj = (PathPointObj)obj;
+                if (!pathData.containsKey(pobj.path))
+                {
+                    pathData.put(pobj.path, new ArrayList(pobj.path.size()));
+                }
+                
+                pathData.get(pobj.path).add((PathPointObj)obj);
+                continue; //Skip paths for now...
+            }
             
-            if(obj.rotation == null)
-                rotation = new Vec3f();
+            String text = copyObject(obj);
+            CopyString.append(text);
+            if (x < selectedObjs.size()-1)
+                CopyString.append('\n');
+            x++;
+        }
+        
+        if (!pathData.isEmpty() && x > 0)
+            CopyString.append('\n');
+        
+        for(var path : pathData.entrySet())
+        {
+            PathObj key = path.getKey();
+            ArrayList<PathPointObj> value = path.getValue();
+            
+            if (key.size() == value.size()) //If this is true, we selected the entire path
+            {
+                // Copy the entire path. Users can paste this without having to have a path selected
+                CopyString.append(key.toClipboard());
+                x++;
+            }
             else
-                rotation =(Vec3f) obj.rotation.clone();
-            
-            if(obj.scale == null)
-                rotation = new Vec3f();
-            else
-                scale =(Vec3f) obj.scale.clone();
-            
-            data =(Bcsv.Entry) obj.data.clone();
-            id = obj.uniqueID;
-            type = editType;
-            layer = obj.layerKey;
-            name = obj.name;
-            
-            if(obj instanceof PathPointObj) {
-                objType = "pathpoint";
-                parentPathId = ((PathPointObj) obj).path.pathID;
-            } else {
-                objType = obj.getFileType();
+            {
+//                for(int i = 0; i < value.size(); i++)
+//                {
+//                    String pointText = value.get(i).toClipboard();
+//                    PathPointObj NextPoint = value.get(i).getNextPoint(),
+//                            PrevPoint = value.get(i).getPreviousPoint();
+//                    
+//                    CopyString.append("commonpathpointinfo|");
+//                    CopyString.append(NextPoint == null ? "-" : value.indexOf(NextPoint));
+//                    CopyString.append(",");
+//                    CopyString.append(PrevPoint == null ? "-" : value.indexOf(PrevPoint));
+//                    CopyString.append('|');
+//                    CopyString.append(pointText);
+//                    if (i < value.size()-1);
+//                        CopyString.append('\n');    
+//                }
             }
         }
         
+        tgbCopyObj.setSelected(false);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        StringSelection stringSelection = new StringSelection(CopyString.toString());
+        clipboard.setContents(stringSelection, null);
+        if (x == 0)
+            setStatusToWarning("Individual path points cannot be copied. Copy the entire path.");
+        else
+            setStatusToInfo("Copied "+x+" objects.");
+    }
+    
+    public String copyObject(AbstractObj obj)
+    {
+        return obj.toClipboard();
+    }
+    
+    /**
+     * Use this to paste the copied objects
+     * @param pastePosition This is the position decided by a mouse click. Null to just use the paste values directly
+     */
+    public void performObjectPaste(Vec3f pastePosition)
+    {
+        // Reset selected objs, as the pasted data will be auto-selected
+        tgbDeselectActionPerformed(null);
+        
+        // Calculate the origin of the paste to be the mouse position.
+        
+        ArrayList<Vec3f> ObjectPositions = new ArrayList();
+        for(var x : pasteObjectList)
+            ObjectPositions.add(x.getVector("pos"));
+        for(var y : pastePathList)
+            ObjectPositions.addAll(y.getAllPointPositions());
+        
+        Vec3f[] stockArr = new Vec3f[ObjectPositions.size()];
+        stockArr = ObjectPositions.toArray(stockArr);
+        
+        Vec3f pasteOrigin = Vec3f.centroid(stockArr);
+        
+        startUndoMulti();
+        for(var x : pasteObjectList)
+        {
+            Vec3f objPos = null;
+            
+            if (pastePosition != null)
+            {
+                // Calculate new position for object
+                objPos = x.getVector("pos");
+                Vec3f objOffset = new Vec3f(
+                        objPos.x - pasteOrigin.x,
+                        objPos.y - pasteOrigin.y,
+                        objPos.z - pasteOrigin.z );
+                objPos.x = pastePosition.x + objOffset.x;
+                objPos.y = pastePosition.y + objOffset.y;
+                objPos.z = pastePosition.z + objOffset.z;
+            }
+            
+            pasteObject(x, objPos);
+        }
+        
+        // Pasting paths weary
+        StageArchive destZoneArc = zoneArchives.get(curZone);
+        for(var path : pastePathList)
+        {
+            // Create the path
+            int newPathLinkID = 0;
+
+            for (PathObj t : destZoneArc.paths)
+                if (t.pathID >= newPathLinkID)
+                    newPathLinkID = t.pathID + 1;
+            
+            PathObj thepath = new PathObj(destZoneArc, newPathLinkID);
+            thepath.uniqueID = maxUniqueID++;
+            path.applyToInstance(thepath);
+            thepath.pathID = newPathLinkID;
+            //thepath.setName(pathName);
+            //thepath.data = (Bcsv.Entry)pathData.clone();
+
+            globalPathList.put(thepath.uniqueID, thepath);
+            destZoneArc.paths.add(thepath);
+
+            ObjListTreeNode newnode = (ObjListTreeNode)objListPathRootNode.addObject(thepath);
+            treeNodeList.put(thepath.uniqueID, newnode);
+            
+            //Path created, lets create the points now
+            for(var point : path.pointData)
+            {
+                Vec3f objPos = null, p1 = null, p2 = null;
+            
+                if (pastePosition != null)
+                {
+                    // Calculate new position for object
+                    objPos = point.getVector("pnt0");
+                    p1 = point.getVector("pnt1");
+                    p2 = point.getVector("pnt2");
+                    
+                    Vec3f objOffset = new Vec3f(
+                            objPos.x - pasteOrigin.x,
+                            objPos.y - pasteOrigin.y,
+                            objPos.z - pasteOrigin.z );
+                    objPos.x = pastePosition.x + objOffset.x;
+                    objPos.y = pastePosition.y + objOffset.y;
+                    objPos.z = pastePosition.z + objOffset.z;
+                    
+                    objOffset = new Vec3f(
+                            p1.x - pasteOrigin.x,
+                            p1.y - pasteOrigin.y,
+                            p1.z - pasteOrigin.z );
+                    p1.x = pastePosition.x + objOffset.x;
+                    p1.y = pastePosition.y + objOffset.y;
+                    p1.z = pastePosition.z + objOffset.z;
+                    
+                    objOffset = new Vec3f(
+                            p2.x - pasteOrigin.x,
+                            p2.y - pasteOrigin.y,
+                            p2.z - pasteOrigin.z );
+                    p2.x = pastePosition.x + objOffset.x;
+                    p2.y = pastePosition.y + objOffset.y;
+                    p2.z = pastePosition.z + objOffset.z;
+                }
+            
+                pastePathPoint(point, thepath, objPos, p1, p2);
+            }
+            
+            addRerenderTask("path:" + thepath.uniqueID);
+            addRerenderTask("zone:" + thepath.stage.stageName);
+            rerenderPathOwners(thepath);
+        }
+        endUndoMulti();
+        objListModel.reload();
+    }
+    
+    /**
+     * Pastes an object using the provided copy data. This performs the actual object creation
+     * @param obj the object data to paste
+     * @param objPosition If null, will use the positioning data in the obj
+     */
+    private void pasteObject(PasteObjectData obj, Vec3f objPosition)
+    {
+        String newObjKey = obj.type + "|" + (String)obj.data.getOrDefault("name", "");
+
+        if (objPosition == null)
+            objPosition = obj.getVector("pos");
+
+        addObject(objPosition, newObjKey, "common", curZone, true);
+        obj.applyToInstance(newobj);
+        
+        addUndoEntry(IUndo.Action.ADD, newobj);
+    }
+    private void pastePathPoint(PastePathData.PastePathPointData obj, PathObj owner, Vec3f objPosition, Vec3f point1, Vec3f point2)
+    {
+        if (objPosition == null)
+            objPosition = obj.getVector("pnt0");
+        
+        //We need to create the point manually again
+        PathPointObj thepoint = new PathPointObj(owner, objPosition);
+        obj.applyToInstance(thepoint);
+        thepoint.point1 = point1;
+        thepoint.point2 = point2;
+        
+        thepoint.uniqueID = maxUniqueID;
+        maxUniqueID += 3;
+        globalObjList.put(thepoint.uniqueID, thepoint);
+        globalPathPointList.put(thepoint.uniqueID, thepoint);
+        int pointIdx = owner.size();
+        owner.getPoints().add(pointIdx, thepoint);
+
+        ObjListTreeNode listnode = objListPathRootNode;
+        listnode =(ObjListTreeNode) listnode.children.get(owner.uniqueID);
+        TreeNode newNode = listnode.addObject(pointIdx, thepoint);
+        treeNodeList.put(thepoint.uniqueID, newNode);
+        
+        //selectedObjs.put(thepoint.uniqueID, thepoint);
+        
+        newobj = thepoint; //is this really needed...?
+        addUndoEntry(IUndo.Action.ADD, thepoint);
+    }
+     
+    public void pasteClipboardIntoObjects(boolean isLiteralPaste)
+    {
+        if (isDragging)
+        {
+            setStatusToWarning("Stop dragging before pasting!");
+            return;
+        }
+        //Cancel other modes first
+        addingObject = "";
+        deletingObjects = false;
+        
+        pasteObjectList.clear();
+        pastePathList.clear();
+        // There's two paste modes:
+        // Additive: Ask the user to place the objects down. The point of the click will be the center of all of the object origins using bounding box
+        // Literal: Pastes one set each time the function is ran. Everything is pasted at the position in the paste data.
+        String data;
+        try
+        {
+            data = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
+        }
+        catch(Exception e)
+        {
+            setStatusToError("Clipboard access failed:", e);
+            return;
+        }
+        data = data.replace("\r\n", "\n");
+        
+        if (!data.startsWith("WHN"))
+        {
+            setStatusToError("Paste failed:", new Exception("Data in Clipboard is not a Whitehole string."));
+            return;
+        }
+        
+        String[] Lines = data.split("\n");
+        // The first one should be the indicator
+        // For each row...
+        for(int i = 0; i < Lines.length; i++)
+        {
+            String Line = Lines[i];
+            if (Line.isBlank())
+                continue;
+            
+            if (Line.startsWith("WHNFP|"))
+            {
+                // New path
+                PastePathData pd = new PastePathData(Line);
+                for(int j = 0; j < pd.count; j++)
+                {
+                    Line = Lines[++i];
+                    pd.add(Line);
+                }
+                pastePathList.add(pd);
+            }
+            else if (Line.startsWith("commonpathpointinfo|"))
+            {
+                // New path points. Requires a path to be selected
+                System.out.println("Cannot paste path points individually");
+            }
+            else if (!Line.startsWith("WHN"))
+            {
+                PasteObjectData d = new PasteObjectData(Line);
+                pasteObjectList.add(d);
+            }
+        }
+        
+        // once all the paste data is prepared, decide which paste mode to use
+        if (isLiteralPaste)
+        {
+            // paste right away
+            performObjectPaste(null);
+        }
+        else
+        {
+            // require the user to paste
+            isPasteMode = true;
+            setStatusToInfo("Click to paste objects (hold shift to paste multiple times)");
+        }
+    }
+    
+    
+    static final ArrayList<PasteObjectData> pasteObjectList = new ArrayList();
+    static final ArrayList<PastePathData> pastePathList = new ArrayList();
+    
+    class PasteObjectData
+    {
+        public final String type;
+        public final Bcsv.Entry data;
+        
+        public PasteObjectData(String source)
+        {
+            String[] Parts = source.split("\\|");
+            String DataString = source.substring(Parts[0].length()+1);
+            
+            type = Parts[0];
+            assert(Parts[1].equals("WHNO"));
+            data = new Bcsv.Entry();
+            data.fromClipboard(DataString, "WHNO");
+        }
+        
+        public void applyToInstance(AbstractObj obj)
+        {
+            // We can copy over everything since the position will just be overridden next save/copy
+            obj.data = (Bcsv.Entry)data.clone();
+            obj.rotation = getVector("dir");
+            obj.scale = getVector("scale");
+        }
+        
+        public final Vec3f getVector(String prefix)
+        {
+            float x = (float)data.getOrDefault(prefix + "_x", 0.0f);
+            float y = (float)data.getOrDefault(prefix + "_y", 0.0f);
+            float z = (float)data.getOrDefault(prefix + "_z", 0.0f);
+            return new Vec3f(x, y, z);
+        }
+    }
+    class PastePathData
+    {
+        public final int count;
+        public final Bcsv.Entry data;
+        public final ArrayList<PastePathPointData> pointData;
+        
+        public PastePathData(String source)
+        {
+            String[] Parts = source.split("\\|");
+            String DataString = source.substring(Parts[0].length()+1 + Parts[1].length()+1);
+            data = new Bcsv.Entry();
+            data.fromClipboard(DataString, "WHNP");
+            count = Integer.parseInt(Parts[1]);
+            pointData = new ArrayList(count);
+        }
+        
+        public void applyToInstance(PathObj obj)
+        {
+            obj.data = (Bcsv.Entry)data.clone();
+            obj.name = (String)data.get("name");
+        }
+        
+        public ArrayList<Vec3f> getAllPointPositions()
+        {
+            ArrayList<Vec3f> positions = new ArrayList();
+            for(var x : pointData)
+                positions.add(x.getVector("pnt0"));
+            return positions;
+        }
+    
+        public void add(String s)
+        {
+            PastePathPointData d = new PastePathPointData(s);
+            pointData.add(d);
+        }
+        
+        public class PastePathPointData
+        {
+            public final String type = "commonpathpointinfo";
+            public final Bcsv.Entry data;
+
+            public PastePathPointData(String source)
+            {
+                assert(source.startsWith("WHNPP|"));
+                data = new Bcsv.Entry();
+                data.fromClipboard(source, "WHNPP");
+            }
+
+            public void applyToInstance(PathPointObj obj)
+            {
+                // We can copy over everything since the position will just be overridden next save/copy
+                obj.data = (Bcsv.Entry)data.clone();
+                obj.point1 = getVector("pnt1");
+                obj.point2 = getVector("pnt2");
+            }
+
+            public final Vec3f getVector(String prefix)
+            {
+                float x = (float)data.getOrDefault(prefix + "_x", 0.0f);
+                float y = (float)data.getOrDefault(prefix + "_y", 0.0f);
+                float z = (float)data.getOrDefault(prefix + "_z", 0.0f);
+                return new Vec3f(x, y, z);
+            }
+        }
+    }
+    
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Undo + Redo
+
+    public interface IUndo
+    {
+        static String ERR_OBJNOEXIST = "The object tied to this Undo Entry does not exist";
+        static String ERR_PATHNOEXIST = "The path tied to this Undo Entry does not exist";
+        
+        public void performUndo();
+        
+        public enum Action
+        {
+            TRANSLATE,
+            ROTATE,
+            SCALE,
+            
+            ADD,
+            DELETE,
+            
+            PARAMETER,
+            NAME_ZONE_LAYER
+        }
+    }
+    
+    
+    public class UndoObjectTranslateEntry implements IUndo
+    {
+        public int id;
+        public Vec3f position;
+        
+        public UndoObjectTranslateEntry(AbstractObj obj)
+        {
+            id = obj.uniqueID;
+            position = (Vec3f)obj.position.clone();
+        }
+        
+        @Override
+        public void performUndo()
+        {
+            AbstractObj obj = globalObjList.get(id);
+            
+            if (obj == null)
+                throw new NullPointerException(ERR_OBJNOEXIST);
+            
+            obj.position = (Vec3f)position.clone();
+            pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
+            pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
+            pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
+            pnlObjectSettings.repaint();
+            
+            addRerenderTask("allobjects");
+        }
+    }
+    public class UndoObjectRotateEntry implements IUndo
+    {
+        public int id;
+        public Vec3f rotation;
+        
+        public UndoObjectRotateEntry(AbstractObj obj)
+        {
+            id = obj.uniqueID;
+            rotation = (Vec3f)obj.rotation.clone();
+        }
+        
+        @Override
+        public void performUndo()
+        {
+            AbstractObj obj = globalObjList.get(id);
+            if (obj == null)
+                throw new NullPointerException(ERR_OBJNOEXIST);
+            obj.rotation = (Vec3f)rotation.clone();
+            pnlObjectSettings.setFieldValue("dir_x", obj.rotation.x);
+            pnlObjectSettings.setFieldValue("dir_y", obj.rotation.y);
+            pnlObjectSettings.setFieldValue("dir_z", obj.rotation.z);
+            pnlObjectSettings.repaint();
+            
+            addRerenderTask("allobjects");
+        }
+    }
+    public class UndoObjectScaleEntry implements IUndo
+    {
+        public int id;
+        public Vec3f scale;
+        
+        public UndoObjectScaleEntry(AbstractObj obj)
+        {
+            id = obj.uniqueID;
+            scale = (Vec3f)obj.scale.clone();
+        }
+        
+        @Override
+        public void performUndo()
+        {
+            AbstractObj obj = globalObjList.get(id);
+            if (obj == null)
+                throw new NullPointerException(ERR_OBJNOEXIST);
+            obj.scale = (Vec3f)scale.clone();
+            pnlObjectSettings.setFieldValue("scale_x", obj.scale.x);
+            pnlObjectSettings.setFieldValue("scale_y", obj.scale.y);
+            pnlObjectSettings.setFieldValue("scale_z", obj.scale.z);
+            pnlObjectSettings.repaint();
+            
+            addRerenderTask("allobjects");
+        }
+    }
+    
+    public class UndoObjectAddEntry implements IUndo
+    {
+        public int id;
+        
+        public UndoObjectAddEntry(AbstractObj obj)
+        {
+            id = obj.uniqueID;
+        }
+        
+        @Override
+        public void performUndo()
+        {
+            deleteObject(id); //Is this really it...?
+        }
+    }
+    public class UndoObjectDeleteEntry implements IUndo
+    {
+        public String objectType;
+        public String name;
+        public String layer;
+        public int scenarioID;
+        public String zoneName;
         public Vec3f position;
         public Vec3f rotation;
         public Vec3f scale;
         public Bcsv.Entry data;
-        public String type, layer, name, objType;
-        public int id;
         
-        public int parentPathId;
+        public UndoObjectDeleteEntry(AbstractObj obj)
+        {
+            position = (Vec3f)obj.position.clone();
+            rotation = (Vec3f)obj.rotation.clone();
+            scale = (Vec3f)obj.scale.clone();
+            data = (Bcsv.Entry)obj.data.clone();
+            
+            layer = obj.layerKey;
+            name = obj.name;
+            objectType = obj.getFileType();
+            zoneName = obj.stage.stageName;
+            scenarioID = curScenarioID;
+        }
+        
+        @Override
+        public void performUndo()
+        {
+            addObject(position, objectType + "|" + name, layer, zoneName, true);
+            addRerenderTask("zone:"+zoneName);
+
+            newobj.data = (Bcsv.Entry)data.clone();
+            newobj.position = (Vec3f)position.clone();
+            newobj.rotation = (Vec3f)rotation.clone();
+            newobj.scale = (Vec3f)scale.clone();
+        }
+    }
+    
+    public class UndoObjectEditEntry implements IUndo
+    {
+        public int id;
+        public Bcsv.Entry data;
+        
+        public UndoObjectEditEntry(AbstractObj obj)
+        {
+            id = obj.uniqueID;
+            data = (Bcsv.Entry)obj.data.clone();
+        }
+        
+        @Override
+        public void performUndo()
+        {
+            AbstractObj obj = globalObjList.get(id);
+            if (obj == null)
+                throw new NullPointerException(ERR_OBJNOEXIST);
+            obj.data = (Bcsv.Entry)data.clone();
+            selectionChanged();
+            renderAllObjects();
+            addRerenderTask("object:"+Integer.toString(obj.uniqueID));
+            
+        }
+    }
+    public class UndoObjectNameZoneLayerEntry implements IUndo
+    {
+        public int id;
+        public String name;
+        public String zone;
+        public String layer;
+
+        public UndoObjectNameZoneLayerEntry(AbstractObj obj)
+        {
+            id = obj.uniqueID;
+            name = obj.name;
+            zone = obj.stage.stageName;
+            layer = obj.layerKey;
+        }
+
+        @Override
+        public void performUndo()
+        {            
+            AbstractObj obj = globalObjList.get(id);
+            if (obj == null)
+                throw new NullPointerException(ERR_OBJNOEXIST);
+            
+            // Undo name change
+            obj.name = name;
+            obj.loadDBInfo();
+
+            // Undo zone change
+            String oldzone = obj.stage.stageName;
+            String newzone = zone;
+            
+            if (!oldzone.equals(newzone))
+            {
+                int uid = obj.uniqueID;
+
+                obj.stage = zoneArchives.get(newzone);
+                zoneArchives.get(oldzone).objects.get(obj.layerKey).remove(obj);
+                if(zoneArchives.get(newzone).objects.containsKey(obj.layerKey))
+                    zoneArchives.get(newzone).objects.get(obj.layerKey).add(obj);
+                else {
+                    obj.layerKey = "common";
+                    zoneArchives.get(newzone).objects.get(obj.layerKey).add(obj);
+                }
+                
+                if(treeNodeList.containsKey(uid)) {
+                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
+                    
+                    
+                    TreeNode tn = treeNodeList.get(uid);
+                    TreePath tp = new TreePath(objlist.getPathToRoot(tn));
+                    var pth = tp.getPath();
+                    if (pth[0] instanceof DefaultMutableTreeNode)
+                    {
+                        var x = (DefaultMutableTreeNode)pth[0];
+                        String d = (String)x.getUserObject();
+                        
+                        if (d.equals(oldzone))
+                        {
+                            ObjTreeNode thenode = (ObjTreeNode)treeNodeList.get(uid);
+                            objlist.removeNodeFromParent(thenode);
+                            treeNodeList.remove(uid);
+                            treeObjects.clearSelection();
+                        }
+                        else
+                        {
+                            treeObjects.setSelectionPath(tp);
+                            treeObjects.scrollPathToVisible(tp);
+                        }
+                    }
+                    
+                }
+
+                selectedObjs.clear();
+            }
+            
+            String oldlayer = obj.layerKey;
+            String newlayer = layer.toLowerCase();
+
+            if (!oldlayer.equals(newlayer))
+            {
+                obj.layerKey = newlayer;
+                zoneArchives.get(oldzone).objects.get(oldlayer).remove(obj);
+                obj.stage.objects.get(newlayer).add(obj);
+            }
+            
+            
+            DefaultTreeModel objlist = (DefaultTreeModel)treeObjects.getModel();
+            var tx = treeNodeList.get(obj.uniqueID);
+            if (tx != null)
+                objlist.nodeChanged(tx);
+
+            selectionChanged();
+            
+            addRerenderTask("zone:"+oldzone);
+            addRerenderTask("zone:"+newzone);
+            addRerenderTask("object:"+Integer.toString(obj.uniqueID));
+            glCanvas.repaint();
+        }
+    }
+    
+    public class UndoPathPointTranslateEntry implements IUndo
+    {
+        public int id;
+        public Vec3f position;
+        public Vec3f positionCtrl1;
+        public Vec3f positionCtrl2;
+        
+        public UndoPathPointTranslateEntry(PathPointObj obj)
+        {
+            id = obj.uniqueID;
+            position = (Vec3f)obj.position.clone();
+            positionCtrl1 = (Vec3f)obj.point1.clone();
+            positionCtrl2 = (Vec3f)obj.point2.clone();
+        }
+
+        @Override
+        public void performUndo() {
+            PathPointObj obj = globalPathPointList.get(id);
+            if (obj == null)
+                throw new NullPointerException(ERR_PATHNOEXIST);
+            
+            obj.position = (Vec3f)position.clone();
+            pnlObjectSettings.setFieldValue("pnt0_x", obj.position.x);
+            pnlObjectSettings.setFieldValue("pnt0_y", obj.position.y);
+            pnlObjectSettings.setFieldValue("pnt0_z", obj.position.z);
+            
+            obj.point1 = (Vec3f)positionCtrl1.clone();
+            pnlObjectSettings.setFieldValue("pnt1_x", obj.point1.x);
+            pnlObjectSettings.setFieldValue("pnt1_y", obj.point1.y);
+            pnlObjectSettings.setFieldValue("pnt1_z", obj.point1.z);
+            
+            obj.point2 = (Vec3f)positionCtrl2.clone();
+            pnlObjectSettings.setFieldValue("pnt2_x", obj.point2.x);
+            pnlObjectSettings.setFieldValue("pnt2_y", obj.point2.y);
+            pnlObjectSettings.setFieldValue("pnt2_z", obj.point2.z);
+            pnlObjectSettings.repaint();
+            
+            addRerenderTask("allpaths");
+            addRerenderTask("allobjects");
+        }
+    }
+    
+    public class UndoPathPointDeleteEntry implements IUndo
+    {
+        public final int pathUID;
+        public final int pathLinkID;
+        public final String pathName;
+        public final Bcsv.Entry pathData;
+        public final int prevUID;
+        public final String layer;
+        public final int scenarioID;
+        public final String zoneName;
+        
+        public final int pointIdx;
+        public final Vec3f position;
+        public final Vec3f positionCtrl1;
+        public final Vec3f positionCtrl2;
+        public final Bcsv.Entry pointData;
+        
+        public UndoPathPointDeleteEntry(PathPointObj obj)
+        {
+            pathUID = obj.path.uniqueID;
+            pathLinkID = obj.path.pathID;
+            pathName = obj.path.name;
+            pathData = (Bcsv.Entry)obj.path.data.clone();
+            pointData = (Bcsv.Entry)obj.data.clone();
+            prevUID = obj.uniqueID;
+            pointIdx = obj.path.indexOf(obj);
+            position = (Vec3f)obj.position.clone();
+            positionCtrl1 = (Vec3f)obj.point1.clone();
+            positionCtrl2 = (Vec3f)obj.point2.clone();
+            
+            layer = obj.layerKey;
+            scenarioID = curScenarioID;
+            zoneName = obj.stage.stageName;
+        }
+        
+        @Override
+        public void performUndo()
+        {
+            Vec3f newpos = position;
+
+            
+            PathObj thepath;
+            // If we deleted the last point in a path, we'll need to re-make the path...
+            if (!globalPathList.containsKey(pathUID))
+            {
+                //Seems we need to create a new path...
+                int newPathLinkID = pathLinkID;
+                StageArchive destZoneArc = zoneArchives.get(zoneName);
+                thepath = new PathObj(destZoneArc, newPathLinkID);
+                thepath.uniqueID = pathUID;
+                thepath.setName(pathName);
+                thepath.data = (Bcsv.Entry)pathData.clone();
+                
+                globalPathList.put(thepath.uniqueID, thepath);
+                destZoneArc.paths.add(thepath);
+                
+                ObjListTreeNode newnode = (ObjListTreeNode)objListPathRootNode.addObject(thepath);
+                treeNodeList.put(thepath.uniqueID, newnode);
+            }
+            else
+            {
+                thepath = globalPathList.get(pathUID);
+            }
+            
+            PathPointObj thepoint = new PathPointObj(thepath, newpos);
+            thepoint.point1 = positionCtrl1;
+            thepoint.point2 = positionCtrl2;
+            thepoint.data.put("id", (short)pointIdx);
+            thepoint.data = (Bcsv.Entry)pointData.clone();
+            newobj = thepoint;
+            thepoint.uniqueID = prevUID;
+            globalObjList.put(thepoint.uniqueID, thepoint);
+            globalPathPointList.put(thepoint.uniqueID, thepoint);
+            thepath.getPoints().add(pointIdx, thepoint);
+
+            
+            ObjListTreeNode listnode = objListPathRootNode;
+            listnode =(ObjListTreeNode) listnode.children.get(thepath.uniqueID);
+
+            TreeNode newNode = listnode.addObject(pointIdx, thepoint);
+            treeNodeList.put(thepoint.uniqueID, newNode);
+
+
+            // Update tree node model and scroll to new node
+            objListModel.reload();
+            TreePath path = new TreePath(objListModel.getPathToRoot(newNode));
+            treeObjects.setSelectionPath(path);
+            treeObjects.scrollPathToVisible(path);
+                
+            addRerenderTask("path:" + thepath.uniqueID);
+            addRerenderTask("zone:" + thepath.stage.stageName);
+            rerenderPathOwners(thepath);
+        }
+    }
+    
+    public class UndoPathPointEditEntry implements IUndo
+    {
+        public final int id;
+        public final int pathUID;
+        public final String pathName;
+        public final int pathLinkID;
+        
+        public final Bcsv.Entry dataPath;
+        public final Bcsv.Entry dataPoint;
+        
+        public UndoPathPointEditEntry(PathPointObj obj)
+        {
+            id = obj.uniqueID;
+            pathUID = obj.path.uniqueID;
+            pathName = obj.path.name;
+            pathLinkID = obj.path.pathID;
+            
+            dataPath = (Bcsv.Entry)obj.path.data.clone();
+            dataPoint = (Bcsv.Entry)obj.data.clone();
+        }
+        
+        @Override
+        public void performUndo()
+        {
+            PathPointObj obj = globalPathPointList.get(id);
+            if (obj == null)
+                throw new NullPointerException(ERR_PATHNOEXIST);
+            
+            obj.path.setName(pathName);
+            obj.path.pathID = pathLinkID;
+            obj.path.data = (Bcsv.Entry)dataPath.clone();
+            obj.data = (Bcsv.Entry)dataPoint.clone();
+            
+            DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
+            objlist.nodeChanged(treeNodeList.get(obj.path.uniqueID));
+            
+            addRerenderTask("path:" + obj.path.uniqueID);
+            addRerenderTask("zone:" + obj.stage.stageName);
+            rerenderPathOwners(obj.path);
+            
+            pnlObjectSettings.setFieldValue("[P]name", obj.path.name);
+            pnlObjectSettings.setFieldValue("[P]l_id", obj.path.pathID);
+            pnlObjectSettings.setFieldValue("[P]closed", obj.path.isClosed());
+            pnlObjectSettings.setFieldValue("[P]usage", obj.path.data.get("usage"));
+            pnlObjectSettings.setFieldValue("[P]Path_ID", obj.path.data.get("Path_ID"));
+            pnlObjectSettings.setFieldValue("[P]path_arg0", obj.path.data.get("path_arg0"));
+            pnlObjectSettings.setFieldValue("[P]path_arg1", obj.path.data.get("path_arg1"));
+            pnlObjectSettings.setFieldValue("[P]path_arg2", obj.path.data.get("path_arg2"));
+            pnlObjectSettings.setFieldValue("[P]path_arg3", obj.path.data.get("path_arg3"));
+            pnlObjectSettings.setFieldValue("[P]path_arg4", obj.path.data.get("path_arg4"));
+            pnlObjectSettings.setFieldValue("[P]path_arg5", obj.path.data.get("path_arg5"));
+            pnlObjectSettings.setFieldValue("[P]path_arg6", obj.path.data.get("path_arg6"));
+            pnlObjectSettings.setFieldValue("[P]path_arg7", obj.path.data.get("path_arg7"));
+            pnlObjectSettings.setFieldValue("point_arg0", obj.data.get("point_arg0"));
+            pnlObjectSettings.setFieldValue("point_arg1", obj.data.get("point_arg1"));
+            pnlObjectSettings.setFieldValue("point_arg2", obj.data.get("point_arg2"));
+            pnlObjectSettings.setFieldValue("point_arg3", obj.data.get("point_arg3"));
+            pnlObjectSettings.setFieldValue("point_arg4", obj.data.get("point_arg4"));
+            pnlObjectSettings.setFieldValue("point_arg5", obj.data.get("point_arg5"));
+            pnlObjectSettings.setFieldValue("point_arg6", obj.data.get("point_arg6"));
+            pnlObjectSettings.setFieldValue("point_arg7", obj.data.get("point_arg7"));
+            pnlObjectSettings.repaint();
+        }
+    }
+    
+    /**
+     * This class represents several undo moves that can be undone all at once.
+     */
+    public class UndoMultiEntry implements IUndo
+    {
+        final ArrayList<IUndo> undoList = new ArrayList();
+
+        @Override
+        public void performUndo()
+        {
+            for (int i = undoList.size()-1; i >= 0; i--)
+                undoList.get(i).performUndo();
+        }
+        
+        public void add(IUndo action)
+        {
+            //TODO Validation?
+            undoList.add(action);
+        }
     }
     
     /**
      * Decrease {@code undoIndex} and undo if possible.
      */
-    public void undo() {
-        // Decrease undo index
-        if(undoIndex >= 1)
-            undoIndex--;
-        else // Nothing to undo
+    public void doUndo()
+    {
+        if (!isGalaxyMode)
+        {
+            parentForm.doUndo();
+            updateZonePaint(this.curZone);
+            selectionChanged();
             return;
-        
-        UndoEntry change = undoList.get(undoIndex);
-        
-        if(change.objType.equals("pathpoint")) {
-            setStatusToWarning("Undoing path points is currently not supported, sorry!");
-        } else {
-            switch(change.type) {
-                case "changeObj":
-                    AbstractObj obj = globalObjList.get(change.id);
-                    obj.data = (Bcsv.Entry) change.data.clone();
-                    obj.position = (Vec3f) change.position.clone();
-                    obj.rotation = (Vec3f) change.rotation.clone();
-                    obj.scale = (Vec3f) change.scale.clone();
-                    pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
-                    pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
-                    pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
-                    pnlObjectSettings.repaint();
-                    addRerenderTask("zone:"+obj.stage.stageName);
-                    break;
-                case "deleteObj":
-                    addingObject = change.objType + "|" + change.name;
-                    addingObjectOnLayer = change.layer;
-
-                    addObject(change.position);
-                    addingObject = "";
-
-                    newobj.data =(Bcsv.Entry) change.data.clone();
-                    newobj.position =(Vec3f) change.position.clone();
-
-                    if(change.rotation != null)
-                        newobj.rotation =(Vec3f) change.rotation.clone();
-
-                    if(change.scale != null)
-                        newobj.scale =(Vec3f) change.scale.clone();
-
-                    addRerenderTask("zone:" + newobj.stage.stageName);
-                    break;
-                case "addObj":
-                    deleteObject(change.id);
-            }
+        }
+        // Decrease undo index
+        String yesUndo;
+        if(undoIndex >= 1)
+        {
+            undoIndex--;
+            yesUndo = "Undo performed (" + undoIndex+" remaining).";
+        }
+        else // Nothing to undo
+        {
+            setStatusToWarning("No undos available.");
+            return;
         }
         
+        IUndo change = undoList.get(undoIndex);
         undoList.remove(change);
+        try
+        {
+            change.performUndo();
+        }
+        catch(Exception ex)
+        {
+            setStatusToError("Undo Failed:", ex);
+            return;
+        }
+        
+        setStatusToInfo(yesUndo);
+        System.out.println(yesUndo);
+        glCanvas.repaint();
     }
     
     /**
@@ -2285,43 +3249,136 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @param type the type of action
      * @param obj the object that the action was performed on
      */
-    public void addUndoEntry(String type, AbstractObj obj) {
-        if(obj instanceof PathPointObj)
-            return; // we don't support path points
-        
-        if(undoIndex != undoList.size())
-            undoList.subList(0, undoIndex);
-        if(undoIndex > 0) {
-            if(undoList.get(undoIndex - 1).type.equals(type) && undoList.get(undoIndex - 1).id == obj.uniqueID)
-                return;
+    public void addUndoEntry(IUndo.Action type, AbstractObj obj) {
+        if (obj == null)
+            return;
+        if (!isGalaxyMode)
+        {
+            parentForm.addUndoEntry(type, obj);
+            return;
         }
         
+        IUndo newEntry = null;
+        
+        if (obj instanceof PathPointObj)
+        {
+            switch (type)
+            {
+                case TRANSLATE:
+                    newEntry = new UndoPathPointTranslateEntry((PathPointObj)obj);
+                    break;
+                case ADD:
+                    newEntry = new UndoObjectAddEntry(obj);
+                    break;
+                case DELETE:
+                    newEntry = new UndoPathPointDeleteEntry((PathPointObj)obj);
+                    break;
+                case PARAMETER:
+                    newEntry = new UndoPathPointEditEntry((PathPointObj)obj);
+                    break;
+            }
+        }
+        else
+        {
+            switch (type)
+            {
+                case TRANSLATE:
+                    newEntry = new UndoObjectTranslateEntry(obj);
+                    break;
+                case ROTATE:
+                    newEntry = new UndoObjectRotateEntry(obj);
+                    break;
+                case SCALE:
+                    newEntry = new UndoObjectScaleEntry(obj);
+                    break;
+                case ADD:
+                    newEntry = new UndoObjectAddEntry(obj);
+                    break;
+                case DELETE:
+                    newEntry = new UndoObjectDeleteEntry(obj);
+                    break;
+                case PARAMETER:
+                    newEntry = new UndoObjectEditEntry(obj);
+                    break;
+                case NAME_ZONE_LAYER:
+                    newEntry = new UndoObjectNameZoneLayerEntry(obj);
+                    break;
+            }
+        }
+
+        
+        if (newEntry == null)
+        {
+            setStatusToWarning("Undo \""+type.toString()+"\" cannot be applied to "+obj.getClass().getCanonicalName());
+            return;
+        }
+        if (currentUndoMulti != null)
+            System.out.print("  ");
         System.out.println("UNDO_STACK: Added " + type + " for " + obj);
 
-        undoList.add(new UndoEntry(type, obj));
-        undoIndex++;
+        if (currentUndoMulti != null)
+        {
+            // If there's an Undo Multi active, register it there instead
+            currentUndoMulti.add(newEntry);
+        }
+        else
+        {
+            undoList.add(newEntry);
+            undoIndex++;
+            //selectionChanged(); // REMOVING THIS WHY DID I PUT IT HERE???
+        }
     }
     
+    public void startUndoMulti()
+    {
+        if (currentUndoMulti != null)
+            throw new VerifyError("Cannot start a second Undo Multi while one is already running");
+        
+        currentUndoMulti = new UndoMultiEntry();
+        System.out.println("UNDO_STACK_MULTI\n{");
+    }
+    public void endUndoMulti()
+    {
+        if (currentUndoMulti == null)
+            throw new VerifyError("Cannot stop a non-existant Undo Multi");
+        
+        undoList.add(currentUndoMulti);
+        undoIndex++;
+        currentUndoMulti = null;
+        
+        System.out.println("}");
+    }
     
     // -------------------------------------------------------------------------------------------------------------------------
-    // Actual galaxy scene renderer
+    // Galaxy Scene Rendering    
+    
+    /**
+     * Calculates the mouse position with adherence to DPI
+     * @param e
+     * @return 
+     */
+    public Point getDPIPoint(MouseEvent e)
+    {
+        Point newpos = e.getPoint();
+        return new Point((int)(newpos.x * DPIScaleX), (int)(newpos.y * DPIScaleY));
+    }
     
     /**
      * Rerenders all objects in all zones.
      */
     public void renderAllObjects() {
         for(String zone : zoneArchives.keySet())
-            rerenderTasks.add("zone:" + zone);
+            addRerenderTask("zone:" + zone);
         
         glCanvas.repaint();
     }
     
     /**
-     * Updates a zone.
+     * Redraws a zone. For use with Edit Individually.
      * @param zone 
      */
-    private void updateZone(String zone) {
-        rerenderTasks.add("zone:" + zone);
+    private void updateZonePaint(String zone) {
+        addRerenderTask("zone:" + zone);
         glCanvas.repaint();
     }
     
@@ -2332,12 +3389,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public void addRerenderTask(String task) {
         if(!rerenderTasks.contains(task))
             rerenderTasks.add(task);
-    }
-    
-    public Point getDPIPoint(MouseEvent e)
-    {
-        Point newpos = e.getPoint();
-        return new Point((int)(newpos.x * DPIScaleX), (int)(newpos.y * DPIScaleY));
     }
     
     private class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
@@ -2687,9 +3738,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     String[] task = rerenderTasks.poll().split(":");
                     switch(task[0]) {
                         case "zone":
-                            renderInfo.renderMode = GLRenderer.RenderMode.PICKING;      renderAllObjects(gl);
-                            renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE;       prerenderZone(gl, task[1]);
-                            renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  prerenderZone(gl, task[1]);
+                            renderInfo.renderMode = GLRenderer.RenderMode.PICKING;
+                            renderAllObjects(gl);
+                            
+                            renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE;
+                            prerenderZone(gl, task[1]);
+                            
+                            renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;
+                            prerenderZone(gl, task[1]);
                             break;
 
                         case "object":
@@ -2721,17 +3777,30 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             break;
 
                         case "allobjects":
-                            renderInfo.renderMode = GLRenderer.RenderMode.PICKING;      renderAllObjects(gl);
-                            renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE;       renderAllObjects(gl);
-                            renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  renderAllObjects(gl);
+                            renderInfo.renderMode = GLRenderer.RenderMode.PICKING;
+                            renderAllObjects(gl);
+                            
+                            renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE;
+                            renderAllObjects(gl);
+                            
+                            renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;
+                            renderAllObjects(gl);
                             break;
-
+                            
                         case "path":
+                            int pathid = Integer.parseInt(task[1]);
+                            PathObj pobj = globalPathList.get(pathid);
+                            if (pobj != null)
+                                pobj.prerender(renderInfo);
+                            break;
+                            
+                        case "allpaths":
+                            for(var p : globalPathList.values())
                             {
-                                int pathid = Integer.parseInt(task[1]);
-                                PathObj pobj = globalPathList.get(pathid);
-                                if (pobj != null)
-                                    pobj.prerender(renderInfo);
+                                p.render(renderInfo);
+                                p.prerender(renderInfo);
+                                
+                                rerenderPathOwners(p);
                             }
                             break;
                     }
@@ -2882,7 +3951,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             gl.glPolygonOffset(-1f, -1f);
             renderInfo.drawable = glCanvas;
             RenderMode oldmode = renderInfo.renderMode;
-            renderInfo.renderMode = RenderMode.PICKING;
+            renderInfo.renderMode = RenderMode.HIGHLIGHT;
             gl.glColor4f(1f, 1f, 0.75f, 0.3f);
             return oldmode;
         }
@@ -2951,14 +4020,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(!initializedRenderer)
                 return;
             
-            int CurMouseX = (int)(e.getX()*DPIScaleX);
-            int CurMouseY = (int)(e.getY()*DPIScaleY);
+            int CurMouseX = (int)(e.getX() * DPIScaleX);
+            int CurMouseY = (int)(e.getY() * DPIScaleY);
             float xdelta = (float)(CurMouseX - mousePos.x);
             float ydelta = (float)(CurMouseY - mousePos.y);
+            boolean isStartDrag = false;
             
             if(!isDragging && (Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f)) {
                 pickingCapture = true;
                 isDragging = true;
+                isStartDrag = true;
             }
             
             if(!isDragging)
@@ -2974,6 +4045,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             if(!selectedObjs.isEmpty() && selectedObjs.containsKey(underCursor >>> 3)) {
                 if(mouseButton == MouseEvent.BUTTON1) { // left click
+                    if (isStartDrag)
+                    {
+                        for(AbstractObj selectedObj : selectedObjs.values())
+                            addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+                    }
                     float objz = depthUnderCursor;
                     
                     xdelta *= pixelFactorX * objz * SCALE_DOWN;
@@ -3076,8 +4152,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            if(!initializedRenderer) return;
-            if(mouseButton != MouseEvent.NOBUTTON) return;
+            if(!initializedRenderer)
+                return;
+            if(mouseButton != MouseEvent.NOBUTTON)
+                return;
             
             mouseButton = e.getButton();
             mousePos = getDPIPoint(e);
@@ -3092,17 +4170,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if(!initializedRenderer) return;
-            if(e.getButton() != mouseButton) return;
+            if(!initializedRenderer)
+                return;
+            if(e.getButton() != mouseButton)
+                return;
             
             mouseButton = MouseEvent.NOBUTTON;
             mousePos = getDPIPoint(e);
             boolean shiftpressed = e.isShiftDown();
             boolean ctrlpressed = e.isControlDown();
-            if(keyTranslating == false && keyScaling == false && keyRotating == false) {
-                if(isDragging) {
+            if(!keyTranslating && !keyScaling && !keyRotating)
+            {
+                if(isDragging)
+                {
                     isDragging = false;
-                    if(Settings.getDebugFastDrag()) e.getComponent().repaint();
+                    if(Settings.getDebugFastDrag())
+                        e.getComponent().repaint();
                     return;
                 }
 
@@ -3124,43 +4207,86 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 int oldarg = selectionArg;
                 selectionArg = 0;
 
-                if(e.getButton() == MouseEvent.BUTTON3) {
-                    // right click: cancels current add/delete command
-
-                    if(!addingObject.isEmpty()) {
+                if(e.getButton() == MouseEvent.BUTTON3) // Right Click: Cancel current add/delete/paste command
+                {
+                    if(!addingObject.isEmpty())
+                    {
                         addingObject = "";
                         tgbAddObject.setSelected(false);
                         setDefaultStatus();
                     }
-                    else if(deletingObjects) {
+                    else if(deletingObjects)
+                    {
                         deletingObjects = false;
                         tgbDeleteObject.setSelected(false);
                         setDefaultStatus();
                     }
+                    else if (isPasteMode)
+                    {
+                        isPasteMode = false;
+                        setDefaultStatus();
+                    }
                 }
-                else {
-                    // left click: places/deletes objects or selects
-
-                    if(!addingObject.isEmpty()) {
-                        addObject(mousePos);
-
-                        if(!addingObject.startsWith("path")) {
-                            undoList.add(new UndoEntry("addObj", newobj));
-                            undoIndex++;
+                else // Left Click: Places/Deletes/Pastes objects or selects objects
+                {
+                    if(!addingObject.isEmpty())
+                    {
+                        // Apply zone placement
+                        Vec3f position = get3DCoords(mousePos, Math.min(pickingDepth, 1f));
+                        if(isGalaxyMode)
+                        {
+                            String stageKey = String.format("%d/%s", curScenarioID, curZone);
+                            if (zonePlacements.containsKey(stageKey))
+                            {
+                                StageObj zonePlacement = zonePlacements.get(stageKey);
+                                Vec3f.subtract(position, zonePlacement.position, position);
+                                applySubzoneRotation(position);
+                            }
                         }
+                        addObject(position, addingObject, addingObjectOnLayer, curZone, false);
+
+                        addUndoEntry(IUndo.Action.ADD, newobj); //This is the only one that happens after the event occurs?
         
-                        if(!shiftpressed) {
+                        if(!shiftpressed)
+                        {
                             addingObject = "";
                             tgbAddObject.setSelected(false);
                             setDefaultStatus();
                         }
-                    } else if(deletingObjects) {
+                    }
+                    else if(deletingObjects)
+                    {
+                        addUndoEntry(IUndo.Action.DELETE, theobject);
                         deleteObject(objid);
-                        if(!shiftpressed)  {
+            
+                        if(!shiftpressed)
+                        {
                             deletingObjects = false;
                             tgbDeleteObject.setSelected(false);
                             setDefaultStatus();
                         }                    
+                    }
+                    else if(isPasteMode)
+                    {
+                        // Apply zone placement
+                        Vec3f position = get3DCoords(mousePos, Math.min(pickingDepth, 1f));
+                        if(isGalaxyMode)
+                        {
+                            String stageKey = String.format("%d/%s", curScenarioID, curZone);
+                            if (zonePlacements.containsKey(stageKey))
+                            {
+                                StageObj zonePlacement = zonePlacements.get(stageKey);
+                                Vec3f.subtract(position, zonePlacement.position, position);
+                                applySubzoneRotation(position);
+                            }
+                        }
+                        performObjectPaste(position);
+                        
+                        if (!shiftpressed)
+                        {
+                            isPasteMode = false;
+                            setDefaultStatus();
+                        }
                     }
                     else {
                         // multiselect behavior
@@ -3187,15 +4313,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             if(!selectedObjs.isEmpty() && arg == oldarg) {
                                 oldsel =(LinkedHashMap<Integer, AbstractObj>)selectedObjs.clone();
 
-                                for(AbstractObj unselobj : oldsel.values()) {
-                                    if(treeNodeList.containsKey(unselobj.uniqueID)) {
-                                        TreeNode tn = treeNodeList.get(unselobj.uniqueID);
-                                        TreePath tp = new TreePath(((DefaultTreeModel)treeObjects.getModel()).getPathToRoot(tn));
-                                        treeObjects.removeSelectionPath(tp);
-                                    }
-                                    else
-                                        addRerenderTask("zone:"+unselobj.stage.stageName);
-                                }
+                                treeObjects.clearSelection();
 
                                 selectionChanged();
                                 selectedObjs.clear();
@@ -3286,6 +4404,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 vdelta.z +=(xdist *(float)Math.cos(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));
                 
                 applySubzoneRotation(vdelta);
+                // We do not need an Undo entry for this because you need to already be moving the object (which creates an undo step already)
                 offsetSelectionBy(vdelta, e.isShiftDown());
                 
                 unsavedChanges = true;
@@ -3385,7 +4504,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     for (AbstractObj obj : globalObjList.values()) {
                         if (obj.isHidden) {
                             obj.isHidden = false;
-                            rerenderTasks.add("zone:" + obj.stage.stageName);
+                            addRerenderTask("zone:" + obj.stage.stageName);
                         }
                     }
                     
@@ -3400,7 +4519,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     
                     for (AbstractObj obj : hideObjs) {
                         obj.isHidden = !obj.isHidden;
-                        rerenderTasks.add("zone:" + obj.stage.stageName);
+                        addRerenderTask("zone:" + obj.stage.stageName);
                     }
                     
                     setStatusToInfo("Hid/unhid selection.");
@@ -3409,11 +4528,35 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 glCanvas.repaint();
                 return;
             }
+            // Truncate feature. Removes all decimals from the selected objects
+            else if (keyCode == KeyEvent.VK_N && e.isControlDown())
+            {
+                for (AbstractObj obj : selectedObjs.values())
+                {
+                    obj.position.x = (int)obj.position.x;
+                    obj.position.y = (int)obj.position.y;
+                    obj.position.z = (int)obj.position.z;
+                    if (obj instanceof PathPointObj)
+                    {
+                        PathPointObj x = (PathPointObj)obj;
+                        x.point1.x = (int)x.point1.x;
+                        x.point1.y = (int)x.point1.y;
+                        x.point1.z = (int)x.point1.z;
+                        x.point2.x = (int)x.point2.x;
+                        x.point2.y = (int)x.point2.y;
+                        x.point2.z = (int)x.point2.z;
+                        addRerenderTask("path:"+x.path.uniqueID);
+                    }
+                    else
+                        addRerenderTask("object:" + obj.uniqueID);
+                    addRerenderTask("zone:" + obj.stage.stageName);
+                }
+                selectionChanged();
+                glCanvas.repaint();
+            }
             // Undo event -- Ctrl+Z
             else if (keyCode == KeyEvent.VK_Z && e.isControlDown()) {
-                undo();
-                System.out.println("Undos left: " + undoIndex);
-                glCanvas.repaint();
+                doUndo();
             }
             // Pull Up Add menu
             else if (keyCode == KeyEvent.VK_A && e.isShiftDown()) {
@@ -3422,27 +4565,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 popupAddItems.setVisible(true);
             }
             // Copy/Paste
-            else if (e.isControlDown() && (keyMask & 0x3F) == 0) {
+            else if (e.isControlDown() && (keyMask & 0x3F) == 0)
+            {
                 // Copy -- Ctrl+C
                 if (keyCode == KeyEvent.VK_C) {
-                    copyObj = (LinkedHashMap<Integer, AbstractObj>)selectedObjs.clone();
-                    setStatusToInfo("Copied current selection.");
+                    copySelectedObjects();
                 }
                 // Paste -- Ctrl+V
-                else if(keyCode == KeyEvent.VK_V) {
-                    if(copyObj != null && !copyObj.isEmpty()) {
-                        
-                        for(AbstractObj currentObj : copyObj.values())
-                            pasteObject(currentObj);
-
-                        if(copyObj.size() == 1)
-                            setStatusToInfo("Pasted " + new ArrayList<>(copyObj.values()).get(0).name + ".");
-                        else
-                            setStatusToInfo("Pasted objects.");
-
-                        addingObject = "";
-                        glCanvas.repaint();
-                    }
+                else if(keyCode == KeyEvent.VK_V)
+                {
+                    pasteClipboardIntoObjects(e.isShiftDown());
                 }
             }
             // Jump to Object -- SPC
@@ -3499,17 +4631,27 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
                 if(!selectedObjs.isEmpty()) {
                     if((keyMask & (1 << 6)) != 0)
+                    {
+                        for(AbstractObj selectedObj : selectedObjs.values())
+                            addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
                         offsetSelectionBy(delta.multiplyScalar(100), e.isShiftDown());
+                    }
                     else if((keyMask & (1 << 7)) != 0)
+                    {
+                        for(AbstractObj selectedObj : selectedObjs.values())
+                            addUndoEntry(IUndo.Action.ROTATE, selectedObj);
                         rotateSelectionBy(delta.multiplyScalar(5));
+                    }
                     else if((keyMask & (1 << 8)) != 0)
+                    {
+                        for(AbstractObj selectedObj : selectedObjs.values())
+                            addUndoEntry(IUndo.Action.SCALE, selectedObj);
                         scaleSelectionBy(delta);
+                    }
                 } else {
-                    finaldelta.x =(float)(-(delta.x * Math.sin(camRotation.x)) - (delta.y * Math.cos(camRotation.x) * Math.sin(camRotation.y)) +
-                            (delta.z * Math.cos(camRotation.x) * Math.cos(camRotation.y)));
+                    finaldelta.x =(float)(-(delta.x * Math.sin(camRotation.x)) - (delta.y * Math.cos(camRotation.x) * Math.sin(camRotation.y)) + (delta.z * Math.cos(camRotation.x) * Math.cos(camRotation.y)));
                     finaldelta.y =(float)((delta.y * Math.cos(camRotation.y)) + (delta.z * Math.sin(camRotation.y)));
-                    finaldelta.z =(float)((delta.x * Math.cos(camRotation.x)) - (delta.y * Math.sin(camRotation.x) * Math.sin(camRotation.y)) +
-                            (delta.z * Math.sin(camRotation.x) * Math.cos(camRotation.y)));
+                    finaldelta.z =(float)((delta.x * Math.cos(camRotation.x)) - (delta.y * Math.sin(camRotation.x) * Math.sin(camRotation.y)) + (delta.z * Math.sin(camRotation.x) * Math.cos(camRotation.y)));
                     camTarget.x += finaldelta.x * 0.005f;
                     camTarget.y += finaldelta.y * 0.005f;
                     camTarget.z += finaldelta.z * 0.005f;
@@ -4077,10 +5219,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowClosing
 
     private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
+        boolean isActivate = false;
+        
         if (levelLoader.CurrentThread == null)
-            renderAllObjects();
+            isActivate = true;
         else if (!levelLoader.CurrentThread.isAlive())
+            isActivate = true;
+        if (isActivate)
+        {
+            selectionChanged();
             renderAllObjects();
+        }
     }//GEN-LAST:event_formWindowActivated
 
     private void mniSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniSaveActionPerformed
@@ -4089,7 +5238,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
     private void mniCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniCloseActionPerformed
         closeEditor();
-        dispose();
+        if (getDefaultCloseOperation() == DISPOSE_ON_CLOSE)
+            dispose();
     }//GEN-LAST:event_mniCloseActionPerformed
 
     private void mnuEditMenuSelected(javax.swing.event.MenuEvent evt) {//GEN-FIRST:event_mnuEditMenuSelected
@@ -4157,11 +5307,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pnlObjectSettings.setFieldValue("pnt2_z", pointObj.point2.z);
                 pnlObjectSettings.repaint();
                 
-                rerenderTasks.add("path:" + pointObj.path.uniqueID);
-                rerenderTasks.add("zone:" + pointObj.stage.stageName);
+                addRerenderTask("path:" + pointObj.path.uniqueID);
+                addRerenderTask("zone:" + pointObj.stage.stageName);
             }
             else {
-                addUndoEntry("changeObj", obj);
+                addUndoEntry(IUndo.Action.TRANSLATE, obj);
                 
                 obj.position.set(COPY_POSITION);
                 pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
@@ -4169,8 +5319,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 pnlObjectSettings.setFieldValue("pos_z", obj.position.z);
                 pnlObjectSettings.repaint();
                 
-                rerenderTasks.add("object:" + obj.uniqueID);
-                rerenderTasks.add("zone:" + obj.stage.stageName);
+                addRerenderTask("object:" + obj.uniqueID);
+                addRerenderTask("zone:" + obj.stage.stageName);
             }
             
             setStatusToInfo(String.format("Pasted position %s.", COPY_POSITION.toString()));
@@ -4189,7 +5339,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 return;
             }
             
-            addUndoEntry("changeObj", obj);
+            addUndoEntry(IUndo.Action.ROTATE, obj);
             
             obj.rotation.set(COPY_ROTATION);
             pnlObjectSettings.setFieldValue("dir_x", obj.rotation.x);
@@ -4197,8 +5347,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             pnlObjectSettings.setFieldValue("dir_z", obj.rotation.z);
             pnlObjectSettings.repaint();
             
-            rerenderTasks.add("object:" + obj.uniqueID);
-            rerenderTasks.add("zone:" + obj.stage.stageName);
+            addRerenderTask("object:" + obj.uniqueID);
+            addRerenderTask("zone:" + obj.stage.stageName);
             
             setStatusToInfo(String.format("Pasted rotation %s.", COPY_ROTATION.toString()));
             
@@ -4216,7 +5366,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 return;
             }
             
-            addUndoEntry("changeObj", obj);
+            addUndoEntry(IUndo.Action.SCALE, obj);
             
             obj.scale.set(COPY_SCALE);
             pnlObjectSettings.setFieldValue("scale_x", obj.scale.x);
@@ -4224,8 +5374,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             pnlObjectSettings.setFieldValue("scale_z", obj.scale.z);
             pnlObjectSettings.repaint();
             
-            rerenderTasks.add("object:" + obj.uniqueID);
-            rerenderTasks.add("zone:" + obj.stage.stageName);
+            addRerenderTask("object:" + obj.uniqueID);
+            addRerenderTask("zone:" + obj.stage.stageName);
             
             setStatusToInfo(String.format("Pasted scale %s.", COPY_SCALE.toString()));
             
@@ -4266,7 +5416,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_listScenariosValueChanged
 
     private void btnAddScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddScenarioActionPerformed
-        // TODO: what the peck is this?
+        // TODO: Likely will never be implemented
     }//GEN-LAST:event_btnAddScenarioActionPerformed
 
     private void btnDeleteScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteScenarioActionPerformed
@@ -4311,6 +5461,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         selectedObjs.clear();
+        treeObjects.clearSelection();
         selectionChanged();
         glCanvas.repaint();
     }//GEN-LAST:event_tgbDeselectActionPerformed
@@ -4385,11 +5536,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         else {
             if (tgbDeleteObject.isSelected()) {
                 List<AbstractObj> templist = new ArrayList(selectedObjs.values());
-                
+                Collections.reverse(templist);
+                startUndoMulti();
                 for(AbstractObj selectedObj : templist) {
                     selectedObjs.remove(selectedObj.uniqueID);
+                    addUndoEntry(IUndo.Action.DELETE, selectedObj);
                     deleteObject(selectedObj.uniqueID);
                 }
+                endUndoMulti();
                 
                 templist.clear();
                 selectionChanged();
@@ -4401,42 +5555,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_tgbDeleteObjectActionPerformed
 
     private void tgbCopyObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbCopyObjActionPerformed
-        copyObj =(LinkedHashMap<Integer, AbstractObj>) selectedObjs.clone();
-        tgbCopyObj.setSelected(false);
-        setStatusToInfo("Copied objects.");
+        copySelectedObjects();
     }//GEN-LAST:event_tgbCopyObjActionPerformed
 
     private void tgbPasteObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbPasteObjActionPerformed
-        if (!isAllowPasteAction()) //Might not be needed...
-            return;
-        
-        tgbPasteObj.setSelected(false);
-        if(copyObj != null) {
-            for(AbstractObj currentTempObj : copyObj.values()) {
-                addingObject = "objinfo|" + currentTempObj.name;
-                addingObjectOnLayer = currentTempObj.layerKey;
-                
-                Vec3f temppos=new Vec3f();
-                temppos.x=currentTempObj.position.x+g_offset_x;
-                temppos.y=currentTempObj.position.y+g_offset_y;
-                temppos.z=currentTempObj.position.z+g_offset_z;
-                
-                Vec3f temprot=new Vec3f();
-                temprot.x=currentTempObj.rotation.x;
-                temprot.y=currentTempObj.rotation.y;
-                temprot.z=currentTempObj.rotation.z;
-                
-                addObject(temppos);
-                
-                
-                
-                addUndoEntry("addObj", newobj);
-                newobj.rotation = temprot;
-                addingObject = "";
-            }
-            setStatusToInfo("Pasted objects.");
-            glCanvas.repaint();
-        }
+        pasteClipboardIntoObjects(false); //This is never literal paste
     }//GEN-LAST:event_tgbPasteObjActionPerformed
 
     private void listZonesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listZonesMouseClicked

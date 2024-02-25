@@ -141,6 +141,12 @@ public final class MainFrame extends javax.swing.JFrame {
         galaxyEditor.setVisible(true);
     }
     
+    public void forceCloseGalaxy()
+    {
+        if (galaxyEditor != null)
+            galaxyEditor.isForceClose = true;
+    }
+    
     public void requestUpdateLAF() {
         SwingUtilities.updateComponentTreeUI(this);
         
@@ -186,12 +192,14 @@ public final class MainFrame extends javax.swing.JFrame {
         setIconImage(Whitehole.ICON);
         setMinimumSize(new java.awt.Dimension(636, 544));
         addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
             public void windowOpened(java.awt.event.WindowEvent evt) {
                 formWindowOpened(evt);
             }
         });
 
-        toolbar.setFloatable(false);
         toolbar.setRollover(true);
 
         btnOpenGame.setText("Select Game Folder");
@@ -365,6 +373,10 @@ public final class MainFrame extends javax.swing.JFrame {
             openGalaxy();
         }
     }//GEN-LAST:event_listGalaxyKeyReleased
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        forceCloseGalaxy();
+    }//GEN-LAST:event_formWindowClosing
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAbout;

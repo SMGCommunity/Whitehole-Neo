@@ -16,8 +16,8 @@
 package whitehole.rendering.outdated;
 
 import com.jogamp.opengl.GL2;
-import whitehole.rendering.AreaShapeRenderer;
-import whitehole.rendering.AreaShapeRenderer.Shape;
+import whitehole.rendering.special.AreaShapeRenderer;
+import whitehole.rendering.special.AreaShapeRenderer.Shape;
 import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderInfo;

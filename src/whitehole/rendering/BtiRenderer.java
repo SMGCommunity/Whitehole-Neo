@@ -87,6 +87,7 @@ public class BtiRenderer extends GLRenderer {
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, FilterMode.values()[btiData.magFilter].get());
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, WrapMode.values()[btiData.wrapS].get());
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, WrapMode.values()[btiData.wrapT].get());
+        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_LOD_BIAS, btiData.lodBias);
 
         int ifmt, fmt;
         
@@ -161,7 +162,7 @@ public class BtiRenderer extends GLRenderer {
 
         GL2 gl = info.drawable.getGL().getGL2();
 
-        if (info.renderMode != RenderMode.PICKING) {
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) {
             if (gl.isFunctionAvailable("glActiveTexture")) {
                 for (int i = 0; i < 8; i++) {
                     try {

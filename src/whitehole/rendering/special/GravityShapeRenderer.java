@@ -14,10 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package whitehole.rendering;
+package whitehole.rendering.special;
 import com.jogamp.opengl.*;
 import whitehole.math.Matrix4;
 import whitehole.math.Vec3f;
+import whitehole.rendering.CubeRenderer;
+import whitehole.rendering.GLRenderer;
 import whitehole.smg.object.AbstractObj;
 import whitehole.smg.object.PathObj;
 import whitehole.util.Color4;
@@ -169,7 +171,7 @@ public class GravityShapeRenderer extends GLRenderer {
         
         GL2 gl = info.drawable.getGL().getGL2();
 
-        if (info.renderMode != GLRenderer.RenderMode.PICKING) {
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) {
             for (int i = 0; i < 8; i++) {
                 try {
                     if(gl.isFunctionAvailable("glActiveTexture")) {
@@ -267,7 +269,7 @@ public class GravityShapeRenderer extends GLRenderer {
         gl.glTranslatef(0f, ScaleYSize, 0f);        
         gl.glBegin(GL2.GL_LINE_STRIP);
             
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(Col.r, Col.g, Col.b);
         gl.glVertex3f(ScaleXSize, ScaleYSize, ScaleZSize);
         gl.glVertex3f(-ScaleXSize, ScaleYSize, ScaleZSize);
@@ -275,7 +277,7 @@ public class GravityShapeRenderer extends GLRenderer {
         gl.glVertex3f(ScaleXSize, ScaleYSize, -ScaleZSize);
         gl.glVertex3f(ScaleXSize, ScaleYSize, ScaleZSize);
 
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
         gl.glVertex3f(ScaleXSize, -ScaleYSize, ScaleZSize);
         gl.glVertex3f(-ScaleXSize, -ScaleYSize, ScaleZSize);
@@ -286,27 +288,27 @@ public class GravityShapeRenderer extends GLRenderer {
         
         gl.glBegin(GL2.GL_LINES);
 
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(Col.r, Col.g, Col.b);
         gl.glVertex3f(-ScaleXSize, ScaleYSize, ScaleZSize);
 
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
         gl.glVertex3f(-ScaleXSize, -ScaleYSize, ScaleZSize);
 
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(Col.r, Col.g, Col.b);
         gl.glVertex3f(-ScaleXSize, ScaleYSize, -ScaleZSize);
 
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
         gl.glVertex3f(-ScaleXSize, -ScaleYSize, -ScaleZSize);
 
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(Col.r, Col.g, Col.b);
         gl.glVertex3f(ScaleXSize, ScaleYSize, -ScaleZSize);
         
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
         gl.glVertex3f(ScaleXSize, -ScaleYSize, -ScaleZSize);
         gl.glEnd();
@@ -365,7 +367,7 @@ public class GravityShapeRenderer extends GLRenderer {
         for(int h = 0; h < Horizontal; h++)
         {
             gl.glBegin(GL2.GL_LINE_STRIP);
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(Col.r - (ColRDiff*h), Col.g - (ColGDiff*h), Col.b - (ColBDiff*h));
             for(int v = 0; v <= Vertical; v++)
             {
@@ -383,7 +385,7 @@ public class GravityShapeRenderer extends GLRenderer {
             gl.glBegin(GL2.GL_LINE_STRIP);
             for(int h = -1; h <= Horizontal; h++)
             {
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(Col.r - (ColRDiff*h), Col.g - (ColGDiff*h), Col.b - (ColBDiff*h));
                 Vec3f p;
                 if (h == -1)
@@ -438,7 +440,7 @@ public class GravityShapeRenderer extends GLRenderer {
                 pNext = Points[i+1];
             }
             
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(Col.r, Col.g, Col.b);
         
             // UPPER
@@ -447,7 +449,7 @@ public class GravityShapeRenderer extends GLRenderer {
             
             // MIDDLE
             gl.glVertex3f(pCur.x, pCur.y, pCur.z);
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
             gl.glVertex3f(pCur.x, pCur.y, pCur.z + ScaleYSize);
             
@@ -500,7 +502,7 @@ public class GravityShapeRenderer extends GLRenderer {
             }
         }
           
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(Col.r, Col.g, Col.b);
         gl.glTranslatef(0f, 0f, 0f);
         gl.glRotatef(90f, 1f, 0f, 0f);
@@ -536,7 +538,7 @@ public class GravityShapeRenderer extends GLRenderer {
             }
             gl.glEnd();
         }
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(Col.r, Col.g, Col.b);
         gl.glBegin(GL2.GL_LINES);
         for(int h = 0; h < Horizontal; h++)
@@ -680,7 +682,7 @@ public class GravityShapeRenderer extends GLRenderer {
             Vec3f pointCurrentRangeTop, pointNextRangeTop, pointCurrentRangeLower, pointNextRangeLower, pointCurrentRangeBottom, pointNextRangeBottom;
             Vec3f pointCurrentDistantTop, pointNextDistantTop, pointCurrentDistantLower, pointNextDistantLower, pointCurrentDistantBottom, pointNextDistantBottom;
             
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
         
             pointCurrentTop = PointsRadiusTop[i];
@@ -716,7 +718,7 @@ public class GravityShapeRenderer extends GLRenderer {
             
             
             // CUTOFF LINES
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(COLOR_ZERO.r, COLOR_ZERO.g, COLOR_ZERO.b);
             gl.glVertex3f(pointCurrentTop.x, pointCurrentTop.y, pointCurrentTop.z + ConeCutoffHeight - CUR_RANGE);
             gl.glVertex3f(pointCurrentTop.x, pointCurrentTop.y, pointCurrentTop.z + ConeHeight);
@@ -734,7 +736,7 @@ public class GravityShapeRenderer extends GLRenderer {
             
             if (Distant > 0)
             {
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(Col.r, Col.g, Col.b);
                 
                 // STRAIGHT UP
@@ -760,7 +762,7 @@ public class GravityShapeRenderer extends GLRenderer {
             if (Range <= 0)
                 continue;
             
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(Col.r, Col.g, Col.b);
             
             // UPPER RANGE RING
@@ -770,9 +772,9 @@ public class GravityShapeRenderer extends GLRenderer {
             // MIDDLE RANGE LINES
             gl.glVertex3f(pointCurrentRangeTop.x, pointCurrentRangeTop.y, pointCurrentRangeTop.z + ConeCutoffHeight - (float)RangeTopY);
             gl.glVertex3f(pointCurrentRangeBottom.x, pointCurrentRangeBottom.y, pointCurrentRangeBottom.z + ConeHeight - (float)RangeTopY);
-            if (info.renderMode != GLRenderer.RenderMode.PICKING) gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
             gl.glVertex3f(pointCurrentBottom.x, pointCurrentBottom.y, pointCurrentBottom.z + ConeHeight);
-            if (info.renderMode != GLRenderer.RenderMode.PICKING) gl.glColor3f(Col.r, Col.g, Col.b);
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) gl.glColor3f(Col.r, Col.g, Col.b);
             gl.glVertex3f(pointCurrentRangeLower.x, pointCurrentRangeLower.y, pointCurrentRangeLower.z + ConeHeight);
             
             // LOWER RANGE RING
@@ -788,14 +790,14 @@ public class GravityShapeRenderer extends GLRenderer {
             // RANGE CONNECT LINES
             // To avoid ANOTHER call to gl.glcolor I'm drawing these backwards
             gl.glVertex3f(pointCurrentRangeTop.x, pointCurrentRangeTop.y, pointCurrentRangeTop.z + ConeCutoffHeight - (float)RangeTopY);
-            if (info.renderMode != GLRenderer.RenderMode.PICKING) gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
             gl.glVertex3f(pointCurrentTop.x, pointCurrentTop.y, pointCurrentTop.z + ConeCutoffHeight);
-            if (info.renderMode != GLRenderer.RenderMode.PICKING) gl.glColor3f(Col.r, Col.g, Col.b);
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) gl.glColor3f(Col.r, Col.g, Col.b);
             gl.glVertex3f(pointCurrentRangeBottom.x, pointCurrentRangeBottom.y, pointCurrentRangeBottom.z + ConeHeight - (float)RangeTopY);
-            if (info.renderMode != GLRenderer.RenderMode.PICKING) gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
             gl.glVertex3f(pointCurrentBottom.x, pointCurrentBottom.y, pointCurrentBottom.z + ConeHeight);
             
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(Col.r, Col.g, Col.b);
             // RANGE ROUNDNESS
             for (int r = 0; r < PointsRangeCurveTop.length-1; r++)
@@ -1362,7 +1364,7 @@ public class GravityShapeRenderer extends GLRenderer {
         gl.glBegin(GL2.GL_LINES);
         for(int i = 0; i < Segments; i++)
         {
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(Col.r, Col.g, Col.b);
             
             for (int r = 0; r < SegmentsV; r++)
@@ -1409,16 +1411,16 @@ public class GravityShapeRenderer extends GLRenderer {
                     
                     // CENTER LINES
                     gl.glVertex3f(tr1.x, tr1.y, tr1.z);
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                     gl.glVertex3f(0, 0, tr1.z);
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(Col.r, Col.g, Col.b);
                     gl.glVertex3f(br1.x, br1.y, br1.z);
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                     gl.glVertex3f(0, 0, br1.z);
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(Col.r, Col.g, Col.b);
                 }
                 
@@ -1505,16 +1507,16 @@ public class GravityShapeRenderer extends GLRenderer {
 
                         // CENTER LINES
                         gl.glVertex3f(tr1.x, tr1.y, tr1.z);
-                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                             gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                         gl.glVertex3f(0, 0, tr1.z);
-                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                             gl.glColor3f(Col.r, Col.g, Col.b);
                         gl.glVertex3f(br1.x, br1.y, br1.z);
-                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                             gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                         gl.glVertex3f(0, 0, br1.z);
-                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                             gl.glColor3f(Col.r, Col.g, Col.b);
                     }
                     
@@ -1605,7 +1607,7 @@ public class GravityShapeRenderer extends GLRenderer {
                 Vec3f pNext = Points[i+1];
                 
                 // BASE LINES
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                 gl.glVertex3f(pCur.x, pCur.y, pCur.z);
                 gl.glVertex3f(0, 0, 0);
@@ -1615,7 +1617,7 @@ public class GravityShapeRenderer extends GLRenderer {
                 gl.glVertex3f(pNext.x, pNext.y, pNext.z);
                 
                 // UPPER LINES
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(Col.r, Col.g, Col.b);
                 gl.glVertex3f(pCur.x, pCur.y, pCur.z - RANGE_SIZE);
                 gl.glVertex3f(0, 0, -RANGE_SIZE);
@@ -1625,10 +1627,10 @@ public class GravityShapeRenderer extends GLRenderer {
                 gl.glVertex3f(pNext.x, pNext.y, pNext.z - RANGE_SIZE);
                 
                 // UPPER CONNECTOR LINES
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                 gl.glVertex3f(pCur.x, pCur.y, pCur.z);
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(Col.r, Col.g, Col.b);
                 gl.glVertex3f(pCur.x, pCur.y, pCur.z - RANGE_SIZE);
                 
@@ -1643,10 +1645,10 @@ public class GravityShapeRenderer extends GLRenderer {
                     gl.glVertex3f(pNext.x, pNext.y, pNext.z + RANGE_SIZE);
                     
                     // BOTTOM CONNECTOR LINES
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                     gl.glVertex3f(pCur.x, pCur.y, pCur.z);
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(Col.r, Col.g, Col.b);
                     gl.glVertex3f(pCur.x, pCur.y, pCur.z + RANGE_SIZE);
                 }
@@ -1664,34 +1666,34 @@ public class GravityShapeRenderer extends GLRenderer {
             {
                 // PICKUP LINES
                 // ...no not those "pickup lines"...
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                 gl.glVertex3f(pCur.x, pCur.y, pCur.z);
                 gl.glVertex3f(0, 0, 0);
                 
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(Col.r, Col.g, Col.b);
                 gl.glVertex3f(pCur.x, pCur.y, pCur.z - RANGE_SIZE);
                 gl.glVertex3f(0, 0, -RANGE_SIZE);
                 
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                 gl.glVertex3f(pCur.x, pCur.y, pCur.z);
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(Col.r, Col.g, Col.b);
                 gl.glVertex3f(pCur.x, pCur.y, pCur.z - RANGE_SIZE);
                 
                 if (!DisableBottom)
                 {
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(Col.r, Col.g, Col.b);
                     gl.glVertex3f(pCur.x, pCur.y, pCur.z + RANGE_SIZE);
                     gl.glVertex3f(0, 0, +RANGE_SIZE);
                     
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                     gl.glVertex3f(pCur.x, pCur.y, pCur.z);
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(Col.r, Col.g, Col.b);
                     gl.glVertex3f(pCur.x, pCur.y, pCur.z + RANGE_SIZE);
                 }
@@ -1771,10 +1773,10 @@ public class GravityShapeRenderer extends GLRenderer {
                 {
                     // FIRST ROUND
                     gl.glVertex3f(TopRangeCur1.x, TopRangeCur1.y, TopRangeCur1.z);
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                     gl.glVertex3f(pCur.x, pCur.y, pCur.z);
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(Col.r, Col.g, Col.b);
                 }
                 
@@ -1878,7 +1880,7 @@ public class GravityShapeRenderer extends GLRenderer {
             Vec3f BaseOuterNext = PointsBaseOuter[i+1];
             
             // BASE DISK LINES
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
             if (RingWidth > 0)
             {
@@ -1897,7 +1899,7 @@ public class GravityShapeRenderer extends GLRenderer {
             
             
             // BASE DISK DISTANT
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(Col.r, Col.g, Col.b);
             gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z - RANGE_SIZE);
             gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z - DISTANT_SIZE);
@@ -1950,18 +1952,18 @@ public class GravityShapeRenderer extends GLRenderer {
                 }
             }
             
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
             gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z);
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(Col.r, Col.g, Col.b);
             gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z - RANGE_SIZE);
             if (!DisableBottom)
             {
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                 gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z);
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(Col.r, Col.g, Col.b);
                 gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z + RANGE_SIZE);               
             }
@@ -1969,19 +1971,19 @@ public class GravityShapeRenderer extends GLRenderer {
             
             if (RingWidth > 0)
             {
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                 gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z);
-                if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                     gl.glColor3f(Col.r, Col.g, Col.b);
                 gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z - RANGE_SIZE);
                 
                 if (!DisableBottom)
                 {
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                     gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z);
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(Col.r, Col.g, Col.b);
                     gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z + RANGE_SIZE);
                 }
@@ -2038,10 +2040,10 @@ public class GravityShapeRenderer extends GLRenderer {
                     if (r == 0)
                     {
                         // EDGE CONNECTING LINES INNER
-                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                             gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                         gl.glVertex3f(BaseInnerCurrent.x, BaseInnerCurrent.y, BaseInnerCurrent.z);
-                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                             gl.glColor3f(Col.r, Col.g, Col.b);
                         gl.glVertex3f(TopRangeInnerCurrentCurrent.x, TopRangeInnerCurrentCurrent.y, TopRangeInnerCurrentCurrent.z);
                     }
@@ -2081,10 +2083,10 @@ public class GravityShapeRenderer extends GLRenderer {
                     if (r == 0)
                     {
                         // EDGE CONNECTING LINES INNER
-                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                             gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                         gl.glVertex3f(BaseOuterCurrent.x, BaseOuterCurrent.y, BaseOuterCurrent.z);
-                        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                             gl.glColor3f(Col.r, Col.g, Col.b);
                         gl.glVertex3f(TopRangeOuterCurrentCurrent.x, TopRangeOuterCurrentCurrent.y, TopRangeOuterCurrentCurrent.z);
                     }
@@ -2117,7 +2119,7 @@ public class GravityShapeRenderer extends GLRenderer {
     // HEEEELLLPPPPPP
     public void makeWire(GLRenderer.RenderInfo info, Color4 Col)
     {
-        if (PathData == null)
+        if (PathData == null || PathData.size() <= 1)
         {
             if (PathBaseOriginCube != null)
                 PathBaseOriginCube.render(info);
@@ -2164,6 +2166,8 @@ public class GravityShapeRenderer extends GLRenderer {
                 double angle = 2.0 * Math.PI * (r/(float)Segments);
                 //Taken from NoClip literally nothing else worked...
                 Matrix4 ScratchMatrix = Matrix4.fromRotation(angle, GravityNormals[i]);
+                if (ScratchMatrix == null)
+                    continue;
                 Vec3f ScratchVecA = Matrix4.transformVec3Mat4w0(ScratchMatrix, Cross);
                 ScratchVecA.scale(Range);
                 
@@ -2180,19 +2184,18 @@ public class GravityShapeRenderer extends GLRenderer {
         gl.glRotatef(-WireRotation.z, 0f, 0f, 1f);
         gl.glTranslatef(-WirePosition.x, -WirePosition.y, -WirePosition.z);
         gl.glBegin(GL2.GL_LINE_STRIP);
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
-        for(int i = 0; i < GravityPoints.length; i++)
-        {
-            gl.glVertex3f(GravityPoints[i].x, GravityPoints[i].y, GravityPoints[i].z);
+        for (Vec3f GravityPoint : GravityPoints) {
+            gl.glVertex3f(GravityPoint.x, GravityPoint.y, GravityPoint.z);
         }
         gl.glEnd();
-        if (info.renderMode != GLRenderer.RenderMode.PICKING)
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(Col.r, Col.g, Col.b);
         gl.glBegin(GL2.GL_LINES);
         for(int i = 0; i < GravityPoints.length; i++)
         {
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(Col.r, Col.g, Col.b);
             
             
@@ -2208,10 +2211,10 @@ public class GravityShapeRenderer extends GLRenderer {
                 
                 if (r%4 == 0)
                 {
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(DownCol.r, DownCol.g, DownCol.b);
                     gl.glVertex3f(GravityPoints[i].x, GravityPoints[i].y, GravityPoints[i].z);
-                    if (info.renderMode != GLRenderer.RenderMode.PICKING)
+                    if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                         gl.glColor3f(Col.r, Col.g, Col.b);
                     gl.glVertex3f(pCur.x, pCur.y, pCur.z);
                 }
@@ -2306,29 +2309,29 @@ public class GravityShapeRenderer extends GLRenderer {
             
 
             
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(CurCol.r, CurCol.g, CurCol.b);
         
             // UPPER
             gl.glVertex3f(pCur.x, pCur.y, pCur.z);
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(NextCol.r, NextCol.g, NextCol.b);
             gl.glVertex3f(pNext.x, pNext.y, pNext.z);
             
             // MIDDLE
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(CurCol.r, CurCol.g, CurCol.b);
             gl.glVertex3f(pCur.x, pCur.y, pCur.z);
             gl.glVertex3f(pCur.x, pCur.y, pCur.z + ScaleYSize);
             
             // LOWER
             gl.glVertex3f(pCur.x, pCur.y, pCur.z + ScaleYSize);
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(NextCol.r, NextCol.g, NextCol.b);
             gl.glVertex3f(pNext.x, pNext.y, pNext.z + ScaleYSize);
             
             // UPPER SPOKES
-            if (info.renderMode != GLRenderer.RenderMode.PICKING)
+            if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(CurCol.r, CurCol.g, CurCol.b);
             gl.glVertex3f(pCur.x, pCur.y, pCur.z);
             gl.glVertex3f(0, 0, pCur.z);

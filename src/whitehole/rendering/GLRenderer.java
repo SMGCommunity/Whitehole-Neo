@@ -26,7 +26,10 @@ public abstract class GLRenderer {
     public static enum RenderMode {
         PICKING,
         OPAQUE,
-        TRANSLUCENT
+        TRANSLUCENT,
+        
+        HIGHLIGHT,
+        _MAX
     }
     
     /**
@@ -39,9 +42,9 @@ public abstract class GLRenderer {
     
     // -------------------------------------------------------------------------------------------------------------------------
     
-    static final Vec3f TRANSLATION = new Vec3f(0f, 0f, 0f);
-    static final Vec3f ROTATION = new Vec3f(0f, 0f, 0f);
-    static final Vec3f SCALE = new Vec3f(1f, 1f, 1f);
+    public static final Vec3f DEFAULT_TRANSLATION = new Vec3f(0f, 0f, 0f);
+    public static final Vec3f DEFAULT_ROTATION = new Vec3f(0f, 0f, 0f);
+    public static final Vec3f DEFAULT_SCALE = new Vec3f(1f, 1f, 1f);
     
     protected int[] displayLists;
     
@@ -57,9 +60,8 @@ public abstract class GLRenderer {
         GL2 gl = info.drawable.getGL().getGL2();
         
         if (displayLists != null) {
-            gl.glDeleteLists(displayLists[0], 1);
-            gl.glDeleteLists(displayLists[1], 1);
-            gl.glDeleteLists(displayLists[2], 1);
+            for(int i = 0; i < displayLists.length; i++)
+                gl.glDeleteLists(displayLists[i], 1);
             displayLists = null;
         }
     }
@@ -82,7 +84,7 @@ public abstract class GLRenderer {
             return;
         }
         
-        displayLists = new int[3];
+        displayLists = new int[RenderMode._MAX.ordinal()];
         
         GL2 gl = info.drawable.getGL().getGL2();
         RenderInfo tempInfo = new RenderInfo();
@@ -91,7 +93,7 @@ public abstract class GLRenderer {
         // Compile the individual lists
         final RenderMode[] modes = RenderMode.values();
         
-        for (int i = 0 ; i < 3 ; i++) {
+        for (int i = 0 ; i < displayLists.length ; i++) {
             tempInfo.renderMode = modes[i];
             
             if (gottaRender(tempInfo)) {

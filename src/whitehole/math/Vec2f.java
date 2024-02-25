@@ -84,4 +84,21 @@ public class Vec2f implements Cloneable {
         out.x = a.x - b.x;
         out.y = a.y - b.y;
     }
+    
+    public static Vec2f centroid(Vec2f[] points)
+    {
+        if (points.length == 0)
+            return null;
+        
+        Vec2f centroid = new Vec2f();
+        
+        for (int i = 0; i < points.length; i++)
+        {
+            centroid.x += points[i].x;
+            centroid.y += points[i].y;
+        }
+        centroid.x = centroid.x / points.length;
+        centroid.y = centroid.y / points.length;
+        return centroid;
+    }
 }

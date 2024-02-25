@@ -331,6 +331,81 @@ public class Bcsv {
             return this.containsKey(Bcsv.calcJGadgetHash(key));
         }
         
+        
+        public String toClipboard(String head)
+        {
+            if (head == null || head.isBlank())
+                head = "BCSVEntry";
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append(head);
+            for(var item : this.entrySet())
+            {
+                sb.append('|');
+                sb.append(String.format("%08X", item.getKey()));
+                sb.append('%');
+                sb.append(item.getValue().toString());
+                sb.append('%');
+                String type = item.getValue().getClass().toString().replace("class java.lang.", "");
+                sb.append(type.replace("Integer", "Int32").replace("Short", "Int16").replace("Float", "Single"));
+            }
+            return sb.toString();
+        }
+        
+        public boolean fromClipboard(String input, String head)
+        {
+            if (head == null || head.isBlank())
+                head = "BCSVEntry";
+            
+            if (!input.startsWith(head+"|"))
+                return false;
+            
+            LinkedHashMap<Integer, Object> clipData = new LinkedHashMap();
+            try
+            {
+                String[] DataSplit = input.split("\\|");
+
+                
+                for (int i = 1; i < DataSplit.length; i++)
+                {
+                    String[] currentdata = DataSplit[i].split("\\%");
+                    
+                    int decimalValue = Integer.parseUnsignedInt(currentdata[0], 16);
+                    Object value;
+                    switch(currentdata[2])
+                    {
+                        case "Int32":
+                            value = Integer.parseInt(currentdata[1]);
+                            break;
+                        case "Int16":
+                            value = Short.parseShort(currentdata[1]);
+                            break;
+                        case "String":
+                            value = currentdata[1];
+                            break;
+                        case "Single":
+                            value = Float.parseFloat(currentdata[1]);
+                            break;
+                        case "Int8":
+                            value = Byte.parseByte(currentdata[1]);
+                            break;
+                        default:
+                            throw new Exception("Invalid data type "+currentdata[2]);
+                    }
+                    
+                    clipData.put(decimalValue, value);
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            this.clear();
+            for(var x : clipData.entrySet())
+                this.put(x.getKey(), x.getValue());
+            return true;
+        }
+        
         // ---------------------------------------------------------------------------------------------------------------------
         // Easy data getters
         

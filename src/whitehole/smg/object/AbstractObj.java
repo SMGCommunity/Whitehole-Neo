@@ -67,6 +67,15 @@ public abstract class AbstractObj {
         }
     }
     
+    public String toClipboard()
+    {
+        data.put("name", name);
+        putVector("pos", position);
+        putVector("dir", rotation);
+        putVector("scale", scale);
+        return getFileType() + "|" + data.toClipboard("WHNO");
+    }
+    
     // -------------------------------------------------------------------------------------------------------------------------
     // Helper functions
     

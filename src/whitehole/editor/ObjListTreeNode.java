@@ -116,6 +116,29 @@ public class ObjListTreeNode extends ObjTreeNode {
         tn.setParent(this);
         return tn;
     }
+    public ObjTreeNode addObject(int index, AbstractObj obj) {
+        LinkedHashMap<Integer, ObjTreeNode> TEMP = (LinkedHashMap<Integer, ObjTreeNode>)children.clone();
+        children.clear();
+        int curindex = 0;
+        var arr = TEMP.values();
+        int maxid = arr.size()+1;
+        var it = arr.iterator();
+        ObjTreeNode tn = null, bkup = null;
+        for(int i = 0; i < maxid; i++)
+        {
+            if (i == index)
+            {
+                tn = addObject(obj);
+            }
+            else
+            {
+                var cur = it.next();
+                bkup = addObject((AbstractObj)cur.object);
+            }
+            curindex++;
+        }
+        return tn == null ? bkup : tn;
+    }
     
     public ObjTreeNode addObject(PathObj obj) {
         ObjListTreeNode tn = new ObjListTreeNode(obj);

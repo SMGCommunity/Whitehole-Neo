@@ -164,12 +164,30 @@ public class PathPointObj extends AbstractObj {
         panel.addField("point_arg7", "point_arg7", "int", null, data.get("point_arg7"), "Default");
     }
     
-    public final int getIndex() {
-        return path.getPoints().indexOf(this);
+    public final int getIndex()
+    {
+        return path.indexOf(this);
+    }
+    public PathPointObj getNextPoint()
+    {
+        return path.getNextPoint(this);
+    }
+    public PathPointObj getPreviousPoint()
+    {
+        return path.getPreviousPoint(this);
     }
     
     @Override
     public String toString() {
         return String.format("Point %d", getIndex());
+    }
+    
+    @Override
+    public String toClipboard()
+    {
+        putVector("pnt0", position);
+        putVector("pnt1", point1);
+        putVector("pnt2", point2);
+        return data.toClipboard("WHNPP");
     }
 }

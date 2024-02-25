@@ -61,6 +61,7 @@ public class BmdRenderer extends GLRenderer {
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, FilterMode.values()[tex.magFilter].get());
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, WrapMode.values()[tex.wrapS].get());
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, WrapMode.values()[tex.wrapT].get());
+        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_LOD_BIAS, tex.lodBias);
         
         int ifmt, fmt;
         switch(tex.format) {
@@ -198,12 +199,34 @@ public class BmdRenderer extends GLRenderer {
         
         Locale usa = new Locale("en-US");
         String[] texgensrc = { 
-            "normalize(gl_Vertex)", "vec4(gl_Normal,1.0)", "argh", "argh", "gl_MultiTexCoord0", "gl_MultiTexCoord1", "gl_MultiTexCoord2", "gl_MultiTexCoord3", "gl_MultiTexCoord4", "gl_MultiTexCoord5", 
-            "gl_MultiTexCoord6", "gl_MultiTexCoord7" };
+            "(gl_Vertex)",
+            "normal",
+            "argh",
+            "argh",
+            "gl_MultiTexCoord0",
+            "gl_MultiTexCoord1",
+            "gl_MultiTexCoord2",
+            "gl_MultiTexCoord3",
+            "gl_MultiTexCoord4",
+            "gl_MultiTexCoord5", 
+            "gl_MultiTexCoord6",
+            "gl_MultiTexCoord7" };
         String[] outputregs = { "rprev", "r0", "r1", "r2" };
         String[] c_inputregs = { 
-            "truncc3(rprev.rgb)", "truncc3(rprev.aaa)", "truncc3(r0.rgb)", "truncc3(r0.aaa)", "truncc3(r1.rgb)", "truncc3(r1.aaa)", "truncc3(r2.rgb)", "truncc3(r2.aaa)", "texcolor.rgb", "texcolor.aaa", 
-            "rascolor.rgb", "rascolor.aaa", "vec3(1.0,1.0,1.0)", "vec3(0.5,0.5,0.5)", "konst.rgb", "vec3(0.0,0.0,0.0)" };
+            "truncc3(rprev.rgb)",
+            "truncc3(rprev.aaa)",
+            "truncc3(r0.rgb)",
+            "truncc3(r0.aaa)",
+            "truncc3(r1.rgb)",
+            "truncc3(r1.aaa)",
+            "truncc3(r2.rgb)",
+            "truncc3(r2.aaa)",
+            "texcolor.rgb", "texcolor.aaa", 
+            "rascolor.rgb", "rascolor.aaa",
+            "vec3(1.0,1.0,1.0)",
+            "vec3(0.5,0.5,0.5)",
+            "konst.rgb",
+            "vec3(0.0,0.0,0.0)" };
         String[] c_inputregsD = { 
             "rprev.rgb", "rprev.aaa", "r0.rgb", "r0.aaa", "r1.rgb", "r1.aaa", "r2.rgb", "r2.aaa", "texcolor.rgb", "texcolor.aaa", 
             "rascolor.rgb", "rascolor.aaa", "vec3(1.0,1.0,1.0)", "vec3(0.5,0.5,0.5)", "konst.rgb", "vec3(0.0,0.0,0.0)" };
@@ -230,12 +253,44 @@ public class BmdRenderer extends GLRenderer {
         vert.append("void main()\n");
         vert.append("{\n");
         vert.append("    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n");
+        vert.append("    mat3 TEMP = gl_NormalMatrix;\n");
+        vert.append("    vec4 TMP2 = vec4(TEMP * gl_Normal, 0.0);\n");
+        vert.append("    vec4 normal = ((TMP2)*0.0001)+0.5;\n");
         vert.append("    gl_FrontColor = gl_Color;\n");
         vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
-        for (int i = 0; i < mat.numTexgens; i++) {
-          int mtxid = (mat.texGen[i]).matrix;
-          String thematrix = "";
-          vert.append(String.format("    gl_TexCoord[%1$d] = %2$s;// %3$s;\n", new Object[] { Integer.valueOf(i), texgensrc[(mat.texGen[i]).src], thematrix }));
+        vert.append("    vec4 texcoord;\n");
+        for (int i = 0; i < mat.numTexgens; i++)
+        {
+          vert.append(String.format("    texcoord = %1$s;\n", texgensrc[mat.texGen[i].src]));
+            
+            // TODO matrices
+            int mtxid = mat.texGen[i].matrix;
+            
+            String thematrix = "";
+            if (mtxid >= 30 && mtxid <= 57)
+            {
+                Bmd.Material.TexMtxInfo texmtx = mat.texMtx[(mtxid - 30) / 3];
+                
+
+                
+                if (texmtx.type == 9) //Screen projection?
+                {
+                    vert.append("   texcoord *= gl_ModelViewMatrix * gl_ProjectionMatrix;\n");
+                }
+                else
+                {
+                    vert.append("    texcoord *= mat4(");
+                    for (int j = 0; j < 16; j++)
+                    {
+                        var mtxTMP = texmtx.basicMatrix.m[j];
+                        vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
+                    } 
+
+                    vert.append(");\n");
+                }
+            }
+            
+            vert.append(String.format("    gl_TexCoord[%1$d] = texcoord;\n", i));
         } 
         vert.append("}\n");
         int vertid = gl.glCreateShader(35633);
@@ -485,9 +540,9 @@ public class BmdRenderer extends GLRenderer {
     protected Shader[] shaders = null;
     protected int[] textures = null;
     protected boolean hasShaders = false;
-    protected Vec3f translation = TRANSLATION;
-    protected Vec3f rotation = ROTATION;
-    protected Vec3f scale = SCALE;
+    protected Vec3f translation = DEFAULT_TRANSLATION;
+    protected Vec3f rotation = DEFAULT_ROTATION;
+    protected Vec3f scale = DEFAULT_SCALE;
     
     public BmdRenderer() {
         
@@ -681,7 +736,7 @@ public class BmdRenderer extends GLRenderer {
 
     @Override
     public boolean gottaRender(RenderInfo info) throws GLException {
-        if(info.renderMode == RenderMode.PICKING)
+        if(info.renderMode == RenderMode.PICKING || info.renderMode == RenderMode.HIGHLIGHT)
             return true;
         
         for(Bmd.Material mat : model.materials) {
@@ -713,7 +768,7 @@ public class BmdRenderer extends GLRenderer {
 
         Matrix4[] lastmatrixtable = null;
         
-        if(info.renderMode != RenderMode.PICKING)
+        if(info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor4f(1f, 1f, 1f, 1f);
         
         if(model == null)
@@ -751,7 +806,8 @@ public class BmdRenderer extends GLRenderer {
 
                 Bmd.Material mat = model.materials[node.materialID];
 
-                if(info.renderMode != RenderMode.PICKING) {
+                if(info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
+                {
                     if((mat.drawFlag == 4) ^(info.renderMode == RenderMode.TRANSLUCENT))
                         continue;
                     if(hasShaders) {
@@ -837,6 +893,12 @@ public class BmdRenderer extends GLRenderer {
                             break;
                     }
                 }
+                else
+                {
+                    // Not needed apparently LOL
+                    //gl.glDisable(GL2.GL_BLEND);
+                    //gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
+                }
 
                 if(mat.cullMode == 0)
                     gl.glDisable(GL2.GL_CULL_FACE);
@@ -845,14 +907,23 @@ public class BmdRenderer extends GLRenderer {
                     gl.glCullFace(cullmodes[mat.cullMode - 1]);
                 }
 
-                if(mat.zMode.enableZTest) {
-                    gl.glEnable(GL2.GL_DEPTH_TEST);
-                    gl.glDepthFunc(depthfuncs[mat.zMode.func]);
+                if (info.renderMode != RenderMode.PICKING)
+                {
+                    if(mat.zMode.enableZTest) {
+                        gl.glEnable(GL2.GL_DEPTH_TEST);
+                        gl.glDepthFunc(depthfuncs[mat.zMode.func]);
+                    }
+                    else
+                        gl.glDisable(GL2.GL_DEPTH_TEST);
+                    gl.glDepthMask(mat.zMode.enableZWrite);
                 }
                 else
-                    gl.glDisable(GL2.GL_DEPTH_TEST);
+                {
+                    gl.glEnable(GL2.GL_DEPTH_TEST);
+                    gl.glDepthFunc(GL2.GL_LESS);
+                    gl.glDepthMask(true);
+                }
 
-                gl.glDepthMask(mat.zMode.enableZWrite);
             }
             else
                 throw new GLException(String.format("Material-less geometry node %1$d", node.nodeID));
@@ -908,9 +979,10 @@ public class BmdRenderer extends GLRenderer {
                                         GL2.GL_TRIANGLE_FAN, GL2.GL_LINES, GL2.GL_LINE_STRIP, GL2.GL_POINTS };
                     gl.glBegin(primtypes[(prim.primitiveType - 0x80) / 8]);
 
-                    if(info.renderMode != RenderMode.PICKING) {
+                    if(info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) {
                         for(int i = 0; i < prim.numIndices; i++) {
-                            if((prim.arrayMask &(1 << 11)) != 0) { Color4 c = model.colorArray[0][prim.colorIndices[0][i]]; gl.glColor4f(c.r, c.g, c.b, c.a); }
+                            if((prim.arrayMask &(1 << 11)) != 0) { Color4 c = model.colorArray[0][prim.colorIndices[0][i]];
+                            gl.glColor4f(c.r, c.g, c.b, c.a); }
 
                             if(hasShaders) {
                                 if((prim.arrayMask &(1 << 12)) != 0) { Color4 c = model.colorArray[1][prim.colorIndices[1][i]]; gl.glSecondaryColor3f(c.r, c.g, c.b); }
@@ -935,10 +1007,13 @@ public class BmdRenderer extends GLRenderer {
                         }
                     }
                     else {
-                        for(int i = 0; i < prim.numIndices; i++) {
+                        for(int i = 0; i < prim.numIndices; i++)
+                        {
                             Vec3f pos = new Vec3f(model.positionArray[prim.positionIndices[i]]);
-                            if((prim.arrayMask & 1) != 0) Vec3f.transform(pos, mtxtable[prim.posMatrixIndices[i]], pos);
-                            else Vec3f.transform(pos, mtxtable[0], pos);
+                            if((prim.arrayMask & 1) != 0)
+                                Vec3f.transform(pos, mtxtable[prim.posMatrixIndices[i]], pos);
+                            else
+                                Vec3f.transform(pos, mtxtable[0], pos);
                             gl.glVertex3f(pos.x, pos.y, pos.z);
                         }
                     }

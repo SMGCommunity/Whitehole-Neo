@@ -113,47 +113,54 @@ public class PathObj {
         return String.format("[%1$d] %2$s", pathID, name);
     }
     
+    public String toClipboard()
+    {
+        // Creates a string that represents the entire path.
+        StringBuilder sb = new StringBuilder();
+        sb.append("WHNFP|");
+        sb.append(points.size());
+        sb.append("|");
+        sb.append(data.toClipboard("WHNP"));
+        sb.append('\n');
+        
+        // create path points. Separate via \n
+        int i = 0;
+        for(var x : points)
+        {
+            sb.append(x.toClipboard());
+            if (i == points.size()-1);
+                sb.append('\n');
+            i++;
+        }
+        
+        return sb.toString();
+    }
+    
     public List<PathPointObj> getPoints() {
         return points;
     }
     
-    public boolean isClosed() {
-        return ((String)data.get("closed")).equals("CLOSE");
-    }
-    
-    public Vec3f getStartPosition()
+    public int size()
     {
-        if (points.isEmpty())
-            return new Vec3f();
-        return points.get(0).position;
+        if (points == null)
+            return -1;
+        return points.size();
     }
     
-    public Color4 getColor() {
-        return color;
+    /**
+     * Gets the index of the path point in the path
+     * @param point The point to get the index of
+     * @return -1 if the point is not in the path.
+     */
+    public int indexOf(PathPointObj point)
+    {
+        return points.indexOf(point);
     }
     
-    public Color4 getSelectColor(){
-        return selectcolor;
-    }
-    
-    public CubeRenderer getBigPointRenderer() {
-        return bigPointRenderer;
-    }
-    
-    public CubeRenderer getSmallPointRenderer() {
-        return smallPointRenderer;
-    }
-    
-    private void initColorAndCubeRenderers() {
-        int rand = ~RANDOM.nextInt() & 0xFFFFFF;
-        float r = ((rand >> 16) & 0xFF) / 255f;
-        float g = ((rand >>  8) & 0xFF) / 255f;
-        float b =  (rand        & 0xFF) / 255f;
-        color = new Color4(r, g, b, 1f);
-        selectcolor = new Color4(r+0.35f, g+0.35f, b+0.35f, 1f);
-        
-        bigPointRenderer = new CubeRenderer(100.0f, new Color4(1f, 1f, 1f, 1f), color, false);
-        smallPointRenderer = new CubeRenderer(50.0f, new Color4(1f, 1f, 1f, 1f), color, false);
+    public void setName(String s)
+    {
+        name = s;
+        data.put("name", s);
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -358,5 +365,109 @@ public class PathObj {
         
         GL2 gl = info.drawable.getGL().getGL2();
         gl.glCallList(displayLists[info.renderMode.ordinal()]);
+    }
+
+        
+    public Color4 getColor() {
+        return color;
+    }
+    
+    public Color4 getSelectColor(){
+        return selectcolor;
+    }
+    
+    public CubeRenderer getBigPointRenderer() {
+        return bigPointRenderer;
+    }
+    
+    public CubeRenderer getSmallPointRenderer() {
+        return smallPointRenderer;
+    }
+    
+    private void initColorAndCubeRenderers() {
+        int rand = ~RANDOM.nextInt() & 0xFFFFFF;
+        float r = ((rand >> 16) & 0xFF) / 255f;
+        float g = ((rand >>  8) & 0xFF) / 255f;
+        float b =  (rand        & 0xFF) / 255f;
+        color = new Color4(r, g, b, 1f);
+        selectcolor = new Color4(r+0.35f, g+0.35f, b+0.35f, 1f);
+        
+        bigPointRenderer = new CubeRenderer(100.0f, new Color4(1f, 1f, 1f, 1f), color, false);
+        smallPointRenderer = new CubeRenderer(50.0f, new Color4(1f, 1f, 1f, 1f), color, false);
+    }
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Rail Utility
+    
+    /**
+     * Check if the path is closed
+     * @return true if the path is closed
+     */
+    public boolean isClosed() {
+        return ((String)data.get("closed")).equals("CLOSE");
+    }
+
+    /**
+     * Returns the position of the first path point
+     * @return The position of the first path point
+     */
+    public Vec3f getStartPosition()
+    {
+        if (points.isEmpty())
+            return null;
+        return points.get(0).position;
+    }
+    
+    /**
+     * Returns the position of the last path point
+     * @return The position of the last path point
+     */
+    public Vec3f getEndPosition()
+    {
+        if (points.isEmpty())
+            return null;
+        return points.get(points.size()-1).position;
+    }
+
+    public PathPointObj getNextPoint(PathPointObj cur)
+    {
+        return getProceedingInDirection(cur, 1);
+    }
+    public PathPointObj getPreviousPoint(PathPointObj cur)
+    {
+        return getProceedingInDirection(cur, -1);
+    }
+    
+    
+    private PathPointObj getProceedingInDirection(PathPointObj cur, int direction)
+    {
+        if (!points.contains(cur))
+            return null; //Path point is not in the path bruh
+        
+        if (direction == 0)
+            return cur; //No offset? bruh
+        
+        
+        int index = indexOf(cur);
+        index += direction;
+        if (direction > 0)
+        {
+            //Forwards
+            if (isClosed())
+                while (index >= points.size())
+                    index -= points.size();
+            else if (index >= points.size())
+                return null;
+        }
+        else if (direction < 0)
+        {
+            //Backwards
+            if (isClosed())
+                while (index < 0)
+                    index += points.size();
+            else if (index < 0)
+                return null;
+        }
+        return points.get(index);
     }
 }

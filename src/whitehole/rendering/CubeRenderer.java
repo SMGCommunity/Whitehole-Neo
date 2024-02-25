@@ -91,7 +91,7 @@ public class CubeRenderer extends GLRenderer {
 
         GL2 gl = info.drawable.getGL().getGL2();
 
-        if (info.renderMode != RenderMode.PICKING) {
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) {
             if (gl.isFunctionAvailable("glActiveTexture")) {
                 for (int i = 0; i < 8; i++) {
                     try {
@@ -145,7 +145,7 @@ public class CubeRenderer extends GLRenderer {
         gl.glVertex3f(s, -s, s);
         gl.glEnd();
 
-        if (info.renderMode != RenderMode.PICKING) {
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) {
             gl.glLineWidth(1.5f);
             gl.glColor4f(borderColor.r, borderColor.g, borderColor.b, borderColor.a);
 

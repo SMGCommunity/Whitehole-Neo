@@ -14,38 +14,39 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package whitehole.rendering;
+package whitehole.rendering.special;
 
 import com.jogamp.opengl.GL2;
 import java.io.IOException;
 import java.util.List;
 import whitehole.math.Vec3f;
+import whitehole.rendering.GLRenderer;
 
 public class MultiRenderer extends GLRenderer {
     public static class MultiRendererInfo {
-        String modelName;
-        Vec3f position, rotation, scale;
-        GLRenderer renderer;
+        public String modelName;
+        public Vec3f position, rotation, scale;
+        public GLRenderer renderer;
         
         public MultiRendererInfo(String modelname) {
             modelName = modelname;
-            position = TRANSLATION;
-            rotation = ROTATION;
-            scale = SCALE;
+            position = DEFAULT_TRANSLATION;
+            rotation = DEFAULT_ROTATION;
+            scale = DEFAULT_SCALE;
         }
         
         public MultiRendererInfo(String modelname, Vec3f pos) {
             modelName = modelname;
             position = pos;
-            rotation = ROTATION;
-            scale = SCALE;
+            rotation = DEFAULT_ROTATION;
+            scale = DEFAULT_SCALE;
         }
         
         public MultiRendererInfo(String modelname, Vec3f pos, Vec3f dir) {
             modelName = modelname;
             position = pos;
             rotation = dir;
-            scale = SCALE;
+            scale = DEFAULT_SCALE;
         }
         
         public MultiRendererInfo(String modelname, Vec3f pos, Vec3f dir, Vec3f size) {
@@ -60,7 +61,7 @@ public class MultiRenderer extends GLRenderer {
     
     private final List<MultiRendererInfo> submodelRenderers;
     
-    MultiRenderer(List<MultiRendererInfo> subRenderers) {
+    public MultiRenderer(List<MultiRendererInfo> subRenderers) {
         submodelRenderers = subRenderers;
     }
     

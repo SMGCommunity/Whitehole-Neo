@@ -159,4 +159,23 @@ public class Vec3f implements Cloneable {
               z = a.x * b.y - a.y * b.x;
         out.x = x; out.y = y; out.z = z;
     }
+    
+    public static Vec3f centroid(Vec3f[] points)
+    {
+        if (points.length == 0)
+            return null;
+        
+        Vec3f centroid = new Vec3f();
+        
+        for (int i = 0; i < points.length; i++)
+        {
+            centroid.x += points[i].x;
+            centroid.y += points[i].y;
+            centroid.z += points[i].z;
+        }
+        centroid.x = centroid.x / points.length;
+        centroid.y = centroid.y / points.length;
+        centroid.z = centroid.z / points.length;
+        return centroid;
+    }
 }

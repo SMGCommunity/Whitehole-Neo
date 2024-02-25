@@ -14,11 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package whitehole.rendering;
+package whitehole.rendering.special;
 
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.glu.*;
 import java.nio.DoubleBuffer;
+import whitehole.rendering.GLRenderer;
 import whitehole.util.Color4;
 
 public class AreaShapeRenderer extends GLRenderer {
@@ -59,7 +60,7 @@ public class AreaShapeRenderer extends GLRenderer {
         
         GL2 gl = info.drawable.getGL().getGL2();
 
-        if (info.renderMode != GLRenderer.RenderMode.PICKING) {
+        if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) {
             for (int i = 0; i < 8; i++) {
                 try {
                     if(gl.isFunctionAvailable("glActiveTexture")) {

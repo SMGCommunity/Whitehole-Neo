@@ -16,12 +16,13 @@
  */
 package whitehole.rendering;
 
+import whitehole.rendering.special.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import whitehole.Whitehole;
 import whitehole.db.ModelSubstitutions;
-import whitehole.rendering.MultiRenderer.MultiRendererInfo;
+import whitehole.rendering.special.MultiRenderer.MultiRendererInfo;
 import whitehole.smg.object.AbstractObj;
 import whitehole.smg.object.AreaObj;
 import whitehole.smg.object.CameraObj;
