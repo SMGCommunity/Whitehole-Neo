@@ -172,17 +172,4 @@ public class AreaShapeRenderer extends GLRenderer {
         
         gl.glDisable(GL2.GL_CLIP_PLANE0);
     }
-    
-    public void makeCone(GLRenderer.RenderInfo info) {
-        GL2 gl = info.drawable.getGL().getGL2();
-        GLU glu = new GLU();
-        GLUquadric cylinder = glu.gluNewQuadric();
-        
-        gl.glTranslatef(0f, 1000f, 0f);
-        gl.glRotatef(90f, 1f, 0f, 0f);
-        glu.gluQuadricDrawStyle(cylinder, GLU.GLU_LINE);
-        glu.gluCylinder(cylinder, 0, SIZE, SIZE * 2, 16, 1);
-        glu.gluDeleteQuadric(cylinder);
-        gl.glTranslatef(0f, 0f, 0f);
-    }
 }

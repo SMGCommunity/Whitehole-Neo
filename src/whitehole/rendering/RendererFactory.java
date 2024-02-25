@@ -23,17 +23,10 @@ import java.util.List;
 import whitehole.Whitehole;
 import whitehole.db.ModelSubstitutions;
 import whitehole.rendering.special.MultiRenderer.MultiRendererInfo;
-import whitehole.smg.object.AbstractObj;
-import whitehole.smg.object.AreaObj;
-import whitehole.smg.object.CameraObj;
-import whitehole.smg.object.CutsceneObj;
-import whitehole.smg.object.DebugObj;
-import whitehole.smg.object.GravityObj;
-import whitehole.smg.object.PositionObj;
-import whitehole.smg.object.SoundObj;
-import whitehole.smg.object.StageObj;
+import whitehole.smg.object.*;
 import whitehole.util.Color4;
 import whitehole.math.Vec3f;
+import whitehole.smg.object.LevelObj;
 
 public final class RendererFactory {
     private static final String[] SHAPE_MODEL_COMPATIBILITY = {
@@ -45,6 +38,8 @@ public final class RendererFactory {
     
     private static final String[] AREA_SHAPE_NAMES = { "baseorigincube", "centerorigincube", "sphere", "cylinder", "bowl" };
     
+    private static final String[] OCEAN_SHAPE_NAMES = { "oceanbowl", "oceanring", "oceansphere" };
+    
     // -------------------------------------------------------------------------------------------------------------------------
     
     public static GLRenderer createDummyCubeRenderer() {
@@ -54,9 +49,8 @@ public final class RendererFactory {
     public static GLRenderer tryCreateBmdRenderer(GLRenderer.RenderInfo info, String objModelName) {
         BmdRenderer bmdRenderer = new BmdRenderer(info, objModelName);
 
-        if (bmdRenderer.isValidBmdModel()) {
+        if (bmdRenderer.isValidBmdModel())
             return bmdRenderer;
-        }
         
         return createDummyCubeRenderer();
     }
@@ -64,9 +58,8 @@ public final class RendererFactory {
     public static GLRenderer tryCreateBtiRenderer(GLRenderer.RenderInfo info, String objModelName, Vec3f pt1, Vec3f pt2, boolean vertical) {
         BtiRenderer bmdRenderer = new BtiRenderer(info, objModelName, pt1, pt2, vertical);
 
-        if (bmdRenderer.isValidBtiTexture()) {
+        if (bmdRenderer.isValidBtiTexture())
             return bmdRenderer;
-        }
         
         return createDummyCubeRenderer();
     }
@@ -74,41 +67,39 @@ public final class RendererFactory {
     public static GLRenderer tryCreateMultiRenderer(GLRenderer.RenderInfo info, MultiRendererInfo ... multiInfos) {
         List<MultiRendererInfo> actualMultiInfos = new ArrayList(multiInfos.length);
         
-        for (MultiRendererInfo multiInfo : multiInfos) {
-            if (Whitehole.isExistObjectDataArc(multiInfo.modelName)) {
+        for (MultiRendererInfo multiInfo : multiInfos)
+        {
+            if (Whitehole.isExistObjectDataArc(multiInfo.modelName))
+            {
                 actualMultiInfos.add(multiInfo);
                 multiInfo.renderer = new BmdRenderer(info, multiInfo.modelName);
             }
         }
         
-        if (actualMultiInfos.isEmpty()) {
+        if (actualMultiInfos.isEmpty())
             return createDummyCubeRenderer();
-        }
-        else {
-            return new MultiRenderer(actualMultiInfos);
-        }
+        
+        return new MultiRenderer(actualMultiInfos);
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Model name substitution
     
     public static String getAreaShapeModelName(AbstractObj obj) {
-        if (obj.objdbInfo.areaShape().equalsIgnoreCase("Any")) {
+        if (obj.objdbInfo.areaShape().equalsIgnoreCase("Any"))
+        {
             int areaShapeNo = (short)obj.data.getOrDefault("AreaShapeNo", (short)-1);
 
-            if (areaShapeNo < 0 || areaShapeNo > 4) {
+            if (areaShapeNo < 0 || areaShapeNo > 4)
                 return "dummy";
-            }
-            else {
-                return AREA_SHAPE_NAMES[areaShapeNo];
-            }
+            
+            return AREA_SHAPE_NAMES[areaShapeNo];
         }
-        else {
-            return obj.objdbInfo.areaShape().toLowerCase();
-        }
+        
+        return obj.objdbInfo.areaShape().toLowerCase();
     }
     
-    public static String getGravityShapeModelName(GravityObj obj) {
+    public static String getGravityShapeModelName(AbstractObj obj) {
         return obj.name.toLowerCase() + String.format("_(%s,%s,%s|%s,%s,%s|%s,%s,%s,%s,%d)",
                 obj.scale.x, obj.scale.y, obj.scale.z,
                 obj.data.get("Range"), obj.data.get("Distant"), obj.data.get("Inverse"),
@@ -116,12 +107,19 @@ public final class RendererFactory {
                 obj.data.get("CommonPath_ID"));
     }
     
+    public static String getOceanShapeModelName(AbstractObj obj)
+    {
+        return obj.name.toLowerCase() + String.format("_(%s,%s,%s|%s|%d)",
+                obj.scale.x, obj.scale.y, obj.scale.z,
+                obj.data.get("Obj_arg0"),
+                obj.data.get("CommonPath_ID"));
+    }
+    
     public static String getSubstitutedModelName(String objModelName, AbstractObj obj, boolean isNeedPrevious) {
         
         if (isNeedPrevious)
         {
-            String v = null;
-            v = obj.PreviousRenderKey;
+            String v = obj.PreviousRenderKey;
             if (v != null)
                 return v;
         }
@@ -129,22 +127,29 @@ public final class RendererFactory {
         String lowerObjModelName = objModelName.toLowerCase();
         
         // Areas and Cameras do not use models, but we can process their model keys already
-        if (obj instanceof AreaObj) {
+        if (obj instanceof AreaObj)
             return String.format("areaobj_%s", getAreaShapeModelName(obj));
-        }
-        else if (obj instanceof CameraObj) {
+        
+        if (obj instanceof CameraObj)
             return String.format("cameraobj_%s", getAreaShapeModelName(obj));
-        }
-        else if (obj instanceof GravityObj) {
+        
+        if (obj instanceof GravityObj)
             return String.format("gravityobj_%s", getGravityShapeModelName((GravityObj)obj));
-        }
+        
         // Some objects are programmed to load an indexed model
-        else if (Arrays.binarySearch(SHAPE_MODEL_COMPATIBILITY, lowerObjModelName) >= 0) {
+        if (Arrays.binarySearch(SHAPE_MODEL_COMPATIBILITY, lowerObjModelName) >= 0)
+        {
             int shapeModelNo = obj.data.getShort("ShapeModelNo", (short)-1);
             return String.format("%s%02d", objModelName, shapeModelNo);
         }
         
-        switch(lowerObjModelName) {
+        if (Arrays.binarySearch(OCEAN_SHAPE_NAMES, lowerObjModelName) >= 0)
+        {
+            return String.format("%s", getOceanShapeModelName(obj));
+        }
+        
+        switch(lowerObjModelName)
+        {
             case "clipareaboxbottomhighmodel":
                 return "ClipAreaBoxBottom";
             case "clipareaboxcenterhighmodel":
@@ -161,24 +166,18 @@ public final class RendererFactory {
         objModelName = objModelName.toLowerCase();
 
         // Their cache keys match their objModelName that was created by getSubstitutedModelName
-        if (obj instanceof AreaObj || obj instanceof CameraObj || obj instanceof GravityObj) {
+        if (obj instanceof AreaObj || obj instanceof CameraObj || obj instanceof GravityObj)
             return objModelName;
-        }
-        else if (obj instanceof CutsceneObj) {
+        else if (obj instanceof CutsceneObj)
             return "cutsceneobj";
-        }
-        else if (obj instanceof DebugObj) {
+        else if (obj instanceof DebugObj)
             return "debugobj";
-        }
-        else if (obj instanceof PositionObj) {
+        else if (obj instanceof PositionObj)
             return "positionobj";
-        }
-        else if (obj instanceof SoundObj) {
+        else if (obj instanceof SoundObj)
             return "soundobj";
-        }
-        else if (obj instanceof StageObj) {
+        else if (obj instanceof StageObj)
             return "stageobj";
-        }
         
         String cacheKey = String.format("object_%s", objModelName);
         
@@ -223,6 +222,10 @@ public final class RendererFactory {
         if (renderer != null)
             return renderer;
         
+        renderer = tryCreateRendererForOceanType(objModelName, obj);
+        if (renderer != null)
+            return renderer;
+        
         // Try water planet renderer
         renderer = tryCreateRendererForWaterPlanet(info, objModelName, obj);
         if (renderer != null)
@@ -263,14 +266,32 @@ public final class RendererFactory {
         return renderer;
     }
     
+    private static GLRenderer tryCreateRendererForOceanType(String objName, AbstractObj obj)
+    {
+        if (!(obj instanceof LevelObj))
+            return null;
+        
+        Object oa0 = obj.data.get("Obj_arg0");
+        Object oa1 = obj.data.get("Obj_arg1");
+        
+        if (objName.startsWith("oceanbowl_"))
+            return new OceanShapeRenderer(OceanShapeRenderer.Shape.BOWL, obj.scale, (int)oa0, (int)oa1);
+        if (objName.startsWith("oceanring_"))
+            return new OceanShapeRenderer(OceanShapeRenderer.Shape.RING, obj.scale, (int)oa0, (int)oa1);
+        if (objName.startsWith("oceansphere_"))
+            return new OceanShapeRenderer(OceanShapeRenderer.Shape.SPHERE, obj.scale, (int)oa0, (int)oa1);
+        
+        return null;
+    }
+    
     private static GLRenderer tryCreateRendererForObjectType(GLRenderer.RenderInfo info, String objModelName, AbstractObj obj) {
-        if (obj instanceof CutsceneObj) {
+        if (obj instanceof CutsceneObj)
             return new CubeRenderer(100f, new Color4(1f, 0.5f, 0.5f), new Color4(1.0f, 1.0f, 0.3f), true);
-        }
-        else if (obj instanceof DebugObj) {
+        
+        if (obj instanceof DebugObj)
             return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(0.8f, 0.5f, 0.1f), true);
-        }
-        else if (obj instanceof GravityObj) {
+        
+        if (obj instanceof GravityObj) {
             //TODO: REMOVE THIS WHEN FINISHED
             //System.out.println(objModelName);
             
@@ -536,13 +557,14 @@ public final class RendererFactory {
             
             return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
         }
-        else if (obj instanceof PositionObj) {
+        
+        if (obj instanceof PositionObj)
             return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(1f,0.5f,0f), true);
-        }
-        else if (obj instanceof SoundObj) {
+        
+        if (obj instanceof SoundObj)
             return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(1f, 0.5f, 1f), true);
-        }
-        else if (obj instanceof AreaObj) {
+        
+        if (obj instanceof AreaObj) {
             switch(objModelName) {
                 case "areaobj_baseorigincube":
                     return new AreaShapeRenderer(new Color4(0.3f, 1f, 1f), AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
@@ -558,7 +580,8 @@ public final class RendererFactory {
                     return new CubeRenderer(100f, new Color4(1f, 0.5f, 0.5f), new Color4(0.3f, 1f, 1f), true);
             }
         }
-        else if (obj instanceof CameraObj) {
+        
+        if (obj instanceof CameraObj) {
             switch(objModelName) {
                 case "cameraobj_baseorigincube":
                     return new AreaShapeRenderer(new Color4(0.8f, 0f, 0f), AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
@@ -580,15 +603,18 @@ public final class RendererFactory {
     private static GLRenderer tryCreateRendererForWaterPlanet(GLRenderer.RenderInfo info, String objModelName, AbstractObj obj) {
         boolean isWaterPlanet = false;
         
-        for (String waterPlanet : Whitehole.getWaterPlanetList()) {
-            if (waterPlanet.equalsIgnoreCase(objModelName)) {
+        for (String waterPlanet : Whitehole.getWaterPlanetList())
+        {
+            if (waterPlanet.equalsIgnoreCase(objModelName))
+            {
                 objModelName = waterPlanet;
                 isWaterPlanet = true;
                 break;
             }
         }
         
-        if (isWaterPlanet) {
+        if (isWaterPlanet)
+        {
             return tryCreateMultiRenderer(info,
                     new MultiRendererInfo(objModelName),
                     new MultiRendererInfo(objModelName + "Water")

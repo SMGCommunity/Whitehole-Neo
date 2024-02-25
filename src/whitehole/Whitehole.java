@@ -23,6 +23,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.geom.AffineTransform;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -170,7 +171,25 @@ public class Whitehole {
     }
     
     public static boolean isExistObjectDataArc(String file) {
-        return GAME != null ? GAME.existsResourceArcPath(file) : false;
+        if (GAME == null)
+            return false;
+        
+        if (GAME.existsResourceArcPath(file))
+            return true;
+        
+        String base = Settings.getBaseGameDir();
+        if (base == null || base.length() == 0)
+            return false; //No base game path set
+
+        String arcPath;
+        for (String resourceFolder : GameArchive.RESOURCE_FOLDERS)
+        {
+            arcPath = String.format("%s/%s/%s.arc", base, resourceFolder, file);
+            File fi = new File(arcPath);
+            if (fi.exists())
+                return true;
+        }
+        return false;
     }
     
     public static String createResourceArcPath(String objModelName) {

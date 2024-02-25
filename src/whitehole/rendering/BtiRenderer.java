@@ -17,9 +17,13 @@
 package whitehole.rendering;
 
 import com.jogamp.opengl.*;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import whitehole.Settings;
 import whitehole.Whitehole;
+import whitehole.io.ExternalFile;
+import whitehole.io.FileBase;
 import whitehole.io.RarcFile;
 import whitehole.smg.Bti;
 import whitehole.smg.ImageUtils.FilterMode;
@@ -42,14 +46,26 @@ public class BtiRenderer extends GLRenderer {
         // Get file paths
         String arcPath = Whitehole.createResourceArcPath(objModelName);
         String btiPath = String.format("/%s/%s.bti", objModelName, objModelName);
-        
+                
+        boolean UseAbsolutePath = false;
         if (arcPath == null) {
-            return;
+            //If a model is not found, we can try looking in the base directory instead
+            //We will only check ObjectData, as a vanilla game will not have models elsewhere
+            String base = Settings.getBaseGameDir();
+            if (base == null || base.length() == 0)
+                return; //No base game path set
+            
+            arcPath = String.format("%s/%s/%s.arc", base, "ObjectData", objModelName);
+            UseAbsolutePath = true;
+            File fi = new File(arcPath);
+            if (!fi.exists())
+                return;
         }
         
         // Access resource archive and BTI data
         try {
-            archive = new RarcFile(Whitehole.getCurrentGameFileSystem().openFile(arcPath));
+            FileBase fi = UseAbsolutePath ? new ExternalFile(arcPath) : Whitehole.getCurrentGameFileSystem().openFile(arcPath);
+            archive = new RarcFile(fi);
             
             if (archive.fileExists(btiPath)) {
                 btiData = new Bti(archive.openFile(btiPath));

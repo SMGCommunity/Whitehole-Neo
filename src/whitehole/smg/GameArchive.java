@@ -27,7 +27,7 @@ import whitehole.io.FilesystemBase;
 import whitehole.io.RarcFile;
 
 public class GameArchive {
-    private static final String[] RESOURCE_FOLDERS = { "ObjectData", "LightData", "DemoData", "MapPartsData" };
+    public static final String[] RESOURCE_FOLDERS = { "ObjectData", "LightData", "DemoData", "MapPartsData" };
     
     // -------------------------------------------------------------------------------------------------------------------------
     
