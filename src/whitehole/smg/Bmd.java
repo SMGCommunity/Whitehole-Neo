@@ -815,74 +815,76 @@ public class Bmd
                     
                     texmtx.centerS = file.readFloat();
                     texmtx.centerT = file.readFloat();
-                    texmtx.unkf0 = file.readFloat();
+                    texmtx.centerU = file.readFloat();
                     texmtx.scaleS = file.readFloat();
                     texmtx.scaleT = file.readFloat();
                     
-                    texmtx.rotate = file.readShort();
+                    short rotateValue = file.readShort();
+                    texmtx.rotate = ((float)rotateValue * (float)Math.PI) / 32768f;
                     texmtx.padding2 = file.readShort();
                     
                     texmtx.transS = file.readFloat();
                     texmtx.transT = file.readFloat();
                     
-                    texmtx.preMatrix = new Matrix4();
+                    texmtx.projectionMatrix = new Matrix4();
                     for (int k = 0; k < 16; k++)
-                        texmtx.preMatrix.m[k] = file.readFloat();
+                        texmtx.projectionMatrix.m[k] = file.readFloat();
                     
-                    float rotate = ((float)texmtx.rotate * (float)Math.PI) / 32768f;
+                    // Re-writing this wowie
                     
-                    // be lazy and use a 4x4 matrix, who cares
-                    
-                    // http://kuribo64.net/?page=post&id=20293
-                    Matrix4 R = Matrix4.createRotationZ(rotate);
+                    // create_matrix
+                    // I'm going to assume the rotation is in radians for now...
+                    Matrix4 R = Matrix4.createRotationZ(texmtx.rotate);
                     Matrix4 S = Matrix4.scale(new Vec3f(texmtx.scaleS, texmtx.scaleT, 1f));
-                    Matrix4 C = Matrix4.createTranslation(new Vec3f(texmtx.centerS, texmtx.centerT, 0f));
+                    Matrix4 C = Matrix4.createTranslation(new Vec3f(texmtx.centerS, texmtx.centerT, texmtx.centerU));
                     Matrix4 CI = Matrix4.invert(C);
                     Matrix4 T = Matrix4.createTranslation(new Vec3f(texmtx.transS, texmtx.transT, 0f));
                     Matrix4 P;
                     
                     switch ((int)texmtx.type)
                     {
-                        case 0x00:
-                        case 0x80:
-                            P = new Matrix4(1,0,0,0, 0,1,0,0, 0,0,0,0, 0,0,1,0);
+                        case 0x06: //Env Map projection
+                            P = new Matrix4(0.5f, 0.0f, 0.0f, 0.5f,
+                                            0.0f,0.5f, 0.0f, 0.5f,
+                                            0.0f, 0.0f, 0.0f, 1.0f,
+                                            0.0f, 0.0f, 1.0f, 0.0f);
+                            Matrix4.mult(P, texmtx.projectionMatrix, P);
                             break;
-                        case 0x06:
-                            P = new Matrix4(0.5f,0,0,0, 0,0.5f,0,0, 0,0,0,0, 0.5f,0.5f,1,0);
-                            break;
-                        case 0x07:
-                            P = new Matrix4(0.5f,0,0,0, 0,0.5f,0,0, -0.5f,-0.5f,-1,0, 0,0,0,0);
+                        case 0x07: //Env Map projection 2 electric bugaloo
+                            P = new Matrix4(0.5f, 0.0f, 0.5f, 0.0f,
+                                            0.0f,0.5f, 0.5f, 0.0f,
+                                            0.0f, 0.0f, 1.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 1.0f);
+                            Matrix4.mult(P, texmtx.projectionMatrix, P);
                             break;
                         case 0x08:
                         case 0x09:
-                            P = new Matrix4(0.5f,0,0,0, 0,-0.5f,0,0, 0.5f,0.5f,1,0, 0,0,0,0);
+                            P = new Matrix4(0.5f, 0.0f, 0.5f, 0.0f,
+                                            0.0f,-0.5f, 0.5f, 0.0f,
+                                            0.0f, 0.0f, 1.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 1.0f);
+                            Matrix4.mult(P, texmtx.projectionMatrix, P);
                             break;
+                            
                         default:
-                            P = new Matrix4();
+                            P = new Matrix4(1,0,0,0, 0,1,0,0, 0,0,0,0, 0,0,1,0);
                             break;
                     }
-                    P = texmtx.preMatrix;
+                    //P = texmtx.projectionMatrix;
                     Matrix4 resmat = new Matrix4();
-                    /*Matrix4.mult(C, T, resmat);
-                    Matrix4.mult(S, resmat, resmat);
-                    Matrix4.mult(R, resmat, resmat);
-                    Matrix4.mult(CI, resmat, resmat);
-                    Matrix4.mult(P, resmat, resmat);
-                    Matrix4.mult(texmtx.preMatrix, resmat, resmat);*/
                     Matrix4.mult(T, C, resmat);
                     Matrix4.mult(resmat, S, resmat);
                     Matrix4.mult(resmat, R, resmat);
                     Matrix4.mult(resmat, CI, resmat);
                     Matrix4.mult(resmat, P, resmat);
-                    //Matrix4.mult(resmat, texmtx.preMatrix, resmat);
                     
-                    /*resmat.m[3] = 0f; resmat.m[7] = 0f;
-                    resmat.m[11] = 0f; resmat.m[15] = 1f;
-                    if (texmtx.proj == 0)
-                    {
-                        resmat.m[2] = 0f; resmat.m[6] = 0f;
-                        resmat.m[10] = 1f; resmat.m[14] = 0f;
-                    }*/
+//                    resmat.m[3] = 0f; resmat.m[7] = 0f;
+//                    resmat.m[11] = 0f; resmat.m[15] = 1f;
+//                    if (texmtx.proj == 0)
+//                    {
+//                        resmat.m[2] = 0f; resmat.m[6] = 0f;
+//                        resmat.m[10] = 1f; resmat.m[14] = 0f;
+//                    }
                     
                     texmtx.basicMatrix = resmat;
                     
@@ -1093,7 +1095,8 @@ public class Bmd
             tex.minFilter = file.readByte();
             tex.magFilter = file.readByte();
 
-            file.skip(2);
+            tex.lodMin = file.readByte() / 8.0f;
+            tex.lodMax = file.readByte() / 8.0f;
 
             tex.mipmapCount = file.readByte();
 
@@ -1227,12 +1230,12 @@ public class Bmd
             public byte proj, type;
             public short padding;
             public float centerS, centerT;
-            public float unkf0;
+            public float centerU;
             public float scaleS, scaleT;
-            public short rotate;
+            public float rotate;
             public short padding2;
             public float transS, transT;
-            public Matrix4 preMatrix;
+            public Matrix4 projectionMatrix;
             
             public Matrix4 basicMatrix;
         }
@@ -1325,6 +1328,7 @@ public class Bmd
 
         public byte minFilter;
         public byte magFilter;
+        public float lodMin, lodMax;
 
         public byte mipmapCount;
         public float lodBias;

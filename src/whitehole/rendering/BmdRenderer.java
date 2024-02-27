@@ -21,6 +21,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.*;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Locale;
 import whitehole.Settings;
 import whitehole.Whitehole;
@@ -61,6 +64,8 @@ public class BmdRenderer extends GLRenderer {
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, FilterMode.values()[tex.magFilter].get());
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, WrapMode.values()[tex.wrapS].get());
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, WrapMode.values()[tex.wrapT].get());
+        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_LOD, tex.lodMin);
+        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_LOD, tex.lodMax);
         gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_LOD_BIAS, tex.lodBias);
         
         int ifmt, fmt;
@@ -199,7 +204,7 @@ public class BmdRenderer extends GLRenderer {
         
         Locale usa = new Locale("en-US");
         String[] texgensrc = { 
-            "(gl_Vertex)",
+            "(gl_Vertex / 100000.0)",
             "normal",
             "argh",
             "argh",
@@ -261,6 +266,11 @@ public class BmdRenderer extends GLRenderer {
         vert.append("    vec4 texcoord;\n");
         for (int i = 0; i < mat.numTexgens; i++)
         {
+            if (mat.name.equals("SunFaceMat_v"))
+            {
+                int x = 0;
+            }
+            
           vert.append(String.format("    texcoord = %1$s;\n", texgensrc[mat.texGen[i].src]));
             
             // TODO matrices
@@ -275,7 +285,7 @@ public class BmdRenderer extends GLRenderer {
                 
                 if (texmtx.type == 9) //Screen projection?
                 {
-                    vert.append("   texcoord *= gl_ModelViewMatrix * gl_ProjectionMatrix;\n");
+                    vert.append("   texcoord = 100000.0 * (vec4((gl_ModelViewProjectionMatrix * texcoord).xyz, 1.0));\n");
                 }
                 else
                 {
@@ -530,6 +540,8 @@ public class BmdRenderer extends GLRenderer {
         ShaderCache.addEntry(hash, vertid, fragid, sid);
         //System.out.println(matid);
         //System.out.println(frag.toString());
+
+        
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
