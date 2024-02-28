@@ -25,39 +25,39 @@ public class UFOKinokoRenderer extends BmdRenderer {
         // except with different color values and material ID
         switch (color) {
             case 1: // green
-                model.materials[5].colorS10[0].r = 30;
-                model.materials[5].colorS10[0].g = 220;
-                model.materials[5].colorS10[0].b = 30;
-                model.materials[5].colorS10[1].r = 32;
-                model.materials[5].colorS10[1].g = 121;
-                model.materials[5].colorS10[1].b = 32;
+                model.materials[5].tevRegisterColors[0].r = 30;
+                model.materials[5].tevRegisterColors[0].g = 220;
+                model.materials[5].tevRegisterColors[0].b = 30;
+                model.materials[5].tevRegisterColors[1].r = 32;
+                model.materials[5].tevRegisterColors[1].g = 121;
+                model.materials[5].tevRegisterColors[1].b = 32;
                 break;
                 
             case 2: // yellow
-                model.materials[5].colorS10[0].r = 220;
-                model.materials[5].colorS10[0].g = 220;
-                model.materials[5].colorS10[0].b = 30;
-                model.materials[5].colorS10[1].r = 121;
-                model.materials[5].colorS10[1].g = 121;
-                model.materials[5].colorS10[1].b = 32;
+                model.materials[5].tevRegisterColors[0].r = 220;
+                model.materials[5].tevRegisterColors[0].g = 220;
+                model.materials[5].tevRegisterColors[0].b = 30;
+                model.materials[5].tevRegisterColors[1].r = 121;
+                model.materials[5].tevRegisterColors[1].g = 121;
+                model.materials[5].tevRegisterColors[1].b = 32;
                 break;
                 
             case 3: // blue
-                model.materials[5].colorS10[0].r = 30;
-                model.materials[5].colorS10[0].g = 30;
-                model.materials[5].colorS10[0].b = 220;
-                model.materials[5].colorS10[1].r = 32;
-                model.materials[5].colorS10[1].g = 32;
-                model.materials[5].colorS10[1].b = 121;
+                model.materials[5].tevRegisterColors[0].r = 30;
+                model.materials[5].tevRegisterColors[0].g = 30;
+                model.materials[5].tevRegisterColors[0].b = 220;
+                model.materials[5].tevRegisterColors[1].r = 32;
+                model.materials[5].tevRegisterColors[1].g = 32;
+                model.materials[5].tevRegisterColors[1].b = 121;
                 break;
                 
             case 4: // purple
-                model.materials[5].colorS10[0].r = 220;
-                model.materials[5].colorS10[0].g = 30;
-                model.materials[5].colorS10[0].b = 220;
-                model.materials[5].colorS10[1].r = 121;
-                model.materials[5].colorS10[1].g = 32;
-                model.materials[5].colorS10[1].b = 121;
+                model.materials[5].tevRegisterColors[0].r = 220;
+                model.materials[5].tevRegisterColors[0].g = 30;
+                model.materials[5].tevRegisterColors[0].b = 220;
+                model.materials[5].tevRegisterColors[1].r = 121;
+                model.materials[5].tevRegisterColors[1].g = 32;
+                model.materials[5].tevRegisterColors[1].b = 121;
                 break;
         }
         

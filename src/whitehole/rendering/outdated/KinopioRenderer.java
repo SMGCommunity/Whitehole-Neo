@@ -23,27 +23,27 @@ public class KinopioRenderer extends BmdRenderer {
         
         switch (color) {
             case 0: // blue
-                model.materials[0].colorS10[0].r = -103;
-                model.materials[0].colorS10[0].g = -103;
-                model.materials[0].colorS10[0].b = 211;
+                model.materials[0].tevRegisterColors[0].r = -103;
+                model.materials[0].tevRegisterColors[0].g = -103;
+                model.materials[0].tevRegisterColors[0].b = 211;
                 break;
                 
             case 1: // green
-                model.materials[0].colorS10[0].r = -103;
-                model.materials[0].colorS10[0].g = 211;
-                model.materials[0].colorS10[0].b = -103;
+                model.materials[0].tevRegisterColors[0].r = -103;
+                model.materials[0].tevRegisterColors[0].g = 211;
+                model.materials[0].tevRegisterColors[0].b = -103;
                 break;
                 
             case 2: // purple
-                model.materials[0].colorS10[0].r = 211;
-                model.materials[0].colorS10[0].g = -103;
-                model.materials[0].colorS10[0].b = 211;
+                model.materials[0].tevRegisterColors[0].r = 211;
+                model.materials[0].tevRegisterColors[0].g = -103;
+                model.materials[0].tevRegisterColors[0].b = 211;
                 break;
                 
             case 4: // yellow
-                model.materials[0].colorS10[0].r = 211;
-                model.materials[0].colorS10[0].g = 211;
-                model.materials[0].colorS10[0].b = -103;
+                model.materials[0].tevRegisterColors[0].r = 211;
+                model.materials[0].tevRegisterColors[0].g = 211;
+                model.materials[0].tevRegisterColors[0].b = -103;
                 break;
         }
         

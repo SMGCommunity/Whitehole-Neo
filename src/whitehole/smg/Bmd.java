@@ -945,23 +945,23 @@ public class Bmd
                 mat.tevOrder[j].chanID = file.readByte();
             }
 
-            mat.colorS10 = new Material.ColorInfo[4];
+            mat.tevRegisterColors = new Material.ColorInfo[4];
             for (int j = 0; j < 4; j++)
             {
-                mat.colorS10[j] = mat.new ColorInfo();
+                mat.tevRegisterColors[j] = mat.new ColorInfo();
                 
                 if (colors10_id[j] == (short)0xFFFF)
                 {
-                    mat.colorS10[j].r = 255; mat.colorS10[j].g = 0;
-                    mat.colorS10[j].b = 255; mat.colorS10[j].a = 255;
+                    mat.tevRegisterColors[j].r = 255; mat.tevRegisterColors[j].g = 0;
+                    mat.tevRegisterColors[j].b = 255; mat.tevRegisterColors[j].a = 255;
                 }
                 else
                 {
                     file.position(sectionstart + offsets[17] + (colors10_id[j] * 8));
-                    mat.colorS10[j].r = file.readShort();
-                    mat.colorS10[j].g = file.readShort();
-                    mat.colorS10[j].b = file.readShort();
-                    mat.colorS10[j].a = file.readShort();
+                    mat.tevRegisterColors[j].r = file.readShort();
+                    mat.tevRegisterColors[j].g = file.readShort();
+                    mat.tevRegisterColors[j].b = file.readShort();
+                    mat.tevRegisterColors[j].a = file.readShort();
                 }
             }
 
@@ -1307,7 +1307,7 @@ public class Bmd
         public byte[] constColorSel;
         public byte[] constAlphaSel;
         public TevOrderInfo[] tevOrder;
-        public ColorInfo[] colorS10;
+        public ColorInfo[] tevRegisterColors;
         public TevStageInfo[] tevStage;
         public TevSwapModeInfo[] tevSwapMode;
         public TevSwapModeTable[] tevSwapTable;

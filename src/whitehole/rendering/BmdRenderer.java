@@ -101,10 +101,10 @@ public class BmdRenderer extends GLRenderer {
         }
 
         for(int i = 0; i < 4; i++) {
-            sig.putShort((short)mat.colorS10[i].r);
-            sig.putShort((short)mat.colorS10[i].g);
-            sig.putShort((short)mat.colorS10[i].b);
-            sig.putShort((short)mat.colorS10[i].a);
+            sig.putShort((short)mat.tevRegisterColors[i].r);
+            sig.putShort((short)mat.tevRegisterColors[i].g);
+            sig.putShort((short)mat.tevRegisterColors[i].b);
+            sig.putShort((short)mat.tevRegisterColors[i].a);
         }
 
         for(int i = 0; i < 4; i++) {
@@ -355,8 +355,8 @@ public class BmdRenderer extends GLRenderer {
             int _i =(i == 0) ? 3 : i - 1; // ???
             frag.append(String.format(usa, "    vec4 %1$s = vec4(%2$f, %3$f, %4$f, %5$f);\n",
                 outputregs[i],
-               (float)(customColors.length>0 ? customColors[0] : mat.colorS10[_i].r) / 255f,(float)(customColors.length>1 ? customColors[1] : mat.colorS10[_i].g) / 255f,
-               (float)(customColors.length>2 ? customColors[2] : mat.colorS10[_i].b) / 255f,(float)(customColors.length>3 ? customColors[3] : mat.colorS10[_i].a) / 255f));
+               (float)(customColors.length>0 ? customColors[0] : mat.tevRegisterColors[_i].r) / 255f,(float)(customColors.length>1 ? customColors[1] : mat.tevRegisterColors[_i].g) / 255f,
+               (float)(customColors.length>2 ? customColors[2] : mat.tevRegisterColors[_i].b) / 255f,(float)(customColors.length>3 ? customColors[3] : mat.tevRegisterColors[_i].a) / 255f));
         }
 
         for(int i = 0; i < 4; i++)
