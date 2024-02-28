@@ -31,6 +31,7 @@ public final class Settings {
     public static String getLastBcsvFile() { return PREFERENCES.get("whitehole_bcsvLastFile", null); }
     public static boolean getSJISNotSupported() { return PREFERENCES.getBoolean("whitehole_sjisNotSupported", false); }
     public static boolean getUseDarkMode() { return PREFERENCES.getBoolean("whitehole_useDarkMode", true); }
+    public static boolean getDebugAdditionalLogs() { return PREFERENCES.getBoolean("whitehole_debugAdditionalLogs", false); }
     
     public static void setLastGameDir(String val) { PREFERENCES.put("whitehole_lastGameDir", val); }
     public static void setBaseGameDir(String val) { PREFERENCES.put("whitehole_baseGameDir", val); }
@@ -38,6 +39,7 @@ public final class Settings {
     public static void setLastBcsvFile(String val) { PREFERENCES.put("whitehole_bcsvLastFile", val); }
     public static void setSJISNotSupported(boolean val) { PREFERENCES.putBoolean("whitehole_sjisNotSupported", val); }
     public static void setUseDarkMode(boolean val) { PREFERENCES.putBoolean("whitehole_useDarkMode", val); }
+    public static void setDebugAdditionalLogs(boolean val) { PREFERENCES.putBoolean("whitehole_debugAdditionalLogs", val); }
     
     // Rendering
     public static boolean getShowAxis() { return PREFERENCES.getBoolean("whitehole_showAxis", true); }

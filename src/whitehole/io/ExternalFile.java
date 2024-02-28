@@ -19,6 +19,7 @@ package whitehole.io;
 import java.io.*;
 import java.nio.*;
 import java.nio.charset.*;
+import whitehole.Settings;
 
 public class ExternalFile implements FileBase {
     private final RandomAccessFile file;
@@ -32,7 +33,9 @@ public class ExternalFile implements FileBase {
         filePath = path;
         file = new RandomAccessFile(path, "rw");
         isBigEndian = false;
-        System.out.println("FILE OPEN: "+filePath);
+        if (Settings.getDebugAdditionalLogs()) {
+            System.out.println("FILE OPEN: "+filePath);
+        }
     }
     
     @Override
@@ -43,7 +46,9 @@ public class ExternalFile implements FileBase {
     @Override
     public void close() throws IOException {
         file.close();
-        System.out.println("FILE CLOSE: "+filePath);
+        if (Settings.getDebugAdditionalLogs()) {
+            System.out.println("FILE CLOSE: "+filePath);
+        }
     }
     
     @Override

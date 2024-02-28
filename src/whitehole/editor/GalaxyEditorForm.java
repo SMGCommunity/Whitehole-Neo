@@ -4132,7 +4132,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             if(startingMousePos == null)
             {
-                System.out.println("startingMousePos reset!");
+                if (Settings.getDebugAdditionalLogs()) {
+                    System.out.println("startingMousePos reset!");
+                }
                 startingMousePos = new Point(1, 1);
             }
             

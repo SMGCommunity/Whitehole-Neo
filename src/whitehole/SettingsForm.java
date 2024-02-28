@@ -51,6 +51,7 @@ public class SettingsForm extends javax.swing.JDialog {
         lblControls = new javax.swing.JLabel();
         chkUseDarkMode = new javax.swing.JCheckBox();
         chkDebugFakeColor = new javax.swing.JCheckBox();
+        chkDebugAdditionalLogs = new javax.swing.JCheckBox();
         chkDebugFastDrag = new javax.swing.JCheckBox();
         chkUseReverseRot = new javax.swing.JCheckBox();
         chkUseWASD = new javax.swing.JCheckBox();
@@ -60,7 +61,7 @@ public class SettingsForm extends javax.swing.JDialog {
         btnPosition = new KeybindButton();
         btnRotation = new KeybindButton();
         btnScale = new KeybindButton();
-        jLabel1 = new javax.swing.JLabel();
+        lblBaseGame = new javax.swing.JLabel();
         txtBaseGame = new javax.swing.JTextField();
         btnBrowseBaseGamePath = new javax.swing.JButton();
         chkUseBetterQuality = new javax.swing.JCheckBox();
@@ -71,8 +72,9 @@ public class SettingsForm extends javax.swing.JDialog {
         setTitle(String.format("%s -- Settings", Whitehole.NAME));
         setBounds(new java.awt.Rectangle(0, 0, 629, 629));
         setIconImage(Whitehole.ICON);
-        setResizable(false);
-        setSize(new java.awt.Dimension(510, 246));
+        setMinimumSize(new java.awt.Dimension(589, 260));
+        setPreferredSize(new java.awt.Dimension(589, 260));
+        setSize(new java.awt.Dimension(589, 260));
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
@@ -82,7 +84,8 @@ public class SettingsForm extends javax.swing.JDialog {
 
         pnlSettings.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         pnlSettings.setMaximumSize(new java.awt.Dimension(629, 629));
-        pnlSettings.setMinimumSize(new java.awt.Dimension(521, 192));
+        pnlSettings.setMinimumSize(new java.awt.Dimension(589, 244));
+        pnlSettings.setPreferredSize(new java.awt.Dimension(589, 244));
         java.awt.GridBagLayout pnlSettingsLayout = new java.awt.GridBagLayout();
         pnlSettingsLayout.columnWeights = new double[] {1.0, 1.0, 1.0, 1.0};
         pnlSettings.setLayout(pnlSettingsLayout);
@@ -100,9 +103,9 @@ public class SettingsForm extends javax.swing.JDialog {
         lblControls.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         lblControls.setText("Controls");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(lblControls, gridBagConstraints);
@@ -116,7 +119,7 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkUseDarkMode, gridBagConstraints);
@@ -130,10 +133,24 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkDebugFakeColor, gridBagConstraints);
+
+        chkDebugAdditionalLogs.setSelected(Settings.getDebugAdditionalLogs());
+        chkDebugAdditionalLogs.setText("[Debug] Print additional debug logs");
+        chkDebugAdditionalLogs.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                chkDebugAdditionalLogsItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        pnlSettings.add(chkDebugAdditionalLogs, gridBagConstraints);
 
         chkDebugFastDrag.setSelected(Settings.getDebugFastDrag());
         chkDebugFastDrag.setText("[Debug] Render wireframes when dragging");
@@ -144,7 +161,7 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkDebugFastDrag, gridBagConstraints);
@@ -157,9 +174,9 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkUseReverseRot, gridBagConstraints);
@@ -172,68 +189,68 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkUseWASD, gridBagConstraints);
 
         lblPosition.setText("Position");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(lblPosition, gridBagConstraints);
 
         lblRotation.setText("Rotation");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(lblRotation, gridBagConstraints);
 
         lblScale.setText("Scale");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(lblScale, gridBagConstraints);
 
         btnPosition.setText("[not set]");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 6;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(btnPosition, gridBagConstraints);
 
         btnRotation.setText("[not set]");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 6;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(btnRotation, gridBagConstraints);
 
         btnScale.setText("[not set]");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 6;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(btnScale, gridBagConstraints);
 
-        jLabel1.setText("Base Game Path (For objects only)");
+        lblBaseGame.setText("Base Game Path (For objects only)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-        pnlSettings.add(jLabel1, gridBagConstraints);
+        pnlSettings.add(lblBaseGame, gridBagConstraints);
 
         txtBaseGame.setText(Settings.getBaseGameDir());
         txtBaseGame.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -243,8 +260,8 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(txtBaseGame, gridBagConstraints);
@@ -256,8 +273,8 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 6;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(btnBrowseBaseGamePath, gridBagConstraints);
@@ -271,21 +288,26 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlSettings.add(chkUseBetterQuality, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         pnlSettings.add(filler1, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.weighty = 1.0;
         pnlSettings.add(filler2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.PAGE_START;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
         getContentPane().add(pnlSettings, gridBagConstraints);
 
@@ -345,6 +367,11 @@ public class SettingsForm extends javax.swing.JDialog {
         Settings.setUseDarkMode(evt.getStateChange() == ItemEvent.SELECTED);
         Whitehole.requestUpdateLAF();
     }//GEN-LAST:event_chkUseDarkModeItemStateChanged
+
+    private void chkDebugAdditionalLogsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkDebugAdditionalLogsItemStateChanged
+        Settings.setDebugAdditionalLogs(evt.getStateChange() == ItemEvent.SELECTED);
+        
+    }//GEN-LAST:event_chkDebugAdditionalLogsItemStateChanged
     
     private void setBaseGamePath(String pth)
     {     
@@ -415,6 +442,7 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JButton btnPosition;
     private javax.swing.JButton btnRotation;
     private javax.swing.JButton btnScale;
+    private javax.swing.JCheckBox chkDebugAdditionalLogs;
     private javax.swing.JCheckBox chkDebugFakeColor;
     private javax.swing.JCheckBox chkDebugFastDrag;
     private javax.swing.JCheckBox chkUseBetterQuality;
@@ -423,8 +451,8 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JCheckBox chkUseWASD;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel lblAppearance;
+    private javax.swing.JLabel lblBaseGame;
     private javax.swing.JLabel lblControls;
     private javax.swing.JLabel lblPosition;
     private javax.swing.JLabel lblRotation;
