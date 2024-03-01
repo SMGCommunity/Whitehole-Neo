@@ -3652,6 +3652,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 case TRANSLUCENT: mode = 2; break;
             }
             
+            if (!objDisplayLists.containsKey(zone + "/common"))
+            {
+                String err = "LOAD ERROR: Cannot find "+zone+" - Common";
+                setStatusToError(err, new Exception("WHITEHOLE "+err));
+                return;
+            }
             gl.glCallList(objDisplayLists.get(zone + "/common")[mode]);
             
             for (int l = 0; l < 16; l++) {
