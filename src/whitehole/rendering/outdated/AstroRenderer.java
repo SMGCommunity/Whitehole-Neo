@@ -22,7 +22,7 @@ public class AstroRenderer extends BmdRenderer {
         String[] parts = {"Observatory", "Well", "Kitchen", "BedRoom", "Machine", "Tower"};
         if (arg0 < 1 || arg0 > 6)
             arg0 = 1;
-        ctor_loadModel(objname + parts[arg0 - 1]);
+        //ctor_loadModel(objname + parts[arg0 - 1]);
         ctor_uploadData(info);
     }
     

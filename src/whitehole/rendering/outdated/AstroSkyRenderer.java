@@ -22,7 +22,7 @@ public class AstroSkyRenderer extends BmdRenderer {
         String[] parts = {"A", "B", "C", "A", "B", "C"};
         if (arg0 < 1 || arg0 > 6)
             arg0 = 1;
-        ctor_loadModel(objname + parts[arg0 - 1]);
+        //ctor_loadModel(objname + parts[arg0 - 1]);
         ctor_uploadData(info);
     }
     

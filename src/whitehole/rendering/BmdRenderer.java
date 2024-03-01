@@ -39,13 +39,12 @@ import whitehole.math.Matrix4;
 import whitehole.util.SuperFastHash;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
+import whitehole.smg.Btp;
 
 public class BmdRenderer extends GLRenderer {
     private void uploadTexture(GL2 gl, int id) {
         Bmd.Texture tex = model.textures[id];
-        int hash = 0;
-        for(int i = 0; i < tex.mipmapCount; i++)
-            hash =(int) SuperFastHash.calculate(tex.image[i],(long)hash, 0, tex.image[i].length);
+        int hash = textureHash(id);
         textures[id] = hash;
         
         if(TextureCache.containsEntry(hash)) {
@@ -85,7 +84,7 @@ public class BmdRenderer extends GLRenderer {
     }
     
     private int shaderHash(int matid) {
-        byte[] sigarray = new byte[200];
+        byte[] sigarray = new byte[500];
         ByteBuffer sig = ByteBuffer.wrap(sigarray);
         
         if(model == null || model.materials.length - 1 < matid) { // avoid nullpointer exception
@@ -96,8 +95,23 @@ public class BmdRenderer extends GLRenderer {
         
         sig.put((byte)mat.numTexgens);
         for(int i = 0; i < mat.numTexgens; i++)  {
-            // TODO matrices
             sig.put(mat.texGen[i].src);
+            var mtxid = mat.texGen[i].matrix;
+            sig.put(mtxid);
+            if (mtxid >= 30 && mtxid <= 57)
+            {
+                Bmd.Material.TexMtxInfo texmtx = mat.texMtx[(mtxid - 30) / 3];
+                sig.put(texmtx.proj);
+                sig.put(texmtx.type);
+                sig.putFloat(texmtx.centerS);
+                sig.putFloat(texmtx.centerT);
+                sig.putFloat(texmtx.centerU);
+                sig.putFloat(texmtx.scaleS);
+                sig.putFloat(texmtx.scaleT);
+                sig.putFloat(texmtx.rotate);
+                sig.putFloat(texmtx.transS);
+                sig.putFloat(texmtx.transT);
+            }
         }
 
         for(int i = 0; i < 4; i++) {
@@ -180,6 +194,34 @@ public class BmdRenderer extends GLRenderer {
         return(int) SuperFastHash.calculate(sigarray, 0, 0, sig.position());
     }
 
+    private int textureHash(int texid)
+    {
+        Bmd.Texture tex = model.textures[texid];
+        
+        int size = 0;
+        for(int i = 0; i < tex.mipmapCount; i++)
+            size += tex.image[i].length;
+        
+        byte[] sigarray = new byte[size+100];
+        ByteBuffer sig = ByteBuffer.wrap(sigarray);
+        
+        for(int i = 0; i < tex.mipmapCount; i++)
+            sig.put(tex.image[i]);
+        
+        sig.put(tex.format);
+        sig.putShort(tex.width);
+        sig.putShort(tex.height);
+        sig.put(tex.magFilter);
+        sig.put(tex.minFilter);
+        sig.put(tex.wrapS);
+        sig.put(tex.wrapT);
+        sig.putFloat(tex.lodMin);
+        sig.putFloat(tex.lodMax);
+        sig.putFloat(tex.lodBias);
+        
+        return(int) SuperFastHash.calculate(sigarray, 0, 0, sig.position());
+    }
+    
     // Huge performance eater. rewrite will never happen :c
     public void generateShaders(GL2 gl, int matid, int...customColors) throws GLException {
         if(model == null)
@@ -260,7 +302,7 @@ public class BmdRenderer extends GLRenderer {
         vert.append("    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n");
         vert.append("    mat3 TEMP = gl_NormalMatrix;\n");
         vert.append("    vec4 TMP2 = vec4(TEMP * gl_Normal, 0.0);\n");
-        vert.append("    vec4 normal = ((TMP2)*0.0001)+0.5;\n");
+        vert.append("    vec4 normal = vec4(((TMP2)*0.0001).xyz, 1);\n");
         vert.append("    gl_FrontColor = gl_Color;\n");
         vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
         vert.append("    vec4 texcoord;\n");
@@ -285,19 +327,50 @@ public class BmdRenderer extends GLRenderer {
                 
                 if (texmtx.type == 9) //Screen projection?
                 {
-                    vert.append("   texcoord = 100000.0 * (vec4((gl_ModelViewProjectionMatrix * texcoord).xyz, 1.0));\n");
+                    vert.append("   texcoord = (vec4((gl_ModelViewProjectionMatrix * texcoord).xyz, 1.0));\n");
                 }
-                else
+                else if (texmtx.type == 6 || texmtx.type == 7)
                 {
-                    vert.append("    texcoord *= mat4(");
+                    vert.append("    texcoord *= (mat4(");
                     for (int j = 0; j < 16; j++)
                     {
                         var mtxTMP = texmtx.basicMatrix.m[j];
                         vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
                     } 
 
-                    vert.append(");\n");
+                    vert.append("));\n");
                 }
+                else if (texmtx.type == 8)
+                {
+                    vert.append("    texcoord *= (mat4(");
+                    for (int j = 0; j < 16; j++)
+                    {
+                        var mtxTMP = texmtx.basicMatrix.m[j];
+                        vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
+                    } 
+
+                    vert.append("));\n");
+                }
+                else
+                {
+                    vert.append("    texcoord *= transpose(mat4(");
+                    for (int j = 0; j < 16; j++)
+                    {
+                        var mtxTMP = texmtx.basicMatrix.m[j];
+                        vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
+                    } 
+
+                    vert.append("));\n");
+                }
+            }
+            else if (mtxid == 60)
+            {
+                //Identity
+                vert.append(String.format("    texcoord = vec4(%1$s.xy, 1, 1);\n", texgensrc[mat.texGen[i].src]));
+            }
+            else
+            {
+                int x = 0;
             }
             
             vert.append(String.format("    gl_TexCoord[%1$d] = texcoord;\n", i));
@@ -541,14 +614,28 @@ public class BmdRenderer extends GLRenderer {
         //System.out.println(matid);
         //System.out.println(frag.toString());
 
-        
+        Path dirPath = Paths.get("D:\\Projects\\SMG2\\Whitehole-Neo\\dist\\SHADER_DEBUG", mat.name);
+        Path filePath = Paths.get("D:\\Projects\\SMG2\\Whitehole-Neo\\dist\\SHADER_DEBUG", mat.name, "vert.txt");
+        Path filePath2 = Paths.get("D:\\Projects\\SMG2\\Whitehole-Neo\\dist\\SHADER_DEBUG", mat.name, "frag.txt");
+        dirPath.toFile().mkdirs();
+        try {
+          //Write content to file
+          Files.writeString(filePath, vert.toString(), java.nio.file.StandardOpenOption.CREATE);
+          Files.writeString(filePath2, frag.toString(), java.nio.file.StandardOpenOption.CREATE);
+        } 
+        catch (IOException e) {
+          e.printStackTrace();
+        }
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
     
-    private RarcFile archive = null;
+    protected RarcFile archive = null;
     protected Bmd model = null;
+    protected Btp texpattern = null;
+    protected int texpatternIndex = 0;
     protected Bva visible = null;
+    protected int visibleIndex = 0;
     protected Shader[] shaders = null;
     protected int[] textures = null;
     protected boolean hasShaders = false;
@@ -563,28 +650,99 @@ public class BmdRenderer extends GLRenderer {
     /**
      * Attempt to load model from {@code modelname}.
      * @param info
-     * @param modelname
+     * @param modelName
      * @throws GLException 
      */
-    public BmdRenderer(RenderInfo info, String modelname) throws GLException {
-        ctor_loadModel(modelname);
-        
-        if (isValidBmdModel()) {
-            ctor_uploadData(info);
-        }
+    public BmdRenderer(RenderInfo info, String modelName) throws GLException {
+        initModel(info, modelName);
     }
     
     public final boolean isValidBmdModel() {
         return model != null;
     }
     
+    //=====================================================================
+    // These functions are to be called in the Ctor for custom renderers
+    
+    protected void initModel(RenderInfo info, String modelName) throws GLException
+    {
+        ctor_loadModelDefault(info, modelName);
+    }
+    
+    /**
+     * The default sequence to load a model.
+     * @param modelName 
+     */
+    protected final void ctor_loadModelDefault(RenderInfo info, String modelName) {
+        try
+        {
+            archive = ctor_loadArchive(modelName);
+        }
+        catch(Exception ex)
+        {
+            return;
+        }
+
+        if (archive == null)
+            return; //No archive bruh
+        
+        model = ctor_loadModel(modelName, archive);
+        
+        if (!isValidBmdModel())
+        {
+            try{
+                archive.close();
+            }
+            catch(Exception ex)
+            {
+                
+            }
+            return;
+        }
+        
+        //Some default BVA files for things like Thwomps
+        if (visible == null)
+            visible = ctor_tryLoadBVA(modelName, "Wait", archive);
+        if (visible == null)
+            visible = ctor_tryLoadBVA(modelName, "Normal", archive);
+        
+        if (isValidBmdModel())
+            ctor_uploadData(info);
+    }
+    
     /**
      * Load BMD/BDL from ARC using {@code modelname}.<br>
      * NOTE: {@code modelname} is first run through Substitutor.
      * @param modelName the name of the object
+     * @param archive a
      * @throws GLException 
      */
-    protected final void ctor_loadModel(String modelName) throws GLException {
+    protected final Bmd ctor_loadModel(String modelName, RarcFile archive) throws GLException {
+        // Load the BMD/BDL file
+        try
+        {
+            if (archive.fileExists("/" + modelName + "/" + modelName + ".bdl"))
+            {
+                return new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bdl"));
+            }
+            else if (archive.fileExists("/" + modelName + "/" + modelName + ".bmd"))
+            {
+                return new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bmd"));
+            }
+                return null;
+        }
+        catch(IOException up)
+        {
+        }
+        return null;
+    }
+    
+    /**
+     * Load the Archive for the model (either from the current or base directories)
+     * @param modelName The name of the model to try to load the archive for
+     * @throws IOException 
+     */
+    protected final RarcFile ctor_loadArchive(String modelName) throws IOException {
         String arcPath = Whitehole.createResourceArcPath(modelName);
         
         boolean UseAbsolutePath = false;
@@ -593,51 +751,17 @@ public class BmdRenderer extends GLRenderer {
             //We will only check ObjectData, as a vanilla game will not have models elsewhere
             String base = Settings.getBaseGameDir();
             if (base == null || base.length() == 0)
-                return; //No base game path set
+                return null; //No base game path set
             
             arcPath = String.format("%s/%s/%s.arc", base, "ObjectData", modelName);
             UseAbsolutePath = true;
             File fi = new File(arcPath);
             if (!fi.exists())
-                return;
+                return null;
         }
         
-        // Load the BMD/BDL file
-        try {
-            FileBase fi = UseAbsolutePath ? new ExternalFile(arcPath) : Whitehole.getCurrentGameFileSystem().openFile(arcPath);
-            archive = new RarcFile(fi);
-            
-            if (archive.fileExists("/" + modelName + "/" + modelName + ".bdl")) {
-                model = new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bdl"));
-            }
-            else if (archive.fileExists("/" + modelName + "/" + modelName + ".bmd")) {
-                model = new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bmd"));
-            }
-            else {
-                archive.close();
-                return;
-            }
-        }
-        catch(IOException up) {
-            if(archive != null) {
-                try {
-                    archive.close();
-                }
-                catch(IOException ex2) {}
-            }
-            return;
-        }
-        
-        // Load a BVA file
-        try {
-            if(archive.fileExists("/" + modelName + "/Wait.bva")) {
-                visible = new Bva(archive.openFile("/" + modelName + "/Wait.bva"));
-            }
-            else if(archive.fileExists("/" + modelName + "/Normal.bva")) {
-                visible = new Bva(archive.openFile("/" + modelName + "/Normal.bva"));
-            }
-        }
-        catch(IOException ex) {}
+        FileBase fi = UseAbsolutePath ? new ExternalFile(arcPath) : Whitehole.getCurrentGameFileSystem().openFile(arcPath);
+        return new RarcFile(fi);
     }
     
     protected final void ctor_uploadData(RenderInfo info) throws GLException {
@@ -684,6 +808,47 @@ public class BmdRenderer extends GLRenderer {
         }
     }
     
+    protected final Btp ctor_tryLoadBTP(String modelName, String animName, RarcFile archive) {
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".btp";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Btp(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+        
+    /**
+     * Tries to load a visibility animation from the archive
+     * @param modelName The name of the model
+     * @param animName The name of the BVA animation file
+     * @param archive The archive to get the file from
+     * @return null if the animation is not found.
+     */
+    protected final Bva ctor_tryLoadBVA(String modelName, String animName, RarcFile archive) {
+        // Load a BVA file
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".bva";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Bva(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+    
+    protected final FileBase ctor_tryLoadFile(String arcPath, RarcFile archive) throws IOException
+    {
+        if(archive.fileExists(arcPath))
+            return archive.openFile(arcPath);
+        return null;
+    }
+    
+    //=====================================================================
+    
     @Override
     public void close(RenderInfo info) throws GLException {
         if(model == null)
@@ -727,22 +892,28 @@ public class BmdRenderer extends GLRenderer {
     
     @Override
     public void releaseStorage() {
-        if(visible != null) {
-            try {
+        try
+        {
+            if(visible != null)
                 visible.close();
-            }
-            catch(IOException ex) {}
-        }
-        if(model != null) {
-            try {
+            
+            if (texpattern != null)
+                texpattern.close();
+            
+            if (model != null)
                 model.close();
+            
+            if (archive != null)
                 archive.close();
-            }
-            catch(IOException ex) {}
             
             model = null;
             visible = null;
+            texpattern = null;
             archive = null;
+        }
+        catch(Exception ex)
+        {
+            
         }
     }
 
@@ -798,9 +969,15 @@ public class BmdRenderer extends GLRenderer {
             if(node.nodeType != 0) continue;
             int shape = node.nodeID;
             
-            if(visible != null) {
-                if(!visible.animData.get(shape).get(0))
-                    continue;
+            if(visible != null)
+            {
+                var shp = visible.animData.get(shape);
+                if (shp != null)
+                {
+                    var vis = shp.get(visibleIndex);
+                    if (vis != null && !vis)
+                        continue;
+                }
             }
             
             // Pole:
@@ -818,6 +995,9 @@ public class BmdRenderer extends GLRenderer {
 
                 Bmd.Material mat = model.materials[node.materialID];
 
+                if (mat.isHiddenMaterial)
+                    continue;
+                
                 if(info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 {
                     if((mat.drawFlag == 4) ^(info.renderMode == RenderMode.TRANSLUCENT))
@@ -833,7 +1013,17 @@ public class BmdRenderer extends GLRenderer {
                             if(gl.isFunctionAvailable("glActiveTexture"))
                                 gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
 
-                            if(mat.texStages[i] ==(short)0xFFFF)
+                            // Decide textures based on the BTP if it exists
+                            short TextureSelectIndex = mat.texStages[i];
+                            
+                            if (texpattern != null)
+                            {
+                                Short f = texpattern.get(mat.name, i, texpatternIndex);
+                                if (f != null)
+                                    TextureSelectIndex = f;
+                            }
+                            
+                            if(TextureSelectIndex ==(short)0xFFFF)
                             {
                                 gl.glDisable(GL2.GL_TEXTURE_2D);
                                 continue;
@@ -842,7 +1032,7 @@ public class BmdRenderer extends GLRenderer {
                             int loc = gl.glGetUniformLocation(shaders[node.materialID].program, String.format("texture%1$d", i));
                             gl.glUniform1i(loc, i);
 
-                            int texid = TextureCache.getTextureID(textures[mat.texStages[i]]);
+                            int texid = TextureCache.getTextureID(textures[TextureSelectIndex]);
                             gl.glEnable(GL2.GL_TEXTURE_2D);
                             gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
                         }

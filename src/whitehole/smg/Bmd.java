@@ -75,6 +75,16 @@ public class Bmd
         file.close();
     }
     
+    
+    public void setMaterialHidden(String name, boolean isHidden)
+    {
+        for(var m : materials)
+        {
+            if (m.name.equals(name))
+                m.isHiddenMaterial = isHidden;
+        }
+    }
+    
 
     private float readArrayValue_s16(int fixedpoint) throws IOException
     {
@@ -830,74 +840,11 @@ public class Bmd
                     for (int k = 0; k < 16; k++)
                         texmtx.projectionMatrix.m[k] = file.readFloat();
                     
-                    // Re-writing this wowie
-                    
-                    // create_matrix
-                    // I'm going to assume the rotation is in radians for now...
-                    Matrix4 R = Matrix4.createRotationZ(texmtx.rotate);
-                    Matrix4 S = Matrix4.scale(new Vec3f(texmtx.scaleS, texmtx.scaleT, 1f));
-                    Matrix4 C = Matrix4.createTranslation(new Vec3f(texmtx.centerS, texmtx.centerT, texmtx.centerU));
-                    Matrix4 CI = Matrix4.invert(C);
-                    Matrix4 T = Matrix4.createTranslation(new Vec3f(texmtx.transS, texmtx.transT, 0f));
-                    Matrix4 P;
-                    
-                    switch ((int)texmtx.type)
+                    if (mat.name.equals("FooMat") && j == 2)
                     {
-                        case 0x06: //Env Map projection
-                            P = new Matrix4(0.5f, 0.0f, 0.0f, 0.5f,
-                                            0.0f,0.5f, 0.0f, 0.5f,
-                                            0.0f, 0.0f, 0.0f, 1.0f,
-                                            0.0f, 0.0f, 1.0f, 0.0f);
-                            Matrix4.mult(P, texmtx.projectionMatrix, P);
-                            break;
-                        case 0x07: //Env Map projection 2 electric bugaloo
-                            P = new Matrix4(0.5f, 0.0f, 0.5f, 0.0f,
-                                            0.0f,0.5f, 0.5f, 0.0f,
-                                            0.0f, 0.0f, 1.0f, 0.0f,
-                                            0.0f, 0.0f, 0.0f, 1.0f);
-                            Matrix4.mult(P, texmtx.projectionMatrix, P);
-                            break;
-                        case 0x08:
-                        case 0x09:
-                            P = new Matrix4(0.5f, 0.0f, 0.5f, 0.0f,
-                                            0.0f,-0.5f, 0.5f, 0.0f,
-                                            0.0f, 0.0f, 1.0f, 0.0f,
-                                            0.0f, 0.0f, 0.0f, 1.0f);
-                            Matrix4.mult(P, texmtx.projectionMatrix, P);
-                            break;
-                            
-                        default:
-                            P = new Matrix4(1,0,0,0, 0,1,0,0, 0,0,0,0, 0,0,1,0);
-                            break;
+                        int x = 0;
                     }
-                    //P = texmtx.projectionMatrix;
-                    Matrix4 resmat = new Matrix4();
-                    Matrix4.mult(T, C, resmat);
-                    Matrix4.mult(resmat, S, resmat);
-                    Matrix4.mult(resmat, R, resmat);
-                    Matrix4.mult(resmat, CI, resmat);
-                    Matrix4.mult(resmat, P, resmat);
-                    
-//                    resmat.m[3] = 0f; resmat.m[7] = 0f;
-//                    resmat.m[11] = 0f; resmat.m[15] = 1f;
-//                    if (texmtx.proj == 0)
-//                    {
-//                        resmat.m[2] = 0f; resmat.m[6] = 0f;
-//                        resmat.m[10] = 1f; resmat.m[14] = 0f;
-//                    }
-                    
-                    texmtx.basicMatrix = resmat;
-                    
-                    /*for (int z = 0; z < 16; z += 4)
-                        System.out.println(String.format("%1$f %2$f %3$f %4$f",
-                                texmtx.basicMatrix.m[z], texmtx.basicMatrix.m[z+1], 
-                                texmtx.basicMatrix.m[z+2], texmtx.basicMatrix.m[z+3]));*/
-                    
-                    /*Matrix4 mtx = Matrix4.createTranslation(new Vector3(texmtx.centerS * (1f - texmtx.scaleS), texmtx.centerT * (1f - texmtx.scaleT), 0f));
-                    Matrix4.mult(Matrix4.createRotationZ(rotate), mtx, mtx);
-                    Matrix4.mult(Matrix4.scale(new Vector3(texmtx.scaleS, texmtx.scaleT, 1f)), mtx, mtx);
-                    Matrix4.mult(Matrix4.createTranslation(new Vector3(texmtx.transS, texmtx.transT, 0f)), mtx, mtx);
-                    texmtx.basicMatrix = mtx;*/
+                    texmtx.doCalc();
                 }
             }
 
@@ -1238,6 +1185,91 @@ public class Bmd
             public Matrix4 projectionMatrix;
             
             public Matrix4 basicMatrix;
+            
+            public void doCalc()
+            {
+                    // Re-writing this wowie
+                    
+                    // create_matrix
+                    // I'm going to assume the rotation is in radians for now...
+                    Matrix4 R = Matrix4.createRotationZ(rotate);
+                    Matrix4 S = Matrix4.scale(new Vec3f(scaleS, scaleT, 1f));
+                    Matrix4 C = Matrix4.createTranslation(new Vec3f(centerS, centerT, centerU));
+                    Matrix4 CI = Matrix4.invert(C);
+                    Matrix4 T = Matrix4.createTranslation(new Vec3f(transS, transT, 0f));
+                    Matrix4 P;
+//                    S = new Matrix4(scaleS, 0,      0, 0,
+//                                    0,      1, 0, 0,
+//                                    0,      0,      1, 0,
+//                                    0,      0,      0, 1);
+//                    T = new Matrix4(1, 0, 0, 0,
+//                                    0, 1, 0, 0,
+//                                    0, 0, 1, 0,
+//                                    transS, transT, 0, 1);
+//                    C = new Matrix4(1, 0, 0, 0,
+//                                    0, 1, 0, 0,
+//                                    0, 0, 1, 0,
+//                                    0, 0, 0, 1);
+//                    CI = Matrix4.invert(C);
+                    
+                    switch ((int)type)
+                    {
+                        case 0x06: //Env Map projection
+                            P = new Matrix4(0.5f, 0.0f, 0.0f, 0.5f,
+                                            0.0f,-0.5f, 0.0f, 0.5f,
+                                            0.0f, 0.0f, 0.0f, 1.0f,
+                                            0.0f, 0.0f, 1.0f, 0.0f);
+                            //Matrix4.mult(P, projectionMatrix, P);
+                            break;
+                        case 0x07: //Env Map projection 2 electric bugaloo
+                            P = new Matrix4(0.5f, 0.0f, 0.5f, 0.0f,
+                                            0.0f,-0.5f, 0.5f, 0.0f,
+                                            0.0f, 0.0f, 1.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 1.0f);
+                            //Matrix4.mult(P, projectionMatrix, P);
+                            break;
+                        case 0x08:
+                        case 0x09:
+                            P = new Matrix4(0.5f, 0.0f, 0.5f, 0.0f,
+                                            0.0f,-0.5f, 0.5f, 0.0f,
+                                            0.0f, 0.0f, 1.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 1.0f);
+                            Matrix4.mult(P, projectionMatrix, P);
+                            break;
+                            
+                        default:
+                            P = new Matrix4();
+                            break;
+                    }
+                    //P = texmtx.projectionMatrix;
+                    Matrix4 resmat = new Matrix4();
+                    Matrix4.mult(T, C, resmat);
+                    Matrix4.mult(S, resmat, resmat);
+                    Matrix4.mult(R, resmat, resmat);
+                    Matrix4.mult(CI, resmat, resmat);
+                    Matrix4.mult(P, resmat, resmat);
+                    
+//                    resmat.m[3] = 0f; resmat.m[7] = 0f;
+//                    resmat.m[11] = 0f; resmat.m[15] = 1f;
+//                    if (proj == 0)
+//                    {
+//                        resmat.m[2] = 0f; resmat.m[6] = 0f;
+//                        resmat.m[10] = 1f; resmat.m[14] = 0f;
+//                    }
+                    
+                    basicMatrix = resmat;
+                    
+                    /*for (int z = 0; z < 16; z += 4)
+                        System.out.println(String.format("%1$f %2$f %3$f %4$f",
+                                texmtx.basicMatrix.m[z], texmtx.basicMatrix.m[z+1], 
+                                texmtx.basicMatrix.m[z+2], texmtx.basicMatrix.m[z+3]));*/
+                    
+                    /*Matrix4 mtx = Matrix4.createTranslation(new Vector3(texmtx.centerS * (1f - texmtx.scaleS), texmtx.centerT * (1f - texmtx.scaleT), 0f));
+                    Matrix4.mult(Matrix4.createRotationZ(rotate), mtx, mtx);
+                    Matrix4.mult(Matrix4.scale(new Vector3(texmtx.scaleS, texmtx.scaleT, 1f)), mtx, mtx);
+                    Matrix4.mult(Matrix4.createTranslation(new Vector3(texmtx.transS, texmtx.transT, 0f)), mtx, mtx);
+                    texmtx.basicMatrix = mtx;*/
+            }
         }
 
         public class TevStageInfo
@@ -1284,6 +1316,9 @@ public class Bmd
 
 
         public String name;
+        
+        // Custom to Whitehole
+        public boolean isHiddenMaterial;
 
         public byte drawFlag; // apparently: 1=opaque, 4=translucent, 253=???
         public byte cullMode;

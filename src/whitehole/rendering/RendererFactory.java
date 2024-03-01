@@ -211,6 +211,18 @@ public final class RendererFactory {
         return cacheKey;
     }
     
+    public static String getAdditiveCacheKey(String objModelName, AbstractObj obj)
+    {
+        switch(objModelName)
+        {
+            case "PowerStar":
+            case "GrandStar":
+                return PowerStarRenderer.getAdditiveCacheKey(obj);
+        }
+        
+        return "";
+    }
+    
     // -------------------------------------------------------------------------------------------------------------------------
     // Renderer creation
     
@@ -242,6 +254,10 @@ public final class RendererFactory {
             return renderer;
         
         switch(objModelName) {
+            //TEST
+            case "PowerStar":
+            case "GrandStar":
+                return new PowerStarRenderer(info, objModelName, obj);
             /*case "clipareaboxbottom":
                 return new ClippingAreaRenderer(AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
             case "clipareaboxcenter":
@@ -266,8 +282,7 @@ public final class RendererFactory {
         return renderer;
     }
     
-    private static GLRenderer tryCreateRendererForOceanType(String objName, AbstractObj obj)
-    {
+    private static GLRenderer tryCreateRendererForOceanType(String objName, AbstractObj obj) {
         if (!(obj instanceof LevelObj))
             return null;
         

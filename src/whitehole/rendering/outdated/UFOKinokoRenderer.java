@@ -19,7 +19,7 @@ import whitehole.rendering.BmdRenderer;
 
 public class UFOKinokoRenderer extends BmdRenderer {
     public UFOKinokoRenderer(RenderInfo info, int color) {
-        ctor_loadModel("UFOKinoko");
+        //ctor_loadModel("UFOKinoko");
         
         // recolor the ship in the same fashion as we recolor Toads
         // except with different color values and material ID

@@ -56,14 +56,16 @@ public class RendererCache {
     
     public static GLRenderer getObjectRenderer(GLRenderer.RenderInfo info, AbstractObj obj) {
         String model = RendererFactory.getSubstitutedModelName(obj.name, obj, false);
-        String key = RendererFactory.getSubstitutedCacheKey(model, obj);
+        String key = RendererFactory.getSubstitutedCacheKey(model, obj) + RendererFactory.getAdditiveCacheKey(model, obj);
         
-        if (CACHE.containsKey(key)) {
+        if (CACHE.containsKey(key))
+        {
             CacheEntry entry = CACHE.get(key);
             entry.refCount++;
             return entry.renderer;
         }
-        else {
+        else
+        {
             GLRenderer renderer = RendererFactory.createRenderer(info, model, obj);
 
             CacheEntry entry = new CacheEntry();
