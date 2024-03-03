@@ -359,11 +359,7 @@ public abstract class AbstractObj {
         gl.glPopMatrix();
     }
     
-     /**
-     * Gets the Path Data for a given object.
-     * @param obj The object to get the path data for.
-     */
-    public static PathObj getObjectPathData(AbstractObj obj)
+    public static int getObjectPathId(AbstractObj obj)
     {
         int pathid = -1;
             
@@ -371,6 +367,17 @@ public abstract class AbstractObj {
             pathid = ((PathPointObj) obj).path.pathID;
         else if(obj.data.containsKey("CommonPath_ID"))
             pathid = (short) obj.data.get("CommonPath_ID");
+
+        return pathid;
+    }
+    
+     /**
+     * Gets the Path Data for a given object.
+     * @param obj The object to get the path data for.
+     */
+    public static PathObj getObjectPathData(AbstractObj obj)
+    {
+        int pathid = getObjectPathId(obj);
 
         if(pathid == -1)
             return null;
