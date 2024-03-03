@@ -59,7 +59,7 @@ public class StageUtil {
         if (Whitehole.getCurrentGameType() == 2)
             validationFunctions.add(StageUtil::isValidSwitchParam);
         
-        int LayerCounter = -1;
+        int LayerCounter = 0;
         for (List<AbstractObj> curLayer : zone.objects.values())
         {
             for (AbstractObj obj : curLayer)
@@ -81,10 +81,7 @@ public class StageUtil {
                     StringBuilder FinalError = new StringBuilder();
                     FinalError.append(zone.stageName);
                     FinalError.append("->");
-                    if (LayerCounter == -1)
-                        FinalError.append("Common");
-                    else
-                        FinalError.append(layerNames.get(LayerCounter));
+                    FinalError.append(layerNames.get(LayerCounter));
                     FinalError.append("->");
                     FinalError.append(obj.name);
                     FinalError.append('\n');
@@ -128,7 +125,7 @@ public class StageUtil {
     {
         if (!isObjectPropertyNeeded(object, "CommonPath_ID"))
             return null;
-        if (AbstractObj.getObjectPathData(object) == null)
+        if (AbstractObj.getObjectPathId(object) == -1)
             return "\""+object.name+"\" does not have a valid path assigned to it.";
         return null;
     }
