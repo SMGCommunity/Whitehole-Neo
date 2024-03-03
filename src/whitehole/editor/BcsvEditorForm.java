@@ -658,7 +658,6 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         });
 
         toolbarPaths.setBorder(null);
-        toolbarPaths.setFloatable(false);
         toolbarPaths.setRollover(true);
 
         lblArchive.setText(" Archive: ");
@@ -683,7 +682,6 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         });
         toolbarPaths.add(tbFileName);
 
-        toolbarButtons.setFloatable(false);
         toolbarButtons.setRollover(true);
         toolbarButtons.setAlignmentY(0.5F);
         toolbarButtons.setInheritsPopupMenu(true);
@@ -813,7 +811,12 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         menubar.add(mnuFile);
 
         mnuOpen.setBorder(null);
-        mnuOpen.setText("Open");
+        mnuOpen.setText("Shortcuts");
+        mnuOpen.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        mnuOpen.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        mnuOpen.setMaximumSize(new java.awt.Dimension(70, 32767));
+        mnuOpen.setMinimumSize(new java.awt.Dimension(56, 16));
+        mnuOpen.setPreferredSize(new java.awt.Dimension(70, 16));
         mnuOpen.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuOpenActionPerformed(evt);
