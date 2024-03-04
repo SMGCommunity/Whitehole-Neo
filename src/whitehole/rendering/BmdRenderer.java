@@ -611,21 +611,6 @@ public class BmdRenderer extends GLRenderer {
         }
         
         ShaderCache.addEntry(hash, vertid, fragid, sid);
-        //System.out.println(matid);
-        //System.out.println(frag.toString());
-
-        Path dirPath = Paths.get("D:\\Projects\\SMG2\\Whitehole-Neo\\dist\\SHADER_DEBUG", mat.name);
-        Path filePath = Paths.get("D:\\Projects\\SMG2\\Whitehole-Neo\\dist\\SHADER_DEBUG", mat.name, "vert.txt");
-        Path filePath2 = Paths.get("D:\\Projects\\SMG2\\Whitehole-Neo\\dist\\SHADER_DEBUG", mat.name, "frag.txt");
-        dirPath.toFile().mkdirs();
-        try {
-          //Write content to file
-          Files.writeString(filePath, vert.toString(), java.nio.file.StandardOpenOption.CREATE);
-          Files.writeString(filePath2, frag.toString(), java.nio.file.StandardOpenOption.CREATE);
-        } 
-        catch (IOException e) {
-          e.printStackTrace();
-        }
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
