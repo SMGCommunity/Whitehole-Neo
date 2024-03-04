@@ -20,6 +20,7 @@ import whitehole.rendering.special.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import whitehole.Settings;
 import whitehole.Whitehole;
 import whitehole.db.ModelSubstitutions;
 import whitehole.rendering.special.MultiRenderer.MultiRendererInfo;
@@ -310,6 +311,13 @@ public final class RendererFactory {
             //TODO: REMOVE THIS WHEN FINISHED
             //System.out.println(objModelName);
             
+            // Get colors
+            Color4 gravityPrimaryColor = new Color4(Settings.getGravityAreaPrimaryColor());
+            Color4 gravityPrimaryColorDark = new Color4(Settings.getGravityAreaPrimaryColor().darker());
+            Color4 gravitySecondaryColor = new Color4(Settings.getGravityAreaSecondaryColor());
+            Color4 zeroGravityPrimaryColor = new Color4(Settings.getZeroGravityAreaPrimaryColor());
+            Color4 zeroGravitySecondaryColor = new Color4(Settings.getZeroGravityAreaSecondaryColor());
+            
             //No idea why I had to do it this way, but the runtime kept crashing if I didn't...
             Object r = obj.data.get("Range");
             Object d = obj.data.get("Distant");
@@ -321,8 +329,8 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_globalplanegravityinbox_"))
             {
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.BOX_RANGE,
                         obj.scale,
                         (float)r,
@@ -343,10 +351,10 @@ public final class RendererFactory {
                         (int)oa1,
                         (int)oa2,
                         (int)oa3))
-                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
+                    return new CubeRenderer(100f, gravitySecondaryColor, gravityPrimaryColor, true);
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.SPHERE_RANGE,
                         obj.scale,
                         (float)r,
@@ -360,8 +368,8 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_globalplanegravityincylinder_"))
             {
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.CYLINDER_RANGE,
                         obj.scale,
                         (float)r,
@@ -382,10 +390,10 @@ public final class RendererFactory {
                         (int)oa1,
                         (int)oa2,
                         (int)oa3))
-                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
+                    return new CubeRenderer(100f, gravitySecondaryColor, gravityPrimaryColor, true);
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.PLANET_RANGE,
                         obj.scale,
                         (float)r,
@@ -406,10 +414,10 @@ public final class RendererFactory {
                         (int)oa1,
                         (int)oa2,
                         (int)oa3))
-                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
+                    return new CubeRenderer(100f, gravitySecondaryColor, gravityPrimaryColor, true);
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.CONE_RANGE,
                         obj.scale,
                         (float)r,
@@ -423,8 +431,8 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_globalcubegravity_"))
             {
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.CUBE_RANGE,
                         obj.scale,
                         (float)r,
@@ -438,8 +446,8 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_globalsegmentgravity_"))
             {
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.SEGMENT_RANGE,
                         obj.scale,
                         (float)r,
@@ -453,8 +461,8 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_globaldiskgravity_"))
             {
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.DISK_RANGE,
                         obj.scale,
                         (float)r,
@@ -468,8 +476,8 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_globaldisktorusgravity_"))
             {
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.TORUS_RANGE,
                         obj.scale,
                         (float)r,
@@ -483,8 +491,8 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_globalwiregravity_"))
             {
                 var x = new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.WIRE_RANGE,
                         obj.scale,
                         (float)r,
@@ -501,8 +509,8 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_globalbarrelgravity_"))
             {
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_DEFAULT,
-                        GravityShapeRenderer.COLOR_INVERSE_DEFAULT,
+                        gravityPrimaryColor,
+                        gravityPrimaryColorDark,
                         GravityShapeRenderer.Shape.BARREL_RANGE,
                         obj.scale,
                         (float)r,
@@ -517,8 +525,8 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_zerogravitybox_"))
             {
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_ZERO,
-                        GravityShapeRenderer.COLOR_ZERO,
+                        zeroGravityPrimaryColor,
+                        zeroGravityPrimaryColor,
                         GravityShapeRenderer.Shape.BOX_RANGE,
                         obj.scale,
                         (float)r,
@@ -540,10 +548,10 @@ public final class RendererFactory {
                         (int)oa1,
                         (int)oa2,
                         (int)oa3))
-                    return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_ZERO, true);
+                    return new CubeRenderer(100f, zeroGravitySecondaryColor, zeroGravityPrimaryColor, true);
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_ZERO,
-                        GravityShapeRenderer.COLOR_ZERO,
+                        zeroGravityPrimaryColor,
+                        zeroGravityPrimaryColor,
                         GravityShapeRenderer.Shape.SPHERE_RANGE,
                         obj.scale,
                         (float)r,
@@ -557,8 +565,8 @@ public final class RendererFactory {
             if (objModelName.startsWith("gravityobj_zerogravitycylinder_"))
             {
                 return new GravityShapeRenderer(
-                        GravityShapeRenderer.COLOR_ZERO,
-                        GravityShapeRenderer.COLOR_ZERO,
+                        zeroGravityPrimaryColor,
+                        zeroGravityPrimaryColor,
                         GravityShapeRenderer.Shape.CYLINDER_RANGE,
                         obj.scale,
                         (float)r,
@@ -570,7 +578,7 @@ public final class RendererFactory {
                         (int)oa3);
             }
             
-            return new CubeRenderer(100f, new Color4(1f, 1f, 1f), GravityShapeRenderer.COLOR_DEFAULT, true);
+            return new CubeRenderer(100f, gravitySecondaryColor, gravityPrimaryColor, true);
         }
         
         if (obj instanceof PositionObj)
@@ -580,35 +588,41 @@ public final class RendererFactory {
             return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(1f, 0.5f, 1f), true);
         
         if (obj instanceof AreaObj) {
+            Color4 normalPrimaryColor = new Color4(Settings.getNormalAreaPrimaryColor());
+            Color4 normalSecondaryColor = new Color4(Settings.getNormalAreaSecondaryColor());
+            
             switch(objModelName) {
                 case "areaobj_baseorigincube":
-                    return new AreaShapeRenderer(new Color4(0.3f, 1f, 1f), AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
+                    return new AreaShapeRenderer(normalPrimaryColor, AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
                 case "areaobj_centerorigincube":
-                    return new AreaShapeRenderer(new Color4(0.3f, 1f, 1f), AreaShapeRenderer.Shape.CENTER_ORIGIN_BOX);
+                    return new AreaShapeRenderer(normalPrimaryColor, AreaShapeRenderer.Shape.CENTER_ORIGIN_BOX);
                 case "areaobj_sphere":
-                    return new AreaShapeRenderer(new Color4(0.3f, 1f, 1f), AreaShapeRenderer.Shape.SPHERE);
+                    return new AreaShapeRenderer(normalPrimaryColor, AreaShapeRenderer.Shape.SPHERE);
                 case "areaobj_cylinder":
-                    return new AreaShapeRenderer(new Color4(0.3f, 1f, 1f), AreaShapeRenderer.Shape.CYLINDER);
+                    return new AreaShapeRenderer(normalPrimaryColor, AreaShapeRenderer.Shape.CYLINDER);
                 case "areaobj_bowl":
-                    return new AreaShapeRenderer(new Color4(0.3f, 1f, 1f), AreaShapeRenderer.Shape.BOWL);
+                    return new AreaShapeRenderer(normalPrimaryColor, AreaShapeRenderer.Shape.BOWL);
                 default:
-                    return new CubeRenderer(100f, new Color4(1f, 0.5f, 0.5f), new Color4(0.3f, 1f, 1f), true);
+                    return new CubeRenderer(100f, normalSecondaryColor, normalPrimaryColor, true);
             }
         }
         
         if (obj instanceof CameraObj) {
+            Color4 cameraPrimaryColor = new Color4(Settings.getCameraAreaPrimaryColor());
+            Color4 cameraSecondaryColor = new Color4(Settings.getCameraAreaPrimaryColor());
+            
             switch(objModelName) {
                 case "cameraobj_baseorigincube":
-                    return new AreaShapeRenderer(new Color4(0.8f, 0f, 0f), AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
+                    return new AreaShapeRenderer(cameraPrimaryColor, AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
                 case "cameraobj_centerorigincube":
-                    return new AreaShapeRenderer(new Color4(0.8f, 0f, 0f), AreaShapeRenderer.Shape.CENTER_ORIGIN_BOX);
+                    return new AreaShapeRenderer(cameraPrimaryColor, AreaShapeRenderer.Shape.CENTER_ORIGIN_BOX);
                 case "cameraobj_sphere":
-                    return new AreaShapeRenderer(new Color4(0.8f, 0f, 0f), AreaShapeRenderer.Shape.SPHERE);
+                    return new AreaShapeRenderer(cameraPrimaryColor, AreaShapeRenderer.Shape.SPHERE);
                 case "cameraobj_cylinder":
-                    return new AreaShapeRenderer(new Color4(0.8f, 0f, 0f), AreaShapeRenderer.Shape.CYLINDER);
+                    return new AreaShapeRenderer(cameraPrimaryColor, AreaShapeRenderer.Shape.CYLINDER);
                 case "cameraobj_bowl":
-                    return new AreaShapeRenderer(new Color4(0.8f, 0f, 0f), AreaShapeRenderer.Shape.BOWL);
-                default: return new CubeRenderer(100f, new Color4(0.3f, 0f, 1f), new Color4(0.8f, 0f, 0f), true);
+                    return new AreaShapeRenderer(cameraPrimaryColor, AreaShapeRenderer.Shape.BOWL);
+                default: return new CubeRenderer(100f, cameraPrimaryColor, cameraSecondaryColor, true);
             }
         }
         

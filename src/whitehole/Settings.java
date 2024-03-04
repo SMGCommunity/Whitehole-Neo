@@ -78,6 +78,9 @@ public final class Settings {
     public static Color getCameraAreaSecondaryColor() { return getColor("whitehole_cameraAreaSecondaryColor", DEFAULT_CAMERA_AREA_SECONDARY_COLOR); }
     public static Color getGravityAreaPrimaryColor() { return getColor("whitehole_gravityAreaPrimaryColor", DEFAULT_GRAVITY_AREA_PRIMARY_COLOR); }
     public static Color getGravityAreaSecondaryColor() { return getColor("whitehole_gravityAreaSecondaryColor", DEFAULT_GRAVITY_AREA_SECONDARY_COLOR); }
+    // allows for future support, it just uses the inverse for now.
+    public static Color getZeroGravityAreaPrimaryColor() { return getGravityAreaSecondaryColor(); }
+    public static Color getZeroGravityAreaSecondaryColor() { return getGravityAreaPrimaryColor(); }
     
     public static void setShowAxis(boolean val) { PREFERENCES.putBoolean("whitehole_showAxis", val); }
     public static void setShowAreas(boolean val) { PREFERENCES.putBoolean("whitehole_showAreas", val); }

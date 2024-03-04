@@ -16,6 +16,7 @@
  */
 package whitehole.rendering.special;
 import com.jogamp.opengl.*;
+import whitehole.Settings;
 import whitehole.math.Matrix4;
 import whitehole.math.Vec3f;
 import whitehole.rendering.CubeRenderer;
@@ -59,9 +60,6 @@ public class GravityShapeRenderer extends GLRenderer {
     
     // -------------------------------------------------------------------------------------------------------------------------
     
-    public static final Color4 COLOR_DEFAULT = new Color4(0.0f, 0.8f, 0.0f);
-    public static final Color4 COLOR_INVERSE_DEFAULT = new Color4(0.8f, 0.0f, 0.8f);
-    public static final Color4 COLOR_ZERO = new Color4(0.0f, 0.8f, 0.6f);
     //public static final Color4 COLOR_DISTANT = new Color4(0.6f, 0.8f, 0.0f);
     
     // The base size for areas
@@ -242,7 +240,7 @@ public class GravityShapeRenderer extends GLRenderer {
     public void setWireData(PathObj path, AbstractObj OwnerObj)
     {
         PathData = path;
-        PathBaseOriginCube = new CubeRenderer(100f, new Color4(1f, 1f, 1f), color, true);
+        PathBaseOriginCube = new CubeRenderer(100f, new Color4(Settings.getGravityAreaSecondaryColor()), color, true);
         WirePosition = OwnerObj.position;
         WireRotation = OwnerObj.rotation;
     }
@@ -718,8 +716,9 @@ public class GravityShapeRenderer extends GLRenderer {
             
             
             // CUTOFF LINES
+            Color4 colorZero = new Color4(Settings.getZeroGravityAreaPrimaryColor());
             if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
-                gl.glColor3f(COLOR_ZERO.r, COLOR_ZERO.g, COLOR_ZERO.b);
+                gl.glColor3f(colorZero.r, colorZero.g, colorZero.b);
             gl.glVertex3f(pointCurrentTop.x, pointCurrentTop.y, pointCurrentTop.z + ConeCutoffHeight - CUR_RANGE);
             gl.glVertex3f(pointCurrentTop.x, pointCurrentTop.y, pointCurrentTop.z + ConeHeight);
             
@@ -898,7 +897,8 @@ public class GravityShapeRenderer extends GLRenderer {
         float ScaleZSize = BOX_SIZE * Math.abs(Scale.z);
         float YOffset = BOX_SIZE * Scale.y; //The Y Offset doesn't care about the number being positive
         Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
-        Color4 DownZeroCol = new Color4(COLOR_ZERO.r*0.5f, COLOR_ZERO.g*0.5f, COLOR_ZERO.b*0.5f);
+        Color4 colorZero = new Color4(Settings.getZeroGravityAreaPrimaryColor());
+        Color4 DownZeroCol = new Color4(colorZero.r*0.5f, colorZero.g*0.5f, colorZero.b*0.5f);
         boolean pX = (((int)ObjArg0 & 1) != 0), // X+ Axis
                 nX = (((int)ObjArg0 & 2) != 0), // X- Axis
                 pY = (((int)ObjArg1 & 1) != 0), // Y+ Axis
@@ -925,12 +925,12 @@ public class GravityShapeRenderer extends GLRenderer {
         gl.glTranslatef(0f, YOffset, 0f);
         gl.glScalef(InvRescaleX, InvRescaleY, InvRescaleZ);
 
-        makeCubeFace(gl, 1, 0, 0, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
-        makeCubeFace(gl, 0, 1, 0, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
-        makeCubeFace(gl, 0, 0, 1, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
-        makeCubeFace(gl, -1, 0, 0, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
-        makeCubeFace(gl, 0, -1, 0, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
-        makeCubeFace(gl, 0, 0, -1, COLOR_ZERO, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, 1, 0, 0, colorZero, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, 0, 1, 0, colorZero, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, 0, 0, 1, colorZero, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, -1, 0, 0, colorZero, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, 0, -1, 0, colorZero, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
+        makeCubeFace(gl, 0, 0, -1, colorZero, ScaleXSize, ScaleYSize, ScaleZSize, isNotPicking);
         
         // Switch to the Outer
         float rng = Range > 0 ? Range : 0;
