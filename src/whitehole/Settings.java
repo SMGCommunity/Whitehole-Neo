@@ -16,6 +16,7 @@
  */
 package whitehole;
 
+import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.prefs.Preferences;
 
@@ -32,6 +33,20 @@ public final class Settings {
     public static boolean getSJISNotSupported() { return PREFERENCES.getBoolean("whitehole_sjisNotSupported", false); }
     public static boolean getUseDarkMode() { return PREFERENCES.getBoolean("whitehole_useDarkMode", true); }
     public static boolean getDebugAdditionalLogs() { return PREFERENCES.getBoolean("whitehole_debugAdditionalLogs", false); }
+    public static Color getColor(String preferencesString, Color fallbackColor) { 
+        int red = PREFERENCES.getInt(preferencesString + "Red", -1); 
+        int green = PREFERENCES.getInt(preferencesString + "Green", -1); 
+        int blue = PREFERENCES.getInt(preferencesString + "Blue", -1); 
+        if (red == -1 || green == -1 || blue == -1) {
+            return fallbackColor;
+        }
+        return new Color(red, green, blue);
+    }
+    public static void setColor(String preferencesString, Color newColor) {
+        PREFERENCES.putInt(preferencesString + "Red", newColor.getRed()); 
+        PREFERENCES.putInt(preferencesString + "Green", newColor.getGreen()); 
+        PREFERENCES.putInt(preferencesString + "Blue", newColor.getBlue()); 
+    }
     
     public static void setLastGameDir(String val) { PREFERENCES.put("whitehole_lastGameDir", val); }
     public static void setBaseGameDir(String val) { PREFERENCES.put("whitehole_baseGameDir", val); }
@@ -42,6 +57,13 @@ public final class Settings {
     public static void setDebugAdditionalLogs(boolean val) { PREFERENCES.putBoolean("whitehole_debugAdditionalLogs", val); }
     
     // Rendering
+    public static final Color DEFAULT_NORMAL_AREA_PRIMARY_COLOR = new Color(75, 255, 255);
+    public static final Color DEFAULT_NORMAL_AREA_SECONDARY_COLOR = new Color (255, 75, 75);
+    public static final Color DEFAULT_CAMERA_AREA_PRIMARY_COLOR = new Color(204, 0, 0);
+    public static final Color DEFAULT_CAMERA_AREA_SECONDARY_COLOR = new Color(0, 204, 204);
+    public static final Color DEFAULT_GRAVITY_AREA_PRIMARY_COLOR = new Color(0, 204, 0);
+    public static final Color DEFAULT_GRAVITY_AREA_SECONDARY_COLOR = new Color(204, 0, 204);
+    
     public static boolean getShowAxis() { return PREFERENCES.getBoolean("whitehole_showAxis", true); }
     public static boolean getShowAreas() { return PREFERENCES.getBoolean("whitehole_showAreas", true); }
     public static boolean getShowCameras() { return PREFERENCES.getBoolean("whitehole_showCameras", true); }
@@ -50,6 +72,12 @@ public final class Settings {
     public static boolean getDebugFakeColor() { return PREFERENCES.getBoolean("whitehole_debugFakeColor", false); }
     public static boolean getDebugFastDrag() { return PREFERENCES.getBoolean("whitehole_debugFastDrag", false); }
     public static boolean getUseBetterQuality() { return PREFERENCES.getBoolean("whitehole_useBetterQuality", true); }
+    public static Color getNormalAreaPrimaryColor() { return getColor("whitehole_normalAreaPrimaryColor", DEFAULT_NORMAL_AREA_PRIMARY_COLOR); }
+    public static Color getNormalAreaSecondaryColor() { return getColor("whitehole_normalAreaSecondaryColor", DEFAULT_NORMAL_AREA_SECONDARY_COLOR); }
+    public static Color getCameraAreaPrimaryColor() { return getColor("whitehole_cameraAreaPrimaryColor", DEFAULT_CAMERA_AREA_PRIMARY_COLOR); }
+    public static Color getCameraAreaSecondaryColor() { return getColor("whitehole_cameraAreaSecondaryColor", DEFAULT_CAMERA_AREA_SECONDARY_COLOR); }
+    public static Color getGravityAreaPrimaryColor() { return getColor("whitehole_gravityAreaPrimaryColor", DEFAULT_GRAVITY_AREA_PRIMARY_COLOR); }
+    public static Color getGravityAreaSecondaryColor() { return getColor("whitehole_gravityAreaSecondaryColor", DEFAULT_GRAVITY_AREA_SECONDARY_COLOR); }
     
     public static void setShowAxis(boolean val) { PREFERENCES.putBoolean("whitehole_showAxis", val); }
     public static void setShowAreas(boolean val) { PREFERENCES.putBoolean("whitehole_showAreas", val); }
@@ -59,6 +87,12 @@ public final class Settings {
     public static void setDebugFakeColor(boolean val) { PREFERENCES.putBoolean("whitehole_debugFakeColor", val); }
     public static void setDebugFastDrag(boolean val) { PREFERENCES.putBoolean("whitehole_debugFastDrag", val); }
     public static void setUseBetterQuality(boolean val) { PREFERENCES.putBoolean("whitehole_useBetterQuality", val); }
+    public static void setNormalAreaPrimaryColor(Color val) { setColor("whitehole_normalAreaPrimaryColor", val); }
+    public static void setNormalAreaSecondaryColor(Color val) { setColor("whitehole_normalAreaSecondaryColor", val); }
+    public static void setCameraAreaPrimaryColor(Color val) { setColor("whitehole_cameraAreaPrimaryColor", val); }
+    public static void setCameraAreaSecondaryColor(Color val) { setColor("whitehole_cameraAreaSecondaryColor", val); }
+    public static void setGravityAreaPrimaryColor(Color val) { setColor("whitehole_gravityAreaPrimaryColor", val); }
+    public static void setGravityAreaSecondaryColor(Color val) { setColor("whitehole_gravityAreaSecondaryColor", val); }
     
     // Controls
     public static boolean getUseReverseRot() { return PREFERENCES.getBoolean("whitehole_useReverseRot", false); }
