@@ -31,7 +31,7 @@ import whitehole.io.ExternalFile;
 import whitehole.io.FileBase;
 import whitehole.io.RarcFile;
 import whitehole.smg.Bmd;
-import whitehole.smg.Bva;
+import whitehole.smg.animation.Bva;
 import whitehole.smg.ImageUtils.FilterMode;
 import whitehole.smg.ImageUtils.WrapMode;
 import whitehole.util.Color4;
@@ -39,7 +39,7 @@ import whitehole.math.Matrix4;
 import whitehole.util.SuperFastHash;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
-import whitehole.smg.Btp;
+import whitehole.smg.animation.Btp;
 
 public class BmdRenderer extends GLRenderer {
     private void uploadTexture(GL2 gl, int id) {

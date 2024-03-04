@@ -13,7 +13,7 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.smg;
+package whitehole.smg.animation;
 
 import java.io.IOException;
 import java.util.ArrayList;
