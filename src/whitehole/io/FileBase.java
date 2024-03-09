@@ -38,6 +38,8 @@ public interface FileBase  {
     public float readFloat() throws IOException;
     public String readString(String encoding, int length) throws IOException;
     public byte[] readBytes(int length) throws IOException;
+    public short[] readShorts(int length) throws IOException;
+    public float[] readFloats(int length) throws IOException;
     
     public void writeByte(byte val) throws IOException;
     public void writeShort(short val) throws IOException;

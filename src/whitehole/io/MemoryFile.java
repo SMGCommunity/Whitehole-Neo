@@ -161,6 +161,22 @@ public class MemoryFile implements FileBase {
         return ret;
     }
     
+    @Override
+    public short[] readShorts(int length) throws IOException {
+        short[] ret = new short[length];
+        for (int i = 0; i < length; i++)
+            ret[i] = readShort();
+        return ret;
+    }
+    
+    @Override
+    public float[] readFloats(int length) throws IOException {
+        float[] ret = new float[length];
+        for (int i = 0; i < length; i++)
+            ret[i] = readFloat();
+        return ret;
+    }
+    
 
     @Override
     public void writeByte(byte val) throws IOException {
