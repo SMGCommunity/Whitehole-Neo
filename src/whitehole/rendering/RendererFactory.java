@@ -315,8 +315,8 @@ public final class RendererFactory {
             Color4 gravityPrimaryColor = new Color4(Settings.getGravityAreaPrimaryColor());
             Color4 gravityPrimaryColorDark = new Color4(Settings.getGravityAreaPrimaryColor().darker());
             Color4 gravitySecondaryColor = new Color4(Settings.getGravityAreaSecondaryColor());
-            Color4 zeroGravityPrimaryColor = new Color4(Settings.getZeroGravityAreaPrimaryColor());
-            Color4 zeroGravitySecondaryColor = new Color4(Settings.getZeroGravityAreaSecondaryColor());
+            Color4 zeroGravityPrimaryColor = new Color4(Settings.getGravityAreaZeroPrimaryColor());
+            Color4 zeroGravitySecondaryColor = new Color4(Settings.getGravityAreaZeroSecondaryColor());
             
             //No idea why I had to do it this way, but the runtime kept crashing if I didn't...
             Object r = obj.data.get("Range");

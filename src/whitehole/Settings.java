@@ -63,6 +63,8 @@ public final class Settings {
     public static final Color DEFAULT_CAMERA_AREA_SECONDARY_COLOR = new Color(0, 204, 204);
     public static final Color DEFAULT_GRAVITY_AREA_PRIMARY_COLOR = new Color(0, 204, 0);
     public static final Color DEFAULT_GRAVITY_AREA_SECONDARY_COLOR = new Color(204, 0, 204);
+    public static final Color DEFAULT_GRAVITY_AREA_ZERO_PRIMARY_COLOR = new Color(0, 204, 153);
+    public static final Color DEFAULT_GRAVITY_AREA_ZERO_SECONDARY_COLOR = new Color(204, 0, 51);
     
     public static boolean getShowAxis() { return PREFERENCES.getBoolean("whitehole_showAxis", true); }
     public static boolean getShowAreas() { return PREFERENCES.getBoolean("whitehole_showAreas", true); }
@@ -78,9 +80,8 @@ public final class Settings {
     public static Color getCameraAreaSecondaryColor() { return getColor("whitehole_cameraAreaSecondaryColor", DEFAULT_CAMERA_AREA_SECONDARY_COLOR); }
     public static Color getGravityAreaPrimaryColor() { return getColor("whitehole_gravityAreaPrimaryColor", DEFAULT_GRAVITY_AREA_PRIMARY_COLOR); }
     public static Color getGravityAreaSecondaryColor() { return getColor("whitehole_gravityAreaSecondaryColor", DEFAULT_GRAVITY_AREA_SECONDARY_COLOR); }
-    // allows for future support, it just uses the inverse for now.
-    public static Color getZeroGravityAreaPrimaryColor() { return getGravityAreaSecondaryColor(); }
-    public static Color getZeroGravityAreaSecondaryColor() { return getGravityAreaPrimaryColor(); }
+    public static Color getGravityAreaZeroPrimaryColor() { return getColor("whitehole_gravityAreaZeroPrimaryColor", DEFAULT_GRAVITY_AREA_ZERO_PRIMARY_COLOR); }
+    public static Color getGravityAreaZeroSecondaryColor() { return getColor("whitehole_gravityAreaZerpSecondaryColor", DEFAULT_GRAVITY_AREA_ZERO_SECONDARY_COLOR); }
     
     public static void setShowAxis(boolean val) { PREFERENCES.putBoolean("whitehole_showAxis", val); }
     public static void setShowAreas(boolean val) { PREFERENCES.putBoolean("whitehole_showAreas", val); }
@@ -96,6 +97,8 @@ public final class Settings {
     public static void setCameraAreaSecondaryColor(Color val) { setColor("whitehole_cameraAreaSecondaryColor", val); }
     public static void setGravityAreaPrimaryColor(Color val) { setColor("whitehole_gravityAreaPrimaryColor", val); }
     public static void setGravityAreaSecondaryColor(Color val) { setColor("whitehole_gravityAreaSecondaryColor", val); }
+    public static void setGravityAreaZeroPrimaryColor(Color val) { setColor("whitehole_gravityAreaZeroPrimaryColor", val); }
+    public static void setGravityAreaZeroSecondaryColor(Color val) { setColor("whitehole_gravityAreaZerpSecondaryColor", val); }
     
     // Controls
     public static boolean getUseReverseRot() { return PREFERENCES.getBoolean("whitehole_useReverseRot", false); }
