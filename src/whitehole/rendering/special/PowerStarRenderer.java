@@ -68,37 +68,35 @@ public class PowerStarRenderer extends BmdRenderer
         }
         
         // Try SMG1
-        if (!isGrand && visible == null)
-            visible = ctor_tryLoadBVA(modelName, "PowerStar", archive);
+        if (!isGrand && shapeVisibleAnim == null)
+            shapeVisibleAnim = ctor_tryLoadBVA(modelName, "PowerStar", archive);
         
-        if (texpattern == null)
-            texpattern = ctor_tryLoadBTP(modelName, "PowerStar", archive);
+        if (texPatternAnim == null)
+            texPatternAnim = ctor_tryLoadBTP(modelName, "PowerStar", archive);
         
         
         // Try SMG2. No clue why the name changed...
-        if (!isGrand && visible == null)
-            visible = ctor_tryLoadBVA(modelName, "PowerStarColor", archive);
+        if (!isGrand && shapeVisibleAnim == null)
+            shapeVisibleAnim = ctor_tryLoadBVA(modelName, "PowerStarColor", archive);
         
-        if (texpattern == null)
-            texpattern = ctor_tryLoadBTP(modelName, "PowerStarColor", archive);
+        if (texPatternAnim == null)
+            texPatternAnim = ctor_tryLoadBTP(modelName, "PowerStarColor", archive);
+        
+        if (texMatrixAnim == null)
+            texMatrixAnim = ctor_tryLoadBTK(modelName, "PowerStarColor", archive);
         
         // Decide PowerStarColor
-        texpatternIndex = getPowerStarColor(obj);
+        texPatternAnimIndex = getPowerStarColor(obj);
+        texMatrixAnimIndex = texPatternAnimIndex;
         
-        // TEMPORARY UNTIL WE GET BTK READING
         model.setMaterialHidden("GrandStarBronze", true);
         model.setMaterialHidden("GrandStarEmpty", true);
-        if (texpatternIndex == 1)
+        if (texPatternAnimIndex == 1)
         {
             if (grandArchive != null) //Okay well this is just how Grand Stars work...
             {
                 model.setMaterialHidden("FooMat", true);
                 model.setMaterialHidden("GrandStarBronze", false);
-            }
-            else
-            {
-                model.materials[2].texMtx[2].transS = -0.25f;
-                model.materials[2].texMtx[2].doCalc();
             }
         }
         

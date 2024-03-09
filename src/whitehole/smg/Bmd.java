@@ -1176,8 +1176,7 @@ public class Bmd
         {
             public byte proj, type;
             public short padding;
-            public float centerS, centerT;
-            public float centerU;
+            public float centerS, centerT, centerU;
             public float scaleS, scaleT;
             public float rotate;
             public short padding2;

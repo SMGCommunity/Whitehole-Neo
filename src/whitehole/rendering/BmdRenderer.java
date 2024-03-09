@@ -21,9 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.*;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Locale;
 import whitehole.Settings;
 import whitehole.Whitehole;
@@ -31,15 +28,13 @@ import whitehole.io.ExternalFile;
 import whitehole.io.FileBase;
 import whitehole.io.RarcFile;
 import whitehole.smg.Bmd;
-import whitehole.smg.animation.Bva;
-import whitehole.smg.ImageUtils.FilterMode;
-import whitehole.smg.ImageUtils.WrapMode;
+import whitehole.smg.ImageUtils.*;
+import whitehole.smg.animation.*;
 import whitehole.util.Color4;
-import whitehole.math.Matrix4;
 import whitehole.util.SuperFastHash;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
-import whitehole.smg.animation.Btp;
+import whitehole.math.Matrix4;
 
 public class BmdRenderer extends GLRenderer {
     private void uploadTexture(GL2 gl, int id) {
@@ -227,6 +222,32 @@ public class BmdRenderer extends GLRenderer {
         if(model == null)
             return;
         
+        // This MUST occur before the shader hash is calculated
+        Bmd.Material mat = this.model.materials[matid];
+        
+        if (texMatrixAnim != null)
+        {
+            int Frame = texMatrixAnimIndex;
+            if (Frame < 0)
+                Frame = 0;
+            if (Frame > texMatrixAnim.Duration)
+                Frame = texMatrixAnim.Duration;
+            
+            var anim = texMatrixAnim.getAnimByName(mat.name);
+            if (anim != null)
+            {
+                mat.texMtx[anim.TextureGeneratorId].centerS = anim.Center[0];
+                mat.texMtx[anim.TextureGeneratorId].centerT = anim.Center[1];
+                mat.texMtx[anim.TextureGeneratorId].centerU = anim.Center[2];
+                mat.texMtx[anim.TextureGeneratorId].scaleS = anim.ScaleU.getValueAtFrame((short)texMatrixAnimIndex);
+                mat.texMtx[anim.TextureGeneratorId].scaleT = anim.ScaleV.getValueAtFrame((short)texMatrixAnimIndex);
+                mat.texMtx[anim.TextureGeneratorId].rotate = anim.RotationW.getValueAtFrame((short)texMatrixAnimIndex);
+                mat.texMtx[anim.TextureGeneratorId].transS = anim.TranslationU.getValueAtFrame((short)texMatrixAnimIndex);
+                mat.texMtx[anim.TextureGeneratorId].transT = anim.TranslationV.getValueAtFrame((short)texMatrixAnimIndex);
+                mat.texMtx[anim.TextureGeneratorId].doCalc();
+            }
+        }
+        
         if(shaders == null)
             shaders = new Shader[1];
         shaders[matid] = new Shader();
@@ -293,7 +314,6 @@ public class BmdRenderer extends GLRenderer {
         String[] tevscale = { "1.0", "2.0", "4.0", "0.5" };
         String[] alphacompare = { "0 == 1", "%1$s < %2$f", "%1$s == %2$f", "%1$s <= %2$f", "%1$s > %2$f", "%1$s != %2$f", "%1$s >= %2$f", "1 == 1" };
         String[] alphacombine = { "(%1$s) && (%2$s)", "(%1$s) || (%2$s)", "((%1$s) && (!(%2$s))) || ((!(%1$s)) && (%2$s))", "((%1$s) && (%2$s)) || ((!(%1$s)) && (!(%2$s)))" };
-        Bmd.Material mat = this.model.materials[matid];
         StringBuilder vert = new StringBuilder();
         vert.append("#version 120\n");
         vert.append("\n");
@@ -617,16 +637,20 @@ public class BmdRenderer extends GLRenderer {
     
     protected RarcFile archive = null;
     protected Bmd model = null;
-    protected Btp texpattern = null;
-    protected int texpatternIndex = 0;
-    protected Bva visible = null;
-    protected int visibleIndex = 0;
+    
     protected Shader[] shaders = null;
     protected int[] textures = null;
     protected boolean hasShaders = false;
     protected Vec3f translation = DEFAULT_TRANSLATION;
     protected Vec3f rotation = DEFAULT_ROTATION;
     protected Vec3f scale = DEFAULT_SCALE;
+    
+    protected Btk texMatrixAnim = null;
+    protected int texMatrixAnimIndex = 0;
+    protected Btp texPatternAnim = null;
+    protected int texPatternAnimIndex = 0;
+    protected Bva shapeVisibleAnim = null;
+    protected int shapeVisibleAnimIndex = 0;
     
     public BmdRenderer() {
         
@@ -686,10 +710,10 @@ public class BmdRenderer extends GLRenderer {
         }
         
         //Some default BVA files for things like Thwomps
-        if (visible == null)
-            visible = ctor_tryLoadBVA(modelName, "Wait", archive);
-        if (visible == null)
-            visible = ctor_tryLoadBVA(modelName, "Normal", archive);
+        if (shapeVisibleAnim == null)
+            shapeVisibleAnim = ctor_tryLoadBVA(modelName, "Wait", archive);
+        if (shapeVisibleAnim == null)
+            shapeVisibleAnim = ctor_tryLoadBVA(modelName, "Normal", archive);
         
         if (isValidBmdModel())
             ctor_uploadData(info);
@@ -793,6 +817,18 @@ public class BmdRenderer extends GLRenderer {
         }
     }
     
+    protected final Btk ctor_tryLoadBTK(String modelName, String animName, RarcFile archive) {
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".btk";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Btk(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+        
     protected final Btp ctor_tryLoadBTP(String modelName, String animName, RarcFile archive) {
         try
         {
@@ -879,11 +915,11 @@ public class BmdRenderer extends GLRenderer {
     public void releaseStorage() {
         try
         {
-            if(visible != null)
-                visible.close();
+            if(shapeVisibleAnim != null)
+                shapeVisibleAnim.close();
             
-            if (texpattern != null)
-                texpattern.close();
+            if (texPatternAnim != null)
+                texPatternAnim.close();
             
             if (model != null)
                 model.close();
@@ -892,8 +928,8 @@ public class BmdRenderer extends GLRenderer {
                 archive.close();
             
             model = null;
-            visible = null;
-            texpattern = null;
+            shapeVisibleAnim = null;
+            texPatternAnim = null;
             archive = null;
         }
         catch(Exception ex)
@@ -954,12 +990,12 @@ public class BmdRenderer extends GLRenderer {
             if(node.nodeType != 0) continue;
             int shape = node.nodeID;
             
-            if(visible != null)
+            if(shapeVisibleAnim != null)
             {
-                var shp = visible.animData.get(shape);
+                var shp = shapeVisibleAnim.animData.get(shape);
                 if (shp != null)
                 {
-                    var vis = shp.get(visibleIndex);
+                    var vis = shp.get(shapeVisibleAnimIndex);
                     if (vis != null && !vis)
                         continue;
                 }
@@ -1001,9 +1037,9 @@ public class BmdRenderer extends GLRenderer {
                             // Decide textures based on the BTP if it exists
                             short TextureSelectIndex = mat.texStages[i];
                             
-                            if (texpattern != null)
+                            if (texPatternAnim != null)
                             {
-                                Short f = texpattern.get(mat.name, i, texpatternIndex);
+                                Short f = texPatternAnim.get(mat.name, i, texPatternAnimIndex);
                                 if (f != null)
                                     TextureSelectIndex = f;
                             }
