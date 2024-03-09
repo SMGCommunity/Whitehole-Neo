@@ -71,6 +71,9 @@ public class SettingsForm extends javax.swing.JDialog {
         lblGravityAreaColor = new javax.swing.JLabel();
         btnGravityAreaPrimaryColor = new javax.swing.JButton();
         btnGravityAreaSecondaryColor = new javax.swing.JButton();
+        lblGravityAreaZeroColor = new javax.swing.JLabel();
+        btnGravityAreaZeroPrimaryColor = new javax.swing.JButton();
+        btnGravityAreaZeroSecondaryColor = new javax.swing.JButton();
         pnlControls = new javax.swing.JPanel();
         lblControls = new javax.swing.JLabel();
         chkUseReverseRot = new javax.swing.JCheckBox();
@@ -337,6 +340,44 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         pnlAreaColors.add(btnGravityAreaSecondaryColor, gridBagConstraints);
+
+        lblGravityAreaZeroColor.setText("Zero Gravity");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        pnlAreaColors.add(lblGravityAreaZeroColor, gridBagConstraints);
+
+        btnGravityAreaZeroPrimaryColor.setBackground(Settings.getGravityAreaZeroPrimaryColor());
+        btnGravityAreaZeroPrimaryColor.setText(" ");
+        btnGravityAreaZeroPrimaryColor.setToolTipText("Primary");
+        btnGravityAreaZeroPrimaryColor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGravityAreaZeroPrimaryColorActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 2);
+        pnlAreaColors.add(btnGravityAreaZeroPrimaryColor, gridBagConstraints);
+
+        btnGravityAreaZeroSecondaryColor.setBackground(Settings.getGravityAreaZeroSecondaryColor());
+        btnGravityAreaZeroSecondaryColor.setText(" ");
+        btnGravityAreaZeroSecondaryColor.setToolTipText("Secondary");
+        btnGravityAreaZeroSecondaryColor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGravityAreaZeroSecondaryColorActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 7;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        pnlAreaColors.add(btnGravityAreaZeroSecondaryColor, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -657,6 +698,35 @@ public class SettingsForm extends javax.swing.JDialog {
             Settings.setGravityAreaSecondaryColor(newSecondaryColor);
         }
     }//GEN-LAST:event_btnGravityAreaSecondaryColorActionPerformed
+
+    private void btnGravityAreaZeroPrimaryColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGravityAreaZeroPrimaryColorActionPerformed
+        Color oldPrimaryColor = btnGravityAreaZeroPrimaryColor.getBackground();
+        Color newPrimaryColor = getNewAreaColor(oldPrimaryColor, Settings.DEFAULT_GRAVITY_AREA_ZERO_PRIMARY_COLOR, true);
+        
+        if (newPrimaryColor != null) {
+            // set primary color
+            btnGravityAreaZeroPrimaryColor.setBackground(newPrimaryColor);
+            Settings.setGravityAreaZeroPrimaryColor(newPrimaryColor);
+            
+            // set secondary color if auto
+            Color oldSecondaryColor = getComplement(Settings.getGravityAreaZeroSecondaryColor());
+            if (oldPrimaryColor.equals(oldSecondaryColor)) {
+                btnGravityAreaZeroSecondaryColor.setBackground(getComplement(newPrimaryColor));
+                Settings.setGravityAreaZeroSecondaryColor(getComplement(newPrimaryColor));
+            }
+        }
+    }//GEN-LAST:event_btnGravityAreaZeroPrimaryColorActionPerformed
+
+    private void btnGravityAreaZeroSecondaryColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGravityAreaZeroSecondaryColorActionPerformed
+        Color oldSecondaryColor = btnGravityAreaZeroSecondaryColor.getBackground();
+        Color newSecondaryColor = getNewAreaColor(oldSecondaryColor, getComplement(Settings.getGravityAreaZeroPrimaryColor()), false);
+        
+        if (newSecondaryColor != null) {
+            // set secondary color
+            btnGravityAreaZeroSecondaryColor.setBackground(newSecondaryColor);
+            Settings.setGravityAreaZeroSecondaryColor(newSecondaryColor);
+        }
+    }//GEN-LAST:event_btnGravityAreaZeroSecondaryColorActionPerformed
     
     private void setBaseGamePath(String pth)
     {     
@@ -786,6 +856,8 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JButton btnCameraAreaSecondaryColor;
     private javax.swing.JButton btnGravityAreaPrimaryColor;
     private javax.swing.JButton btnGravityAreaSecondaryColor;
+    private javax.swing.JButton btnGravityAreaZeroPrimaryColor;
+    private javax.swing.JButton btnGravityAreaZeroSecondaryColor;
     private javax.swing.JButton btnNormalAreaPrimaryColor;
     private javax.swing.JButton btnNormalAreaSecondaryColor;
     private javax.swing.JButton btnPosition;
@@ -804,6 +876,7 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JLabel lblCameraAreaColor;
     private javax.swing.JLabel lblControls;
     private javax.swing.JLabel lblGravityAreaColor;
+    private javax.swing.JLabel lblGravityAreaZeroColor;
     private javax.swing.JLabel lblMisc;
     private javax.swing.JLabel lblNormalAreaColor;
     private javax.swing.JLabel lblPosition;
