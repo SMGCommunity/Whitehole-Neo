@@ -63,8 +63,15 @@ public class GameArchive {
             
             if (gameType == 2 && filesystem.fileExists(String.format("/StageData/%1$s/%1$sMap.arc", stage))) {
                 zones.add(stage);
-            } else if (gameType == 1 && filesystem.fileExists(String.format("/StageData/%1$s.arc", stage))) {
-                zones.add(stage);
+            } 
+        }
+        
+        // add zones for smg1
+        if (gameType == 1) {
+            for (String file : filesystem.getFiles("/StageData")) {
+                if (file.endsWith("Zone.arc") || file.endsWith("Galaxy.arc")) {
+                    zones.add(file.replace(".arc", ""));
+                }
             }
         }
         
