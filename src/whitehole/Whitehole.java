@@ -32,6 +32,7 @@ import whitehole.db.FieldHashes;
 import whitehole.db.GalaxyNames;
 import whitehole.db.ModelSubstitutions;
 import whitehole.db.ObjectDB;
+import whitehole.db.ZoneNames;
 import whitehole.io.FilesystemBase;
 import whitehole.smg.GameArchive;
 
@@ -72,6 +73,7 @@ public class Whitehole {
         // Initialize data
         FieldHashes.init();
         GalaxyNames.init();
+        ZoneNames.init();
         ObjectDB.init(true);
         ModelSubstitutions.init();
         
@@ -197,10 +199,17 @@ public class Whitehole {
     }
     
     public static int getValidSwitchInGalaxy() {
-        return MAIN_FRAME != null ? MAIN_FRAME.getValidSwitchInGalaxy() : -1;
+        return MAIN_FRAME != null ? MAIN_FRAME.getValidSwitchInGalaxyEditor() : -1;
     }
     
     public static int getValidSwitchInZone() {
-        return MAIN_FRAME != null ? MAIN_FRAME.getValidSwitchInZone() : -1;
+        if (MAIN_FRAME == null)
+            return -1;
+        else if (MAIN_FRAME.checkZoneEditorOpen())
+            return MAIN_FRAME.getValidSwitchInZoneEditor();
+        else if (MAIN_FRAME.checkGalaxyEditorOpen())
+            return MAIN_FRAME.getValidSwitchInGalaxyEditorZone();
+        else
+            return -1;
     }
 }

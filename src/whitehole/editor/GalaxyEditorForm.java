@@ -62,6 +62,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     // General
     private boolean isGalaxyMode = true;
+    private boolean isSeparateZoneMode = false;
     private String galaxyName;
     private GalaxyArchive galaxyArchive = null;
     private HashMap<String, StageArchive> zoneArchives;
@@ -72,7 +73,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private HashMap<String, GalaxyEditorForm> zoneEditors = new HashMap();
     private GalaxyEditorForm parentForm = null;
-    private boolean unsavedChanges = false;
+    private volatile boolean unsavedChanges = false;
     private int zoneModeLayerBitmask;
     
     // Additional UI
@@ -191,7 +192,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         initComponents();
         
         isGalaxyMode = false;
-        parentForm = parent;
+        if (parent != null)
+            parentForm = parent;
+        else
+            isSeparateZoneMode = true;
         galaxyName = zoneArc.stageName;
         
         zoneArchives = new HashMap(1);
@@ -491,7 +495,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         // Populate objects and assign their maxUniqueIDs
         for (List<AbstractObj> layers : arc.objects.values()) {
-            if (isGalaxyMode) {
+            if (isGalaxyMode || isSeparateZoneMode) {
                 for (AbstractObj obj : layers) {
                     obj.uniqueID = maxUniqueID;
                     globalObjList.put(maxUniqueID++, obj);
@@ -647,7 +651,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         else
             setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         
-        if (isGalaxyMode) {
+        if (isGalaxyMode || isSeparateZoneMode) {
             for (GalaxyEditorForm form : zoneEditors.values()) {
                 form.dispose();
             }
@@ -894,8 +898,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
 
                 // Update main editor from subzone
-                if(!isGalaxyMode && parentForm != null) {
-                    parentForm.updateZonePaint(galaxyName);
+                if(!isGalaxyMode) {
+                    if (isSeparateZoneMode)
+                        updateZonePaint(curZone);
+                    else
+                        parentForm.updateZonePaint(galaxyName);
                 }
                 // Update subzone editors from main editor
                 else {
@@ -3207,7 +3214,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      */
     public void doUndo()
     {
-        if (!isGalaxyMode)
+        if (!isGalaxyMode && !isSeparateZoneMode)
         {
             parentForm.doUndo();
             updateZonePaint(this.curZone);
@@ -3252,7 +3259,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public void addUndoEntry(IUndo.Action type, AbstractObj obj) {
         if (obj == null)
             return;
-        if (!isGalaxyMode)
+        if (!isGalaxyMode && !isSeparateZoneMode)
         {
             parentForm.addUndoEntry(type, obj);
             return;
@@ -3404,7 +3411,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 try {
                     gl.getContext().makeCurrent();
                     
-                    if (isGalaxyMode) {
+                    if (isGalaxyMode || isSeparateZoneMode) {
                         for (AbstractObj obj : globalObjList.values()) {
                             obj.initRenderer(renderInfo);
                             obj.oldName = obj.name;
@@ -3526,7 +3533,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     gl.glEndList();
                 }
             } else {
-                prerenderZone(gl, galaxyName);
+                prerenderZone(gl, curZone);
                 
                 if(!zoneDisplayLists.containsKey(0))
                      zoneDisplayLists.put(0, new int[] {0,0,0});

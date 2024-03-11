@@ -22,6 +22,7 @@ import java.util.*;
 import javax.swing.*;
 import whitehole.db.GalaxyNames;
 import whitehole.db.ObjectDB;
+import whitehole.db.ZoneNames;
 import whitehole.editor.BcsvEditorForm;
 import whitehole.editor.GalaxyEditorForm;
 import whitehole.editor.ObjectSelectForm;
@@ -30,6 +31,7 @@ import whitehole.rendering.RendererCache;
 import whitehole.rendering.ShaderCache;
 import whitehole.rendering.TextureCache;
 import whitehole.smg.GameArchive;
+import whitehole.smg.StageArchive;
 import whitehole.util.SwitchUtil;
 
 public final class MainFrame extends javax.swing.JFrame {
@@ -55,13 +57,30 @@ public final class MainFrame extends javax.swing.JFrame {
         }
     }
     
+    private static class ZoneListItem extends GalaxyListItem {
+        public ZoneListItem(String id) {
+            super(id);
+        }
+        
+        @Override
+        public String toString() {
+            if (forceIdentifier)
+                return "\"" + identifier + "\"";
+            else
+                return ZoneNames.getSimplifiedStageName(identifier);
+        }
+    }
+    
     private static final Comparator<GalaxyListItem> ITEM_COMPARATOR = (i, j) -> i.toString().compareTo(j.toString());
     
     // -------------------------------------------------------------------------------------------------------------------------
     
     private final DefaultListModel<GalaxyListItem> galaxyItems;
+    private final DefaultListModel<ZoneListItem> zoneItems;
     private String currentGalaxy = null;
+    private String currentZone = null;
     private GalaxyEditorForm galaxyEditor = null;
+    private GalaxyEditorForm zoneEditor = null;
     private final BcsvEditorForm bcsvEditor;
     private final AboutForm aboutDialog;
     private final SettingsForm settingsDialog;
@@ -69,6 +88,7 @@ public final class MainFrame extends javax.swing.JFrame {
     public MainFrame() {
         initComponents();
         galaxyItems = (DefaultListModel)(listGalaxy.getModel());
+        zoneItems = (DefaultListModel)(listZone.getModel());
         
         bcsvEditor = new BcsvEditorForm();
         aboutDialog = new AboutForm(this);
@@ -88,6 +108,10 @@ public final class MainFrame extends javax.swing.JFrame {
             if (Whitehole.GAME.hasOverwriteGalaxyNames()) {
                 GalaxyNames.clearProjectDatabase();
             }
+            
+            if (Whitehole.GAME.hasOverwriteZoneNames()) {
+                ZoneNames.clearProjectDatabase();
+            }
         }
         
         // Load game system and store last selected game directory
@@ -105,6 +129,7 @@ public final class MainFrame extends javax.swing.JFrame {
         
         // Construct list of galaxy items
         galaxyItems.removeAllElements();
+        zoneItems.removeAllElements();
         
         if (Whitehole.getCurrentGameType() == 0) {
             lbStatusBar.setText("Selected directory isn't an SMG1/2 workspace.");
@@ -112,44 +137,62 @@ public final class MainFrame extends javax.swing.JFrame {
         }
         
         List<String> galaxies = Whitehole.GAME.getGalaxyList();
-        List<GalaxyListItem> listItems = new ArrayList(galaxies.size());
+        List<String> zones = Whitehole.GAME.getZoneList();
+        List<GalaxyListItem> listGalaxyItems = new ArrayList(galaxies.size());
+        List<ZoneListItem> listZoneItems = new ArrayList(zones.size());
         
         for (String galaxy : galaxies) {
-            listItems.add(new GalaxyListItem(galaxy));
+            listGalaxyItems.add(new GalaxyListItem(galaxy));
         }
         
-        listItems.sort(ITEM_COMPARATOR);
-        
-        for (GalaxyListItem item : listItems) {
-            galaxyItems.addElement(item);
+        for (String zone : zones) {
+            listZoneItems.add(new ZoneListItem(zone));
         }
+        
+        listGalaxyItems.sort(ITEM_COMPARATOR);
+        listZoneItems.sort(ITEM_COMPARATOR);
+        
+        galaxyItems.addAll(listGalaxyItems);
+        zoneItems.addAll(listZoneItems);
         
         btnBcsvEditor.setEnabled(true);
         lbStatusBar.setText("Successfully opened the game directory!");
     }
     
-    private void setForceIdentifier(Boolean forceId) {
+    private void setForceIdentifierGalaxy(Boolean forceId) {
         SwingUtilities.invokeLater(() -> {
             for (int i = 0; i < galaxyItems.getSize(); i++) 
             {
                 
                 if (!Objects.equals(galaxyItems.getElementAt(i).forceIdentifier, forceId)) {
                     galaxyItems.getElementAt(i).forceIdentifier = forceId;
-                    listGalaxy.updateUI();
                 }
             }
+            listGalaxy.updateUI();
+        });
+    }
+    
+    private void setForceIdentifierZone(Boolean forceId) {
+        SwingUtilities.invokeLater(() -> {
+            for (int i = 0; i < zoneItems.getSize(); i++) 
+            {
+                
+                if (!Objects.equals(zoneItems.getElementAt(i).forceIdentifier, forceId)) {
+                    zoneItems.getElementAt(i).forceIdentifier = forceId;
+                }
+            }
+            listZone.updateUI();
         });
     }
     
     public void openGalaxy() {
         GalaxyListItem galaxy = (GalaxyListItem)listGalaxy.getSelectedValue();
         
-        // Don't open new editor if one is already active
-        if (galaxyEditor != null && galaxyEditor.isVisible()) {
-            if (galaxy.identifier.equals(currentGalaxy)) {
-                galaxyEditor.toFront();
-            }
-            
+        if (checkZoneEditorOpen()) {
+            zoneEditor.toFront();
+            return;
+        } else if (checkGalaxyEditorOpen()) {
+            galaxyEditor.toFront();
             return;
         }
         
@@ -163,10 +206,49 @@ public final class MainFrame extends javax.swing.JFrame {
         galaxyEditor.setVisible(true);
     }
     
-    public void forceCloseGalaxy()
+    public void openZone() {
+        ZoneListItem zone = (ZoneListItem)listZone.getSelectedValue();
+        
+        if (checkZoneEditorOpen()) {
+            zoneEditor.toFront();
+            return;
+        } else if (checkGalaxyEditorOpen()) {
+            galaxyEditor.toFront();
+            return;
+        }
+        
+        // Prepare caches
+        TextureCache.init();
+        ShaderCache.init();
+        RendererCache.init();
+        
+        // Load zone archive
+        currentZone = zone.identifier;
+        StageArchive arc = new StageArchive(null, currentZone);
+        zoneEditor = new GalaxyEditorForm(null, arc);
+        zoneEditor.setVisible(true);
+    }
+    
+    public boolean checkZoneEditorOpen() {
+        if (zoneEditor != null && zoneEditor.isVisible()) {
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean checkGalaxyEditorOpen() {
+        if (galaxyEditor != null && galaxyEditor.isVisible()) {
+            return true;
+        }
+        return false;
+    }
+       
+    public void forceCloseEditors()
     {
         if (galaxyEditor != null)
             galaxyEditor.isForceClose = true;
+        if (zoneEditor != null)
+            zoneEditor.isForceClose = true;
     }
     
     public void requestUpdateLAF() {
@@ -174,6 +256,9 @@ public final class MainFrame extends javax.swing.JFrame {
         
         if (galaxyEditor != null) {
             galaxyEditor.requestUpdateLAF();
+        }
+        if (zoneEditor != null) {
+            zoneEditor.requestUpdateLAF();
         }
         
         SwingUtilities.updateComponentTreeUI(bcsvEditor);
@@ -183,17 +268,22 @@ public final class MainFrame extends javax.swing.JFrame {
         ObjectSelectForm.requestUpdateLAF();
     }
     
-    public int getValidSwitchInGalaxy() {
+    public int getValidSwitchInGalaxyEditor() {
         return galaxyEditor != null ? galaxyEditor.getValidSwitchInGalaxy() : -1;
     }
     
-    public int getValidSwitchInZone() {
+    public int getValidSwitchInGalaxyEditorZone() {
         return galaxyEditor != null ? galaxyEditor.getValidSwitchInZone() : -1;
+    }
+    
+    public int getValidSwitchInZoneEditor() {
+        return zoneEditor != null ? zoneEditor.getValidSwitchInZone() : -1;
     }
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
         toolbar = new javax.swing.JToolBar();
         btnOpenGame = new javax.swing.JButton();
@@ -206,8 +296,11 @@ public final class MainFrame extends javax.swing.JFrame {
         jSeparator6 = new javax.swing.JToolBar.Separator();
         btnAbout = new javax.swing.JButton();
         lbStatusBar = new javax.swing.JLabel();
+        tabLists = new javax.swing.JTabbedPane();
         scrGalaxy = new javax.swing.JScrollPane();
         listGalaxy = new javax.swing.JList();
+        scrZone = new javax.swing.JScrollPane();
+        listZone = new javax.swing.JList();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle(Whitehole.NAME);
@@ -289,6 +382,12 @@ public final class MainFrame extends javax.swing.JFrame {
         lbStatusBar.setText("Ready!");
         lbStatusBar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
 
+        tabLists.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                tabListsStateChanged(evt);
+            }
+        });
+
         listGalaxy.setModel(new DefaultListModel());
         listGalaxy.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
@@ -315,20 +414,50 @@ public final class MainFrame extends javax.swing.JFrame {
         });
         scrGalaxy.setViewportView(listGalaxy);
 
+        tabLists.addTab("Galaxies", scrGalaxy);
+
+        listZone.setModel(new DefaultListModel());
+        listZone.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                listZoneFocusLost(evt);
+            }
+        });
+        listZone.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                listZoneMouseClicked(evt);
+            }
+        });
+        listZone.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                listZoneKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                listZoneKeyReleased(evt);
+            }
+        });
+        listZone.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                listZoneValueChanged(evt);
+            }
+        });
+        scrZone.setViewportView(listZone);
+
+        tabLists.addTab("Zones", scrZone);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
-            .addComponent(lbStatusBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(scrGalaxy)
+            .addComponent(lbStatusBar)
+            .addComponent(tabLists, javax.swing.GroupLayout.Alignment.TRAILING)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(toolbar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(scrGalaxy, javax.swing.GroupLayout.DEFAULT_SIZE, 470, Short.MAX_VALUE)
+                .addComponent(tabLists, javax.swing.GroupLayout.DEFAULT_SIZE, 439, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lbStatusBar, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -363,7 +492,11 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnOpenGameActionPerformed
 
     private void btnOpenGalaxyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenGalaxyActionPerformed
-        openGalaxy();
+        int tab = tabLists.getSelectedIndex();
+        if (tab == 0)
+            openGalaxy();
+        else if (tab == 1)
+            openZone();
     }//GEN-LAST:event_btnOpenGalaxyActionPerformed
 
     private void btnBcsvEditorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBcsvEditorActionPerformed
@@ -387,7 +520,7 @@ public final class MainFrame extends javax.swing.JFrame {
     private void listGalaxyMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listGalaxyMouseClicked
         if (evt.getClickCount() > 1) {
             openGalaxy();
-            setForceIdentifier(false);
+            setForceIdentifierGalaxy(false);
         }
     }//GEN-LAST:event_listGalaxyMouseClicked
 
@@ -397,7 +530,7 @@ public final class MainFrame extends javax.swing.JFrame {
 
     private void listGalaxyKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listGalaxyKeyReleased
         if (!evt.isShiftDown()) {
-            setForceIdentifier(false);
+            setForceIdentifierGalaxy(false);
         }
                 
         if (listGalaxy.getSelectedIndex() == -1) {
@@ -410,18 +543,64 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_listGalaxyKeyReleased
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        forceCloseGalaxy();
+        forceCloseEditors();
     }//GEN-LAST:event_formWindowClosing
 
     private void listGalaxyKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listGalaxyKeyPressed
         if (evt.isShiftDown()) {
-            setForceIdentifier(true);
+            setForceIdentifierGalaxy(true);
         }
     }//GEN-LAST:event_listGalaxyKeyPressed
 
     private void listGalaxyFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_listGalaxyFocusLost
-        setForceIdentifier(false);
+        setForceIdentifierGalaxy(false);
     }//GEN-LAST:event_listGalaxyFocusLost
+
+    private void listZoneFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_listZoneFocusLost
+        setForceIdentifierZone(false);
+    }//GEN-LAST:event_listZoneFocusLost
+
+    private void listZoneMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listZoneMouseClicked
+        if (evt.getClickCount() > 1) {
+            openZone();
+        }
+    }//GEN-LAST:event_listZoneMouseClicked
+
+    private void listZoneKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listZoneKeyPressed
+        if (evt.isShiftDown()) {
+            setForceIdentifierZone(true);
+        }
+    }//GEN-LAST:event_listZoneKeyPressed
+
+    private void listZoneKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listZoneKeyReleased
+        if (!evt.isShiftDown()) {
+            setForceIdentifierZone(false);
+        }
+                
+        if (listZone.getSelectedIndex() == -1) {
+            return;
+        }
+        
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            openZone();
+        }
+    }//GEN-LAST:event_listZoneKeyReleased
+
+    private void listZoneValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listZoneValueChanged
+        btnOpenGalaxy.setEnabled(listZone.getSelectedIndex() >= 0);
+    }//GEN-LAST:event_listZoneValueChanged
+
+    private void tabListsStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_tabListsStateChanged
+        int tab = tabLists.getSelectedIndex();
+        if (tab == 0) {
+            btnOpenGalaxy.setEnabled(listGalaxy.getSelectedIndex() >= 0);
+            btnOpenGalaxy.setText("Open Galaxy");
+        }
+        else if (tab == 1) {
+            btnOpenGalaxy.setEnabled(listZone.getSelectedIndex() >= 0);
+            btnOpenGalaxy.setText("Open Zone");
+        }
+    }//GEN-LAST:event_tabListsStateChanged
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAbout;
@@ -435,7 +614,10 @@ public final class MainFrame extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator6;
     private javax.swing.JLabel lbStatusBar;
     private javax.swing.JList listGalaxy;
+    private javax.swing.JList listZone;
     private javax.swing.JScrollPane scrGalaxy;
+    private javax.swing.JScrollPane scrZone;
+    private javax.swing.JTabbedPane tabLists;
     private javax.swing.JToolBar toolbar;
     // End of variables declaration//GEN-END:variables
 }

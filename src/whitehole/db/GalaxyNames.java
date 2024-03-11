@@ -23,29 +23,36 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import whitehole.io.ExternalFilesystem;
 
-public final class GalaxyNames {
-    private GalaxyNames() {}
+public class GalaxyNames {
+    public GalaxyNames() {}
     
     private static JSONObject originalStageNames;
     private static JSONObject projectStageNames;
     
     public static void init() {
-        try(FileReader reader = new FileReader("data/galaxies.json", StandardCharsets.UTF_8)) {
+        init("data/galaxies.json");
+    }
+    
+    public static void init(String path) {
+        try(FileReader reader = new FileReader(path, StandardCharsets.UTF_8)) {
             originalStageNames = new JSONObject(new JSONTokener(reader));
             projectStageNames = null;
         }
         catch (IOException ex) {
-            System.out.println("FATAL! Could not load galaxies.json");
+            System.out.println("FATAL! Could not load " + path);
             System.out.println(ex);
             System.exit(1);
         }
     }
     
     public static boolean tryOverwriteWithProjectDatabase(ExternalFilesystem filesystem) {
-        if (filesystem.fileExists("/galaxies.json")) {
+        return tryOverwriteWithProjectDatabase(filesystem, "/galaxies.json");
+    }
+    public static boolean tryOverwriteWithProjectDatabase(ExternalFilesystem filesystem, String path) {
+        if (filesystem.fileExists(path)) {
             JSONObject overwrite;
             
-            try (FileReader reader = new FileReader(filesystem.getFileName("/galaxies.json"))) {
+            try (FileReader reader = new FileReader(filesystem.getFileName(path))) {
                 overwrite = new JSONObject(new JSONTokener(reader));
             }
             catch(IOException ex) {

@@ -129,7 +129,13 @@ public class PowerStarRenderer extends BmdRenderer
     
     private static int getPowerStarColor(AbstractObj obj) {
         int r = 0;
-        List<Bcsv.Entry> scenarios = obj.stage.galaxy.scenarioData;
+        List<Bcsv.Entry> scenarios;
+        try {
+            scenarios = obj.stage.galaxy.scenarioData;
+        }
+        catch (Exception ex) {
+            return 0;
+        }
         int ObjArg0 = obj.data.getInt("Obj_arg0", 0)-1;
         
         if (ObjArg0 < 0)

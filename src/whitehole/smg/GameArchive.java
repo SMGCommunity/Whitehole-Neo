@@ -38,6 +38,7 @@ public class GameArchive {
     private int gameType = 0;
     private boolean hasOverwriteObjectDatabase;
     private boolean hasOverwriteGalaxyNames;
+    private boolean hasOverwriteZoneNames;
     
     public GameArchive(FilesystemBase fs) {
         filesystem = fs;
@@ -167,5 +168,9 @@ public class GameArchive {
     
     public boolean hasOverwriteGalaxyNames() {
         return hasOverwriteGalaxyNames;
+    }
+    
+    public boolean hasOverwriteZoneNames() {
+        return hasOverwriteZoneNames;
     }
 }

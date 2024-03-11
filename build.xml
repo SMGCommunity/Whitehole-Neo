@@ -6,6 +6,7 @@
 		<copy file="Whitehole.bat" todir="${dist.dir}"/>
 		<copy file="data/hashlookup.txt" todir="${dist.dir}/data"/>
 		<copy file="data/galaxies.json" todir="${dist.dir}/data"/>
+                <copy file="data/zones.json" todir="${dist.dir}/data"/>
 		<copy file="data/modelsubstitutions.json" todir="${dist.dir}/data"/>
 		<copy file="data/shortcuts.json" todir="${dist.dir}/data"/>
 	</target>
