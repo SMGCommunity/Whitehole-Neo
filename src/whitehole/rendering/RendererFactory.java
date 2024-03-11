@@ -219,6 +219,10 @@ public final class RendererFactory {
             case "PowerStar":
             case "GrandStar":
                 return PowerStarRenderer.getAdditiveCacheKey(obj);
+            case "SuperSpinDriver":
+            case "SuperSpinDriverPink":
+            case "SuperSpinDriverGreen":
+                return SuperSpinDriverRenderer.getAdditiveCacheKey(obj);
         }
         
         return "";
@@ -259,6 +263,10 @@ public final class RendererFactory {
             case "PowerStar":
             case "GrandStar":
                 return new PowerStarRenderer(info, objModelName, obj);
+            case "SuperSpinDriver":
+            case "SuperSpinDriverPink":
+            case "SuperSpinDriverGreen":
+                return new SuperSpinDriverRenderer(info, objModelName, obj);
             /*case "clipareaboxbottom":
                 return new ClippingAreaRenderer(AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
             case "clipareaboxcenter":
