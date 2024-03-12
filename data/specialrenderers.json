@@ -1,0 +1,106 @@
+{
+  "SpecialRenderers": [
+    {
+      "ObjectName": "PowerStar",
+      "RendererType": "PowerStar",
+      "RendererParams": [
+        {
+          "DefaultFrame": -1,
+          "IsGrand": false
+        }
+      ]
+    },
+    {
+      "ObjectName": "GreenStar",
+      "RendererType": "PowerStar",
+      "RendererParams": [
+        {
+          "DefaultFrame": 2,
+          "IsGrand": false
+        }
+      ]
+    },
+    {
+      "ObjectName": "GrandStar",
+      "RendererType": "PowerStar",
+      "RendererParams": [
+        {
+          "DefaultFrame": -1,
+          "IsGrand": true
+        }
+      ]
+    },
+    {
+      "ObjectName": "SuperSpinDriver",
+      "RendererType": "SuperSpinDriver",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "Yellow",
+            "Frame": 0
+          },
+          "BTK": {
+            "Filename": "SuperSpinDriver",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "SuperSpinDriverGreen",
+      "RendererType": "SuperSpinDriver",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "Green",
+            "Frame": 1
+          },
+          "BTK": {
+            "Filename": "SuperSpinDriver",
+            "Frame": 1
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "SuperSpinDriverPink",
+      "RendererType": "SuperSpinDriver",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "Pink",
+            "Frame": 2
+          },
+          "BTK": {
+            "Filename": "SuperSpinDriver",
+            "Frame": 2
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "Kinopio",
+      "RendererType": "ColorTexChange",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "ObjArg1"
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "EarthenPipe",
+      "RendererType": "ColorTexChange",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "EarthenPipe",
+            "FrameSource": "ObjArg7"
+          }
+        }
+      ]
+    }
+  ]
+}
