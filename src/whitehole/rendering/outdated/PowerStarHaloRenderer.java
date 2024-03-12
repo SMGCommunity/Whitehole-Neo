@@ -24,7 +24,7 @@ public class PowerStarHaloRenderer extends GLRenderer {
     public PowerStarHaloRenderer(RenderInfo info) {
         renderHalo = new BmdRenderer(info, "PowerStarHalo");
         GL2 gl2 = info.drawable.getGL().getGL2();
-        renderHalo.generateShaders(gl2, 1, 200, 200, 70, 255);
+        //renderHalo.generateShaders(gl2, 1, 200, 200, 70, 255);
     }
     
     @Override

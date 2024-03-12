@@ -100,6 +100,10 @@ public class Btk {
         }
     }
     
+    public void close() throws IOException {
+        file.close();
+    }
+    
     public Animation getAnimByName(String name)
     {
         for (int i = 0; i < animData.size(); i++) {

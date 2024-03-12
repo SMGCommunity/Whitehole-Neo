@@ -218,7 +218,7 @@ public class BmdRenderer extends GLRenderer {
     }
     
     // Huge performance eater. rewrite will never happen :c
-    public void generateShaders(GL2 gl, int matid, int...customColors) throws GLException {
+    public void generateShaders(GL2 gl, int matid) throws GLException {
         if(model == null)
             return;
         
@@ -248,6 +248,40 @@ public class BmdRenderer extends GLRenderer {
             }
         }
         
+        if (colRegisterAnim != null)
+        {
+            int Frame = colRegisterAnimIndex;
+            if (Frame < 0)
+                Frame = 0;
+            if (Frame > colRegisterAnim.Duration)
+                Frame = colRegisterAnim.Duration;
+            
+            for(var x : colRegisterAnim.animData)
+            {
+                if (!x.MaterialName.equals(mat.name))
+                    continue;
+                
+                if (x.TargetValueID < 0 || x.TargetValueID > 3)
+                    continue; //Safeguard
+                
+                switch(x.Type)
+                {
+                    case REGISTER:
+                        mat.tevRegisterColors[x.TargetValueID].r = (int)x.Red.getValueAtFrame((short)Frame);
+                        mat.tevRegisterColors[x.TargetValueID].g = (int)x.Green.getValueAtFrame((short)Frame);
+                        mat.tevRegisterColors[x.TargetValueID].b = (int)x.Blue.getValueAtFrame((short)Frame);
+                        mat.tevRegisterColors[x.TargetValueID].a = (int)x.Alpha.getValueAtFrame((short)Frame);
+                        break;
+                    case CONSTANT:
+                        mat.constColors[x.TargetValueID].r = (int)x.Red.getValueAtFrame((short)Frame);
+                        mat.constColors[x.TargetValueID].g = (int)x.Green.getValueAtFrame((short)Frame);
+                        mat.constColors[x.TargetValueID].b = (int)x.Blue.getValueAtFrame((short)Frame);
+                        mat.constColors[x.TargetValueID].a = (int)x.Alpha.getValueAtFrame((short)Frame);
+                        break;
+                }
+            }
+        }
+        
         if(shaders == null)
             shaders = new Shader[1];
         shaders[matid] = new Shader();
@@ -255,7 +289,7 @@ public class BmdRenderer extends GLRenderer {
         int hash = shaderHash(matid);
         shaders[matid].cacheKey = hash;
         
-        if(ShaderCache.containsEntry(hash) && customColors.length == 0)
+        if(ShaderCache.containsEntry(hash))
         {
             ShaderCache.CacheEntry entry = ShaderCache.getEntry(hash);
             shaders[matid].vertexShader = entry.vertexID;
@@ -445,11 +479,11 @@ public class BmdRenderer extends GLRenderer {
 
         for(int i = 0; i < 4; i++)
         {
-            int _i =(i == 0) ? 3 : i - 1; // ???
+            int _i = (i == 0) ? 3 : i - 1; // ???
             frag.append(String.format(usa, "    vec4 %1$s = vec4(%2$f, %3$f, %4$f, %5$f);\n",
                 outputregs[i],
-               (float)(customColors.length>0 ? customColors[0] : mat.tevRegisterColors[_i].r) / 255f,(float)(customColors.length>1 ? customColors[1] : mat.tevRegisterColors[_i].g) / 255f,
-               (float)(customColors.length>2 ? customColors[2] : mat.tevRegisterColors[_i].b) / 255f,(float)(customColors.length>3 ? customColors[3] : mat.tevRegisterColors[_i].a) / 255f));
+               (float)(mat.tevRegisterColors[_i].r) / 255f,(float)(mat.tevRegisterColors[_i].g) / 255f,
+               (float)(mat.tevRegisterColors[_i].b) / 255f,(float)(mat.tevRegisterColors[_i].a) / 255f));
         }
 
         for(int i = 0; i < 4; i++)
@@ -645,6 +679,8 @@ public class BmdRenderer extends GLRenderer {
     protected Vec3f rotation = DEFAULT_ROTATION;
     protected Vec3f scale = DEFAULT_SCALE;
     
+    protected Brk colRegisterAnim = null;
+    protected int colRegisterAnimIndex = 0;
     protected Btk texMatrixAnim = null;
     protected int texMatrixAnimIndex = 0;
     protected Btp texPatternAnim = null;
@@ -817,6 +853,18 @@ public class BmdRenderer extends GLRenderer {
         }
     }
     
+    protected final Brk ctor_tryLoadBRK(String modelName, String animName, RarcFile archive) {
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".brk";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Brk(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+        
     protected final Btk ctor_tryLoadBTK(String modelName, String animName, RarcFile archive) {
         try
         {
@@ -921,6 +969,12 @@ public class BmdRenderer extends GLRenderer {
             if (texPatternAnim != null)
                 texPatternAnim.close();
             
+            if (texMatrixAnim != null)
+                texMatrixAnim.close();
+            
+            if (colRegisterAnim != null)
+                colRegisterAnim.close();
+            
             if (model != null)
                 model.close();
             
@@ -930,6 +984,8 @@ public class BmdRenderer extends GLRenderer {
             model = null;
             shapeVisibleAnim = null;
             texPatternAnim = null;
+            texMatrixAnim = null;
+            colRegisterAnim = null;
             archive = null;
         }
         catch(Exception ex)

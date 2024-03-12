@@ -64,7 +64,13 @@ public class SuperSpinDriverRenderer extends BmdRenderer {
         
         texPatternAnimIndex = getSuperSpinDriverColor(obj);
         
-        //TODO: Figure out a way to use the BRK files...
+        String name = obj.name.replace("SuperSpinDriver", "");
+        if (name.isBlank())
+            name = "Yellow";
+        
+        if (colRegisterAnim == null)
+            colRegisterAnim = ctor_tryLoadBRK(modelName, name, archive);
+        colRegisterAnimIndex = 0;
         
         ctor_uploadData(info);
     }
