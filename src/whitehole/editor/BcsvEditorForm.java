@@ -54,7 +54,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         
         try(FileReader reader = new FileReader("data/shortcuts.json", StandardCharsets.UTF_8)) {
             JSONObject customShortcutsList = new JSONObject(new JSONTokener(reader));
-            addNewCustomShortcuts(mnuOpen, customShortcutsList);
+            addNewCustomShortcuts(mnuShortcuts, customShortcutsList);
         }
         catch (IOException ex) {
             System.out.println("Failed to load shortcuts.json");
@@ -76,10 +76,10 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         
         try(FileReader reader = new FileReader("data/shortcuts.json", StandardCharsets.UTF_8)) {
             JSONObject customShortcutsList = new JSONObject(new JSONTokener(reader));
-            changeCustomShortcutVisibility(mnuOpen, customShortcutsList);
-            changeCustomShortcutPaths(mnuOpen, customShortcutsList);
-            changeCustomShortcutAttribute(mnuOpen, customShortcutsList, "Name");
-            changeCustomShortcutAttribute(mnuOpen, customShortcutsList, "Tooltip");
+            changeCustomShortcutVisibility(mnuShortcuts, customShortcutsList);
+            changeCustomShortcutPaths(mnuShortcuts, customShortcutsList);
+            changeCustomShortcutAttribute(mnuShortcuts, customShortcutsList, "Name");
+            changeCustomShortcutAttribute(mnuShortcuts, customShortcutsList, "Tooltip");
         }
         catch (IOException ex) {
             System.out.println("Failed to load shortcuts.json");
@@ -112,6 +112,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             String[] listArray = getList(listText);
             if (listArray != null) {
                 JComboBox<String> optionList = new JComboBox<>(listArray);
+                optionList.setEditable(true);
                 JPanel panel = new JPanel();
                 panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
                 JLabel textLabel = new JLabel(text);
@@ -645,7 +646,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         subOpen = new javax.swing.JMenuItem();
         subSave = new javax.swing.JMenuItem();
         subClose = new javax.swing.JMenuItem();
-        mnuOpen = new javax.swing.JMenu();
+        mnuShortcuts = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(String.format("%s -- BCSV Editor", Whitehole.NAME));
@@ -810,19 +811,19 @@ public class BcsvEditorForm extends javax.swing.JFrame {
 
         menubar.add(mnuFile);
 
-        mnuOpen.setBorder(null);
-        mnuOpen.setText("Shortcuts");
-        mnuOpen.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        mnuOpen.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        mnuOpen.setMaximumSize(new java.awt.Dimension(70, 32767));
-        mnuOpen.setMinimumSize(new java.awt.Dimension(56, 16));
-        mnuOpen.setPreferredSize(new java.awt.Dimension(70, 16));
-        mnuOpen.addActionListener(new java.awt.event.ActionListener() {
+        mnuShortcuts.setBorder(null);
+        mnuShortcuts.setText("Shortcuts");
+        mnuShortcuts.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        mnuShortcuts.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        mnuShortcuts.setMaximumSize(new java.awt.Dimension(70, 32767));
+        mnuShortcuts.setMinimumSize(new java.awt.Dimension(56, 16));
+        mnuShortcuts.setPreferredSize(new java.awt.Dimension(70, 16));
+        mnuShortcuts.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuOpenActionPerformed(evt);
+                mnuShortcutsActionPerformed(evt);
             }
         });
-        menubar.add(mnuOpen);
+        menubar.add(mnuShortcuts);
 
         setJMenuBar(menubar);
 
@@ -927,9 +928,9 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         dispose();
     }//GEN-LAST:event_subCloseActionPerformed
 
-    private void mnuOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuOpenActionPerformed
+    private void mnuShortcutsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuShortcutsActionPerformed
 
-    }//GEN-LAST:event_mnuOpenActionPerformed
+    }//GEN-LAST:event_mnuShortcutsActionPerformed
 
     private void tblBcsvMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblBcsvMouseClicked
         lblColAndRow.setText(getSelectedColRowFormatted());
@@ -962,7 +963,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private javax.swing.JLabel lblFile;
     private javax.swing.JMenuBar menubar;
     private javax.swing.JMenu mnuFile;
-    private javax.swing.JMenu mnuOpen;
+    private javax.swing.JMenu mnuShortcuts;
     private javax.swing.JToolBar.Separator spr2;
     private javax.swing.JToolBar.Separator spr3;
     private javax.swing.JToolBar.Separator spr5;
