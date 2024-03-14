@@ -17,9 +17,226 @@
 package whitehole.smg;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
+import whitehole.Whitehole;
+import whitehole.io.FileBase;
 import whitehole.io.RarcFile;
+import whitehole.math.Vec3f;
+import whitehole.smg.object.StartObj;
 
 public class StageHelper {
+    /*
+        Map
+    */
+    public static void createLayer(RarcFile arc, String layer, int gameType) throws IOException {
+        String[] placementFilesToCreate = {"StageObjInfo", "AreaObjInfo", "ObjInfo", "CameraCubeInfo", "PlanetObjInfo", "DemoObjInfo"};
+            
+        for (String placementFileToCreate : placementFilesToCreate) {
+            createMapJMapAndSave(arc, "Placement", layer, placementFileToCreate);
+        }
+        createMapJMapAndSave(arc, "MapParts", layer, "MapPartsInfo");
+        createMapJMapAndSave(arc, "Start", layer, "StartInfo");
+        createMapJMapAndSave(arc, "GeneralPos", layer, "GeneralPosInfo");
+        createMapJMapAndSave(arc, "Debug", layer, "DebugMoveInfo");
+        if (gameType == 1) {
+            createMapJMapAndSave(arc, "Placement", layer, "SoundInfo");
+            createMapJMapAndSave(arc, "ChildObj", layer, "ChildObjInfo");
+        }
+    }
+    
+    public static Bcsv createMapJMapAndSave(RarcFile arc, String folder, String layerKey, String fileToCreate) throws IOException {
+        try {
+            Bcsv jmap = StageHelper.getOrCreateJMapPlacementFile(arc, folder, layerKey, fileToCreate, Whitehole.getCurrentGameType());
+            jmap.save();
+            return jmap;
+        } catch (IOException ex) {
+            throw new IOException("Failed to create " + fileToCreate + " in ARC: " + ex);
+        }
+    }
+    
+    private static Bcsv createScenarioJMapAndSave(RarcFile arc, String galaxyName, String fileToCreate, ArrayList<String> zones) throws IOException {
+        try {
+            Bcsv jmap = StageHelper.getOrCreateScenarioFile(arc, galaxyName + "Scenario", fileToCreate, zones, Whitehole.getCurrentGameType());
+            jmap.save();
+            return jmap;
+        } catch (IOException ex) {
+            throw new IOException("Failed to create file in ARC: " + ex);
+        }
+    }
+    
+    public static void createZone(String newFileName, ArrayList<String> layers) throws IOException {
+        // initialize - thanks smg1...
+        RarcFile newArc;
+        String folderPath;
+        String mapFileName;
+        String rootName;
+        if (Whitehole.getCurrentGameType() == 2) {
+            folderPath = "/StageData/" + newFileName + "/";
+            mapFileName = newFileName + "Map.arc";
+            rootName = "Stage";
+        }
+        else {
+            folderPath = "/StageData/";
+            mapFileName = newFileName + ".arc";
+            rootName = "stage";
+        }
+        
+        // create new arc
+        try {
+            if (Whitehole.getCurrentGameFileSystem().fileExists(folderPath + mapFileName)) {
+                throw new IOException("Map ARC already exists!");
+            }
+            Whitehole.getCurrentGameFileSystem().createFile(folderPath, mapFileName);
+            FileBase file = Whitehole.getCurrentGameFileSystem().openFile(folderPath + mapFileName);
+            file.writeString("ASCII", "Not an ARC yet", 1);
+            newArc = new RarcFile(file, rootName);
+            newArc.createDirectory("/" + rootName, "jmp");
+            newArc.save();
+        } catch (IOException ex) {
+            throw new IOException("Failed to create ARC file: " + ex.toString());
+        }
+        
+        // create path file
+        createMapJMapAndSave(newArc, "Path", "", "CommonPathInfo");
+        
+        // save arc so it doesnt complain about missing CommonPathInfo
+        try {
+            newArc.save();
+        } catch (IOException ex) {
+            throw new IOException("Failed to save: " + ex);
+        }
+        
+        // create layered files
+        for (String layer : layers) {
+            createLayer(newArc, layer, Whitehole.getCurrentGameType());
+            
+            // add spawn point
+            if ("Common".equals(layer)) {
+                try {
+                    Bcsv startJMap = StageHelper.getOrCreateJMapPlacementFile(newArc, "Start", layer, "StartInfo", Whitehole.getCurrentGameType());
+                    StageArchive startArc = new StageArchive(null, newFileName);
+                    StartObj start = new StartObj(startArc, "Common", new Vec3f(0f, 0f, 0f));
+                    startJMap.entries.add(start.data);
+                    startJMap.save();
+                } catch (IOException ex) {
+                    throw new IOException("Failed to make Spawn Point: " + ex.toString());
+                }
+            }
+        }
+        
+        // save arc
+        try {
+            newArc.save();
+            newArc.close();
+        } catch (IOException ex) {
+            throw new IOException("Failed to save/close Map ARC: " + ex);
+        }
+    }
+    
+    public static void createGalaxy(String galaxyName, ArrayList<String> zonesInGalaxy, ArrayList<String> layers) throws IOException {
+        createZone(galaxyName, layers);
+        
+        // add zones to stageobjinfo common
+        String mapFile = "/StageData/" + galaxyName + "/" + galaxyName + "Map.arc";
+        if (Whitehole.getCurrentGameType() == 1)
+            mapFile = "/StageData/" + galaxyName + ".arc";
+        RarcFile mapArc = new RarcFile(Whitehole.getCurrentGameFileSystem().openFile(mapFile));
+        Bcsv stageObjInfo = getOrCreateJMapPlacementFile(mapArc, "Placement", "Common", "StageObjInfo", Whitehole.getCurrentGameType());
+        int l_id = 0;
+        for (String zone : zonesInGalaxy) {
+            if (!zone.equals(galaxyName)) {
+                Bcsv.Entry entry = new Bcsv.Entry();
+                entry.put("name", zone);
+                entry.put("l_id", l_id);
+                stageObjInfo.entries.add(entry);
+                l_id++;
+                stageObjInfo.save();
+            }
+            
+        }
+        try {
+            mapArc.save();
+            mapArc.close();
+        } catch (IOException ex) {
+            throw new IOException("Failed to save Map ARC: " + ex);
+        }
+        
+        RarcFile newArc;
+        String folderPath = "/StageData/" + galaxyName + "/";
+        String mapFileName = galaxyName + "Scenario.arc";
+        String rootName = galaxyName + "Scenario";
+        if (Whitehole.getCurrentGameType() != 2) 
+            rootName = rootName.toLowerCase();
+        
+        // create new arc
+        try {
+            if (Whitehole.getCurrentGameFileSystem().fileExists(folderPath + mapFileName)) {
+                throw new IOException("Scenario ARC already exists!");
+            }
+            Whitehole.getCurrentGameFileSystem().createFile(folderPath, mapFileName);
+            FileBase file = Whitehole.getCurrentGameFileSystem().openFile(folderPath + mapFileName);
+            file.writeString("ASCII", "Not an ARC yet", 1);
+            newArc = new RarcFile(file, rootName);
+            newArc.save();
+        } catch (IOException ex) {
+            throw new IOException("Failed to create ARC file: " + ex.toString());
+        }
+        
+        // create jmaps
+        Bcsv scenarioJMap = createScenarioJMapAndSave(newArc, galaxyName, "ScenarioData", zonesInGalaxy);
+        scenarioJMap.entries.add(getNewScenarioDataEntry(Whitehole.getCurrentGameType(), zonesInGalaxy, 1));
+        try {
+            scenarioJMap.save();
+        } catch (IOException ex) {
+            throw new IOException("Failed to save ScenarioData: " + ex);
+        }
+        
+        Bcsv zoneListJMap = createScenarioJMapAndSave(newArc, galaxyName, "ZoneList", zonesInGalaxy);
+        for (String zone : zonesInGalaxy) {
+            Bcsv.Entry zoneListEntry = new Bcsv.Entry();
+            zoneListEntry.put("ZoneName", zone);
+            zoneListJMap.entries.add(zoneListEntry);
+        }
+        try {
+            zoneListJMap.save();
+        } catch (IOException ex) {
+            throw new IOException("Failed to initialize ZoneList: " + ex);
+        }
+        
+        if (Whitehole.getCurrentGameType() == 2) {
+            createScenarioJMapAndSave(newArc, galaxyName, "GalaxyInfo", zonesInGalaxy);
+        }
+        
+        // save arc
+        try {
+            newArc.save();
+            newArc.close();
+        } catch (IOException ex) {
+            throw new IOException("Failed to save/close Scenario ARC: " + ex);
+        }
+    }   
+        
+    public static Bcsv.Entry getNewScenarioDataEntry(int game, ArrayList<String> zones, int scenarioNo) {
+        Bcsv.Entry scenarioDataEntry = new Bcsv.Entry();
+        scenarioDataEntry.put("ScenarioNo", scenarioNo);
+        scenarioDataEntry.put("PowerStarId", 1);
+        scenarioDataEntry.put("LuigiModeTimer", 0);
+        scenarioDataEntry.put("ScenarioName", "New Scenario");
+        scenarioDataEntry.put("AppearPowerStarObj", "");
+        scenarioDataEntry.put("PowerStarId", scenarioNo);
+        scenarioDataEntry.put("Comet", "");
+        if (game == 2) {
+            scenarioDataEntry.put("CometLimitTimer", 0);
+            scenarioDataEntry.put("PowerStarType", "Normal");
+        } else {
+            scenarioDataEntry.put("IsHidden", 0);
+        }
+        for (String zone : zones)
+            scenarioDataEntry.put(zone, (short)0);
+        return scenarioDataEntry;
+    }    
+    
     public static String layerKeyToLayer(String layerKey) {
         if (layerKey.equals("common")) {
             return "Common";
@@ -41,6 +258,8 @@ public class StageHelper {
         
         String folderPath = String.format("%s/%s", basePath, folder);
         String layerPath = String.format("%s/%s", folderPath, layer);
+        if (layer.isEmpty())
+            layerPath = folderPath;
         String filePath = String.format("%s/%s", layerPath, file);
         
         if (!archive.directoryExists(folderPath)) {
@@ -70,6 +289,7 @@ public class StageHelper {
             case "startinfo": populateJMapFieldsStartInfo(bcsv); break;
             case "generalposinfo": populateJMapFieldsGeneralPosInfo(bcsv, game); break;
             case "debugmoveinfo": populateJMapFieldsDebugMoveInfo(bcsv); break;
+            case "commonpathinfo": populateJMapFieldsCommonPathInfo(bcsv); break;
             case "childobjinfo": populateJMapFieldsChildObjInfo(bcsv); break;
             case "soundinfo": populateJMapFieldsSoundInfo(bcsv); break;
         }
@@ -437,6 +657,27 @@ public class StageHelper {
         bcsv.addField("scale_z", 2, -1, 0, 1.0f);
     }
     
+    private static void populateJMapFieldsCommonPathInfo(Bcsv bcsv) {
+        bcsv.fields.clear();
+        
+        bcsv.addField("name", 6, -1, 0, "");
+        bcsv.addField("type", 6, -1, 0, "Bezier");
+        bcsv.addField("closed", 6, -1, 0, "OPEN");
+        bcsv.addField("num_pnt", 0, -1, 0, 0);
+        bcsv.addField("l_id", 0, -1, 0, -1);
+        bcsv.addField("path_arg0", 0, -1, 0, -1);
+        bcsv.addField("path_arg1", 0, -1, 0, -1);
+        bcsv.addField("path_arg2", 0, -1, 0, -1);
+        bcsv.addField("path_arg3", 0, -1, 0, -1);
+        bcsv.addField("path_arg4", 0, -1, 0, -1);
+        bcsv.addField("path_arg5", 0, -1, 0, -1);
+        bcsv.addField("path_arg6", 0, -1, 0, -1);
+        bcsv.addField("path_arg7", 0, -1, 0, -1);
+        bcsv.addField("usage", 6, -1, 0, "General");
+        bcsv.addField("no", 4, -1, 0, 0);
+        bcsv.addField("Path_ID", 4, -1, 0, 0);
+    }
+    
     private static void populateJMapFieldsChildObjInfo(Bcsv bcsv) {
         bcsv.fields.clear();
         
@@ -500,5 +741,71 @@ public class StageHelper {
         bcsv.addField("scale_y", 2, -1, 0, 1.0f);
         bcsv.addField("scale_z", 2, -1, 0, 1.0f);
         bcsv.addField("CommonPath_ID", 4, 0xFFFF, 0, (short)-1);
+    }
+    
+    /*
+        Scenario
+    */
+    
+    public static Bcsv getOrCreateScenarioFile(RarcFile archive, String rootName, String file, ArrayList<String> zones, int game) throws IOException {
+        String basePath = "/" + rootName;
+        
+        if (game == 1) {
+            rootName = rootName.toLowerCase();
+            file = file.toLowerCase();
+            basePath = basePath.toLowerCase();
+        }
+        
+        String filePath = basePath + "/" + file + ".bcsv";
+        
+        if (!archive.fileExists(filePath)) {
+            archive.createFile(basePath, file + ".bcsv");
+        }
+        
+        Bcsv bcsv = new Bcsv(archive.openFile(filePath));
+        populateScenarioFields(bcsv, file.toLowerCase(), game, zones);
+        return bcsv;
+    }
+    
+    public static void populateScenarioFields(Bcsv bcsv, String type, int game, ArrayList<String> zones) {
+        switch(type) {
+            case "galaxyinfo": populateScenarioFieldsGalaxyInfo(bcsv); break;
+            case "scenariodata": populateScenarioFieldsScenarioData(bcsv, game, zones); break;
+            case "zonelist": populateScenarioFieldsZoneList(bcsv); break;
+        }
+    }
+    
+    private static void populateScenarioFieldsGalaxyInfo(Bcsv bcsv) {
+        bcsv.fields.clear();
+        
+        bcsv.addField("WorldNo", 0, -1, 0, -1);
+    }
+    
+    private static void populateScenarioFieldsScenarioData(Bcsv bcsv, int game, ArrayList<String> zones) {
+        bcsv.fields.clear();
+        
+        bcsv.addField("ScenarioNo", 0, -1, 0, -1);
+        bcsv.addField("ScenarioName", 6, -1, 0, "New Scenario");
+        bcsv.addField("PowerStarId", 0, -1, 0, -1);
+        bcsv.addField("AppearPowerStarObj", 6, -1, 0, "");
+        bcsv.addField("Comet", 6, -1, 0, "");
+        bcsv.addField("LuigiModeTimer", 0, -1, 0, 0);
+        
+        if (game == 2) {
+            bcsv.addField("PowerStarType", 6, -1, 0, "Normal");
+            bcsv.addField("CometLimitTimer", 0, -1, 0, 0);
+            
+        } else {
+            bcsv.addField("IsHidden", 0, -1, 0, 0);
+        }
+        
+        for (String zone : zones)
+            bcsv.addField(zone, 0, -1, 0, 0);
+    }
+    
+    private static void populateScenarioFieldsZoneList(Bcsv bcsv) {
+        bcsv.fields.clear();
+        
+        bcsv.addField("ZoneName", 6, -1, 0, "");
     }
 }

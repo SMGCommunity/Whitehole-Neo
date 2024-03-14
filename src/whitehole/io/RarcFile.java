@@ -19,6 +19,7 @@ package whitehole.io;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import whitehole.Settings;
 
 public class RarcFile implements FilesystemBase {
     private FileBase file;
@@ -129,7 +130,7 @@ public class RarcFile implements FilesystemBase {
         root.fullName = "/" + root.name;
         root.tempID = 0;
 
-        dirEntries.put("/", root);
+        dirEntries.put(pathToKey(root.fullName), root);
     }
     
     @Override
@@ -504,10 +505,16 @@ public class RarcFile implements FilesystemBase {
         
         // Parent folder does not exist?
         if (!dirEntries.containsKey(parentKey)) {
+            if (Settings.getDebugAdditionalLogs()) {
+                System.out.println("Can't create " + newfile + ": parent folder " + parentKey + " doesn't exist.");
+                System.out.println(dirEntries.keySet());
+            }
             return;
         }
         // File or folder at path already exists?
         if (fileEntries.containsKey(fileKey) || dirEntries.containsKey(fileKey)) {
+            if (Settings.getDebugAdditionalLogs())
+                System.out.println(fileKey + " already exists.");
             return;
         }
         

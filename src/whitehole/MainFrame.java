@@ -24,6 +24,7 @@ import whitehole.db.GalaxyNames;
 import whitehole.db.ObjectDB;
 import whitehole.db.ZoneNames;
 import whitehole.editor.BcsvEditorForm;
+import whitehole.editor.CreateGalaxyForm;
 import whitehole.editor.GalaxyEditorForm;
 import whitehole.editor.ObjectSelectForm;
 import whitehole.io.ExternalFilesystem;
@@ -98,6 +99,7 @@ public final class MainFrame extends javax.swing.JFrame {
     private void openGameDir(String gameDir) {
         btnOpenGalaxy.setEnabled(false);
         btnBcsvEditor.setEnabled(false);
+        btnCreateGalaxy.setEnabled(false);
         
         // Reload databases if previous selected game overwrote them
         if (Whitehole.GAME != null) {
@@ -157,6 +159,7 @@ public final class MainFrame extends javax.swing.JFrame {
         
         btnBcsvEditor.setEnabled(true);
         lbStatusBar.setText("Successfully opened the game directory!");
+        btnCreateGalaxy.setEnabled(true);
     }
     
     private void setForceIdentifierGalaxy(Boolean forceId) {
@@ -283,13 +286,14 @@ public final class MainFrame extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
 
         toolbar = new javax.swing.JToolBar();
         btnOpenGame = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         btnOpenGalaxy = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
+        btnCreateGalaxy = new javax.swing.JButton();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
         btnBcsvEditor = new javax.swing.JButton();
         jSeparator3 = new javax.swing.JToolBar.Separator();
         btnSettings = new javax.swing.JButton();
@@ -342,6 +346,18 @@ public final class MainFrame extends javax.swing.JFrame {
         });
         toolbar.add(btnOpenGalaxy);
         toolbar.add(jSeparator2);
+
+        btnCreateGalaxy.setText((tabLists.getSelectedIndex() == 0) ? "Create Galaxy" : "Create Zone");
+        btnCreateGalaxy.setFocusable(false);
+        btnCreateGalaxy.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnCreateGalaxy.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnCreateGalaxy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCreateGalaxyActionPerformed(evt);
+            }
+        });
+        toolbar.add(btnCreateGalaxy);
+        toolbar.add(jSeparator4);
 
         btnBcsvEditor.setText("BCSV Editor");
         btnBcsvEditor.setEnabled(false);
@@ -595,22 +611,31 @@ public final class MainFrame extends javax.swing.JFrame {
         if (tab == 0) {
             btnOpenGalaxy.setEnabled(listGalaxy.getSelectedIndex() >= 0);
             btnOpenGalaxy.setText("Open Galaxy");
+            btnCreateGalaxy.setText("Create Galaxy");
         }
         else if (tab == 1) {
             btnOpenGalaxy.setEnabled(listZone.getSelectedIndex() >= 0);
             btnOpenGalaxy.setText("Open Zone");
+            btnCreateGalaxy.setText("Create Zone");
         }
     }//GEN-LAST:event_tabListsStateChanged
+
+    private void btnCreateGalaxyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateGalaxyActionPerformed
+        CreateGalaxyForm createForm = new CreateGalaxyForm(tabLists.getSelectedIndex() == 0);
+        createForm.setVisible(true);
+    }//GEN-LAST:event_btnCreateGalaxyActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAbout;
     private javax.swing.JButton btnBcsvEditor;
+    private javax.swing.JButton btnCreateGalaxy;
     private javax.swing.JButton btnOpenGalaxy;
     private javax.swing.JButton btnOpenGame;
     private javax.swing.JButton btnSettings;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator6;
     private javax.swing.JLabel lbStatusBar;
     private javax.swing.JList listGalaxy;
