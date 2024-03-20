@@ -17,6 +17,9 @@
 package whitehole.smg;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import whitehole.Whitehole;
@@ -55,9 +58,9 @@ public class StageHelper {
         }
     }
     
-    private static Bcsv createScenarioJMapAndSave(RarcFile arc, String galaxyName, String fileToCreate, ArrayList<String> zones) throws IOException {
+    private static Bcsv createScenarioJMapAndSave(RarcFile arc, String galaxyName, String fileToCreate, ArrayList<String> zones, String originalName) throws IOException {
         try {
-            Bcsv jmap = StageHelper.getOrCreateScenarioFile(arc, galaxyName + "Scenario", fileToCreate, zones, Whitehole.getCurrentGameType());
+            Bcsv jmap = StageHelper.getOrCreateScenarioFile(arc, galaxyName + "Scenario", fileToCreate, zones, Whitehole.getCurrentGameType(), originalName);
             jmap.save();
             return jmap;
         } catch (IOException ex) {
@@ -65,8 +68,8 @@ public class StageHelper {
         }
     }
     
-    public static void createZone(String newFileName, ArrayList<String> layers) throws IOException {
-        // initialize - thanks smg1...
+    public static void createZone(String newFileName, ArrayList<String> layers, FileBase baseMap) throws IOException {
+        // initialize
         RarcFile newArc;
         String folderPath;
         String mapFileName;
@@ -82,23 +85,29 @@ public class StageHelper {
             rootName = "stage";
         }
         
-        // create new arc
+        // create new arc or copy arc from template
         try {
             if (Whitehole.getCurrentGameFileSystem().fileExists(folderPath + mapFileName)) {
                 throw new IOException("Map ARC already exists!");
             }
             Whitehole.getCurrentGameFileSystem().createFile(folderPath, mapFileName);
             FileBase file = Whitehole.getCurrentGameFileSystem().openFile(folderPath + mapFileName);
-            file.writeString("ASCII", "Not an ARC yet", 1);
-            newArc = new RarcFile(file, rootName);
-            newArc.createDirectory("/" + rootName, "jmp");
-            newArc.save();
+            if (baseMap == null) {
+                file.writeString("ASCII", "Not an ARC yet", 1);
+                newArc = new RarcFile(file, rootName);
+                newArc.createDirectory("/" + rootName, "jmp");
+                newArc.save();
+                // create path file
+                createMapJMapAndSave(newArc, "Path", "", "CommonPathInfo");
+            } else {
+                file.writeBytes(baseMap.getContents());
+                file.save();
+                baseMap.close();
+                newArc = new RarcFile(file);
+            }
         } catch (IOException ex) {
             throw new IOException("Failed to create ARC file: " + ex.toString());
         }
-        
-        // create path file
-        createMapJMapAndSave(newArc, "Path", "", "CommonPathInfo");
         
         // save arc so it doesnt complain about missing CommonPathInfo
         try {
@@ -134,8 +143,8 @@ public class StageHelper {
         }
     }
     
-    public static void createGalaxy(String galaxyName, ArrayList<String> zonesInGalaxy, ArrayList<String> layers) throws IOException {
-        createZone(galaxyName, layers);
+    public static void createGalaxy(String galaxyName, ArrayList<String> zonesInGalaxy, ArrayList<String> layers, FileBase baseMap, FileBase baseScenario, String originalName) throws IOException {
+        createZone(galaxyName, layers, baseMap);
         
         // add zones to stageobjinfo common
         String mapFile = "/StageData/" + galaxyName + "/" + galaxyName + "Map.arc";
@@ -176,24 +185,50 @@ public class StageHelper {
             }
             Whitehole.getCurrentGameFileSystem().createFile(folderPath, mapFileName);
             FileBase file = Whitehole.getCurrentGameFileSystem().openFile(folderPath + mapFileName);
-            file.writeString("ASCII", "Not an ARC yet", 1);
-            newArc = new RarcFile(file, rootName);
-            newArc.save();
+            if (baseScenario == null) {
+                file.writeString("ASCII", "Not an ARC yet", 1);
+                newArc = new RarcFile(file, rootName);
+                newArc.save();
+            } else {
+                file.writeBytes(baseScenario.getContents());
+                file.save();
+                baseMap.close();
+                newArc = new RarcFile(file);
+                newArc.renameRoot(rootName);
+                newArc.save();
+            }
         } catch (IOException ex) {
             throw new IOException("Failed to create ARC file: " + ex.toString());
         }
         
-        // create jmaps
-        Bcsv scenarioJMap = createScenarioJMapAndSave(newArc, galaxyName, "ScenarioData", zonesInGalaxy);
-        scenarioJMap.entries.add(getNewScenarioDataEntry(Whitehole.getCurrentGameType(), zonesInGalaxy, 1));
+        // ScenarioData
+        Bcsv scenarioJMap = createScenarioJMapAndSave(newArc, galaxyName, "ScenarioData", zonesInGalaxy, originalName);
+        if (baseScenario == null) {
+            scenarioJMap.entries.add(getNewScenarioDataEntry(Whitehole.getCurrentGameType(), zonesInGalaxy, 1));
+        } else {
+            if (!scenarioJMap.containsField(galaxyName))
+                scenarioJMap.addField(galaxyName, 0, -1, 0, 0);
+            if (!originalName.equals(galaxyName)) {
+                for (Bcsv.Entry entry : scenarioJMap.entries) {
+                    entry.put(galaxyName, entry.get(originalName));
+                }
+                scenarioJMap.removeField(originalName);
+            }
+            for (String zone : zonesInGalaxy) {
+                if (!zone.equals(galaxyName) && !scenarioJMap.containsField(zone))
+                    scenarioJMap.addField(zone, 0, -1, 0, 0);
+            }
+        }
         try {
             scenarioJMap.save();
         } catch (IOException ex) {
             throw new IOException("Failed to save ScenarioData: " + ex);
         }
         
-        Bcsv zoneListJMap = createScenarioJMapAndSave(newArc, galaxyName, "ZoneList", zonesInGalaxy);
+        // ZoneList
+        Bcsv zoneListJMap = createScenarioJMapAndSave(newArc, galaxyName, "ZoneList", zonesInGalaxy, originalName);
         for (String zone : zonesInGalaxy) {
+            zoneListJMap.entries.clear();
             Bcsv.Entry zoneListEntry = new Bcsv.Entry();
             zoneListEntry.put("ZoneName", zone);
             zoneListJMap.entries.add(zoneListEntry);
@@ -204,8 +239,9 @@ public class StageHelper {
             throw new IOException("Failed to initialize ZoneList: " + ex);
         }
         
+        // GalaxyInfo
         if (Whitehole.getCurrentGameType() == 2) {
-            createScenarioJMapAndSave(newArc, galaxyName, "GalaxyInfo", zonesInGalaxy);
+            createScenarioJMapAndSave(newArc, galaxyName, "GalaxyInfo", zonesInGalaxy, originalName);
         }
         
         // save arc
@@ -747,7 +783,7 @@ public class StageHelper {
         Scenario
     */
     
-    public static Bcsv getOrCreateScenarioFile(RarcFile archive, String rootName, String file, ArrayList<String> zones, int game) throws IOException {
+    public static Bcsv getOrCreateScenarioFile(RarcFile archive, String rootName, String file, ArrayList<String> zones, int game, String originalName) throws IOException {
         String basePath = "/" + rootName;
         
         if (game == 1) {
@@ -760,6 +796,9 @@ public class StageHelper {
         
         if (!archive.fileExists(filePath)) {
             archive.createFile(basePath, file + ".bcsv");
+        } else {
+            Bcsv bcsv = new Bcsv(archive.openFile(filePath));
+            return bcsv;
         }
         
         Bcsv bcsv = new Bcsv(archive.openFile(filePath));

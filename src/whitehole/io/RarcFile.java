@@ -61,7 +61,7 @@ public class RarcFile implements FilesystemBase {
         root.fullName = "/" + root.name;
         root.tempID = 0;
 
-        dirEntries.put("/", root);
+        dirEntries.put(root.name.toLowerCase(), root);
         for (int i = 0; i < numDirNodes; i++) {
             DirEntry parentdir = null;
             for (DirEntry de : dirEntries.values()) {
@@ -546,6 +546,37 @@ public class RarcFile implements FilesystemBase {
         
         parent.childrenFiles.remove(fileEntry);
         fileEntries.remove(file);
+    }
+    
+    public void renameRoot(String newName) {
+        String oldRootName = "";
+        LinkedHashMap<String, String> fileKeysToModify = new LinkedHashMap<>();
+        LinkedHashMap<String, String> dirKeysToModify = new LinkedHashMap<>();
+        
+        // rename file entries
+        for (FileEntry fileEntry : fileEntries.values()) {
+            oldRootName = fileEntry.fullName.substring(0, fileEntry.fullName.indexOf("/", 1)).replace("/", "");
+            String oldKey = pathToKey(fileEntry.fullName);
+            fileEntry.fullName = fileEntry.fullName.replaceFirst(oldRootName, newName);
+            fileKeysToModify.put(oldKey, pathToKey(fileEntry.fullName));
+        }
+        for (String oldKey : fileKeysToModify.keySet()) {
+            FileEntry delEntry = fileEntries.remove(oldKey);
+            fileEntries.put(fileKeysToModify.get(oldKey), delEntry);
+        }
+        
+        // rename dir entries
+        for (DirEntry dirEntry : dirEntries.values()) {
+            String oldKey = pathToKey(dirEntry.fullName);
+            if (dirEntry.name.equals(oldRootName))
+                dirEntry.name = newName;
+            dirEntry.fullName = dirEntry.fullName.replaceFirst(oldRootName, newName);
+            dirKeysToModify.put(oldKey, pathToKey(dirEntry.fullName));
+        }
+        for (String oldKey : dirKeysToModify.keySet()) {
+            DirEntry delEntry = dirEntries.remove(oldKey);
+            dirEntries.put(dirKeysToModify.get(oldKey), delEntry);
+        }
     }
     
     @Override

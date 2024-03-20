@@ -1,0 +1,9 @@
+{
+    "Name": "1 Star Galaxy",
+    "OriginalName": "FlipPanelExGalaxy",
+    "Game": 1,
+    "ForGalaxy": true,
+    "MapFile": "SMG1OneStarGalaxy.arc",
+    "ScenarioFile": "SMG1OneStarGalaxyScenario.arc",
+    "UsedLayers": ["Common"]
+}

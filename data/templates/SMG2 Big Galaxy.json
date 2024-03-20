@@ -1,0 +1,9 @@
+{
+    "Name": "Big Galaxy",
+    "OriginalName": "RedBlueExGalaxy",
+    "Game": 2,
+    "ForGalaxy": true,
+    "MapFile": "SMG2BigGalaxyMap.arc",
+    "ScenarioFile": "SMG2BigGalaxyScenario.arc",
+    "UsedLayers": ["Common", "LayerA", "LayerB", "LayerC"]
+}

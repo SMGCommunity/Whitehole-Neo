@@ -16,28 +16,25 @@
  */
 package whitehole.editor;
 
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
-import whitehole.MainFrame;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import whitehole.Whitehole;
+import whitehole.io.ExternalFilesystem;
 import whitehole.io.FileBase;
-import whitehole.io.RarcFile;
-import whitehole.math.Vec3f;
-import whitehole.smg.Bcsv;
-import whitehole.smg.Bcsv.Entry;
-import whitehole.smg.GalaxyArchive;
-import whitehole.smg.StageArchive;
 import whitehole.smg.StageHelper;
-import whitehole.smg.object.LevelObj;
-import whitehole.smg.object.StartObj;
 
 public class CreateGalaxyForm extends javax.swing.JFrame {
     private final boolean isGalaxyMode;
+    private final ArrayList<JSONObject> jsons = new ArrayList<>();
+    private final String STR_LAYERS = "ABCDEFGHIJKLMNOP";
+    
     /**
      * Creates new form CreateGalaxyForm
      * @param isGalaxy Whether it is creating a new galaxy or a new zone
@@ -45,49 +42,173 @@ public class CreateGalaxyForm extends javax.swing.JFrame {
     public CreateGalaxyForm(boolean isGalaxy) {
         isGalaxyMode = isGalaxy;
         initComponents();
+        if (isGalaxyMode) {
+            cbxTemplate.addItem("Bare Minimum Galaxy (No Cameras)");
+            
+        } else {
+            cbxTemplate.addItem("Bare Minimum Zone (No Cameras)");
+        }
+        jsons.add(new JSONObject());
+        
+        try {
+            ExternalFilesystem fs = new ExternalFilesystem("data");
+            for (String file : fs.getFiles("/templates")) {
+                if (file.endsWith(".json")) {
+                    try(FileReader reader = new FileReader("data/templates/" + file, StandardCharsets.UTF_8)) {
+                        JSONObject templateJSON = new JSONObject(new JSONTokener(reader));
+                        if (isApplicableTemplate(templateJSON)) {
+                            jsons.add(templateJSON);
+                            cbxTemplate.addItem(templateJSON.optString("Name", file));
+                        }
+                    }
+                    catch (IOException ex) {
+                        System.out.println("Failed to load " + file);
+                        System.out.println(ex);
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            System.out.println("Failed to load templates.");
+            System.out.println(ex);
+        }
+        
     }
     
+    /**
+     * Checks whether the passed template is applicable given the current
+     * game type and whether the form is in galaxy mode.
+     * @param templateJSON
+     * @return Whether the template is applicable.
+     */
+    private boolean isApplicableTemplate(JSONObject templateJSON) {
+        if (templateJSON.optInt("Game", 0) != Whitehole.getCurrentGameType())
+            return false;
+        else 
+            return templateJSON.optBoolean("ForGalaxy", true) == isGalaxyMode;
+    }
+    /**
+     * Shows an error message relating to the creation of the map file.
+     * @param error 
+     */
     private void showMapError(String error) {
         JOptionPane.showMessageDialog(rootPane, "Failed to create map file.\n" + error, Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
     }
     
+    /**
+     * Shows an error message relating to the creation of the scenario file.
+     * @param error 
+     */
     private void showScenarioError(String error) {
         JOptionPane.showMessageDialog(rootPane, "Failed to create scenario file.\n" + error, Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
     }
     
-    private ArrayList<String> getLayers() {
+    /**
+     * @return An array of the layer checkboxes.
+     */
+    private JCheckBox[] getChkLayers() {
         JCheckBox[] layers = {
             chkLayerA, chkLayerB, chkLayerC, chkLayerD,
             chkLayerE, chkLayerF, chkLayerG, chkLayerH, 
             chkLayerI, chkLayerJ, chkLayerK, chkLayerL, 
             chkLayerM, chkLayerN, chkLayerO, chkLayerP
         };
-        String layerStr = "ABCDEFGHIJKLMNOP";
-        
+        return layers;
+    }
+    
+    private ArrayList<String> getUsedLayers() {
+        JCheckBox[] chkLayers = getChkLayers();
+        JSONObject galaxyJSON = jsons.get(cbxTemplate.getSelectedIndex());
         ArrayList<String> layersToAdd = new ArrayList<>();
-        layersToAdd.add("Common");
+        JSONArray usedLayers = galaxyJSON.optJSONArray("UsedLayers");
+        if (!isLayerUsed(usedLayers, "Common"))
+            layersToAdd.add("Common");
         int layerNum = 0;
-        for (JCheckBox layer : layers) {
-            if (layer.isSelected())
-                layersToAdd.add("Layer" + layerStr.charAt(layerNum));
+        for (JCheckBox chkLayer : chkLayers) {
+            if (chkLayer.isSelected() && !isLayerUsed(usedLayers, "Layer" + STR_LAYERS.charAt(layerNum)))
+                layersToAdd.add("Layer" + STR_LAYERS.charAt(layerNum));
             layerNum++;
         }
         return layersToAdd;
     }
     
-    private void createZone(String newFileName) {
+    /**
+     * Disables, checks, and sets the tooltip of the checkboxes
+     * of used layers.
+     */
+    private void disableUsedLayers() {
+        if (jsons.isEmpty())
+            return;
+        int layerNum = 0;
+        JSONObject galaxyJSON = jsons.get(cbxTemplate.getSelectedIndex());
+        JSONArray usedLayers = galaxyJSON.optJSONArray("UsedLayers");
+        for (JCheckBox chkLayer : getChkLayers()) {
+            if (isLayerUsed(usedLayers, "Layer" + STR_LAYERS.charAt(layerNum))) {
+                chkLayer.setEnabled(false);
+                chkLayer.setSelected(true);
+                chkLayer.setToolTipText("This layer is used by the selected template.");
+            } else {
+                chkLayer.setEnabled(true);
+                chkLayer.setSelected(false);
+                chkLayer.setToolTipText("");
+            }
+            layerNum++;
+        }
+    }
+    
+    /**
+     * Checks if the passed layer string is used in the JSONArray.
+     * @param usedLayers
+     * @param layer
+     * @return Whether the layer is in the array.
+     */
+    private boolean isLayerUsed(JSONArray usedLayers, String layer) {
+        if (usedLayers == null)
+            return false;
+        return usedLayers.toString().contains(layer);
+    }
+    
+    /**
+     * Creates a zone.
+     */
+    private void createZone() {
+        String zoneName = txtGalaxyName.getText();
+        JSONObject galaxyJSON = jsons.get(cbxTemplate.getSelectedIndex());
         try {
-            StageHelper.createZone(newFileName, getLayers());
+            ExternalFilesystem fs = new ExternalFilesystem("data");
+            FileBase mapFile = null;
+            String map = galaxyJSON.optString("MapFile", null);
+            if (map != null) {
+                mapFile = fs.openFile("/templates/" + map);
+            }
+            StageHelper.createZone(zoneName, getUsedLayers(), mapFile);
+            JOptionPane.showMessageDialog(rootPane, "Zone created successfully.", Whitehole.NAME, JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ex) {
             showMapError(ex.toString());
         }
     }
     
-    private void createGalaxy(String galaxyName) {
+    /**
+     * Creates a galaxy.
+     */
+    private void createGalaxy() {
+        String galaxyName = txtGalaxyName.getText();
+        JSONObject galaxyJSON = jsons.get(cbxTemplate.getSelectedIndex());
         ArrayList<String> zones = new ArrayList<>();
         zones.add(galaxyName);
         try {
-            StageHelper.createGalaxy(galaxyName, zones, getLayers());
+            ExternalFilesystem fs = new ExternalFilesystem("data");
+            FileBase mapFile = null;
+            FileBase scenarioFile = null;
+            String map = galaxyJSON.optString("MapFile", null);
+            if (map != null) {
+                mapFile = fs.openFile("/templates/" + map);
+            }
+            String scenario = galaxyJSON.optString("ScenarioFile", null);
+            if (scenario != null) {
+                scenarioFile = fs.openFile("/templates/" + scenario);
+            }
+            StageHelper.createGalaxy(galaxyName, zones, getUsedLayers(), mapFile, scenarioFile, galaxyJSON.optString("OriginalName", galaxyName));
+            JOptionPane.showMessageDialog(rootPane, "Galaxy created successfully.", Whitehole.NAME, JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ex) {
             showScenarioError(ex.toString());
         }
@@ -106,6 +227,8 @@ public class CreateGalaxyForm extends javax.swing.JFrame {
 
         lblGalaxyName = new javax.swing.JLabel();
         txtGalaxyName = new javax.swing.JTextField();
+        lblTemplate = new javax.swing.JLabel();
+        cbxTemplate = new javax.swing.JComboBox<>();
         lblLayers = new javax.swing.JLabel();
         pnlLayers = new javax.swing.JPanel();
         chkLayerA = new javax.swing.JCheckBox();
@@ -133,11 +256,18 @@ public class CreateGalaxyForm extends javax.swing.JFrame {
 
         txtGalaxyName.setText(isGalaxyMode ? "NewGalaxy" : "NewZone");
 
+        lblTemplate.setText("Template to Use");
+
+        cbxTemplate.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cbxTemplateItemStateChanged(evt);
+            }
+        });
+
         lblLayers.setText("Layers to Create");
 
         pnlLayers.setLayout(new java.awt.GridBagLayout());
 
-        chkLayerA.setSelected(true);
         chkLayerA.setText("Layer A");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -175,11 +305,6 @@ public class CreateGalaxyForm extends javax.swing.JFrame {
         pnlLayers.add(chkLayerD, gridBagConstraints);
 
         chkLayerE.setText("Layer E");
-        chkLayerE.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkLayerEActionPerformed(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -299,21 +424,24 @@ public class CreateGalaxyForm extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(37, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblGalaxyName)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(txtGalaxyName, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblLayers, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(pnlLayers, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE))
-                        .addContainerGap(39, Short.MAX_VALUE))))
-            .addGroup(layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnCreateGalaxy)
                 .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap(37, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblLayers)
+                            .addComponent(lblGalaxyName))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(cbxTemplate, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(txtGalaxyName, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblTemplate, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(pnlLayers, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE))
+                        .addContainerGap(39, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -322,11 +450,15 @@ public class CreateGalaxyForm extends javax.swing.JFrame {
                 .addComponent(lblGalaxyName)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtGalaxyName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
+                .addComponent(lblTemplate)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cbxTemplate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
                 .addComponent(lblLayers)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnlLayers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
                 .addComponent(btnCreateGalaxy)
                 .addGap(12, 12, 12))
         );
@@ -335,19 +467,20 @@ public class CreateGalaxyForm extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void chkLayerEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkLayerEActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_chkLayerEActionPerformed
-
     private void btnCreateGalaxyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateGalaxyActionPerformed
         if (isGalaxyMode)
-            createGalaxy(txtGalaxyName.getText());
+            createGalaxy();
         else
-            createZone(txtGalaxyName.getText());
+            createZone();
     }//GEN-LAST:event_btnCreateGalaxyActionPerformed
+
+    private void cbxTemplateItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbxTemplateItemStateChanged
+        disableUsedLayers();
+    }//GEN-LAST:event_cbxTemplateItemStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCreateGalaxy;
+    private javax.swing.JComboBox<String> cbxTemplate;
     private javax.swing.JCheckBox chkLayerA;
     private javax.swing.JCheckBox chkLayerB;
     private javax.swing.JCheckBox chkLayerC;
@@ -366,6 +499,7 @@ public class CreateGalaxyForm extends javax.swing.JFrame {
     private javax.swing.JCheckBox chkLayerP;
     private javax.swing.JLabel lblGalaxyName;
     private javax.swing.JLabel lblLayers;
+    private javax.swing.JLabel lblTemplate;
     private javax.swing.JPanel pnlLayers;
     private javax.swing.JTextField txtGalaxyName;
     // End of variables declaration//GEN-END:variables

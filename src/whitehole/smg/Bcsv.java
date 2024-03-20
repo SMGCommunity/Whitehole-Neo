@@ -298,6 +298,14 @@ public class Bcsv {
         removeField(Bcsv.calcJGadgetHash(name));
     }
     
+    public boolean containsField(String name) {
+        for (Field field : fields.values()) {
+            if (field.name.equals(name))
+                return true;
+        }
+        return false;
+    }
+       
     // -------------------------------------------------------------------------------------------------------------------------
 
     public static class Field {

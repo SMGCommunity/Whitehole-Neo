@@ -26,27 +26,31 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="32767" attributes="0"/>
+              <Component id="btnCreateGalaxy" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+          </Group>
           <Group type="102" attributes="0">
               <EmptySpace pref="37" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <Component id="lblGalaxyName" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="lblLayers" min="-2" max="-2" attributes="0"/>
+                          <Component id="lblGalaxyName" min="-2" max="-2" attributes="0"/>
+                      </Group>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
-                  <Group type="102" alignment="0" attributes="0">
+                  <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                          <Component id="cbxTemplate" alignment="0" max="32767" attributes="0"/>
                           <Component id="txtGalaxyName" alignment="0" max="32767" attributes="0"/>
-                          <Component id="lblLayers" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="lblTemplate" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="pnlLayers" alignment="0" pref="371" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace pref="39" max="32767" attributes="0"/>
                   </Group>
               </Group>
-          </Group>
-          <Group type="102" alignment="0" attributes="0">
-              <EmptySpace max="32767" attributes="0"/>
-              <Component id="btnCreateGalaxy" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -57,11 +61,15 @@
               <Component id="lblGalaxyName" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="txtGalaxyName" min="-2" max="-2" attributes="0"/>
-              <EmptySpace type="unrelated" max="32767" attributes="0"/>
+              <EmptySpace pref="33" max="32767" attributes="0"/>
+              <Component id="lblTemplate" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="cbxTemplate" min="-2" max="-2" attributes="0"/>
+              <EmptySpace pref="33" max="32767" attributes="0"/>
               <Component id="lblLayers" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="pnlLayers" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace pref="33" max="32767" attributes="0"/>
               <Component id="btnCreateGalaxy" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
           </Group>
@@ -83,6 +91,24 @@
         </Property>
       </Properties>
     </Component>
+    <Component class="javax.swing.JLabel" name="lblTemplate">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Template to Use"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JComboBox" name="cbxTemplate">
+      <Properties>
+        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+          <StringArray count="0"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="cbxTemplateItemStateChanged"/>
+      </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+      </AuxValues>
+    </Component>
     <Component class="javax.swing.JLabel" name="lblLayers">
       <Properties>
         <Property name="text" type="java.lang.String" value="Layers to Create"/>
@@ -94,7 +120,6 @@
       <SubComponents>
         <Component class="javax.swing.JCheckBox" name="chkLayerA">
           <Properties>
-            <Property name="selected" type="boolean" value="true"/>
             <Property name="text" type="java.lang.String" value="Layer A"/>
           </Properties>
           <Constraints>
@@ -137,9 +162,6 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Layer E"/>
           </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkLayerEActionPerformed"/>
-          </Events>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
               <GridBagConstraints gridX="0" gridY="1" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="0" anchor="21" weightX="1.0" weightY="1.0"/>
