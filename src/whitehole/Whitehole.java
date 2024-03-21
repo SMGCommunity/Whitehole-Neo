@@ -28,11 +28,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import javax.swing.*;
-import whitehole.db.FieldHashes;
-import whitehole.db.GalaxyNames;
-import whitehole.db.ModelSubstitutions;
-import whitehole.db.ObjectDB;
-import whitehole.db.ZoneNames;
+import whitehole.db.*;
 import whitehole.io.FilesystemBase;
 import whitehole.smg.GameArchive;
 
@@ -44,6 +40,10 @@ public class Whitehole {
     private static MainFrame MAIN_FRAME;
     private static FlatDarkLaf DARK_THEME;
     private static FlatLightLaf LIGHT_THEME;
+    
+    public static final GalaxyNames GalaxyNames = new GalaxyNames();
+    public static final ZoneNames ZoneNames = new ZoneNames();
+    public static final SpecialRenderers SpecialRenderers = new SpecialRenderers();
     
     public static void main(String[] args) throws IOException {
         decideIconSize();
@@ -72,10 +72,11 @@ public class Whitehole {
         
         // Initialize data
         FieldHashes.init();
-        GalaxyNames.init();
-        ZoneNames.init();
+        GalaxyNames.initBaseGame();
+        ZoneNames.initBaseGame();
         ObjectDB.init(true);
         ModelSubstitutions.init();
+        SpecialRenderers.initBaseGame(); //Must come after the Object Database and ModelSubstitutions
         
         MAIN_FRAME = new MainFrame(args);
         MAIN_FRAME.setVisible(true);

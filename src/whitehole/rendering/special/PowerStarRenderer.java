@@ -32,10 +32,11 @@ import whitehole.smg.object.AbstractObj;
 public class PowerStarRenderer extends BmdRenderer
 {
     private RarcFile grandArchive;
-    public PowerStarRenderer(RenderInfo info, String modelName, AbstractObj obj) throws GLException
-    {        
+    public PowerStarRenderer(RenderInfo info, String modelName, AbstractObj obj, Integer defaultColorFrame, Boolean isGrand) throws GLException
+    {
+        if (isGrand == null)
+            isGrand = false;
         // All calculations done in Ctor
-        boolean isGrand = obj.name.equals("GrandStar");
         try
         {
             archive = ctor_loadArchive(modelName);
@@ -79,15 +80,21 @@ public class PowerStarRenderer extends BmdRenderer
         if (!isGrand && shapeVisibleAnim == null)
             shapeVisibleAnim = ctor_tryLoadBVA(modelName, "PowerStarColor", archive);
         
+        RarcFile animSourceFile = grandArchive != null ? grandArchive : archive;
+        
         if (texPatternAnim == null)
-            texPatternAnim = ctor_tryLoadBTP(modelName, "PowerStarColor", archive);
+            texPatternAnim = ctor_tryLoadBTP(modelName, "PowerStarColor", animSourceFile);
         
         if (texMatrixAnim == null)
-            texMatrixAnim = ctor_tryLoadBTK(modelName, "PowerStarColor", archive);
+            texMatrixAnim = ctor_tryLoadBTK(modelName, "PowerStarColor", animSourceFile);
+        
+        if (colRegisterAnim == null)
+            colRegisterAnim = ctor_tryLoadBRK(modelName, "PowerStarColor", animSourceFile);
         
         // Decide PowerStarColor
-        texPatternAnimIndex = getPowerStarColor(obj);
+        texPatternAnimIndex = getPowerStarColor(obj, defaultColorFrame);
         texMatrixAnimIndex = texPatternAnimIndex;
+        colRegisterAnimIndex = texPatternAnimIndex;
         
         model.setMaterialHidden("GrandStarBronze", true);
         model.setMaterialHidden("GrandStarEmpty", true);
@@ -127,8 +134,10 @@ public class PowerStarRenderer extends BmdRenderer
     @Override
     public boolean boundToObjArg(int arg) { return arg == 0; }
     
-    private static int getPowerStarColor(AbstractObj obj) {
+    private static int getPowerStarColor(AbstractObj obj, Integer defaultColorFrame) {
         int r = 0;
+        if (defaultColorFrame != null)
+            r = defaultColorFrame;
         List<Bcsv.Entry> scenarios;
         try {
             scenarios = obj.stage.galaxy.scenarioData;
@@ -145,15 +154,12 @@ public class PowerStarRenderer extends BmdRenderer
         
         Bcsv.Entry selectedScenario = scenarios.get(ObjArg0);
         
-        if (obj.name.equals("GreenStar"))
-            r = 2;
-        
         if (selectedScenario.containsKey("PowerStarColor"))
             r = selectedScenario.getInt("PowerStarColor");
         return r;
     }
     
-    public static String getAdditiveCacheKey(AbstractObj obj) {
-        return "_"+getPowerStarColor(obj);
+    public static String getAdditiveCacheKey(AbstractObj obj, Integer defaultColorFrame) {
+        return "_"+getPowerStarColor(obj, defaultColorFrame);
     }
 }

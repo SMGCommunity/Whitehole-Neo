@@ -37,7 +37,6 @@ import javax.swing.event.*;
 import javax.swing.tree.*;
 import whitehole.Settings;
 import whitehole.Whitehole;
-import whitehole.db.GalaxyNames;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderMode;
 import whitehole.rendering.RendererCache;
@@ -232,10 +231,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void initGUI() {
         if (isGalaxyMode) {
-            setTitle(GalaxyNames.getSimplifiedStageName(galaxyName) + " -- " + Whitehole.NAME);
+            setTitle(Whitehole.GalaxyNames.getSimplifiedStageName(galaxyName) + " -- " + Whitehole.NAME);
         }
         else {
-            setTitle(galaxyName + " -- " + Whitehole.NAME);
+            setTitle(Whitehole.ZoneNames.getSimplifiedZoneName(galaxyName) + " -- " + Whitehole.NAME);
         }
         
         initAddObjectPopup();

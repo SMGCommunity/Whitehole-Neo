@@ -16,17 +16,22 @@
  */
 package whitehole.db;
 
-import static whitehole.db.GalaxyNames.tryOverwriteWithProjectDatabase;
-import whitehole.io.ExternalFilesystem;
+import org.json.JSONObject;
+import whitehole.Whitehole;
 
-public final class ZoneNames extends GalaxyNames {
-    private ZoneNames() {}
-    
-    public static void init() {
-        init("data/zones.json");
+public final class ZoneNames extends GameAndProjectDataHolder {
+    public ZoneNames()
+    {
+        super("data/zones.json", "/zones.json", true);
     }
     
-    public static boolean tryOverwriteWithProjectDatabase(ExternalFilesystem filesystem) {
-        return tryOverwriteWithProjectDatabase(filesystem, "/zones.json");
+    public String getSimplifiedZoneName(String stage) {
+        JSONObject dbSrc = projectData != null ? projectData : baseGameData;
+        String x = dbSrc.optString(stage, null);
+        if (x == null && Whitehole.GalaxyNames != null) //Second null check just in case...
+            x = Whitehole.GalaxyNames.getSimplifiedStageName(stage, false);
+        if (x == null)
+            x = String.format("\"%s\"", stage);
+        return x;
     }
 }

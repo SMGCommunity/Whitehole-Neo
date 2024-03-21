@@ -16,63 +16,19 @@
  */
 package whitehole.db;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import org.json.JSONObject;
-import org.json.JSONTokener;
-import whitehole.io.ExternalFilesystem;
 
-public class GalaxyNames {
-    public GalaxyNames() {}
-    
-    private static JSONObject originalStageNames;
-    private static JSONObject projectStageNames;
-    
-    public static void init() {
-        init("data/galaxies.json");
+public final class GalaxyNames extends GameAndProjectDataHolder {
+    public GalaxyNames()
+    {
+        super("data/galaxies.json", "/galaxies.json", true);
     }
-    
-    public static void init(String path) {
-        try(FileReader reader = new FileReader(path, StandardCharsets.UTF_8)) {
-            originalStageNames = new JSONObject(new JSONTokener(reader));
-            projectStageNames = null;
-        }
-        catch (IOException ex) {
-            System.out.println("FATAL! Could not load " + path);
-            System.out.println(ex);
-            System.exit(1);
-        }
+    public String getSimplifiedStageName(String stage)
+    {
+        return getSimplifiedStageName(stage, true);
     }
-    
-    public static boolean tryOverwriteWithProjectDatabase(ExternalFilesystem filesystem) {
-        return tryOverwriteWithProjectDatabase(filesystem, "/galaxies.json");
-    }
-    public static boolean tryOverwriteWithProjectDatabase(ExternalFilesystem filesystem, String path) {
-        if (filesystem.fileExists(path)) {
-            JSONObject overwrite;
-            
-            try (FileReader reader = new FileReader(filesystem.getFileName(path))) {
-                overwrite = new JSONObject(new JSONTokener(reader));
-            }
-            catch(IOException ex) {
-                System.err.println(ex);
-                return false;
-            }
-            
-            projectStageNames = overwrite;
-            return true;
-        }
-        
-        return false;
-    }
-    
-    public static void clearProjectDatabase() {
-        projectStageNames = null;
-    }
-    
-    public static String getSimplifiedStageName(String stage) {
-        JSONObject dbSrc = projectStageNames != null ? projectStageNames : originalStageNames;
-        return dbSrc.optString(stage, String.format("\"%s\"", stage));
+    public String getSimplifiedStageName(String stage, Boolean allowDefault) {
+        JSONObject dbSrc = projectData != null ? projectData : baseGameData;
+        return dbSrc.optString(stage, allowDefault ? String.format("\"%s\"", stage) : null);
     }
 }

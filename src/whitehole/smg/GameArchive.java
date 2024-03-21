@@ -19,6 +19,7 @@ package whitehole.smg;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import whitehole.Whitehole;
 import whitehole.db.FieldHashes;
 import whitehole.db.GalaxyNames;
 import whitehole.db.ObjectDB;
@@ -97,7 +98,7 @@ public class GameArchive {
         // Try to load project's overwrite databases
         if (filesystem instanceof ExternalFilesystem) {
             hasOverwriteObjectDatabase = ObjectDB.tryOverwriteWithProjectDatabase((ExternalFilesystem)filesystem);
-            hasOverwriteGalaxyNames = GalaxyNames.tryOverwriteWithProjectDatabase((ExternalFilesystem)filesystem);
+            hasOverwriteGalaxyNames = Whitehole.GalaxyNames.initProject((ExternalFilesystem)filesystem);
         }
     }
     

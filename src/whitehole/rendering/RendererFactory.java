@@ -214,15 +214,9 @@ public final class RendererFactory {
     
     public static String getAdditiveCacheKey(String objModelName, AbstractObj obj)
     {
-        switch(objModelName)
+        if (Whitehole.SpecialRenderers != null)
         {
-            case "PowerStar":
-            case "GrandStar":
-                return PowerStarRenderer.getAdditiveCacheKey(obj);
-            case "SuperSpinDriver":
-            case "SuperSpinDriverPink":
-            case "SuperSpinDriverGreen":
-                return SuperSpinDriverRenderer.getAdditiveCacheKey(obj);
+            return Whitehole.SpecialRenderers.tryGetAdditiveCacheKey(objModelName, obj);
         }
         
         return "";
@@ -258,27 +252,11 @@ public final class RendererFactory {
         if (renderer != null)
             return renderer;
         
-        switch(objModelName) {
-            //TEST
-            case "PowerStar":
-            case "GrandStar":
-                return new PowerStarRenderer(info, objModelName, obj);
-            case "SuperSpinDriver":
-            case "SuperSpinDriverPink":
-            case "SuperSpinDriverGreen":
-                return new SuperSpinDriverRenderer(info, objModelName, obj);
-            /*case "clipareaboxbottom":
-                return new ClippingAreaRenderer(AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
-            case "clipareaboxcenter":
-                return new ClippingAreaRenderer(AreaShapeRenderer.Shape.CENTER_ORIGIN_BOX);
-            case "clipareasphere":
-                return new ClippingAreaRenderer(AreaShapeRenderer.Shape.SPHERE);
-            case "clipareacylinder":
-                return new ClippingAreaRenderer(AreaShapeRenderer.Shape.CYLINDER);
-            case "invisiblewall10x10":
-                return new InvisibleWallRenderer(1.0f, 1.0f);
-            case "invisiblewall10x20":
-                return new InvisibleWallRenderer(2.0f, 1.0f);*/
+        if (Whitehole.SpecialRenderers != null)
+        {
+            renderer =  Whitehole.SpecialRenderers.tryGetSpecialRenderer(info, objModelName, obj);
+            if (renderer != null)
+                return renderer;
         }
         
         // Try to create a sole model

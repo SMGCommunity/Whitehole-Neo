@@ -5,7 +5,7 @@
       "RendererType": "PowerStar",
       "RendererParams": [
         {
-          "DefaultFrame": -1,
+          "DefaultFrame": 0,
           "IsGrand": false
         }
       ]
@@ -25,7 +25,7 @@
       "RendererType": "PowerStar",
       "RendererParams": [
         {
-          "DefaultFrame": -1,
+          "DefaultFrame": 0,
           "IsGrand": true
         }
       ]
@@ -80,7 +80,7 @@
     },
     {
       "ObjectName": "Kinopio",
-      "RendererType": "ColorTexChange",
+      "RendererType": "BasicAnim",
       "RendererParams": [
         {
           "BRK": {
@@ -92,7 +92,7 @@
     },
     {
       "ObjectName": "EarthenPipe",
-      "RendererType": "ColorTexChange",
+      "RendererType": "BasicAnim",
       "RendererParams": [
         {
           "BRK": {

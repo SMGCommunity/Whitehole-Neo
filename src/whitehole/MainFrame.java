@@ -20,9 +20,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
-import whitehole.db.GalaxyNames;
 import whitehole.db.ObjectDB;
-import whitehole.db.ZoneNames;
 import whitehole.editor.BcsvEditorForm;
 import whitehole.editor.CreateGalaxyForm;
 import whitehole.editor.GalaxyEditorForm;
@@ -33,7 +31,6 @@ import whitehole.rendering.ShaderCache;
 import whitehole.rendering.TextureCache;
 import whitehole.smg.GameArchive;
 import whitehole.smg.StageArchive;
-import whitehole.util.SwitchUtil;
 
 public final class MainFrame extends javax.swing.JFrame {
     private static class GalaxyListItem {
@@ -50,7 +47,7 @@ public final class MainFrame extends javax.swing.JFrame {
             if (forceIdentifier)
                 return "\"" + identifier + "\"";
             else
-                return GalaxyNames.getSimplifiedStageName(identifier);
+                return Whitehole.GalaxyNames.getSimplifiedStageName(identifier);
         }
         
         public void setForceIdentifier(Boolean forceId) {
@@ -68,7 +65,7 @@ public final class MainFrame extends javax.swing.JFrame {
             if (forceIdentifier)
                 return "\"" + identifier + "\"";
             else
-                return ZoneNames.getSimplifiedStageName(identifier);
+                return Whitehole.ZoneNames.getSimplifiedZoneName(identifier);
         }
     }
     
@@ -114,11 +111,11 @@ public final class MainFrame extends javax.swing.JFrame {
             }
             
             if (Whitehole.GAME.hasOverwriteGalaxyNames()) {
-                GalaxyNames.clearProjectDatabase();
+                Whitehole.GalaxyNames.clearProject();
             }
             
             if (Whitehole.GAME.hasOverwriteZoneNames()) {
-                ZoneNames.clearProjectDatabase();
+                Whitehole.ZoneNames.clearProject();
             }
         }
         
