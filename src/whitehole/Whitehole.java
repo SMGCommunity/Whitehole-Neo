@@ -77,7 +77,7 @@ public class Whitehole {
         ObjectDB.init(true);
         ModelSubstitutions.init();
         
-        MAIN_FRAME = new MainFrame();
+        MAIN_FRAME = new MainFrame(args);
         MAIN_FRAME.setVisible(true);
     }
     

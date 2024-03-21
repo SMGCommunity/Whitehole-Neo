@@ -85,8 +85,9 @@ public final class MainFrame extends javax.swing.JFrame {
     private final BcsvEditorForm bcsvEditor;
     private final AboutForm aboutDialog;
     private final SettingsForm settingsDialog;
+    private final String openWithDirectory;
     
-    public MainFrame() {
+    public MainFrame(String[] args) {
         initComponents();
         galaxyItems = (DefaultListModel)(listGalaxy.getModel());
         zoneItems = (DefaultListModel)(listZone.getModel());
@@ -94,6 +95,11 @@ public final class MainFrame extends javax.swing.JFrame {
         bcsvEditor = new BcsvEditorForm();
         aboutDialog = new AboutForm(this);
         settingsDialog = new SettingsForm(this);
+        
+        if (args != null && args.length > 0)
+            openWithDirectory = args[0];
+        else
+            openWithDirectory = null;
     }
     
     private void openGameDir(String gameDir) {
@@ -245,9 +251,15 @@ public final class MainFrame extends javax.swing.JFrame {
         }
         return false;
     }
+    
+    public boolean checkBcsvEditorOpen() {
+        if (bcsvEditor != null && bcsvEditor.isVisible()) { //Pretty sure it can't be null but whatever
+            return true;
+        }
+        return false;
+    }
        
-    public void forceCloseEditors()
-    {
+    public void forceCloseEditors() {
         if (galaxyEditor != null)
             galaxyEditor.isForceClose = true;
         if (zoneEditor != null)
@@ -485,14 +497,21 @@ public final class MainFrame extends javax.swing.JFrame {
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
         String lastGameDir = Settings.getLastGameDir();
         
-        if (lastGameDir != null) {
+        if (openWithDirectory != null)
+            openGameDir(openWithDirectory);
+        else if (lastGameDir != null)
             openGameDir(lastGameDir);
-        }
         
         lbStatusBar.setText("Started!");
     }//GEN-LAST:event_formWindowOpened
 	
     private void btnOpenGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenGameActionPerformed
+        if (checkGalaxyEditorOpen() || checkZoneEditorOpen() || checkBcsvEditorOpen())
+        {
+            //Cannot change workspaces with a galaxy open
+            return;
+        }
+        
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Open a SMG1/2 Directory");
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -516,9 +535,10 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnOpenGalaxyActionPerformed
 
     private void btnBcsvEditorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBcsvEditorActionPerformed
-        if (!bcsvEditor.isVisible()) {
+        if (!checkBcsvEditorOpen())
             bcsvEditor.setVisible(true);
-        }
+        else
+            bcsvEditor.toFront();
     }//GEN-LAST:event_btnBcsvEditorActionPerformed
 
     private void btnSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSettingsActionPerformed
