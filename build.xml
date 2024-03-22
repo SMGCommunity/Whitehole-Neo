@@ -10,5 +10,8 @@
         <copy file="data/modelsubstitutions.json" todir="${dist.dir}/data"/>
         <copy file="data/specialrenderers.json" todir="${dist.dir}/data"/>
         <copy file="data/shortcuts.json" todir="${dist.dir}/data"/>
+        <copy todir="${dist.dir}/data/templates">
+            <fileset dir="data/templates"/>
+        </copy>
     </target>
 </project>
