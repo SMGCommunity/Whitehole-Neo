@@ -255,6 +255,9 @@ public final class RendererFactory {
         if (Whitehole.SpecialRenderers != null)
         {
             renderer =  Whitehole.SpecialRenderers.tryGetSpecialRenderer(info, objModelName, obj);
+            if (renderer instanceof BmdRenderer) {
+                tryOffsetBmdRenderer((BmdRenderer)renderer, objModelName, obj);
+            }
             if (renderer != null)
                 return renderer;
         }

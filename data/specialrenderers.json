@@ -79,13 +79,97 @@
       ]
     },
     {
+      "ObjectName": "Tico",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
+    {
       "ObjectName": "Kinopio",
       "RendererType": "BasicAnim",
       "RendererParams": [
         {
           "BRK": {
             "Filename": "ColorChange",
-            "FrameSource": "ObjArg1"
+            "FrameSource": "Obj_arg1"
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "Caretaker",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "BodyColor",
+            "FrameSource": "Obj_arg3"
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "CareTakerHunter",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "BodyColor",
+            "FrameSource": "Obj_arg3"
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "Rabbit",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BTK": {
+            "Filename": "MoonRabbit",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "Monte",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "Penguin",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg7"
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "PichanRacer",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg0S"
           }
         }
       ]
@@ -97,7 +181,47 @@
         {
           "BRK": {
             "Filename": "EarthenPipe",
-            "FrameSource": "ObjArg7"
+            "FrameSource": "Obj_arg7"
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "SimpleMapObj",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg0"
+          },
+          "BTK": {
+            "Filename": "TexChange",
+            "FrameSource": "Obj_arg1"
+          },
+          "BTP": {
+            "Filename": "TexChange",
+            "FrameSource": "Obj_arg1"
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "RotateMoveObj",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg0"
+          },
+          "BTK": {
+            "Filename": "TexChange",
+            "FrameSource": "Obj_arg1"
+          },
+          "BTP": {
+            "Filename": "TexChange",
+            "FrameSource": "Obj_arg1"
           }
         }
       ]

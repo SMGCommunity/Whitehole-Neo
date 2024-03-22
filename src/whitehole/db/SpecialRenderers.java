@@ -19,6 +19,7 @@ package whitehole.db;
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import whitehole.Whitehole;
 import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
 import static whitehole.rendering.RendererFactory.createDummyCubeRenderer;
@@ -41,6 +42,8 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
         if (renderinfo != null)
             switch(renderinfo.rendererType)
             {
+                case "BasicAnim":
+                    return BasicAnimationRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                 case "PowerStar":
                     return PowerStarRenderer.getAdditiveCacheKey(obj,
                             (Integer)renderinfo.getRenderParamByName("DefaultFrame"));
@@ -57,6 +60,9 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
         if (renderinfo != null)
             switch(renderinfo.rendererType)
             {
+                case "BasicAnim":
+                    result = new BasicAnimationRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    break;
                 case "PowerStar":
                     result = new PowerStarRenderer(info, objModelName, obj,
                             (Integer)renderinfo.getRenderParamByName("DefaultFrame"),
@@ -66,6 +72,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     result =  new SuperSpinDriverRenderer(info, objModelName, obj);
                     break;
             }
+        
         if (result instanceof BmdRenderer)
             if (!((BmdRenderer)result).isValidBmdModel())
                 return null;
@@ -89,7 +96,20 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
         for (int i = 0 ; i < root.length(); i++) {
             JSONObject Current = root.getJSONObject(i);
             String ObjectName = Current.optString("ObjectName", null);
-            if (!objName.equals(ObjectName))
+            
+            if (ObjectName == null)
+            {
+                ObjectDB.ClassInfo CI = ObjectDB.getObjectInfo(objName).classInfo(Whitehole.getCurrentGameType());
+                if (CI == null)
+                    continue;
+                
+                String className = CI.toString();
+                String ClassName = Current.optString("ClassName", null);
+                if (!className.equals(ClassName))
+                    continue;
+            }
+            else
+                if (!objName.equals(ObjectName))
                 continue;
             
             SpecialRenderInfo info = new SpecialRenderInfo();
@@ -137,7 +157,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
         }
     }
     
-    private class AnimationParam
+    public class AnimationParam
     {        
         public final String filename;
         public final Integer frame;
@@ -148,6 +168,21 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
             filename = obj.getString("Filename");
             frame = obj.optInt("Frame", 0);
             frameSource = obj.optString("FrameSource", null);
+        }
+        
+        public boolean hasSource()
+        {
+            return frameSource != null;
+        }
+        
+        public boolean isSourceObjArg(int Arg)
+        {
+            if (!hasSource())
+                return false;
+            if (!frameSource.startsWith("Obj_arg"))
+                return false;
+            int arg = Integer.parseInt(frameSource.substring(7));
+            return Arg == arg;
         }
     }
         

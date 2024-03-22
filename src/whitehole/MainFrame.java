@@ -117,6 +117,10 @@ public final class MainFrame extends javax.swing.JFrame {
             if (Whitehole.GAME.hasOverwriteZoneNames()) {
                 Whitehole.ZoneNames.clearProject();
             }
+            
+            if (Whitehole.GAME.hasOverwriteSpecialRenderer()) {
+                Whitehole.SpecialRenderers.clearProject();
+            }
         }
         
         // Load game system and store last selected game directory
