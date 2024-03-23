@@ -2149,33 +2149,59 @@ public class GravityShapeRenderer extends GLRenderer {
         double railInterval = RailLength / (numPointsInBetween - 1);
         
         Vec3f[] GravityPoints = new Vec3f[numPointsInBetween - 1];
-        Vec3f[] GravityNormals = new Vec3f[numPointsInBetween - 1];
-        Vec3f[][] RingPoints = new Vec3f[numPointsInBetween - 1][Segments+1];
+        Matrix4[] RingMatrices = new Matrix4[numPointsInBetween - 1];
+        Vec3f[] RingPoints = new Vec3f[Segments+1];
+        Vec3f[][] CapPoints = new Vec3f[SegmentsV+1][]; //I hate it but it makes code way easier
+        
+        //generate Ring
+        for(int i = 0; i < Segments; i++) {
+            double theta = Math.TAU * i / Segments;
+            RingPoints[i] = new Vec3f(
+                (float)Math.sin(theta) * Range,
+                (float)Math.cos(theta) * Range,
+                0
+            );
+            RingPoints[RingPoints.length-1] = RingPoints[0];
+        }
+        
+        //generate Cap
+        for(int i = 0; i < SegmentsV; i++) {
+            CapPoints[i] = new Vec3f[Segments+1];
+            double theta = Math.PI/2 * i / SegmentsV;
+            float radius = (float)Math.cos(theta);
+            float z = (float)Math.sin(theta);
+            
+            for(int j = 0; j < Segments; j++) {
+                theta = Math.TAU * j / Segments;
+                CapPoints[i][j] = new Vec3f(
+                    (float)Math.sin(theta) * radius * Range,
+                    (float)Math.cos(theta) * radius * Range,
+                    z * Range
+                );
+            }
+            CapPoints[i][CapPoints[i].length-1] = CapPoints[i][0];
+        }
+        Vec3f capTipPoint = new Vec3f(0,0, Range);
+        CapPoints[CapPoints.length-1] = new Vec3f[Segments];
+        for(int j = 0; j < Segments; j++)
+            CapPoints[CapPoints.length-1][j] = capTipPoint;
+        
+        
         for(int i = 0; i < numPointsInBetween - 1; i++)
         {
             double interv = railInterval * i;
-            GravityPoints[i] = RailUtil.calcPosAtCoord(interv, PathData);
-            GravityNormals[i] = RailUtil.calcDirAtCoord(interv, PathData);
+            Vec3f point = RailUtil.calcPosAtCoord(interv, PathData);
+            Vec3f direction = RailUtil.calcDirAtCoord(interv, PathData);
             
-            Vec3f Cross = new Vec3f(0,1,0);
-            Vec3f.cross(Cross, GravityNormals[i], Cross);
-            Vec3f.normalize(Cross, Cross);
+            Vec3f up = new Vec3f(0,1,0);
+            Vec3f.cross(up, direction, up);
+            Vec3f.normalize(up, up);
             
-            for(int r = 0; r <= Segments; r++)
-            {
-                double angle = 2.0 * Math.PI * (r/(float)Segments);
-                //Taken from NoClip literally nothing else worked...
-                Matrix4 ScratchMatrix = Matrix4.fromRotation(angle, GravityNormals[i]);
-                if (ScratchMatrix == null)
-                    continue;
-                Vec3f ScratchVecA = Matrix4.transformVec3Mat4w0(ScratchMatrix, Cross);
-                ScratchVecA.scale(Range);
-                
-                double xFinal = ScratchVecA.x + GravityPoints[i].x;
-                double yFinal = ScratchVecA.y + GravityPoints[i].y;
-                double zFinal = ScratchVecA.z + GravityPoints[i].z;
-                RingPoints[i][r] = new Vec3f((float)xFinal, (float)yFinal, (float)zFinal);
-            }
+            Vec3f target = new Vec3f();
+            Vec3f.add(point, direction, target);
+            
+            GravityPoints[i] = point;
+            RingMatrices[i] = Matrix4.lookAtNoInv(point, target, up);
         }
         
         gl.glPushMatrix();
@@ -2193,6 +2219,10 @@ public class GravityShapeRenderer extends GLRenderer {
         if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(Col.r, Col.g, Col.b);
         gl.glBegin(GL2.GL_LINES);
+        
+        Vec3f pCur = new Vec3f();
+        Vec3f pPCur = new Vec3f();
+        Vec3f pNext = new Vec3f();
         for(int i = 0; i < GravityPoints.length; i++)
         {
             if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
@@ -2204,10 +2234,12 @@ public class GravityShapeRenderer extends GLRenderer {
             
             
             //Draw Rings
-            for(int r = 0; r < RingPoints[i].length - 1; r++)
+            for(int r = 0; r < Segments; r++)
             {
-                Vec3f pCur = RingPoints[i][r],
-                  pNext= RingPoints[i][r+1];
+                pCur.set(RingPoints[r]);
+                pNext.set(RingPoints[r+1]);
+                Vec3f.transform(pCur, RingMatrices[i], pCur);
+                Vec3f.transform(pNext, RingMatrices[i], pNext);
                 
                 if (r%4 == 0)
                 {
@@ -2222,16 +2254,55 @@ public class GravityShapeRenderer extends GLRenderer {
                 
                 gl.glVertex3f(pCur.x, pCur.y, pCur.z);
                 gl.glVertex3f(pNext.x, pNext.y, pNext.z);
-
-                //I can't make this work                
-//                if (i+1 < GravityPoints.length)
-//                {
-//                    Vec3f pPCur = RingPoints[i+1][r];                    
-//                    gl.glVertex3f(pCur.x, pCur.y, pCur.z);
-//                    gl.glVertex3f(pPCur.x, pPCur.y, pPCur.z);
-//                }
+              
+                if (i+1 < GravityPoints.length)
+                {
+                    pPCur.set(RingPoints[r]);
+                    Vec3f.transform(pPCur, RingMatrices[i+1], pPCur);            
+                    gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+                    gl.glVertex3f(pPCur.x, pPCur.y, pPCur.z);
+                }
             }
         }
+        
+        //draw caps
+        {
+            for(int i = 0; i < SegmentsV; i++) {
+                for(int j = 0; j < Segments; j++) {
+                    Matrix4 mtx = RingMatrices[0];
+                    pCur.set(CapPoints[i][j]); pCur.z *= -1;
+                    pPCur.set(CapPoints[i+1][j]); pPCur.z *= -1;
+                    pNext.set(CapPoints[i][j+1]); pNext.z *= -1;
+                    Vec3f.transform(pCur, mtx, pCur);
+                    Vec3f.transform(pNext, mtx, pNext);
+                    Vec3f.transform(pPCur, mtx, pPCur);
+                    
+                    gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+                    gl.glVertex3f(pNext.x, pNext.y, pNext.z);
+                    
+                    gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+                    gl.glVertex3f(pPCur.x, pPCur.y, pPCur.z);
+                }
+            }
+            for(int i = 0; i < SegmentsV; i++) {
+                for(int j = 0; j < Segments; j++) {
+                    Matrix4 mtx = RingMatrices[RingMatrices.length-1];
+                    pCur.set(CapPoints[i][j]);
+                    pPCur.set(CapPoints[i+1][j]);
+                    pNext.set(CapPoints[i][j+1]);
+                    Vec3f.transform(pCur, mtx, pCur);
+                    Vec3f.transform(pNext, mtx, pNext);
+                    Vec3f.transform(pPCur, mtx, pPCur);
+                    
+                    gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+                    gl.glVertex3f(pNext.x, pNext.y, pNext.z);
+                    
+                    gl.glVertex3f(pCur.x, pCur.y, pCur.z);
+                    gl.glVertex3f(pPCur.x, pPCur.y, pPCur.z);
+                }
+            }
+        }
+        
         gl.glEnd();
         gl.glPopMatrix();
         

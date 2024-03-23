@@ -222,6 +222,29 @@ public class Matrix4 {
         return trans;
     }
     
+    /**
+     * lookAt but without the inversion (needed for the viewMatrix) baked in
+     * @param eye
+     * @param target
+     * @param up
+     * @return 
+     */
+    public static Matrix4 lookAtNoInv(Vec3f eye, Vec3f target, Vec3f up) {
+        Vec3f z = new Vec3f(); Vec3f.subtract(target, eye, z); Vec3f.normalize(z, z);
+        Vec3f x = new Vec3f(); Vec3f.cross(up, z, x); Vec3f.normalize(x, x);
+        Vec3f y = new Vec3f(); Vec3f.cross(z, x, y); Vec3f.normalize(y, y);
+        
+        Matrix4 rot = new Matrix4(
+                x.x, x.y, x.z, 0f,
+                y.x, y.y, y.z, 0f,
+                z.x, z.y, z.z, 0f,
+                0f, 0f, 0f, 1f);
+        Matrix4 trans = Matrix4.createTranslation(eye);
+        
+        Matrix4.mult(rot, trans, trans);
+        return trans;
+    }
+    
     // taken from OpenTK
     public static Matrix4 invert(Matrix4 mat) {
         int[] colIdx = { 0, 0, 0, 0 };
@@ -311,4 +334,16 @@ public class Matrix4 {
     }
     
     public float m[];
+    
+    public String toString() {
+        return String.format("\n" +
+            "%11.5f, %11.5f, %11.5f, %11.5f\n" +
+            "%11.5f, %11.5f, %11.5f, %11.5f\n" + 
+            "%11.5f, %11.5f, %11.5f, %11.5f\n" +
+            "%11.5f, %11.5f, %11.5f, %11.5f", 
+            m[0+4*0], m[1+4*0], m[2+4*0], m[3+4*0],
+            m[0+4*1], m[1+4*1], m[2+4*1], m[3+4*1],
+            m[0+4*2], m[1+4*2], m[2+4*2], m[3+4*2],
+            m[0+4*3], m[1+4*3], m[2+4*3], m[3+4*3]);
+    }
 }
