@@ -2155,7 +2155,7 @@ public class GravityShapeRenderer extends GLRenderer {
         
         //generate Ring
         for(int i = 0; i < Segments; i++) {
-            double theta = Math.TAU * i / Segments;
+            double theta = (Math.PI * 2) * i / Segments;
             RingPoints[i] = new Vec3f(
                 (float)Math.sin(theta) * Range,
                 (float)Math.cos(theta) * Range,
@@ -2172,7 +2172,7 @@ public class GravityShapeRenderer extends GLRenderer {
             float z = (float)Math.sin(theta);
             
             for(int j = 0; j < Segments; j++) {
-                theta = Math.TAU * j / Segments;
+                theta = (Math.PI * 2) * j / Segments;
                 CapPoints[i][j] = new Vec3f(
                     (float)Math.sin(theta) * radius * Range,
                     (float)Math.cos(theta) * radius * Range,
