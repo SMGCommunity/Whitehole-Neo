@@ -711,14 +711,14 @@ public class BmdRenderer extends GLRenderer {
     
     protected void initModel(RenderInfo info, String modelName) throws GLException
     {
-        ctor_loadModelDefault(info, modelName);
+        ctor_doNonSpecialModelLoad(info, modelName);
     }
     
     /**
      * The default sequence to load a model.
      * @param modelName 
      */
-    protected final void ctor_loadModelDefault(RenderInfo info, String modelName) {
+    protected final void ctor_doNonSpecialModelLoad(RenderInfo info, String modelName) {
         try
         {
             archive = ctor_loadArchive(modelName);
@@ -753,6 +753,37 @@ public class BmdRenderer extends GLRenderer {
         
         if (isValidBmdModel())
             ctor_uploadData(info);
+    }
+    
+    protected final boolean ctor_tryLoadModelDefault(String modelName)
+    {
+        try
+        {
+            archive = ctor_loadArchive(modelName);
+        }
+        catch(Exception ex)
+        {
+            return false;
+        }
+
+        if (archive == null)
+            return false; //No archive bruh
+        
+        model = ctor_loadModel(modelName, archive);
+        
+        if (!isValidBmdModel())
+        {
+            try
+            {
+                archive.close();
+            }
+            catch(Exception ex)
+            {
+                
+            }
+            return false;
+        }
+        return true;
     }
     
     /**

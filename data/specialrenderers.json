@@ -32,14 +32,14 @@
     },
     {
       "ObjectName": "SuperSpinDriver",
-      "RendererType": "SuperSpinDriver",
+      "RendererType": "BasicAnim",
       "RendererParams": [
         {
           "BRK": {
             "Filename": "Yellow",
             "Frame": 0
           },
-          "BTK": {
+          "BTP": {
             "Filename": "SuperSpinDriver",
             "Frame": 0
           }
@@ -48,14 +48,14 @@
     },
     {
       "ObjectName": "SuperSpinDriverGreen",
-      "RendererType": "SuperSpinDriver",
+      "RendererType": "BasicAnim",
       "RendererParams": [
         {
           "BRK": {
             "Filename": "Green",
             "Frame": 1
           },
-          "BTK": {
+          "BTP": {
             "Filename": "SuperSpinDriver",
             "Frame": 1
           }
@@ -64,14 +64,14 @@
     },
     {
       "ObjectName": "SuperSpinDriverPink",
-      "RendererType": "SuperSpinDriver",
+      "RendererType": "BasicAnim",
       "RendererParams": [
         {
           "BRK": {
             "Filename": "Pink",
             "Frame": 2
           },
-          "BTK": {
+          "BTP": {
             "Filename": "SuperSpinDriver",
             "Frame": 2
           }

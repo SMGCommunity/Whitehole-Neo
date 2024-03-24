@@ -47,8 +47,6 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                 case "PowerStar":
                     return PowerStarRenderer.getAdditiveCacheKey(obj,
                             (Integer)renderinfo.getRenderParamByName("DefaultFrame"));
-                case "SuperSpinDriver":
-                    return SuperSpinDriverRenderer.getAdditiveCacheKey(obj);
             }
         return "";
     }
@@ -67,9 +65,6 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     result = new PowerStarRenderer(info, objModelName, obj,
                             (Integer)renderinfo.getRenderParamByName("DefaultFrame"),
                             (Boolean)renderinfo.getRenderParamByName("IsGrand"));
-                    break;
-                case "SuperSpinDriver":
-                    result =  new SuperSpinDriverRenderer(info, objModelName, obj);
                     break;
             }
         

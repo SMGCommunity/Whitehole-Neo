@@ -35,64 +35,59 @@ public class BasicAnimationRenderer extends BmdRenderer {
     
     public BasicAnimationRenderer(RenderInfo info, String modelName, AbstractObj obj, HashMap<String, Object> params) throws GLException
     {
-        try
-        {
-            archive = ctor_loadArchive(modelName);
-        }
-        catch(Exception ex)
-        {
+        if (!ctor_tryLoadModelDefault(modelName))
             return;
-        }
-
-        if (archive == null)
-            return; //No archive bruh
         
-        model = ctor_loadModel(modelName, archive);
+        ctor_initBRK(modelName, obj, params);
+        ctor_initBTK(modelName, obj, params);
+        ctor_initBTP(modelName, obj, params);
+        ctor_initBVA(modelName, obj, params);
         
-        if (!isValidBmdModel())
-        {
-            try
-            {
-                archive.close();
-            }
-            catch(Exception ex)
-            {
-                
-            }
-            return;
-        }
-        
+        ctor_uploadData(info);
+    }
+    
+    protected final void ctor_initBRK(String modelName, AbstractObj obj, HashMap<String, Object> params)
+    {
         brkData = (AnimationParam)params.get("BRK");
-        btkData = (AnimationParam)params.get("BTK");
-        btpData = (AnimationParam)params.get("BTP");
-        bvaData = (AnimationParam)params.get("BVA");
-        
         if (brkData != null)
         {
             if (colRegisterAnim == null)
                 colRegisterAnim = ctor_tryLoadBRK(modelName, brkData.filename, archive);
             colRegisterAnimIndex = getAnimationFrameOrSource(obj, brkData);
         }
+    }
+    
+    protected final void ctor_initBTK(String modelName, AbstractObj obj, HashMap<String, Object> params)
+    {
+        btkData = (AnimationParam)params.get("BTK");
         if (btkData != null)
         {
             if (texMatrixAnim == null)
                 texMatrixAnim = ctor_tryLoadBTK(modelName, btkData.filename, archive);
             texMatrixAnimIndex = getAnimationFrameOrSource(obj, btkData);
         }
+    }
+    
+    protected final void ctor_initBTP(String modelName, AbstractObj obj, HashMap<String, Object> params)
+    {
+        btpData = (AnimationParam)params.get("BTP");
         if (btpData != null)
         {
             if (texPatternAnim == null)
                 texPatternAnim = ctor_tryLoadBTP(modelName, btpData.filename, archive);
             texPatternAnimIndex = getAnimationFrameOrSource(obj, btpData);
         }
+    }
+    
+    protected final void ctor_initBVA(String modelName, AbstractObj obj, HashMap<String, Object> params)
+    {
+        bvaData = (AnimationParam)params.get("BVA");
         if (bvaData != null)
         {
             if (shapeVisibleAnim == null)
                 shapeVisibleAnim = ctor_tryLoadBVA(modelName, bvaData.filename, archive);
             shapeVisibleAnimIndex = getAnimationFrameOrSource(obj, bvaData);
         }
-        
-        ctor_uploadData(info);
     }
     
     @Override
