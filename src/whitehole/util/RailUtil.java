@@ -136,7 +136,15 @@ public final class RailUtil
             C = Next.point1;
             D = Next.position;
             double t = (Coord - PrevLength) / (partlength);
-            double t2 = t >= 0.5 ? ((Coord-1) - PrevLength) / (partlength) : ((Coord+1) - PrevLength) / (partlength);
+            double t2;
+            if (t >= 0.5) {
+                
+                t2 = t;
+                t = ((Coord-1) - PrevLength) / (partlength);
+            }
+            else {
+                t2 = ((Coord+1) - PrevLength) / (partlength);
+            }
             Vec3f PointA, PointB;
             {
                 double x = (1-t)*(1-t)*(1-t)*A.x + 3*(1-t)*(1-t)*t*B.x + 3*(1-t)*t*t*C.x + t*t*t*D.x;
