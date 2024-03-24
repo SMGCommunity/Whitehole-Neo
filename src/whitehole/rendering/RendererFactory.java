@@ -830,7 +830,7 @@ public final class RendererFactory {
         switch(objModelName) {
             case "DashFruit": renderer.translation = new Vec3f(0f, 55f, 0f); break;
             case "DashRing": renderer.rotation = new Vec3f(0f, 0f, 90f); break;
-            case "EarthenPipe": renderer.translation = new Vec3f(0f, 100f, 0f); break;
+            //case "EarthenPipe": renderer.translation = new Vec3f(0f, 100f, 0f); break;
         }
     }
     

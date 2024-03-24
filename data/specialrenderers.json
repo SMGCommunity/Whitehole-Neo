@@ -176,13 +176,56 @@
     },
     {
       "ObjectName": "EarthenPipe",
-      "RendererType": "BasicAnim",
+      "RendererType": "TwoJointScale",
       "RendererParams": [
         {
+          "CalcType": 0,
+          "TopJointName": "Top",
+          "BottomJointName": "Bottom",
+          "ScaleY": 100.0,
+          "BottomPosY": 50.0,
           "BRK": {
             "Filename": "EarthenPipe",
             "FrameSource": "Obj_arg7"
           }
+        }
+      ]
+    },
+    {
+      "ObjectName": "Pole",
+      "RendererType": "TwoJointScale",
+      "RendererParams": [
+        {
+          "CalcType": 1,
+          "TopJointName": "PoleTop",
+          "ScaleY": 100.0,
+          "BaseY": 100.0
+        }
+      ]
+    },
+    {
+      "ObjectName": "Pole2Way",
+      "RendererType": "TwoJointScale",
+      "RendererParams": [
+        {
+          "CalcType": 1,
+          "TopJointName": "PoleTop",
+          "ScaleY": 100.0,
+          "BaseY": 100.0
+        }
+      ]
+    },
+    {
+      "ObjectName": "Trapeze",
+      "RendererType": "TwoJointScale",
+      "RendererParams": [
+        {
+          "CalcType": 1,
+          "TopJointName": "Trapeze",
+          "ScaleY": -100.0,
+          "BaseY": 0.0,
+          "NeedsLines": true,
+          "LinesRange": 100.0
         }
       ]
     },

@@ -85,6 +85,20 @@ public class Bmd
         }
     }
     
+    public Joint getJointByName(String name)
+    {
+        for(var j : joints)
+            if (j.name.equals(name))
+                return j;
+        return null;
+    }
+    public void recalcAllJoints()
+    {
+        for (Joint jnt : joints)
+        {
+            jnt.doCalc();
+        }
+    }
 
     private float readArrayValue_s16(int fixedpoint) throws IOException
     {
@@ -453,36 +467,15 @@ public class Bmd
             file.skip(2);
             jnt.translation = new Vec3f(file.readFloat(), file.readFloat(), file.readFloat());
 
-            jnt.matrix = Matrix4.SRTToMatrix(jnt.scale, jnt.rotation, jnt.translation);
-
-            for (SceneGraphNode node : sceneGraph)
-            {
-                if (node.nodeType != 1) continue;
-                if (node.nodeID != i) continue;
-
-                SceneGraphNode parentnode = node;
-                do
-                {
-                    if (parentnode.parentIndex == -1)
-                    {
-                        parentnode = null;
-                        break;
-                    }
-
-                    parentnode = sceneGraph.get(parentnode.parentIndex);
-
-                } while (parentnode.nodeType != 1);
-
-                if (parentnode != null)
-                {
-                    jnt.finalMatrix = new Matrix4();
-                    Matrix4.mult(jnt.matrix, joints[parentnode.nodeID].finalMatrix, jnt.finalMatrix);
-                }
-                else
-                    jnt.finalMatrix = jnt.matrix;
-
-                break;
-            }
+            file.position(sectionstart + stringsoffset + 4 + (i*4));
+            file.skip(2); // Skip the hash
+            short off = file.readShort();
+            file.position(sectionstart + stringsoffset + off);
+            String tmpName = file.readString("ASCII", 0);
+            
+            jnt.jointIndex = i;
+            jnt.name = tmpName;
+            jnt.doCalc();
         }
 
         file.position(sectionstart + sectionsize);
@@ -1136,12 +1129,54 @@ public class Bmd
 
     public class Joint
     {
+        public String name;
         public short unk1;
         public byte unk2;
+        public int jointIndex;
 
         public Vec3f scale, rotation, translation;
         public Matrix4 matrix;
         public Matrix4 finalMatrix; // matrix with parents' transforms applied
+        
+        public void doCalc()
+        {
+            matrix = Matrix4.SRTToMatrix(scale, rotation, translation);
+
+            for (SceneGraphNode node : sceneGraph)
+            {
+                if (node.nodeType != 1) continue;
+                if (node.nodeID != jointIndex) continue;
+
+                SceneGraphNode parentnode = node;
+                do
+                {
+                    if (parentnode.parentIndex == -1)
+                    {
+                        parentnode = null;
+                        break;
+                    }
+
+                    parentnode = sceneGraph.get(parentnode.parentIndex);
+
+                } while (parentnode.nodeType != 1);
+
+                if (parentnode != null)
+                {
+                    finalMatrix = new Matrix4();
+                    Matrix4.mult(matrix, joints[parentnode.nodeID].finalMatrix, finalMatrix);
+                }
+                else
+                    finalMatrix = matrix;
+
+                break;
+            }
+        }
+    
+        @Override
+        public String toString()
+        {
+            return name;
+        }
     }
 
     public class Material

@@ -33,6 +33,8 @@ public class BasicAnimationRenderer extends BmdRenderer {
     AnimationParam btpData;
     AnimationParam bvaData;
     
+    protected BasicAnimationRenderer() { super(); }
+    
     public BasicAnimationRenderer(RenderInfo info, String modelName, AbstractObj obj, HashMap<String, Object> params) throws GLException
     {
         if (!ctor_tryLoadModelDefault(modelName))
