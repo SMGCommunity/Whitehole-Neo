@@ -2145,6 +2145,8 @@ public class GravityShapeRenderer extends GLRenderer {
         // welcome to HELL
         
         int numPointsInBetween = (int)(ObjArg0 < 0 ? 20 : ObjArg0) + 2;
+        if (numPointsInBetween > 200)
+            numPointsInBetween = 200;
         double RailLength = RailUtil.getPathLength(PathData);
         double railInterval = RailLength / (numPointsInBetween - 1);
         
