@@ -26,8 +26,7 @@ import whitehole.io.ExternalFile;
 import whitehole.io.FileBase;
 import whitehole.io.RarcFile;
 import whitehole.smg.Bti;
-import whitehole.smg.ImageUtils.FilterMode;
-import whitehole.smg.ImageUtils.WrapMode;
+import whitehole.smg.ImageUtils;
 import whitehole.math.Vec3f;
 
 public class BtiRenderer extends GLRenderer {
@@ -99,11 +98,14 @@ public class BtiRenderer extends GLRenderer {
 
         gl.glBindTexture(GL2.GL_TEXTURE_2D, texID);
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_LEVEL, btiData.mipmapCount - 1);
-        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, FilterMode.values()[btiData.minFilter].get());
-        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, FilterMode.values()[btiData.magFilter].get());
-        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, WrapMode.values()[btiData.wrapS].get());
-        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, WrapMode.values()[btiData.wrapT].get());
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, ImageUtils.getWrapMode(btiData.wrapS));
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, ImageUtils.getWrapMode(btiData.wrapT));
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, ImageUtils.getFilterMode(btiData.minFilter));
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, ImageUtils.getFilterMode(btiData.magFilter));
+        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_LOD, btiData.minLod);
+        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_LOD, btiData.maxLod);
         gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_LOD_BIAS, btiData.lodBias);
+        //gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_ANISOTROPY_EXT, ImageUtils.getAnisotropy(btiData.maxAnisotropy));
 
         int ifmt, fmt;
         
