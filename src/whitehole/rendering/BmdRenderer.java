@@ -28,7 +28,7 @@ import whitehole.io.ExternalFile;
 import whitehole.io.FileBase;
 import whitehole.io.RarcFile;
 import whitehole.smg.Bmd;
-import whitehole.smg.ImageUtils.*;
+import whitehole.smg.ImageUtils;
 import whitehole.smg.animation.*;
 import whitehole.util.Color4;
 import whitehole.util.SuperFastHash;
@@ -54,13 +54,14 @@ public class BmdRenderer extends GLRenderer {
         
         gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_LEVEL, tex.mipmapCount - 1);
-        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, FilterMode.values()[tex.minFilter].get());
-        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, FilterMode.values()[tex.magFilter].get());
-        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, WrapMode.values()[tex.wrapS].get());
-        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, WrapMode.values()[tex.wrapT].get());
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, ImageUtils.getWrapMode(tex.wrapS));
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, ImageUtils.getWrapMode(tex.wrapT));
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, ImageUtils.getFilterMode(tex.minFilter));
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, ImageUtils.getFilterMode(tex.magFilter));
         gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_LOD, tex.lodMin);
         gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_LOD, tex.lodMax);
         gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_LOD_BIAS, tex.lodBias);
+        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_ANISOTROPY_EXT, ImageUtils.getAnisotropy(tex.maxAnisotropy));
         
         int ifmt, fmt;
         switch(tex.format) {

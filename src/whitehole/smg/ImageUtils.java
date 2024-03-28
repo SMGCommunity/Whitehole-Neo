@@ -27,37 +27,49 @@ import static com.jogamp.opengl.GL.GL_REPEAT;
 import java.io.IOException;
 import whitehole.io.FileBase;
 
-public class ImageUtils {
-    public enum WrapMode {
-        CLAMP   (GL_CLAMP_TO_EDGE),
-        REPEAT  (GL_REPEAT),
-        MIRROR  (GL_MIRRORED_REPEAT);
-
-        private final int value;
-        private WrapMode(int val) {
-            this.value = val;
-        }
-
-        public int get() {
-            return value;
+public class ImageUtils {    
+    public static int getWrapMode(byte mode)
+    {
+        switch(mode)
+        {
+            case 0x00:
+                return GL_CLAMP_TO_EDGE;
+            case 0x02:
+                return GL_MIRRORED_REPEAT;
+            default:
+                return GL_REPEAT;
         }
     }
     
-    public static enum FilterMode {
-        NEAR            (GL_NEAREST),
-        LINEAR          (GL_LINEAR),
-        NEAR_MIP_NEAR   (GL_NEAREST_MIPMAP_NEAREST),
-        LIN_MIP_NEAR    (GL_LINEAR_MIPMAP_NEAREST),
-        NEAR_MIP_LIN    (GL_NEAREST_MIPMAP_LINEAR),
-        LIN_MIP_LIN     (GL_LINEAR_MIPMAP_LINEAR);
-
-        private final int value;
-        private FilterMode(int val) {
-            this.value = val;
+    public static int getFilterMode(byte mode)
+    {
+        switch(mode)
+        {
+            case 0x00:
+                return GL_NEAREST;
+            default:
+                return GL_LINEAR;
+            case 0x02:
+                return GL_NEAREST_MIPMAP_NEAREST;
+            case 0x03:
+                return GL_LINEAR_MIPMAP_NEAREST;
+            case 0x04:
+                return GL_NEAREST_MIPMAP_LINEAR;
+            case 0x05:
+                return GL_LINEAR_MIPMAP_LINEAR;
         }
-
-        public int get() {
-            return value;
+    }
+    
+    public static float getAnisotropy(byte a)
+    {
+        switch(a)
+        {
+            default:
+                return 1.0f;
+            case 0x01:
+                return 2.0f;
+            case 0x02:
+                return 4.0f;
         }
     }
     

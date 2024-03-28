@@ -1030,8 +1030,9 @@ public class Bmd
             short palnumentries = file.readShort();
             int paloffset = file.readInt();
 
-            file.skip(4);
-
+            file.skip(3);
+            tex.maxAnisotropy = file.readByte();
+            
             tex.minFilter = file.readByte();
             tex.magFilter = file.readByte();
 
@@ -1395,6 +1396,7 @@ public class Bmd
         public byte paletteFormat;
         public byte[] palette; // ARGB palette for palettized textures, null otherwise
 
+        public byte maxAnisotropy;
         public byte minFilter;
         public byte magFilter;
         public float lodMin, lodMax;
