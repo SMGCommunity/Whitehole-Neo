@@ -230,6 +230,56 @@
       ]
     },
     {
+      "ClassName": "Dossun",
+      "RendererType": "Phantom",
+      "RendererParams": [
+        {
+          "PhantomEntries": [
+            {
+              "SourcePosY": "Obj_arg0",
+              "DefaultPosY": 1000
+            }
+          ],
+          "BVA": {
+            "Filename": "Wait",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "LiftFlower",
+      "RendererType": "Phantom",
+      "RendererParams": [
+        {
+          "PhantomEntries": [
+            {
+              "SourcePosY": "Obj_arg0",
+              "DefaultPosY": 600
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ClassName": "SwitchingMoveBlock",
+      "RendererType": "Phantom",
+      "RendererParams": [
+        {
+          "PhantomEntries": [
+            {
+              "SourcePosX": "Obj_arg0",
+              "SourcePosY": "Obj_arg1",
+              "SourcePosZ": "Obj_arg2",
+              "SourceRotX": "Obj_arg3",
+              "SourceRotY": "Obj_arg4",
+              "SourceRotZ": "Obj_arg5",
+            }
+          ]
+        }
+      ]
+    },
+    {
       "ClassName": "SimpleMapObj",
       "RendererType": "BasicAnim",
       "RendererParams": [

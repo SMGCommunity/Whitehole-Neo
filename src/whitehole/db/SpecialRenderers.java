@@ -46,6 +46,8 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     return BasicAnimationRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                 case "TwoJointScale":
                     return TwoJointScaleRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
+                case "Phantom":
+                    return PhantomRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                 case "PowerStar":
                     return PowerStarRenderer.getAdditiveCacheKey(obj,
                             (Integer)renderinfo.getRenderParamByName("DefaultFrame"));
@@ -65,6 +67,9 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     break;
                 case "TwoJointScale":
                     result = new TwoJointScaleRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    break;
+                case "Phantom":
+                    result = new PhantomRenderer(info, objModelName, obj, renderinfo.rendererParams);
                     break;
                 case "PowerStar":
                     result = new PowerStarRenderer(info, objModelName, obj,
