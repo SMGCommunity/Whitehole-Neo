@@ -305,9 +305,9 @@ public final class MainFrame extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JToolBar.Separator();
         btnOpenGalaxy = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
-        btnCreateGalaxy = new javax.swing.JButton();
-        jSeparator4 = new javax.swing.JToolBar.Separator();
         btnBcsvEditor = new javax.swing.JButton();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
+        btnCreateGalaxy = new javax.swing.JButton();
         jSeparator3 = new javax.swing.JToolBar.Separator();
         btnSettings = new javax.swing.JButton();
         jSeparator6 = new javax.swing.JToolBar.Separator();
@@ -360,18 +360,6 @@ public final class MainFrame extends javax.swing.JFrame {
         toolbar.add(btnOpenGalaxy);
         toolbar.add(jSeparator2);
 
-        btnCreateGalaxy.setText((tabLists.getSelectedIndex() == 0) ? "Create Galaxy" : "Create Zone");
-        btnCreateGalaxy.setFocusable(false);
-        btnCreateGalaxy.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnCreateGalaxy.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnCreateGalaxy.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCreateGalaxyActionPerformed(evt);
-            }
-        });
-        toolbar.add(btnCreateGalaxy);
-        toolbar.add(jSeparator4);
-
         btnBcsvEditor.setText("BCSV Editor");
         btnBcsvEditor.setEnabled(false);
         btnBcsvEditor.setFocusable(false);
@@ -383,6 +371,18 @@ public final class MainFrame extends javax.swing.JFrame {
             }
         });
         toolbar.add(btnBcsvEditor);
+        toolbar.add(jSeparator4);
+
+        btnCreateGalaxy.setText((tabLists.getSelectedIndex() == 0) ? "Create Galaxy" : "Create Zone");
+        btnCreateGalaxy.setFocusable(false);
+        btnCreateGalaxy.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnCreateGalaxy.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnCreateGalaxy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCreateGalaxyActionPerformed(evt);
+            }
+        });
+        toolbar.add(btnCreateGalaxy);
         toolbar.add(jSeparator3);
 
         btnSettings.setText("Settings");
