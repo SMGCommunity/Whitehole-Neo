@@ -1,0 +1,8 @@
+{
+    "Name": "Standard Zone",
+    "OriginalName": "NewZone",
+    "Game": 2,
+    "ForGalaxy": false,
+    "MapFile": "SMG2StandardZoneMap.arc",
+    "UsedLayers": ["Common"]
+}
