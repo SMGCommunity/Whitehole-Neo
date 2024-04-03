@@ -240,11 +240,11 @@ public class BmdRenderer extends GLRenderer {
                 mat.texMtx[anim.TextureGeneratorId].centerS = anim.Center[0];
                 mat.texMtx[anim.TextureGeneratorId].centerT = anim.Center[1];
                 mat.texMtx[anim.TextureGeneratorId].centerU = anim.Center[2];
-                mat.texMtx[anim.TextureGeneratorId].scaleS = anim.ScaleU.getValueAtFrame((short)texMatrixAnimIndex);
-                mat.texMtx[anim.TextureGeneratorId].scaleT = anim.ScaleV.getValueAtFrame((short)texMatrixAnimIndex);
-                mat.texMtx[anim.TextureGeneratorId].rotate = anim.RotationW.getValueAtFrame((short)texMatrixAnimIndex);
-                mat.texMtx[anim.TextureGeneratorId].transS = anim.TranslationU.getValueAtFrame((short)texMatrixAnimIndex);
-                mat.texMtx[anim.TextureGeneratorId].transT = anim.TranslationV.getValueAtFrame((short)texMatrixAnimIndex);
+                mat.texMtx[anim.TextureGeneratorId].scaleS = anim.ScaleU.getValueAtFrame((short)Frame);
+                mat.texMtx[anim.TextureGeneratorId].scaleT = anim.ScaleV.getValueAtFrame((short)Frame);
+                mat.texMtx[anim.TextureGeneratorId].rotate = anim.RotationW.getValueAtFrame((short)Frame);
+                mat.texMtx[anim.TextureGeneratorId].transS = anim.TranslationU.getValueAtFrame((short)Frame);
+                mat.texMtx[anim.TextureGeneratorId].transT = anim.TranslationV.getValueAtFrame((short)Frame);
                 mat.texMtx[anim.TextureGeneratorId].doCalc();
             }
         }

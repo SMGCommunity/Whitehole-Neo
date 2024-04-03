@@ -254,13 +254,15 @@ public class Bmd
 
             if (arraytype == 11 || arraytype == 12)
             {
-                if ((datatype < 3) ^ (compsize == 0))
-                    throw new IOException(String.format("Bmd: component count mismatch in color array; DataType=%1$d, CompSize=%2$d", datatype, compsize));
+                //if ((datatype < 3) ^ (compsize == 0))
+                //    throw new IOException(String.format("Bmd: component count mismatch in color array; DataType=%1$d, CompSize=%2$d", datatype, compsize));
 
                 switch (datatype)
                 {
                     case 1:
                     case 2:
+                        arraysize /= 3;
+                        break;
                     case 5: 
                         arraysize /= 4;
                         break;
