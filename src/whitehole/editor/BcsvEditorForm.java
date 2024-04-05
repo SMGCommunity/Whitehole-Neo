@@ -896,7 +896,8 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             Vector<Vector> rows = tableModel.getDataVector();
 
             for (int selectedRow = 0; selectedRow < selectedRows.length; selectedRow++) {
-                Vector duplicate = (Vector)rows.elementAt(selectedRows[selectedRow]).clone();
+                int modelRowIndex = tblBcsv.convertRowIndexToModel(selectedRows[selectedRow]);
+                Vector duplicate = (Vector)rows.elementAt(modelRowIndex).clone();
                 tableModel.addRow(duplicate);
             }
         }
@@ -907,7 +908,8 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         
         if (selectedRows.length > 0) {
             for (int selectedRow = selectedRows.length - 1 ; selectedRow >= 0 ; selectedRow--) {
-                tableModel.removeRow(selectedRows[selectedRow]);
+                int modelRowIndex = tblBcsv.convertRowIndexToModel(selectedRows[selectedRow]);
+                tableModel.removeRow(modelRowIndex);
             }
         }
     }//GEN-LAST:event_btnDeleteRowActionPerformed
