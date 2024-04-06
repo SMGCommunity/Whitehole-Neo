@@ -24,6 +24,7 @@ import whitehole.db.ObjectDB;
 import whitehole.editor.BcsvEditorForm;
 import whitehole.editor.CreateGalaxyForm;
 import whitehole.editor.GalaxyEditorForm;
+import whitehole.editor.GalaxyPropertiesForm;
 import whitehole.editor.ObjectSelectForm;
 import whitehole.io.ExternalFilesystem;
 import whitehole.rendering.RendererCache;
@@ -103,6 +104,7 @@ public final class MainFrame extends javax.swing.JFrame {
         btnOpenGalaxy.setEnabled(false);
         btnBcsvEditor.setEnabled(false);
         btnCreateGalaxy.setEnabled(false);
+        btnGalaxyProperties.setEnabled(false);
         
         // Reload databases if previous selected game overwrote them
         if (Whitehole.GAME != null) {
@@ -309,6 +311,8 @@ public final class MainFrame extends javax.swing.JFrame {
         jSeparator4 = new javax.swing.JToolBar.Separator();
         btnCreateGalaxy = new javax.swing.JButton();
         jSeparator3 = new javax.swing.JToolBar.Separator();
+        btnGalaxyProperties = new javax.swing.JButton();
+        jSeparator7 = new javax.swing.JToolBar.Separator();
         btnSettings = new javax.swing.JButton();
         jSeparator6 = new javax.swing.JToolBar.Separator();
         btnAbout = new javax.swing.JButton();
@@ -349,7 +353,6 @@ public final class MainFrame extends javax.swing.JFrame {
 
         btnOpenGalaxy.setText("Open Galaxy");
         btnOpenGalaxy.setEnabled(false);
-        btnOpenGalaxy.setFocusable(false);
         btnOpenGalaxy.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnOpenGalaxy.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         btnOpenGalaxy.addActionListener(new java.awt.event.ActionListener() {
@@ -374,6 +377,7 @@ public final class MainFrame extends javax.swing.JFrame {
         toolbar.add(jSeparator4);
 
         btnCreateGalaxy.setText((tabLists.getSelectedIndex() == 0) ? "Create Galaxy" : "Create Zone");
+        btnCreateGalaxy.setEnabled(false);
         btnCreateGalaxy.setFocusable(false);
         btnCreateGalaxy.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnCreateGalaxy.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -384,6 +388,19 @@ public final class MainFrame extends javax.swing.JFrame {
         });
         toolbar.add(btnCreateGalaxy);
         toolbar.add(jSeparator3);
+
+        btnGalaxyProperties.setText((tabLists.getSelectedIndex() == 0) ? "Galaxy Properties" : "Zone Properties");
+        btnGalaxyProperties.setEnabled(false);
+        btnGalaxyProperties.setFocusable(false);
+        btnGalaxyProperties.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnGalaxyProperties.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnGalaxyProperties.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGalaxyPropertiesActionPerformed(evt);
+            }
+        });
+        toolbar.add(btnGalaxyProperties);
+        toolbar.add(jSeparator7);
 
         btnSettings.setText("Settings");
         btnSettings.setFocusable(false);
@@ -562,7 +579,9 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_listGalaxyMouseClicked
 
     private void listGalaxyValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listGalaxyValueChanged
-        btnOpenGalaxy.setEnabled(listGalaxy.getSelectedIndex() >= 0);
+        boolean isEnabled = listGalaxy.getSelectedIndex() >= 0;
+        btnOpenGalaxy.setEnabled(isEnabled);
+        btnGalaxyProperties.setEnabled(isEnabled);
     }//GEN-LAST:event_listGalaxyValueChanged
 
     private void listGalaxyKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listGalaxyKeyReleased
@@ -624,20 +643,28 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_listZoneKeyReleased
 
     private void listZoneValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listZoneValueChanged
-        btnOpenGalaxy.setEnabled(listZone.getSelectedIndex() >= 0);
+        boolean isEnabled = listZone.getSelectedIndex() >= 0;
+        btnOpenGalaxy.setEnabled(isEnabled);
+        btnGalaxyProperties.setEnabled(isEnabled);
     }//GEN-LAST:event_listZoneValueChanged
 
     private void tabListsStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_tabListsStateChanged
         int tab = tabLists.getSelectedIndex();
         if (tab == 0) {
-            btnOpenGalaxy.setEnabled(listGalaxy.getSelectedIndex() >= 0);
+            boolean isEnabled = listGalaxy.getSelectedIndex() >= 0;
+            btnOpenGalaxy.setEnabled(isEnabled);
             btnOpenGalaxy.setText("Open Galaxy");
             btnCreateGalaxy.setText("Create Galaxy");
+            btnGalaxyProperties.setEnabled(isEnabled);
+            btnGalaxyProperties.setText("Galaxy Properties");
         }
         else if (tab == 1) {
-            btnOpenGalaxy.setEnabled(listZone.getSelectedIndex() >= 0);
+            boolean isEnabled = listZone.getSelectedIndex() >= 0;
+            btnOpenGalaxy.setEnabled(isEnabled);
             btnOpenGalaxy.setText("Open Zone");
             btnCreateGalaxy.setText("Create Zone");
+            btnGalaxyProperties.setEnabled(isEnabled);
+            btnGalaxyProperties.setText("Zone Properties");
         }
     }//GEN-LAST:event_tabListsStateChanged
 
@@ -645,11 +672,26 @@ public final class MainFrame extends javax.swing.JFrame {
         CreateGalaxyForm createForm = new CreateGalaxyForm(tabLists.getSelectedIndex() == 0);
         createForm.setVisible(true);
     }//GEN-LAST:event_btnCreateGalaxyActionPerformed
+
+    private void btnGalaxyPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGalaxyPropertiesActionPerformed
+        boolean isGalaxyMode = tabLists.getSelectedIndex() == 0;
+        String idName;
+        if (isGalaxyMode) {
+            GalaxyListItem galaxy = (GalaxyListItem)listGalaxy.getSelectedValue();
+            idName = galaxy.identifier;
+        } else {
+            ZoneListItem zone = (ZoneListItem)listZone.getSelectedValue();
+            idName = zone.identifier;
+        }
+        GalaxyPropertiesForm propertiesForm = new GalaxyPropertiesForm(isGalaxyMode, idName);
+        propertiesForm.setVisible(true);
+    }//GEN-LAST:event_btnGalaxyPropertiesActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAbout;
     private javax.swing.JButton btnBcsvEditor;
     private javax.swing.JButton btnCreateGalaxy;
+    private javax.swing.JButton btnGalaxyProperties;
     private javax.swing.JButton btnOpenGalaxy;
     private javax.swing.JButton btnOpenGame;
     private javax.swing.JButton btnSettings;
@@ -658,6 +700,7 @@ public final class MainFrame extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator6;
+    private javax.swing.JToolBar.Separator jSeparator7;
     private javax.swing.JLabel lbStatusBar;
     private javax.swing.JList listGalaxy;
     private javax.swing.JList listZone;

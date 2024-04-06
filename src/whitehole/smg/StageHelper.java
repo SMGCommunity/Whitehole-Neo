@@ -17,11 +17,7 @@
 package whitehole.smg;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import javax.swing.JOptionPane;
 import whitehole.Whitehole;
 import whitehole.io.FileBase;
 import whitehole.io.RarcFile;
@@ -32,25 +28,140 @@ public class StageHelper {
     /*
         Map
     */
-    public static void createLayer(RarcFile arc, String layer, int gameType) throws IOException {
-        String[] placementFilesToCreate = {"StageObjInfo", "AreaObjInfo", "ObjInfo", "CameraCubeInfo", "PlanetObjInfo", "DemoObjInfo"};
-            
-        for (String placementFileToCreate : placementFilesToCreate) {
-            createMapJMapAndSave(arc, "Placement", layer, placementFileToCreate);
-        }
-        createMapJMapAndSave(arc, "MapParts", layer, "MapPartsInfo");
-        createMapJMapAndSave(arc, "Start", layer, "StartInfo");
-        createMapJMapAndSave(arc, "GeneralPos", layer, "GeneralPosInfo");
-        createMapJMapAndSave(arc, "Debug", layer, "DebugMoveInfo");
-        if (gameType == 1) {
-            createMapJMapAndSave(arc, "Placement", layer, "SoundInfo");
-            createMapJMapAndSave(arc, "ChildObj", layer, "ChildObjInfo");
+    
+    /*
+        Values in Object[]:
+        0 - Name of the folder the jmap file is located in.
+        1 - Name of the jmap file.
+        2 - Game type. 0 = Both, 1 = SMG1, 2 = SMG2.
+    */
+    static public Object[][] STAGE_MAP_JMP_FILES = {
+        {"Placement", "StageObjInfo", 0},
+        {"Placement", "AreaObjInfo", 0},
+        {"Placement", "ObjInfo", 0}, 
+        {"Placement", "CameraCubeInfo", 0}, 
+        {"Placement", "PlanetObjInfo", 0}, 
+        {"Placement", "DemoObjInfo", 0},
+        {"MapParts", "MapPartsInfo", 0}, 
+        {"Start", "StartInfo", 0}, 
+        {"GeneralPos", "GeneralPosInfo", 0}, 
+        {"Debug", "DebugMoveInfo", 0}, 
+        {"Placement", "SoundInfo", 1},
+        {"ChildObj", "ChildObjInfo", 1}
+    };
+    
+    public static String[] ALL_LAYERS = {"Common", 
+        "LayerA", "LayerB", "LayerC", "LayerD", 
+        "LayerE", "LayerF", "LayerG", "LayerH", 
+        "LayerI", "LayerJ", "LayerK", "LayerL", 
+        "LayerM", "LayerN", "LayerO", "LayerP",
+    };
+    
+    public static void createLayerInMap(RarcFile arc, String layer) throws IOException {
+        StageHelper.createLayerInMap(arc, layer, Whitehole.getCurrentGameType());
+    }
+    
+    public static void createLayerInMap(RarcFile arc, String layer, int gameType) throws IOException {
+        for (Object[] stageMapJmpFileValues : STAGE_MAP_JMP_FILES) {
+            if ((int)stageMapJmpFileValues[2] == 0 || (int)stageMapJmpFileValues[2] == gameType) {
+                createMapJMapAndSave(arc, (String)stageMapJmpFileValues[0], layer, (String)stageMapJmpFileValues[1], gameType);
+            }
         }
     }
     
+    public static void deleteLayerInMap(RarcFile arc, String layer) throws IOException {
+        StageHelper.deleteLayerInMap(arc, layer, Whitehole.getCurrentGameType());
+    }
+    
+    public static void deleteLayerInMap(RarcFile arc, String layer, int gameType) throws IOException {
+        for (Object[] stageMapJmpFileValues : STAGE_MAP_JMP_FILES) {
+            if ((int)stageMapJmpFileValues[2] == 0 || (int)stageMapJmpFileValues[2] == gameType) {
+                deleteJMapPlacementLayer(arc, (String)stageMapJmpFileValues[0], layer, gameType);
+            }
+        }
+    }
+    
+    public static RarcFile getMapArc(String stageName) throws IOException {
+        String folderPath;
+        String mapFileName;
+        if (Whitehole.getCurrentGameType() == 2) {
+            folderPath = "/StageData/" + stageName + "/";
+            mapFileName = stageName + "Map.arc";
+        }
+        else {
+            folderPath = "/StageData/";
+            mapFileName = stageName + ".arc";
+        }
+        FileBase file = Whitehole.getCurrentGameFileSystem().openFile(folderPath + mapFileName);
+        return new RarcFile(file);
+    }
+    
+    public static void deleteOrCreateLayersInMap(String stageName, ArrayList<String> updatedLayers) throws IOException {
+        RarcFile mapArc = getMapArc(stageName);
+        deleteOrCreateLayersInMap(mapArc, updatedLayers, Whitehole.getCurrentGameType(), true);
+    }
+    
+    /**
+     * Deletes layers that are present in the arc but not in layers. Creates layers that aren't present in the arc but are in layers.
+     * @param arc The arc file to check and modify.
+     * @param updatedLayers Which layers should be in the arc.
+     * @param gameType Game Type. 1 = SMG1, 2 = SMG2.
+     * @param save Whether to save and close or not.
+     */
+    public static void deleteOrCreateLayersInMap(RarcFile arc, ArrayList<String> updatedLayers, int gameType, boolean save) throws IOException {
+        ArrayList<String> existingLayers = getExistingLayers(arc, gameType);
+        for (String layer : ALL_LAYERS) {
+            // Delete a layer
+            if (existingLayers.contains(layer) && !updatedLayers.contains(layer)) {
+                StageHelper.deleteLayerInMap(arc, layer, gameType);
+            }
+            // Create a layer
+            if (!existingLayers.contains(layer) && updatedLayers.contains(layer)) {
+                StageHelper.createLayerInMap(arc, layer, gameType);
+            }
+        }
+        
+        if (save) {
+            arc.save();
+            arc.close();
+        }
+    }
+    
+    /**
+     * Checks if ANY part of the layer exists in an arc.
+     * @param arc
+     * @param layer
+     * @param gameType
+     * @return true if ANY part of the layer exists.
+     */
+    public static boolean existsLayer(RarcFile arc, String layer, int gameType) {
+        for (Object[] stageMapJmpFileValues : STAGE_MAP_JMP_FILES) {
+            if ((int)stageMapJmpFileValues[2] == 0 || (int)stageMapJmpFileValues[2] == gameType) {
+                if (StageHelper.existsJMPFolderLayer(arc, (String)stageMapJmpFileValues[0], layer, gameType)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    public static ArrayList<String> getExistingLayers(RarcFile arc, int gameType) {
+        ArrayList<String> existingLayers = new ArrayList<>();
+        for (String layer : ALL_LAYERS) {
+            if (existsLayer(arc, layer, gameType)) {
+                existingLayers.add(layer);
+            }
+        }
+        return existingLayers;
+    }
+    
     public static Bcsv createMapJMapAndSave(RarcFile arc, String folder, String layerKey, String fileToCreate) throws IOException {
+        return createMapJMapAndSave(arc, folder, layerKey, fileToCreate, Whitehole.getCurrentGameType());
+    }
+    
+    public static Bcsv createMapJMapAndSave(RarcFile arc, String folder, String layerKey, String fileToCreate, int gameType) throws IOException {
         try {
-            Bcsv jmap = StageHelper.getOrCreateJMapPlacementFile(arc, folder, layerKey, fileToCreate, Whitehole.getCurrentGameType());
+            Bcsv jmap = StageHelper.getOrCreateJMapPlacementFile(arc, folder, layerKey, fileToCreate, gameType);
             jmap.save();
             return jmap;
         } catch (IOException ex) {
@@ -59,8 +170,12 @@ public class StageHelper {
     }
     
     private static Bcsv createScenarioJMapAndSave(RarcFile arc, String galaxyName, String fileToCreate, ArrayList<String> zones, String originalName) throws IOException {
+        return createScenarioJMapAndSave(arc, galaxyName, fileToCreate, zones, originalName, Whitehole.getCurrentGameType());
+    }
+    
+    private static Bcsv createScenarioJMapAndSave(RarcFile arc, String galaxyName, String fileToCreate, ArrayList<String> zones, String originalName, int gameType) throws IOException {
         try {
-            Bcsv jmap = StageHelper.getOrCreateScenarioFile(arc, galaxyName + "Scenario", fileToCreate, zones, Whitehole.getCurrentGameType(), originalName);
+            Bcsv jmap = StageHelper.getOrCreateScenarioFile(arc, galaxyName + "Scenario", fileToCreate, zones, gameType, originalName);
             jmap.save();
             return jmap;
         } catch (IOException ex) {
@@ -118,7 +233,7 @@ public class StageHelper {
         
         // create layered files
         for (String layer : layers) {
-            createLayer(newArc, layer, Whitehole.getCurrentGameType());
+            StageHelper.createLayerInMap(newArc, layer, Whitehole.getCurrentGameType());
             
             // add spawn point
             if ("Common".equals(layer)) {
@@ -282,6 +397,10 @@ public class StageHelper {
         }
     }
     
+    public static Bcsv getOrCreateJMapPlacementFile(RarcFile archive, String folder, String layer, String file) throws IOException {
+        return getOrCreateJMapPlacementFile(archive, folder, layer, file, Whitehole.getCurrentGameType());
+    }
+    
     public static Bcsv getOrCreateJMapPlacementFile(RarcFile archive, String folder, String layer, String file, int game) throws IOException {
         String basePath = "/Stage/jmp";
         
@@ -311,6 +430,42 @@ public class StageHelper {
         Bcsv bcsv = new Bcsv(archive.openFile(filePath));
         populateJMapFields(bcsv, file.toLowerCase(), game);
         return bcsv;
+    }
+    
+    public static void deleteJMapPlacementLayer(RarcFile archive, String folder, String layer, int game) {
+        String basePath = "/Stage/jmp";
+        
+        if (game == 1) {
+            folder = folder.toLowerCase();
+            layer = layer.toLowerCase();
+            basePath = basePath.toLowerCase();
+        }
+        
+        String folderPath = String.format("%s/%s", basePath, folder);
+        String layerPath = String.format("%s/%s", folderPath, layer);
+        if (layer.isEmpty())
+            layerPath = folderPath;
+        
+        if (archive.directoryExists(layerPath)) {
+            archive.deleteDirectory(folderPath + "/" + layer);
+        }
+    }
+    
+    public static boolean existsJMPFolderLayer(RarcFile archive, String folder, String layer, int game) {
+        String basePath = "/Stage/jmp";
+        
+        if (game == 1) {
+            folder = folder.toLowerCase();
+            layer = layer.toLowerCase();
+            basePath = basePath.toLowerCase();
+        }
+        
+        String folderPath = String.format("%s/%s", basePath, folder);
+        String layerPath = String.format("%s/%s", folderPath, layer);
+        if (layer.isEmpty())
+            layerPath = folderPath;
+        
+        return archive.directoryExists(layerPath);
     }
     
     public static void populateJMapFields(Bcsv bcsv, String type, int game) {
@@ -782,6 +937,70 @@ public class StageHelper {
     /*
         Scenario
     */
+    
+    public static RarcFile getScenarioArc(String stageName) throws IOException {
+        String folderPath = "/StageData/" + stageName + "/";
+        String scenarioFileName = stageName + "Scenario.arc";
+        String rootName = stageName + "Scenario";
+        if (Whitehole.getCurrentGameType() != 2) 
+            rootName = rootName.toLowerCase();
+        FileBase file = Whitehole.getCurrentGameFileSystem().openFile(folderPath + scenarioFileName);
+        RarcFile arc = new RarcFile(file);
+        return arc;
+    }
+    
+    public static void removeLayersInScenario(String stageName, ArrayList<String> updatedLayers) throws IOException {
+        StageHelper.removeLayersInScenario(stageName, getScenarioArc(stageName), updatedLayers, Whitehole.getCurrentGameType(), true);
+    }
+    
+    public static void removeLayersInScenario(String galaxyName, RarcFile scenarioArc, ArrayList<String> updatedLayers, int gameType, boolean save) throws IOException {
+        for (String layer : ALL_LAYERS) {
+            // Delete a layer
+            if (!updatedLayers.contains(layer)) {
+                StageHelper.removeLayerInScenario(galaxyName, scenarioArc, layer, gameType);
+            }
+        }
+        
+        if (save) {
+            scenarioArc.save();
+            scenarioArc.close();
+        }
+    }
+    
+    public static int getLayerIndex(String layerName) {
+        int index = 0;
+        for (String currentLayer : ALL_LAYERS) {
+            if (currentLayer.equalsIgnoreCase(layerName)) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
+    }
+    
+    public static void removeLayerInScenario(String galaxyName, RarcFile arc, String layer) throws IOException {
+        removeLayerInScenario(galaxyName, arc, getLayerIndex(layer), Whitehole.getCurrentGameType());
+    }
+    
+    public static void removeLayerInScenario(String galaxyName, RarcFile arc, String layer, int gameType) throws IOException {
+        removeLayerInScenario(galaxyName, arc, getLayerIndex(layer), gameType);
+    }
+    
+    public static void removeLayerInScenario(String galaxyName, RarcFile arc, int layerIndex, int gameType) throws IOException {
+        int layer = layerIndex - 1;
+        if (layer < 0)
+            return;
+        Bcsv jmap = StageHelper.getOrCreateScenarioFile(arc, galaxyName + "Scenario", "ScenarioData", null, gameType, null);
+        for (Bcsv.Entry ent : jmap.entries) {
+            int layerInt = ent.getInt(galaxyName, 0);
+            if ((layerInt & (1<<layer)) >= 1) {
+                layerInt &= ~(1<<layer);
+                ent.put(galaxyName, layerInt);
+            }
+            
+        }
+        jmap.save();
+    }
     
     public static Bcsv getOrCreateScenarioFile(RarcFile archive, String rootName, String file, ArrayList<String> zones, int game, String originalName) throws IOException {
         String basePath = "/" + rootName;
