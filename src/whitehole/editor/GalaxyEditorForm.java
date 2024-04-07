@@ -4567,6 +4567,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
                 selectionChanged();
                 glCanvas.repaint();
+                unsavedChanges = true;
             }
             // Undo event -- Ctrl+Z
             else if (keyCode == KeyEvent.VK_Z && e.isControlDown()) {
