@@ -16,6 +16,7 @@
  */
 package whitehole;
 
+import java.awt.Component;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
@@ -105,6 +106,7 @@ public final class MainFrame extends javax.swing.JFrame {
         btnBcsvEditor.setEnabled(false);
         btnCreateGalaxy.setEnabled(false);
         btnGalaxyProperties.setEnabled(false);
+        lbStatusBar.setText("");
         
         // Reload databases if previous selected game overwrote them
         if (Whitehole.GAME != null) {
@@ -132,6 +134,7 @@ public final class MainFrame extends javax.swing.JFrame {
         catch (IOException ex) {
             System.err.println("Failed to open game directory!");
             System.err.println(ex);
+            setInfo("Failed to Open Directory", "Failed to open saved game directory.", "See console output for details.", true);
             lbStatusBar.setText("Failed to open saved game directory. See console output for details.");
             return;
         }
@@ -144,8 +147,13 @@ public final class MainFrame extends javax.swing.JFrame {
         
         if (Whitehole.getCurrentGameType() == 0) {
             lbStatusBar.setText("Selected directory isn't an SMG1/2 workspace.");
+            setInfo("Invalid Directory", 
+                    "The current directory isn't an SMG1/2 workspace. Valid workspaces contain a \"StageData\" folder,",
+                    "typically located in the \"data/files\" folder of your extracted game files.", true);
+            tabLists.setSelectedIndex(2);
             return;
         }
+        
         
         List<String> galaxies = Whitehole.GAME.getGalaxyList();
         List<String> zones = Whitehole.GAME.getZoneList();
@@ -168,6 +176,10 @@ public final class MainFrame extends javax.swing.JFrame {
         
         btnBcsvEditor.setEnabled(true);
         lbStatusBar.setText("Successfully opened the game directory!");
+        setInfo("Game Directory Selected", "Open a galaxy/zone by going to its respective tab and, with it selected,", 
+                "double clicking on it, pressing enter, or clicking 'Open Galaxy'.", false);
+        if (tabLists.getSelectedIndex() == 2)
+            tabLists.setSelectedIndex(0);
         btnCreateGalaxy.setEnabled(true);
     }
     
@@ -195,6 +207,34 @@ public final class MainFrame extends javax.swing.JFrame {
             }
             listZone.updateUI();
         });
+    }
+    
+    private void setInfo(String mainTitle, String line1, String line2, boolean showButton) {
+        lblMainTitle.setText(mainTitle);
+        lblDesc1.setText(line1);
+        lblDesc2.setText(line2);
+        btnBigSelectGameFolder.setVisible(showButton);
+    }
+    
+    private void openGame() {
+        if (checkGalaxyEditorOpen() || checkZoneEditorOpen() || checkBcsvEditorOpen())
+        {
+            //Cannot change workspaces with a galaxy open
+            return;
+        }
+        
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Open an SMG1/2 Directory");
+        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        
+        String lastGameDir = Settings.getLastGameDir();
+        if (lastGameDir != null) {
+            fc.setSelectedFile(new File(lastGameDir));
+        }
+        
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            openGameDir(fc.getSelectedFile().getPath());
+        }
     }
     
     public void openGalaxy() {
@@ -301,6 +341,7 @@ public final class MainFrame extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
         toolbar = new javax.swing.JToolBar();
         btnOpenGame = new javax.swing.JButton();
@@ -322,6 +363,11 @@ public final class MainFrame extends javax.swing.JFrame {
         listGalaxy = new javax.swing.JList();
         scrZone = new javax.swing.JScrollPane();
         listZone = new javax.swing.JList();
+        pnlInfo = new javax.swing.JPanel();
+        lblMainTitle = new javax.swing.JLabel();
+        lblDesc1 = new javax.swing.JLabel();
+        lblDesc2 = new javax.swing.JLabel();
+        btnBigSelectGameFolder = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle(Whitehole.NAME);
@@ -490,6 +536,55 @@ public final class MainFrame extends javax.swing.JFrame {
 
         tabLists.addTab("Zones", scrZone);
 
+        pnlInfo.setMinimumSize(new java.awt.Dimension(258, 130));
+        pnlInfo.setPreferredSize(new java.awt.Dimension(258, 130));
+        pnlInfo.setLayout(new java.awt.GridBagLayout());
+
+        lblMainTitle.setFont(new java.awt.Font("Segoe UI", 0, 36)); // NOI18N
+        lblMainTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblMainTitle.setText("No Directory Selected");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.BELOW_BASELINE;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        pnlInfo.add(lblMainTitle, gridBagConstraints);
+
+        lblDesc1.setText("Please select an SMG1/2 workspace containing \"StageData\", ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.weightx = 0.5;
+        pnlInfo.add(lblDesc1, gridBagConstraints);
+
+        lblDesc2.setText("typically located in the \"data/files\" folder of your extracted game files.");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.BASELINE;
+        gridBagConstraints.weighty = 0.5;
+        pnlInfo.add(lblDesc2, gridBagConstraints);
+
+        btnBigSelectGameFolder.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        btnBigSelectGameFolder.setText("Select Game Folder");
+        btnBigSelectGameFolder.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        btnBigSelectGameFolder.setFocusable(false);
+        btnBigSelectGameFolder.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnBigSelectGameFolder.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnBigSelectGameFolder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBigSelectGameFolderActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.weighty = 1.0;
+        pnlInfo.add(btnBigSelectGameFolder, gridBagConstraints);
+
+        tabLists.addTab("Status", pnlInfo);
+
+        tabLists.setSelectedIndex(0);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -519,29 +614,12 @@ public final class MainFrame extends javax.swing.JFrame {
             openGameDir(openWithDirectory);
         else if (lastGameDir != null)
             openGameDir(lastGameDir);
-        
-        lbStatusBar.setText("Started!");
+        else
+            tabLists.setSelectedIndex(2);
     }//GEN-LAST:event_formWindowOpened
 	
     private void btnOpenGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenGameActionPerformed
-        if (checkGalaxyEditorOpen() || checkZoneEditorOpen() || checkBcsvEditorOpen())
-        {
-            //Cannot change workspaces with a galaxy open
-            return;
-        }
-        
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Open a SMG1/2 Directory");
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        
-        String lastGameDir = Settings.getLastGameDir();
-        if (lastGameDir != null) {
-            fc.setSelectedFile(new File(lastGameDir));
-        }
-        
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            openGameDir(fc.getSelectedFile().getPath());
-        }
+        openGame();
     }//GEN-LAST:event_btnOpenGameActionPerformed
 
     private void btnOpenGalaxyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenGalaxyActionPerformed
@@ -650,21 +728,34 @@ public final class MainFrame extends javax.swing.JFrame {
 
     private void tabListsStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_tabListsStateChanged
         int tab = tabLists.getSelectedIndex();
-        if (tab == 0) {
-            boolean isEnabled = listGalaxy.getSelectedIndex() >= 0;
-            btnOpenGalaxy.setEnabled(isEnabled);
-            btnOpenGalaxy.setText("Open Galaxy");
-            btnCreateGalaxy.setText("Create Galaxy");
-            btnGalaxyProperties.setEnabled(isEnabled);
-            btnGalaxyProperties.setText("Galaxy Properties");
-        }
-        else if (tab == 1) {
-            boolean isEnabled = listZone.getSelectedIndex() >= 0;
-            btnOpenGalaxy.setEnabled(isEnabled);
-            btnOpenGalaxy.setText("Open Zone");
-            btnCreateGalaxy.setText("Create Zone");
-            btnGalaxyProperties.setEnabled(isEnabled);
-            btnGalaxyProperties.setText("Zone Properties");
+        switch (tab) {
+            case 0:
+                {
+                    boolean isEnabled = listGalaxy.getSelectedIndex() >= 0;
+                    btnOpenGalaxy.setEnabled(isEnabled);
+                    btnOpenGalaxy.setText("Open Galaxy");
+                    btnCreateGalaxy.setText("Create Galaxy");
+                    btnGalaxyProperties.setEnabled(isEnabled);
+                    btnGalaxyProperties.setText("Galaxy Properties");
+                    btnCreateGalaxy.setEnabled(Whitehole.getCurrentGameType() != 0);
+                    break;
+                }
+            case 1:
+                {
+                    boolean isEnabled = listZone.getSelectedIndex() >= 0;
+                    btnOpenGalaxy.setEnabled(isEnabled);
+                    btnOpenGalaxy.setText("Open Zone");
+                    btnCreateGalaxy.setText("Create Zone");
+                    btnGalaxyProperties.setEnabled(isEnabled);
+                    btnGalaxyProperties.setText("Zone Properties");
+                    btnCreateGalaxy.setEnabled(Whitehole.getCurrentGameType() != 0);
+                    break;
+                }
+            default:
+                btnOpenGalaxy.setEnabled(false);
+                btnGalaxyProperties.setEnabled(false);
+                btnCreateGalaxy.setEnabled(false);
+                break;
         }
     }//GEN-LAST:event_tabListsStateChanged
 
@@ -686,10 +777,15 @@ public final class MainFrame extends javax.swing.JFrame {
         GalaxyPropertiesForm propertiesForm = new GalaxyPropertiesForm(isGalaxyMode, idName);
         propertiesForm.setVisible(true);
     }//GEN-LAST:event_btnGalaxyPropertiesActionPerformed
+
+    private void btnBigSelectGameFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBigSelectGameFolderActionPerformed
+        openGame();
+    }//GEN-LAST:event_btnBigSelectGameFolderActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAbout;
     private javax.swing.JButton btnBcsvEditor;
+    private javax.swing.JButton btnBigSelectGameFolder;
     private javax.swing.JButton btnCreateGalaxy;
     private javax.swing.JButton btnGalaxyProperties;
     private javax.swing.JButton btnOpenGalaxy;
@@ -702,8 +798,12 @@ public final class MainFrame extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator6;
     private javax.swing.JToolBar.Separator jSeparator7;
     private javax.swing.JLabel lbStatusBar;
+    private javax.swing.JLabel lblDesc1;
+    private javax.swing.JLabel lblDesc2;
+    private javax.swing.JLabel lblMainTitle;
     private javax.swing.JList listGalaxy;
     private javax.swing.JList listZone;
+    private javax.swing.JPanel pnlInfo;
     private javax.swing.JScrollPane scrGalaxy;
     private javax.swing.JScrollPane scrZone;
     private javax.swing.JTabbedPane tabLists;
