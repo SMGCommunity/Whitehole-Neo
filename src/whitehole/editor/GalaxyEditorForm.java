@@ -509,14 +509,24 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         // Populate paths and assign their maxUniqueIDs
         for (PathObj pathObj : arc.paths) {
-            pathObj.uniqueID = maxUniqueID;
-            globalPathList.put(maxUniqueID++, pathObj);
-            
-            for (PathPointObj pointObj : pathObj.getPoints()) {
-                globalObjList.put(maxUniqueID, pointObj);
-                globalPathPointList.put(maxUniqueID, pointObj);
-                pointObj.uniqueID = maxUniqueID;
-                maxUniqueID++;
+            if (isGalaxyMode || isSeparateZoneMode) {
+                pathObj.uniqueID = maxUniqueID;
+                globalPathList.put(maxUniqueID++, pathObj);
+                
+                for (PathPointObj pointObj : pathObj.getPoints()) {
+                    globalObjList.put(maxUniqueID, pointObj);
+                    globalPathPointList.put(maxUniqueID, pointObj);
+                    pointObj.uniqueID = maxUniqueID;
+                    maxUniqueID++;
+                }
+            }
+            else {
+                globalPathList.put(pathObj.uniqueID, pathObj);
+                
+                for (PathPointObj pointObj : pathObj.getPoints()) {
+                    globalObjList.put(pointObj.uniqueID, pointObj);
+                    globalPathPointList.put(pointObj.uniqueID, pointObj);
+                }
             }
         }
     }
