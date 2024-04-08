@@ -1256,10 +1256,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             addRerenderTask("zone:" + obj.stage.stageName);
 
             if(treeNodeList.containsKey(uniqueID)) {
-                DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(uniqueID);
-                objlist.removeNodeFromParent(thenode);
-                treeNodeList.remove(uniqueID);
+                removeFromAllTrees(uniqueID);
             }
         }
         
@@ -1274,11 +1271,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 addRerenderTask("zone:"+obj.path.stage.stageName);
 
                 if(treeNodeList.containsKey(obj.path.uniqueID)) {
-                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                    ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(obj.path.uniqueID);
-                    objlist.removeNodeFromParent(thenode);
-                    treeNodeList.remove(obj.path.uniqueID);
-                    treeNodeList.remove(uniqueID);
+                    removeFromAllTrees(obj.path.uniqueID);
                 }
             }
             else {
@@ -1286,10 +1279,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 addRerenderTask("zone:"+obj.path.stage.stageName);
 
                 if(treeNodeList.containsKey(uniqueID)) {
-                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                    ObjTreeNode thenode =(ObjTreeNode)treeNodeList.get(uniqueID);
-                    objlist.removeNodeFromParent(thenode);
-                    treeNodeList.remove(uniqueID);
+                    removeFromAllTrees(uniqueID);
                 }
             }
             rerenderPathOwners(obj.path);
@@ -1297,6 +1287,27 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         glCanvas.repaint();
         unsavedChanges = true;
+    }
+    
+    private void removeFromAllTrees(int uniqueID) {
+        removeFromForm(this, uniqueID);
+        if (parentForm != null) {
+            removeFromForm(parentForm, uniqueID);
+        } else {
+            for (GalaxyEditorForm zoneEditor : zoneEditors.values()) {
+                removeFromForm(zoneEditor, uniqueID);
+            }
+        }
+    }
+    
+    private void removeFromForm(GalaxyEditorForm form, int uniqueID) {
+        DefaultTreeModel zoneObjList = (DefaultTreeModel)form.treeObjects.getModel();
+        ObjTreeNode childNode = (ObjTreeNode)form.treeNodeList.get(uniqueID);
+        if (childNode != null) {
+            treeNodeList.remove(uniqueID);
+            zoneObjList.removeNodeFromParent(childNode);
+            form.repaint();
+        }
     }
     
     
