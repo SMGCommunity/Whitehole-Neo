@@ -1110,7 +1110,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
             PathObj thepath = new PathObj(destZoneArc, newPathLinkID);
             thepath.uniqueID = maxUniqueID++;
-            globalPathList.put(thepath.uniqueID, thepath);
             destZoneArc.paths.add(thepath);
 
             PathPointObj thepoint = new PathPointObj(thepath, position);
@@ -1118,15 +1117,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             thepoint.uniqueID = maxUniqueID;
             maxUniqueID += 3;
             
-            globalObjList.put(thepoint.uniqueID, thepoint);
-            globalPathPointList.put(thepoint.uniqueID, thepoint);
             thepath.getPoints().add(thepoint);
 
-            ObjListTreeNode newnode = (ObjListTreeNode)objListPathRootNode.addObject(thepath);
-            treeNodeList.put(thepath.uniqueID, newnode);
-
-            newNode = newnode.addObject(thepoint);
-            treeNodeList.put(thepoint.uniqueID, newNode);
+            newNode = addPathPointToAllForms(thepath, thepoint);
 
             addRerenderTask("path:" + thepath.uniqueID);
             addRerenderTask("zone:" + curZone);
@@ -1152,15 +1145,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             newobj = thepoint;
             thepoint.uniqueID = maxUniqueID;
             maxUniqueID += 3;
-            globalObjList.put(thepoint.uniqueID, thepoint);
-            globalPathPointList.put(thepoint.uniqueID, thepoint);
             thepath.getPoints().add(thepoint);
-
-            ObjListTreeNode listnode = objListPathRootNode;
-            listnode =(ObjListTreeNode) listnode.children.get(thepath.uniqueID);
-
-            newNode = listnode.addObject(thepoint);
-            treeNodeList.put(thepoint.uniqueID, newNode);
+            newNode = addPathPointToAllForms(thepath, thepoint);
             
             addRerenderTask("path:" + thepath.uniqueID);
             addRerenderTask("zone:" + thepath.stage.stageName);
@@ -1222,12 +1208,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             // Add entry and node
             newobj.uniqueID = uniqueID;
-            globalObjList.put(uniqueID, newobj);
             destZoneArc.objects.get(destLayer).add(newobj);
             
-            newNode = objListTreeNodes.get(objtype).addObject(newobj);
-            treeNodeList.put(uniqueID, newNode);
-            
+            newNode = addAbstractObjToAllForms(uniqueID, objtype, newobj);
             // Update rendering
             String keyyy = String.format("addobj:%1$d", uniqueID);
             //System.out.println(keyyy);
@@ -1236,7 +1219,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         // Update tree node model and scroll to new node
-        objListModel.reload();
+        for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+            if (form != null)
+                form.objListModel.reload();
+        }
         if (isSelectAfterCreate)
         {
             TreePath path = new TreePath(objListModel.getPathToRoot(newNode));
@@ -1256,22 +1242,28 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             addRerenderTask("zone:" + obj.stage.stageName);
 
             if(treeNodeList.containsKey(uniqueID)) {
-                removeFromAllTrees(uniqueID);
+                removeAbstractObjFromAllForms(uniqueID);
             }
         }
         
         if(globalPathPointList.containsKey(uniqueID)) {
             PathPointObj obj = globalPathPointList.get(uniqueID);
             obj.path.getPoints().remove(obj.getIndex());
-            globalPathPointList.remove(uniqueID);
+            for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+                if (form != null && form.globalPathPointList.containsKey(uniqueID))
+                    form.globalPathPointList.remove(uniqueID);
+            }
             if(obj.path.getPoints().isEmpty()) {
                 obj.path.stage.paths.remove(obj.path);
-                globalPathList.remove(obj.path.uniqueID);
+                for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+                    if (form != null && form.globalPathList.containsKey(uniqueID))
+                        form.globalPathList.remove(uniqueID);
+                }
                 
                 addRerenderTask("zone:"+obj.path.stage.stageName);
 
                 if(treeNodeList.containsKey(obj.path.uniqueID)) {
-                    removeFromAllTrees(obj.path.uniqueID);
+                    removeAbstractObjFromAllForms(obj.path.uniqueID);
                 }
             }
             else {
@@ -1279,7 +1271,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 addRerenderTask("zone:"+obj.path.stage.stageName);
 
                 if(treeNodeList.containsKey(uniqueID)) {
-                    removeFromAllTrees(uniqueID);
+                    removeAbstractObjFromAllForms(uniqueID);
                 }
             }
             rerenderPathOwners(obj.path);
@@ -1288,19 +1280,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         glCanvas.repaint();
         unsavedChanges = true;
     }
+      
+    private ArrayList<GalaxyEditorForm> getAllCurrentZoneForms() {
+        ArrayList<GalaxyEditorForm> forms = new ArrayList<>();
+        forms.add(this);
+        forms.add(parentForm != null ? parentForm : zoneEditors.get(curZone));
+        return forms;
+    }
     
-    private void removeFromAllTrees(int uniqueID) {
-        removeFromForm(this, uniqueID);
-        if (parentForm != null) {
-            removeFromForm(parentForm, uniqueID);
-        } else {
-            for (GalaxyEditorForm zoneEditor : zoneEditors.values()) {
-                removeFromForm(zoneEditor, uniqueID);
-            }
+    private void removeAbstractObjFromAllForms(int uniqueID) {
+        for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+            removeAbstractObjFromForm(form, uniqueID);
         }
     }
     
-    private void removeFromForm(GalaxyEditorForm form, int uniqueID) {
+    private void removeAbstractObjFromForm(GalaxyEditorForm form, int uniqueID) {
+        if (form == null)
+            return;
         DefaultTreeModel zoneObjList = (DefaultTreeModel)form.treeObjects.getModel();
         ObjTreeNode childNode = (ObjTreeNode)form.treeNodeList.get(uniqueID);
         if (childNode != null) {
@@ -1310,6 +1306,55 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
+    private TreeNode addAbstractObjToAllForms(int uniqueID, String objtype, AbstractObj obj) {
+        TreeNode newNode = null;
+        for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+            TreeNode node = addAbstractObjToForm(form, uniqueID, objtype, obj);
+            if (newNode == null)
+                newNode = node;
+        }
+        return newNode;
+    }
+    
+    private TreeNode addAbstractObjToForm(GalaxyEditorForm form, int uniqueID, String objtype, AbstractObj obj) {
+        if (form == null)
+            return null;
+        form.globalObjList.put(uniqueID, obj);
+        TreeNode node = form.objListTreeNodes.get(objtype).addObject(obj);
+        form.treeNodeList.put(uniqueID, node);
+        return node;
+    }
+    
+    private TreeNode addPathPointToAllForms(PathObj thepath, PathPointObj thepoint) {
+        TreeNode newNode = null;
+        for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+            TreeNode node = addPathPointToForm(form, thepath, thepoint);
+            if (newNode == null)
+                newNode = node;
+        }
+        return newNode;
+    }
+    
+    private TreeNode addPathPointToForm(GalaxyEditorForm form, PathObj thepath, PathPointObj thepoint) {
+        if (form == null)
+            return null;
+        form.globalObjList.put(thepoint.uniqueID, thepoint);
+        form.globalPathPointList.put(thepoint.uniqueID, thepoint);
+        
+        ObjListTreeNode listnode = form.objListPathRootNode;
+        listnode =(ObjListTreeNode) listnode.children.get(thepath.uniqueID);
+        
+        // add path if path doesnt exist
+        if (listnode == null) {
+            listnode = (ObjListTreeNode)form.objListPathRootNode.addObject(thepath);
+            form.treeNodeList.put(thepath.uniqueID, listnode);
+            form.globalPathList.put(thepath.uniqueID, thepath);
+        }
+        
+        TreeNode newNode = listnode.addObject(thepoint);
+        form.treeNodeList.put(thepoint.uniqueID, newNode);
+        return newNode;
+    }
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Object positioning
