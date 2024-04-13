@@ -1256,8 +1256,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(obj.path.getPoints().isEmpty()) {
                 obj.path.stage.paths.remove(obj.path);
                 for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
-                    if (form != null && form.globalPathList.containsKey(uniqueID))
-                        form.globalPathList.remove(uniqueID);
+                    if (form != null && form.globalPathList.containsKey(obj.path.uniqueID))
+                        form.globalPathList.remove(obj.path.uniqueID);
                 }
                 
                 addRerenderTask("zone:"+obj.path.stage.stageName);
@@ -1284,7 +1284,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private ArrayList<GalaxyEditorForm> getAllCurrentZoneForms() {
         ArrayList<GalaxyEditorForm> forms = new ArrayList<>();
         forms.add(this);
-        forms.add(parentForm != null ? parentForm : zoneEditors.get(curZone));
+        if (parentForm != null) {
+            forms.add(parentForm);
+        } else if (zoneEditors.get(curZone) != null) {
+            forms.add(zoneEditors.get(curZone));
+        }
         return forms;
     }
     
@@ -2484,12 +2488,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             thepath.pathID = newPathLinkID;
             //thepath.setName(pathName);
             //thepath.data = (Bcsv.Entry)pathData.clone();
-
-            globalPathList.put(thepath.uniqueID, thepath);
+            
             destZoneArc.paths.add(thepath);
+            for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+                form.globalPathList.put(thepath.uniqueID, thepath);
 
-            ObjListTreeNode newnode = (ObjListTreeNode)objListPathRootNode.addObject(thepath);
-            treeNodeList.put(thepath.uniqueID, newnode);
+                ObjListTreeNode newnode = (ObjListTreeNode)form.objListPathRootNode.addObject(thepath);
+                form.treeNodeList.put(thepath.uniqueID, newnode);
+            }
             
             //Path created, lets create the points now
             for(var point : path.pointData)
@@ -2536,7 +2542,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             rerenderPathOwners(thepath);
         }
         endUndoMulti();
-        objListModel.reload();
+        for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+            form.objListModel.reload();
+        }
     }
     
     /**
@@ -2569,16 +2577,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         thepoint.uniqueID = maxUniqueID;
         maxUniqueID += 3;
-        globalObjList.put(thepoint.uniqueID, thepoint);
-        globalPathPointList.put(thepoint.uniqueID, thepoint);
+        for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+            form.globalObjList.put(thepoint.uniqueID, thepoint);
+            form.globalPathPointList.put(thepoint.uniqueID, thepoint);
+        }
         int pointIdx = owner.size();
         owner.getPoints().add(pointIdx, thepoint);
 
-        ObjListTreeNode listnode = objListPathRootNode;
-        listnode =(ObjListTreeNode) listnode.children.get(owner.uniqueID);
-        TreeNode newNode = listnode.addObject(pointIdx, thepoint);
-        treeNodeList.put(thepoint.uniqueID, newNode);
-        
+        for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+            ObjListTreeNode listnode = form.objListPathRootNode;
+            listnode =(ObjListTreeNode) listnode.children.get(owner.uniqueID);
+            TreeNode newNode = listnode.addObject(pointIdx, thepoint);
+            form.treeNodeList.put(thepoint.uniqueID, newNode);
+        }
         //selectedObjs.put(thepoint.uniqueID, thepoint);
         
         newobj = thepoint; //is this really needed...?
@@ -3146,11 +3157,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 thepath.setName(pathName);
                 thepath.data = (Bcsv.Entry)pathData.clone();
                 
-                globalPathList.put(thepath.uniqueID, thepath);
                 destZoneArc.paths.add(thepath);
-                
-                ObjListTreeNode newnode = (ObjListTreeNode)objListPathRootNode.addObject(thepath);
-                treeNodeList.put(thepath.uniqueID, newnode);
+                for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+                    form.globalPathList.put(thepath.uniqueID, thepath);
+                    
+                    ObjListTreeNode newnode = (ObjListTreeNode)form.objListPathRootNode.addObject(thepath);
+                    form.treeNodeList.put(thepath.uniqueID, newnode);
+                }
             }
             else
             {
@@ -3164,20 +3177,26 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             thepoint.data = (Bcsv.Entry)pointData.clone();
             newobj = thepoint;
             thepoint.uniqueID = prevUID;
-            globalObjList.put(thepoint.uniqueID, thepoint);
-            globalPathPointList.put(thepoint.uniqueID, thepoint);
+            for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+                form.globalObjList.put(thepoint.uniqueID, thepoint);
+                form.globalPathPointList.put(thepoint.uniqueID, thepoint);
+            }
             thepath.getPoints().add(pointIdx, thepoint);
 
+            TreeNode newNode = null;
+            for (GalaxyEditorForm form : getAllCurrentZoneForms()) {
+                ObjListTreeNode listnode = form.objListPathRootNode;
+                listnode =(ObjListTreeNode) listnode.children.get(thepath.uniqueID);
+                
+                newNode = listnode.addObject(pointIdx, thepoint);
+                form.treeNodeList.put(thepoint.uniqueID, newNode);
+
+
+                // Update tree node model
+                form.objListModel.reload();
+            }
             
-            ObjListTreeNode listnode = objListPathRootNode;
-            listnode =(ObjListTreeNode) listnode.children.get(thepath.uniqueID);
-
-            TreeNode newNode = listnode.addObject(pointIdx, thepoint);
-            treeNodeList.put(thepoint.uniqueID, newNode);
-
-
-            // Update tree node model and scroll to new node
-            objListModel.reload();
+            // scroll to new node in current form
             TreePath path = new TreePath(objListModel.getPathToRoot(newNode));
             treeObjects.setSelectionPath(path);
             treeObjects.scrollPathToVisible(path);
