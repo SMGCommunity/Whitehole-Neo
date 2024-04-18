@@ -1141,6 +1141,9 @@ public class BmdRenderer extends GLRenderer {
                             int loc = gl.glGetUniformLocation(shaders[node.materialID].program, String.format("texture%1$d", i));
                             gl.glUniform1i(loc, i);
 
+                            if (TextureSelectIndex > textures.length)
+                                TextureSelectIndex = (short)(textures.length-1);
+                            
                             int texid = TextureCache.getTextureID(textures[TextureSelectIndex]);
                             gl.glEnable(GL2.GL_TEXTURE_2D);
                             gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);

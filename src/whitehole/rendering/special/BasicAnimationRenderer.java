@@ -131,19 +131,23 @@ public class BasicAnimationRenderer extends BmdRenderer {
     {
         if (brkData != null && brkData.hasSource())
         {
-            return brkData.isSourceObjArg(arg);
+            if (brkData.isSourceObjArg(arg))
+                return true;
         }
         if (btkData != null && btkData.hasSource())
         {
-            return btkData.isSourceObjArg(arg);
+            if (btkData.isSourceObjArg(arg))
+                return true;
         }
         if (btpData != null && btpData.hasSource())
         {
-            return btpData.isSourceObjArg(arg);
+            if (btpData.isSourceObjArg(arg))
+                return true;
         }
         if (bvaData != null && bvaData.hasSource())
         {
-            return bvaData.isSourceObjArg(arg);
+            if (bvaData.isSourceObjArg(arg))
+                return true;
         }
         return false;
     }
