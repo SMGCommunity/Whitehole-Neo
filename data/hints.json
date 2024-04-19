@@ -1,0 +1,40 @@
+{
+    "Hints": [
+        {
+            "Hint": "Hold Shift on the galaxy/zone list to see internal names of the galaxies/zones.",
+            "Game": 0
+        },
+        {
+            "Hint": "Press Ctrl + N with an object selected to truncate its XYZ position.",
+            "Game": 0
+        },
+        {
+            "Hint": "In the BCSV Editor, the currently selected column and row number is in the top right.",
+            "Game": 0
+        },
+        {
+            "Hint": "Is an object in the way? Press H with it selected to toggle its visibility. Alt + H will unhide all objects.",
+            "Game": 0
+        },
+        {
+            "Hint": "Press Shift + A to pull up the add menu where your cursor is.",
+            "Game": 0
+        },
+        {
+            "Hint": "Press Space to jump to the selected object in the level view.",
+            "Game": 0
+        },
+        {
+            "Hint": "Press Ctrl + C or the copy button to copy the selected object/path. This is put on the clipboard.",
+            "Game": 0
+        },
+        {
+            "Hint": "Press Ctrl + V or the paste button to paste the copied object/path. This can be pasted between levels or sessions!",
+            "Game": 0
+        },
+        {
+            "Hint": "Don't forget to save by pressing Ctrl + S.",
+            "Game": 0
+        }
+    ]
+}

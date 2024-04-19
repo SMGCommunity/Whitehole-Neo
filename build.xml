@@ -9,6 +9,7 @@
         <copy file="data/zones.json" todir="${dist.dir}/data"/>
         <copy file="data/modelsubstitutions.json" todir="${dist.dir}/data"/>
         <copy file="data/specialrenderers.json" todir="${dist.dir}/data"/>
+        <copy file="data/hints.json" todir="${dist.dir}/data"/>
         <copy file="data/shortcuts.json" todir="${dist.dir}/data"/>
         <copy todir="${dist.dir}/data/templates">
             <fileset dir="data/templates"/>

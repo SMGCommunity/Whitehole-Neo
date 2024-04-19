@@ -175,7 +175,7 @@ public final class MainFrame extends javax.swing.JFrame {
         zoneItems.addAll(listZoneItems);
         
         btnBcsvEditor.setEnabled(true);
-        lbStatusBar.setText("Successfully opened the game directory!");
+        lbStatusBar.setText(Whitehole.Hints.getRandomApplicableHint());
         setInfo("Game Directory Selected", "Open a galaxy/zone by going to its respective tab and, with it selected,", 
                 "double clicking on it, pressing enter, or clicking 'Open Galaxy'.", false);
         if (tabLists.getSelectedIndex() == 2)
@@ -583,22 +583,23 @@ public final class MainFrame extends javax.swing.JFrame {
 
         tabLists.addTab("Status", pnlInfo);
 
-        tabLists.setSelectedIndex(0);
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
-            .addComponent(lbStatusBar)
             .addComponent(tabLists, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(lbStatusBar)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(toolbar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tabLists, javax.swing.GroupLayout.DEFAULT_SIZE, 439, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
+                .addComponent(tabLists, javax.swing.GroupLayout.DEFAULT_SIZE, 445, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lbStatusBar, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
         );

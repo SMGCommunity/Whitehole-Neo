@@ -40,6 +40,7 @@ public class GameArchive {
     private boolean hasOverwriteObjectDatabase;
     private boolean hasOverwriteGalaxyNames;
     private boolean hasOverwriteZoneNames;
+    private boolean hasOverwriteHints;
     private boolean hasOverwriteSpecialRenderer;
     
     public GameArchive(FilesystemBase fs) {
@@ -101,6 +102,7 @@ public class GameArchive {
             hasOverwriteObjectDatabase = ObjectDB.tryOverwriteWithProjectDatabase((ExternalFilesystem)filesystem);
             hasOverwriteGalaxyNames = Whitehole.GalaxyNames.initProject((ExternalFilesystem)filesystem);
             hasOverwriteZoneNames = Whitehole.ZoneNames.initProject((ExternalFilesystem)filesystem);
+            hasOverwriteHints = Whitehole.Hints.initProject((ExternalFilesystem)filesystem);
             hasOverwriteSpecialRenderer = Whitehole.SpecialRenderers.initProject((ExternalFilesystem)filesystem);
         }
     }

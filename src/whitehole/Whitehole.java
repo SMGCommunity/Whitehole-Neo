@@ -44,6 +44,7 @@ public class Whitehole {
     public static final GalaxyNames GalaxyNames = new GalaxyNames();
     public static final ZoneNames ZoneNames = new ZoneNames();
     public static final SpecialRenderers SpecialRenderers = new SpecialRenderers();
+    public static final Hints Hints = new Hints();
     
     public static void main(String[] args) throws IOException {
         decideIconSize();
@@ -74,6 +75,7 @@ public class Whitehole {
         FieldHashes.init();
         GalaxyNames.initBaseGame();
         ZoneNames.initBaseGame();
+        Hints.initBaseGame();
         ObjectDB.init(true);
         ModelSubstitutions.init();
         SpecialRenderers.initBaseGame(); //Must come after the Object Database and ModelSubstitutions
