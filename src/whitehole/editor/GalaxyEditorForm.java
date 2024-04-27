@@ -1205,6 +1205,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             if(uniqueID > maxUniqueID) {
                 maxUniqueID = uniqueID;
             }
+
+            // Set object ID automatically
+            int targetID = 0;
+            while (getExistingObjIDs(objtype).contains(targetID)) targetID++;
+            newobj.data.put("l_id", targetID);
             
             // Add entry and node
             newobj.uniqueID = uniqueID;
@@ -1231,6 +1236,60 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         glCanvas.repaint();
         unsavedChanges = true;
+    }
+
+    List<Integer> getExistingObjIDs(String objType) {
+        List<String> activeLayers = new ArrayList<>();
+        activeLayers.add("common");
+
+        int zoneLayerMask = curScenario != null ? curScenario.getInt(curZone) : zoneModeLayerBitmask;
+        for (int i = 0; i < 16; i++) {
+            if ((zoneLayerMask & (1 << i)) != 0) {
+                String layer = "Layer" + ((char) ('A' + i));
+                activeLayers.add(layer.toLowerCase());
+            }
+        }
+
+        List<String> layers = curZoneArc.getLayerNames();
+        List<Integer> existingIDs = new ArrayList<>();
+
+        for (String layer : layers) {
+            if (!activeLayers.contains(layer.toLowerCase()))
+                continue;
+
+            List<AbstractObj> objects = new ArrayList<>();
+            List<AbstractObj> zoneObjects = curZoneArc.objects.get(layer.toLowerCase());
+
+            LinkedHashMap<Integer, ObjTreeNode> objList = new LinkedHashMap<>(objListTreeNodes.get(objType).children);
+
+            // If object type is MapPartsObj, also add General objects (as per rule of Nintendo I suppose)
+            if (objType.equals("mappartsinfo")) {
+                objList.putAll(objListTreeNodes.get("objinfo").children);
+            }
+            // If object type is General, also add MapParts objects (as per rule of Nintendo I suppose)
+            if (objType.equals("objinfo")) {
+                objList.putAll(objListTreeNodes.get("mappartsinfo").children);
+            }
+
+            for (ObjTreeNode node : objList.values()) {
+                AbstractObj obj = (AbstractObj) node.object;
+                if (zoneObjects.contains(obj))
+                    objects.add(obj);
+            }
+
+            for (AbstractObj obj : objects) {
+                int id = obj.data.getInt("l_id");
+
+                if (existingIDs.contains(id))
+                    continue;
+
+                existingIDs.add(id);
+            }
+        }
+
+        existingIDs.sort(Integer::compareTo);
+
+        return existingIDs;
     }
     
     private void deleteObject(int uniqueID) {
