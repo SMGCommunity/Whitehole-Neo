@@ -98,6 +98,79 @@
 					"RequiredFile": "SMG2"
 				},
 				{
+					"Type": "Shortcut",
+					"DefaultName": "DesignAreaObjInfo",
+					"RequiredFile": "SMG2",
+					"DefaultArchivePath": "/StageData/%s/%sDesign.arc",
+					"DefaultBcsvPath": "/Stage/jmp/Placement/%s/AreaObjInfo",
+					"Variables": [
+						{
+							"VariableName": "StageName",
+							"VariableGetMessage": "Enter the stage's file name:",
+							"VariableListType": "StageName"
+						},
+						{
+							"VariableName": "StageName",
+							"RequiredFile": "SMG2"
+						},
+						{
+							"VariableName": "Layer",
+							"VariableGetMessage": "Enter the layer (ex. 'LayerP' NOT 'P'):"
+						}
+					],
+					"DefaultTooltip": "Contains all design-related areas, such as Light Control Areas."
+				},
+				{
+					"Type": "Shortcut",
+					"DefaultName": "SoundAreaObjInfo",
+					"RequiredFile": "SMG2",
+					"DefaultArchivePath": "/StageData/%s/%sSound.arc",
+					"DefaultBcsvPath": "/Stage/jmp/Placement/%s/AreaObjInfo",
+					"Variables": [
+						{
+							"VariableName": "StageName",
+							"VariableGetMessage": "Enter the stage's file name:",
+							"VariableListType": "StageName"
+						},
+						{
+							"VariableName": "StageName",
+							"RequiredFile": "SMG2"
+						},
+						{
+							"VariableName": "Layer",
+							"VariableGetMessage": "Enter the layer (ex. 'LayerP' NOT 'P'):"
+						}
+					],
+					"DefaultTooltip": "Contains all sound-related areas, such as Background Music Change Areas or Play Sound Areas."
+				},
+				{
+					"Type": "Shortcut",
+					"DefaultName": "SoundObjInfo",
+					"RequiredFile": "SMG2",
+					"DefaultArchivePath": "/StageData/%s/%sSound.arc",
+					"DefaultBcsvPath": "/Stage/jmp/Placement/%s/ObjInfo",
+					"Variables": [
+						{
+							"VariableName": "StageName",
+							"VariableGetMessage": "Enter the stage's file name:",
+							"VariableListType": "StageName"
+						},
+						{
+							"VariableName": "StageName",
+							"RequiredFile": "SMG2"
+						},
+						{
+							"VariableName": "Layer",
+							"VariableGetMessage": "Enter the layer (ex. 'LayerP' NOT 'P'):"
+						}
+					],
+					"DefaultTooltip": "Contains all sound-related objects, excluding areas."
+				},
+				{
+					"Type": "Separator",
+					"RequiredFile": "SMG2"
+				},
+				{
 					"Type": "Menu",
 					"DefaultName": "ZoneInfo",
 					"RequiredFile": "SMG2",

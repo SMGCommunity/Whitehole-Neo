@@ -49,9 +49,9 @@ public class CameraObj extends AbstractObj {
         putVector("scale", scale);
         
         data.put("l_id", 0);
-        data.put("Obj_arg0", -1);
+        data.put("Obj_arg0", 0);
         data.put("Obj_arg1", -1);
-        data.put("Obj_arg2", -1);
+        data.put("Obj_arg2", 0);
         data.put("Obj_arg3", -1);
         data.put("SW_APPEAR", -1);
         data.put("SW_A",  -1);

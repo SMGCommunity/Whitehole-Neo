@@ -75,7 +75,7 @@ public class AreaObj extends AbstractObj {
         else {
             data.put("SW_AWAKE", -1);
             data.put("AreaShapeNo", (short)0);
-            data.put("Priority", 0);
+            data.put("Priority", -1);
         }
         
         data.put("CommonPath_ID", (short)-1);

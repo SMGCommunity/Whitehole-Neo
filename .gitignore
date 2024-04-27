@@ -2,3 +2,7 @@
 /dist
 /nbproject/private/
 data/objectdb.json
+
+.idea
+*.iml
+src/META-INF/MANIFEST.MF
