@@ -4804,6 +4804,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Misc Utility
+
+    // Generates an unused value for a field.
+    public int generateValue() {
+        if (selectedObjs.isEmpty()) return 0;
+
+        List<AbstractObj> objects = selectedObjs.values().stream().toList();
+        String objType = objects.get(0).getFileType();
+
+        return generateID(objType);
+    }
     
     // Gets an unused switch id for the current zone.
     public int getValidSwitchInZone() {

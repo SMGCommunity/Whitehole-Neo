@@ -325,6 +325,10 @@ public final class MainFrame extends javax.swing.JFrame {
         
         ObjectSelectForm.requestUpdateLAF();
     }
+
+    public int generateValue() {
+        return galaxyEditor != null ? galaxyEditor.generateValue() : 0;
+    }
     
     public int getValidSwitchInGalaxyEditor() {
         return galaxyEditor != null ? galaxyEditor.getValidSwitchInGalaxy() : -1;

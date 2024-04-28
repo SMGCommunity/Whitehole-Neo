@@ -510,15 +510,27 @@ public class PropertyGrid extends JTable {
     }
     
     public class TextCellEditor extends AbstractCellEditor implements TableCellEditor {
+        JPanel mainPanel;
+        JPanel buttonPanel;
         JTextField textfield;
+        FlowLayout flowLayout;
+        javax.swing.JButton generateValButton;
         Field field;
         boolean isInt;
 
         public TextCellEditor(Field f) {
             field = f;
             isInt = f.type.equals("int");
-            
+
+            // Create panel to hold layout
+            mainPanel = new JPanel();
+
+            // Set the layout manager for the panel
+            mainPanel.setLayout(new BorderLayout());
+
+            // Create text field and set its width
             textfield = new JTextField(f.value.toString());
+            textfield.setPreferredSize(new Dimension(300, 20));
             textfield.addKeyListener(new KeyListener() {
                 @Override
                 public void keyPressed(KeyEvent evt) {}
@@ -540,6 +552,48 @@ public class PropertyGrid extends JTable {
                 }
             });
             textfield.requestFocusInWindow();
+
+            // Add buttons and set their size
+            generateValButton = new javax.swing.JButton("V");
+            generateValButton.setPreferredSize(new Dimension(22, 19));
+
+            // Add action listeners for the buttons
+            generateValButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent evt) {
+                    // Get a valid zone-exclusive switch
+                    Object val = Whitehole.generateValue();
+
+                    if (!val.equals(-1)) { // only replace the value if it's valid
+                        textfield.setText(String.valueOf(val));
+
+                        // Set the field's value to the int and put this into the stage data
+                        field.value = val;
+                        eventListener.propertyChanged(field.name, val);
+                    } else {
+                        JOptionPane.showMessageDialog(mainPanel, "Couldn't generate value for field.");
+                    }
+                }
+            });
+
+            // Make a new panel for the buttons
+            buttonPanel = new JPanel();
+
+            // Set the layout manager for the button panel
+            flowLayout = new FlowLayout();
+            flowLayout.setAlignment(FlowLayout.CENTER);
+            flowLayout.setHgap(0);
+            flowLayout.setVgap(0);
+            buttonPanel.setLayout(flowLayout);
+
+            // Add the buttons to their panel
+            if (field.name.equals("l_id") || field.name.equals("MarioNo")) {
+                buttonPanel.add(generateValButton, BorderLayout.EAST);
+            }
+
+            // Add them all to the main panel
+            mainPanel.add(textfield, BorderLayout.CENTER);
+            mainPanel.add(buttonPanel, BorderLayout.EAST);
         }
 
         @Override
@@ -551,7 +605,7 @@ public class PropertyGrid extends JTable {
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) {
             if (value == null) value = isInt ? "0" : "<multiple>";
             textfield.setText(value.toString());
-            return textfield;
+            return mainPanel;
         }
     }
     
@@ -682,7 +736,7 @@ public class PropertyGrid extends JTable {
         }
     }
     
-        public class SwitchCellEditor extends AbstractCellEditor implements TableCellEditor {
+    public class SwitchCellEditor extends AbstractCellEditor implements TableCellEditor {
         JPanel mainPanel;
         JPanel buttonPanel;
         JTextField textfield;
