@@ -233,7 +233,7 @@ public class StageUtil {
         Object v = object.data.get(propName);
         boolean isError = false;
         if (v instanceof Number)
-            isError = !SwitchUtil.isValidSwitchId(((Number)v).intValue());
+            isError = !StageObjUtil.isValidSwitchId(((Number)v).intValue());
         if (!isError)
             return null;
         return "Switch ID \""+v.toString()+"\" is not valid for \""+propName+"\".";

@@ -36,7 +36,7 @@ import whitehole.smg.object.PositionObj;
 import whitehole.smg.object.SoundObj;
 import whitehole.smg.object.StageObj;
 import whitehole.smg.object.StartObj;
-import whitehole.util.SwitchUtil;
+import whitehole.util.StageObjUtil;
 
 public class StageArchive {
     // IO stuff
@@ -317,32 +317,67 @@ public class StageArchive {
         bcsv.save();
         bcsv.close();
     }
-    
-    // Returns a hash set of all switch IDs used in this zone.
-    public Set<Integer> getUniqueSwitchesInZone() {
+
+    public Set<Integer> getUniqueFieldValuesInZone(Collection<String> layers, Collection<String> fields, Collection<String> objTypes) {
         // Using a hash set because it does not allow for duplicates
-        Set<Integer> set = new HashSet<>(); 
-        
-        String[] switchFieldList = {"SW_APPEAR", "SW_DEAD", "SW_A", "SW_B", "SW_AWAKE", "SW_PARAM", "SW_SLEEP"};
-        
-        // Grab the SwitchID for all objects
-        for (List<AbstractObj> layers : objects.values()) {
-            for (AbstractObj obj : layers) {
-                for (String field : switchFieldList) {
-                    int switchId = obj.data.getInt(field, -1);
-                    
-                    // Add each switch ID seen to a hash set
-                    if (switchId!=-1) {
-                        set.add(switchId);
+        Set<Integer> set = new HashSet<>();
+
+        for (String layer : layers) {
+            List<AbstractObj> objects = this.objects.get(layer);
+            if (objects == null) {
+                continue;
+            }
+
+            for (AbstractObj obj : objects) {
+                if (objTypes != null && !objTypes.isEmpty()) {
+                    boolean found = false;
+
+                    for (String objType : objTypes) {
+                        if (objType.equals(obj.getFileType())) {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                        continue;
+                    }
+                }
+
+                for (String field : fields) {
+                    int value = obj.data.getInt(field, -1);
+                    if (value != -1) {
+                        set.add(value);
                     }
                 }
             }
         }
-        
+
         return set;
+    }
+
+    // Returns a hash set of all link IDs used in this zone.
+    public Set<Integer> getUniqueLinkIDsInZone(Collection<String> layers, Collection<String> objTypes) {
+        Collection<String> linkFieldList = List.of("l_id");
+
+        return getUniqueFieldValuesInZone(layers, linkFieldList, objTypes);
+    }
+
+    // Returns a hash set of all Mario No's used in this zone.
+    public Set<Integer> getUniqueMarioNosInZone(Collection<String> layers) {
+        Collection<String> linkFieldList = List.of("MarioNo");
+
+        return getUniqueFieldValuesInZone(layers, linkFieldList, List.of("startinfo"));
+    }
+
+    // Returns a hash set of all switch IDs used in this zone.
+    public Set<Integer> getUniqueSwitchesInZone() {
+        Collection<String> switchFieldList = List.of("SW_APPEAR", "SW_DEAD", "SW_A", "SW_B", "SW_AWAKE", "SW_PARAM", "SW_SLEEP");
+
+        return getUniqueFieldValuesInZone(objects.keySet(), switchFieldList, null);
     }
     
     public int getValidSwitchInZone() {
-        return SwitchUtil.generateUniqueSwitchID(getUniqueSwitchesInZone(), false);
+        return StageObjUtil.generateUniqueSwitchID(getUniqueSwitchesInZone(), false);
     }
 }
