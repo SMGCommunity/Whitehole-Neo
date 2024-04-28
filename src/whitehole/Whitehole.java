@@ -200,6 +200,10 @@ public class Whitehole {
     public static String createResourceArcPath(String objModelName) {
         return GAME != null ? GAME.createResourceArcPath(objModelName) : null;
     }
+
+    public static int generateValue() {
+        return MAIN_FRAME != null ? MAIN_FRAME.generateValue() : 0;
+    }
     
     public static int getValidSwitchInGalaxy() {
         return MAIN_FRAME != null ? MAIN_FRAME.getValidSwitchInGalaxyEditor() : -1;
