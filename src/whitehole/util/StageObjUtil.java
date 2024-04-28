@@ -16,14 +16,12 @@
  */
 package whitehole.util;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 import whitehole.smg.StageArchive;
 import whitehole.smg.object.AbstractObj;
 
-public class SwitchUtil {
+public class StageObjUtil {
     /**
      * The max amount of switches that can be in a category (Zone of Galaxy)
      */
@@ -44,7 +42,41 @@ public class SwitchUtil {
      * The max amount of Switch IDs that can be shared in a Galaxy. (Shared between all zones)
      */
     public static final int MAX_GALAXY_SWITCH = MIN_GALAXY_SWITCH + MAX_SWITCH_NUM;
-    
+
+    /**
+     * Generate a link ID based on a set of used link IDs.
+     * @param zoneArc The zone archive.
+     * @param layers The layers to search existing link IDs in.
+     * @param objTypes The types of object to use as existing link IDs.
+     * @return 0 if no valid link ID was found.
+     */
+    public static int generateUniqueLinkID(StageArchive zoneArc, Collection<String> layers, Collection<String> objTypes) {
+        int linkID = 0;
+
+        Set<Integer> existingIDs = zoneArc.getUniqueLinkIDsInZone(layers, objTypes);
+        while (existingIDs.contains(linkID)) {
+            linkID++;
+        }
+
+        return linkID;
+    }
+
+    /**
+     * Generate a Mario No based on a set of used Mario No's.
+     * @param zoneArc The zone archive.
+     * @param layers The layers to search existing Mario No's in.
+     * @return 0 if no valid Mario No was found.
+     */
+    public static int generateUniqueMarioNo(StageArchive zoneArc, Collection<String> layers) {
+        int marioNo = 0;
+
+        Set<Integer> existingNumbers = zoneArc.getUniqueMarioNosInZone(layers);
+        while (existingNumbers.contains(marioNo)) {
+            marioNo++;
+        }
+
+        return marioNo;
+    }
     
     /**
      * Checks to see if the provided switch is a valid switch
@@ -67,7 +99,7 @@ public class SwitchUtil {
         }
         
         // Generate a switch ID based on this list.
-        int returnSwitchID = SwitchUtil.generateUniqueSwitchID(list, true);
+        int returnSwitchID = StageObjUtil.generateUniqueSwitchID(list, true);
         
         return returnSwitchID;
     }
