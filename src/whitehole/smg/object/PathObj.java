@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import whitehole.Whitehole;
 import whitehole.rendering.CubeRenderer;
 import whitehole.rendering.GLRenderer;
 import whitehole.smg.Bcsv;
@@ -173,6 +174,9 @@ public class PathObj {
         data.put("num_pnt", points.size());
         
         String filePath = String.format("/Stage/jmp/Path/CommonPathPointInfo.%d", index);
+        
+        if (Whitehole.getCurrentGameType() == 1)
+            filePath = filePath.toLowerCase();
         
         try {
             Bcsv bcsv = createStorage(filePath);
