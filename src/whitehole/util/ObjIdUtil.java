@@ -21,7 +21,7 @@ import java.util.*;
 import whitehole.smg.StageArchive;
 import whitehole.smg.object.AbstractObj;
 
-public class StageObjUtil {
+public class ObjIdUtil {
     /**
      * The max amount of switches that can be in a category (Zone of Galaxy)
      */
@@ -99,7 +99,7 @@ public class StageObjUtil {
         }
         
         // Generate a switch ID based on this list.
-        int returnSwitchID = StageObjUtil.generateUniqueSwitchID(list, true);
+        int returnSwitchID = ObjIdUtil.generateUniqueSwitchID(list, true);
         
         return returnSwitchID;
     }
