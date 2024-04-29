@@ -18,7 +18,7 @@ package whitehole.smg;
 
 import java.io.*;
 import java.util.*;
-import javax.swing.JOptionPane;
+
 import whitehole.Whitehole;
 import whitehole.io.FilesystemBase;
 import whitehole.io.RarcFile;
@@ -36,7 +36,7 @@ import whitehole.smg.object.PositionObj;
 import whitehole.smg.object.SoundObj;
 import whitehole.smg.object.StageObj;
 import whitehole.smg.object.StartObj;
-import whitehole.util.StageObjUtil;
+import whitehole.util.ObjIdUtil;
 
 public class StageArchive {
     // IO stuff
@@ -378,6 +378,6 @@ public class StageArchive {
     }
     
     public int getValidSwitchInZone() {
-        return StageObjUtil.generateUniqueSwitchID(getUniqueSwitchesInZone(), false);
+        return ObjIdUtil.generateUniqueSwitchID(getUniqueSwitchesInZone(), false);
     }
 }

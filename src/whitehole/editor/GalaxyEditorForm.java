@@ -51,7 +51,7 @@ import whitehole.math.RotationMatrix;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
 import whitehole.util.StageUtil;
-import whitehole.util.StageObjUtil;
+import whitehole.util.ObjIdUtil;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     private static final float SCALE_DOWN = 10000f;
@@ -590,16 +590,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     replSwitchID = zoneArchives.get(zoneString).getValidSwitchInZone(); // Generate
                     
                     if (replSwitchID !=-1)
-                        zoneArchives = StageObjUtil.replaceSwitchIDInZone(invalidSwitch, replSwitchID, zoneArchives, zoneString); // Replace
+                        zoneArchives = ObjIdUtil.replaceSwitchIDInZone(invalidSwitch, replSwitchID, zoneArchives, zoneString); // Replace
                 }
                 unsavedChanges = true;
                 break;
 
             case "Galaxy":
-                replSwitchID = StageObjUtil.getValidSwitchInGalaxy(zoneArchives); // Generate
+                replSwitchID = ObjIdUtil.getValidSwitchInGalaxy(zoneArchives); // Generate
                 
                 if (replSwitchID !=-1)
-                    zoneArchives = StageObjUtil.replaceSwitchID(invalidSwitch, replSwitchID, zoneArchives); // Replace
+                    zoneArchives = ObjIdUtil.replaceSwitchID(invalidSwitch, replSwitchID, zoneArchives); // Replace
                 unsavedChanges = true;
                 break;
             }
@@ -1253,7 +1253,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
 
         if (objType.equals("startinfo")) {
-            return StageObjUtil.generateUniqueMarioNo(curZoneArc, activeLayers);
+            return ObjIdUtil.generateUniqueMarioNo(curZoneArc, activeLayers);
         }
 
         Collection<String> objTypes = new ArrayList<>();
@@ -1268,7 +1268,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             objTypes.add("mappartsinfo");
         }
 
-        return StageObjUtil.generateUniqueLinkID(curZoneArc, activeLayers, objTypes);
+        return ObjIdUtil.generateUniqueLinkID(curZoneArc, activeLayers, objTypes);
     }
     
     private void deleteObject(int uniqueID) {
@@ -4809,7 +4809,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public int generateValue() {
         if (selectedObjs.isEmpty()) return 0;
 
-        List<AbstractObj> objects = selectedObjs.values().stream().toList();
+        List<AbstractObj> objects = new ArrayList<>(selectedObjs.values());
         String objType = objects.get(0).getFileType();
 
         return generateID(objType);
@@ -4822,7 +4822,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     // Gets an unused switch id for the current galaxy.
     public int getValidSwitchInGalaxy() {
-        return StageObjUtil.getValidSwitchInGalaxy(zoneArchives);
+        return ObjIdUtil.getValidSwitchInGalaxy(zoneArchives);
     }
     
     // Returns a set hash set of all switch IDs used in the current zone.
