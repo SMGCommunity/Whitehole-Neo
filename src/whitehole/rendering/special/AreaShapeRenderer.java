@@ -19,6 +19,7 @@ package whitehole.rendering.special;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.glu.*;
 import java.nio.DoubleBuffer;
+import whitehole.math.Vec3f;
 import whitehole.rendering.GLRenderer;
 import whitehole.util.Color4;
 
@@ -31,21 +32,43 @@ public class AreaShapeRenderer extends GLRenderer {
         BOWL;
     }
     
+    public static Shape shapeFromInteger(Integer x)
+    {
+        switch(x)
+        {
+            case 0:
+                return Shape.BASE_ORIGIN_BOX;
+            case 1:
+                return Shape.CENTER_ORIGIN_BOX;
+            case 2:
+                return Shape.SPHERE;
+            case 3:
+                return Shape.CYLINDER;
+            case 4:
+                return Shape.BOWL;
+        }
+        return null;
+    }
+    
     // -------------------------------------------------------------------------------------------------------------------------
     
     private static final float SIZE = 500f;
     private final Shape shape;
+    private final Vec3f scale;
     private final Color4 color;
     
-    public AreaShapeRenderer(Color4 clr, Shape shp) {
+    public AreaShapeRenderer(Color4 clr, Shape shp, Vec3f scl) {
         color = clr;
         shape = shp;
+        scale = scl;
     }
     
     @Override
     public boolean isScaled() {
-        return true;
+        return false;
     }
+    @Override
+    public boolean hasSpecialScaling() { return true; }
     
     @Override
     public boolean gottaRender(GLRenderer.RenderInfo info) throws GLException {
@@ -103,6 +126,7 @@ public class AreaShapeRenderer extends GLRenderer {
     public void makeBox(GLRenderer.RenderInfo info, float OffsetY, float Value) {
         GL2 gl = info.drawable.getGL().getGL2();
         
+        gl.glScalef(scale.x, scale.y, scale.z);
         gl.glTranslatef(0f, OffsetY, 0f);
         gl.glBegin(GL2.GL_LINE_STRIP);
         gl.glVertex3f(Value, Value, Value);
@@ -132,6 +156,8 @@ public class AreaShapeRenderer extends GLRenderer {
         GLU glu = new GLU();
         GLUquadric sphere = glu.gluNewQuadric();
         
+        gl.glScalef(scale.x, scale.x, scale.x); //According to the game, this is correct
+        
         gl.glTranslatef(0f, 0f, 0f);
         gl.glRotatef(90f, 1f, 0f, 0f);
         glu.gluQuadricDrawStyle(sphere, GLU.GLU_LINE);
@@ -144,6 +170,8 @@ public class AreaShapeRenderer extends GLRenderer {
         GL2 gl = info.drawable.getGL().getGL2();
         GLU glu = new GLU();
         GLUquadric cylinder = glu.gluNewQuadric();
+        
+        gl.glScalef(scale.x, scale.y, scale.x);
         
         gl.glTranslatef(0f, 500f, 0f);
         gl.glRotatef(90f, 1f, 0f, 0f);
@@ -162,6 +190,8 @@ public class AreaShapeRenderer extends GLRenderer {
         double[] Clip = new double[]{0, -SIZE, 0, SIZE};
         gl.glEnable(GL2.GL_CLIP_PLANE0);
         gl.glClipPlane(GL2.GL_CLIP_PLANE0, DoubleBuffer.wrap(Clip));
+        
+        gl.glScalef(scale.x, scale.x, scale.x);
         
         gl.glTranslatef(0f, 0f, 0f);
         gl.glRotatef(90f, 1f, 0f, 0f);

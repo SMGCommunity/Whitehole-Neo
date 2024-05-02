@@ -87,6 +87,7 @@ public final class RendererFactory {
     // Model name substitution
     
     public static String getAreaShapeModelName(AbstractObj obj) {
+        String mdl;
         if (obj.objdbInfo.areaShape().equalsIgnoreCase("Any"))
         {
             int areaShapeNo = (short)obj.data.getOrDefault("AreaShapeNo", (short)-1);
@@ -94,10 +95,13 @@ public final class RendererFactory {
             if (areaShapeNo < 0 || areaShapeNo > 4)
                 return "dummy";
             
-            return AREA_SHAPE_NAMES[areaShapeNo];
+            mdl = AREA_SHAPE_NAMES[areaShapeNo];
         }
+        else
+            mdl = obj.objdbInfo.areaShape().toLowerCase();
         
-        return obj.objdbInfo.areaShape().toLowerCase();
+        return mdl + String.format("_(%s,%s,%s)",
+                obj.scale.x, obj.scale.y, obj.scale.z);
     }
     
     public static String getGravityShapeModelName(AbstractObj obj) {
@@ -576,43 +580,33 @@ public final class RendererFactory {
         if (obj instanceof SoundObj)
             return new CubeRenderer(100f, new Color4(1f, 1f, 1f), new Color4(1f, 0.5f, 1f), true);
         
-        if (obj instanceof AreaObj) {
-            Color4 normalPrimaryColor = new Color4(Settings.getNormalAreaPrimaryColor());
-            Color4 normalSecondaryColor = new Color4(Settings.getNormalAreaSecondaryColor());
+        if (obj instanceof AreaObj || obj instanceof CameraObj) {
+            Color4 PrimaryColor;
+            Color4 SecondaryColor;
             
-            switch(objModelName) {
-                case "areaobj_baseorigincube":
-                    return new AreaShapeRenderer(normalPrimaryColor, AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
-                case "areaobj_centerorigincube":
-                    return new AreaShapeRenderer(normalPrimaryColor, AreaShapeRenderer.Shape.CENTER_ORIGIN_BOX);
-                case "areaobj_sphere":
-                    return new AreaShapeRenderer(normalPrimaryColor, AreaShapeRenderer.Shape.SPHERE);
-                case "areaobj_cylinder":
-                    return new AreaShapeRenderer(normalPrimaryColor, AreaShapeRenderer.Shape.CYLINDER);
-                case "areaobj_bowl":
-                    return new AreaShapeRenderer(normalPrimaryColor, AreaShapeRenderer.Shape.BOWL);
-                default:
-                    return new CubeRenderer(100f, normalSecondaryColor, normalPrimaryColor, true);
+            if (obj instanceof CameraObj)
+            {
+                PrimaryColor = new Color4(Settings.getCameraAreaPrimaryColor());
+                SecondaryColor = new Color4(Settings.getCameraAreaPrimaryColor());
             }
-        }
-        
-        if (obj instanceof CameraObj) {
-            Color4 cameraPrimaryColor = new Color4(Settings.getCameraAreaPrimaryColor());
-            Color4 cameraSecondaryColor = new Color4(Settings.getCameraAreaPrimaryColor());
+            else
+            {
+                PrimaryColor = new Color4(Settings.getNormalAreaPrimaryColor());
+                SecondaryColor = new Color4(Settings.getNormalAreaSecondaryColor());
+            }
             
-            switch(objModelName) {
-                case "cameraobj_baseorigincube":
-                    return new AreaShapeRenderer(cameraPrimaryColor, AreaShapeRenderer.Shape.BASE_ORIGIN_BOX);
-                case "cameraobj_centerorigincube":
-                    return new AreaShapeRenderer(cameraPrimaryColor, AreaShapeRenderer.Shape.CENTER_ORIGIN_BOX);
-                case "cameraobj_sphere":
-                    return new AreaShapeRenderer(cameraPrimaryColor, AreaShapeRenderer.Shape.SPHERE);
-                case "cameraobj_cylinder":
-                    return new AreaShapeRenderer(cameraPrimaryColor, AreaShapeRenderer.Shape.CYLINDER);
-                case "cameraobj_bowl":
-                    return new AreaShapeRenderer(cameraPrimaryColor, AreaShapeRenderer.Shape.BOWL);
-                default: return new CubeRenderer(100f, cameraPrimaryColor, cameraSecondaryColor, true);
-            }
+            if (objModelName.startsWith("areaobj_baseorigincube_") || objModelName.startsWith("cameraobj_baseorigincube_"))
+                return new AreaShapeRenderer(PrimaryColor, AreaShapeRenderer.Shape.BASE_ORIGIN_BOX, obj.scale);
+            if (objModelName.startsWith("areaobj_centerorigincube") || objModelName.startsWith("cameraobj_centerorigincube_"))
+                return new AreaShapeRenderer(PrimaryColor, AreaShapeRenderer.Shape.CENTER_ORIGIN_BOX, obj.scale);
+            if (objModelName.startsWith("areaobj_sphere") || objModelName.startsWith("cameraobj_sphere_"))
+                return new AreaShapeRenderer(PrimaryColor, AreaShapeRenderer.Shape.SPHERE, obj.scale);
+            if (objModelName.startsWith("areaobj_cylinder") || objModelName.startsWith("cameraobj_cylinder_"))
+                return new AreaShapeRenderer(PrimaryColor, AreaShapeRenderer.Shape.CYLINDER, obj.scale);
+            if (objModelName.startsWith("areaobj_bowl") || objModelName.startsWith("cameraobj_bowl_"))
+                return new AreaShapeRenderer(PrimaryColor, AreaShapeRenderer.Shape.BOWL, obj.scale);
+            if (objModelName.startsWith("areaobj_") || objModelName.startsWith("cameraobj_"))
+                return new CubeRenderer(100f, SecondaryColor, PrimaryColor, true);
         }
         
         return null;
