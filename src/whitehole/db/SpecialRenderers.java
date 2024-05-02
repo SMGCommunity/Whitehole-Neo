@@ -22,7 +22,6 @@ import org.json.JSONObject;
 import whitehole.Whitehole;
 import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
-import static whitehole.rendering.RendererFactory.createDummyCubeRenderer;
 import whitehole.rendering.special.*;
 import whitehole.smg.object.AbstractObj;
 
@@ -49,8 +48,9 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                 case "Phantom":
                     return PhantomRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                 case "PowerStar":
-                    return PowerStarRenderer.getAdditiveCacheKey(obj,
-                            (Integer)renderinfo.getRenderParamByName("DefaultFrame"));
+                    return PowerStarRenderer.getAdditiveCacheKey(obj, (Integer)renderinfo.getRenderParamByName("DefaultFrame"));
+                case "BlackHole":
+                    return BlackHoleRenderer.getAdditiveCacheKey(obj);
             }
         return "";
     }
@@ -75,6 +75,16 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     result = new PowerStarRenderer(info, objModelName, obj,
                             (Integer)renderinfo.getRenderParamByName("DefaultFrame"),
                             (Boolean)renderinfo.getRenderParamByName("IsGrand"));
+                    break;
+                case "BlackHole":
+                    AreaShapeRenderer.Shape shp;
+                    Integer x = (Integer)renderinfo.getRenderParamByName("Shape");
+                    if (x == null)
+                        break;
+                    shp = AreaShapeRenderer.shapeFromInteger(x);
+                    if (shp == null)
+                        break;
+                    result = new BlackHoleRenderer(info, obj, shp);
                     break;
             }
         

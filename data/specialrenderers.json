@@ -103,6 +103,18 @@
       ]
     },
     {
+      "ObjectName": "UFOKinoko",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
+    {
       "ObjectName": "Caretaker",
       "RendererType": "BasicAnim",
       "RendererParams": [
@@ -260,6 +272,24 @@
           ]
         }
       ]
+    },
+    {
+        "ObjectName": "BlackHole",
+        "RendererType": "BlackHole",
+        "RendererParams": [
+          {
+            "Shape": 2
+          }
+        ]
+    },
+    {
+        "ObjectName": "BlackHoleCube",
+        "RendererType": "BlackHole",
+        "RendererParams": [
+          {
+            "Shape": 1
+          }
+        ]
     },
     {
       "ClassName": "SwitchingMoveBlock",

@@ -13,25 +13,37 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.rendering.outdated;
+package whitehole.rendering.special;
 
 import com.jogamp.opengl.GL2;
-import whitehole.rendering.special.AreaShapeRenderer;
 import whitehole.rendering.special.AreaShapeRenderer.Shape;
 import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderInfo;
 import whitehole.util.Color4;
 import whitehole.math.Vec3f;
+import whitehole.smg.object.AbstractObj;
 
 public class BlackHoleRenderer extends GLRenderer {
-    public BlackHoleRenderer(RenderInfo info, int arg0, Vec3f areascale, Shape shape, boolean area) {
-        sclBlackHole = (arg0 < 0 ? 1000 : arg0) / 1000f;
-        sclArea = areascale;
+    public BlackHoleRenderer(RenderInfo info, AbstractObj obj, Shape shp) {
+        Integer arg0 = (Integer)obj.data.get("Obj_arg0");
+        
+        if (arg0 >= 0)
+        {
+            sclBlackHole = arg0 / 1000.0f;
+        }
+        else if (shp == Shape.CENTER_ORIGIN_BOX)
+        {
+            sclBlackHole = 1.0f;
+        }
+        else
+        {
+            sclBlackHole = obj.scale.x;
+        }
+        
         renderBlackHoleRange = new BmdRenderer(info, "BlackHoleRange");
         renderBlackHole = new BmdRenderer(info, "BlackHole");
-        renderAreaShape = new AreaShapeRenderer(new Color4(1f, 0.7f, 0f) , shape);
-        hasArea = area;
+        renderAreaShape = new AreaShapeRenderer(color, shp, obj.scale);
     }
     
     @Override
@@ -42,54 +54,36 @@ public class BlackHoleRenderer extends GLRenderer {
     @Override
     public void render(RenderInfo info) {
         GL2 gl = info.drawable.getGL().getGL2();
-        if(info.renderMode == RenderMode.PICKING){
-            gl.glBegin(GL2.GL_TRIANGLE_FAN);
-            gl.glVertex3f(0f, 0f, 0f);
-            double step = Math.PI*0.125;
-            double two_pi = Math.PI*2;
-            for(double angle = 0.0; angle<two_pi+step; angle+=step){
-                gl.glVertex3f((float)Math.sin(angle)*sclBlackHole*400f, (float)Math.cos(angle)*sclBlackHole*400f, 0f);
-            }
-            for(double angle = step; angle<two_pi+step; angle+=step){
-                gl.glVertex3f(-(float)Math.sin(angle)*sclBlackHole*400f, (float)Math.cos(angle)*sclBlackHole*400f, 0f);
-            }
-            gl.glEnd();
-            return;
-        }
+        
+        boolean isRenderNormal = (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT);
+        //Render Black Hole model
         gl.glPushMatrix();
-            float scale = sclBlackHole*0.5f;
-            gl.glScalef(scale, scale, scale);
+        float s = sclBlackHole * (isRenderNormal ? 0.5f : 0.89f); //The 0.89 is just so that the picking is more aligned to the visual.
+        gl.glScalef(s, s, s);
+        if (renderBlackHole.isValidBmdModel())
+        {
             renderBlackHole.render(info);
-            gl.glPushMatrix();
-                gl.glScalef(2f, 2f, 2f);
-                renderBlackHoleRange.render(info);
-            gl.glPopMatrix();
-
-            gl.glRotatef(180f, 0f, 1f, 0f);
-            renderBlackHole.render(info);
-            gl.glPushMatrix();
-                gl.glScalef(3f, 3f, 3f);
-                renderBlackHoleRange.render(info);
-            gl.glPopMatrix();
-
+        }
         gl.glPopMatrix();
         
         gl.glPushMatrix();
-        if(hasArea)
-            gl.glScalef(sclArea.x, sclArea.y, sclArea.z);
+        gl.glScalef(sclBlackHole, sclBlackHole, sclBlackHole);
+        if (isRenderNormal && renderBlackHoleRange.isValidBmdModel())
+        {
+            renderBlackHoleRange.render(info);
+        }
+        gl.glPopMatrix();
+        
+        gl.glPushMatrix();
         renderAreaShape.render(info);
         gl.glPopMatrix();
     }
     
     @Override
-    public boolean isScaled() {
-        return !hasArea;
-    }
-    
+    public boolean isScaled() { return false; }
     @Override
-    public boolean hasSpecialScaling() {
-        return true;
-    }
+    public boolean hasSpecialScaling() { return true; }
+    
     
     @Override
     public boolean boundToObjArg(int arg) {
@@ -99,7 +93,12 @@ public class BlackHoleRenderer extends GLRenderer {
     public BmdRenderer renderBlackHole;
     public BmdRenderer renderBlackHoleRange;
     public AreaShapeRenderer renderAreaShape;
-    public Vec3f sclArea;
     public float sclBlackHole;
-    public boolean hasArea;
+    private static final Color4 color = new Color4(1f, 0.7f, 0f);
+    
+    public static String getAdditiveCacheKey(AbstractObj obj) {        
+        return "_" +
+                obj.scale.toString() +
+                obj.data.getInt("Obj_arg0");
+    }
 }
