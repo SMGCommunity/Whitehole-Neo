@@ -122,13 +122,14 @@ public class Bmd
         return 0f;
     }
 
-    private Color4 readColorValue_RGBA8() throws IOException
+    private Color4 readColorValue_RGB565() throws IOException
     {
-        int r = file.readByte() & 0xFF;
-        int g = file.readByte() & 0xFF;
-        int b = file.readByte() & 0xFF;
-        int a = file.readByte() & 0xFF;
-        return new Color4(r / 255f, g / 255f, b / 255f, a / 255f);
+        // Seemingly incorrect
+        short colorShort = file.readShort();
+        int r = (colorShort & 0xF800) >> 11;
+        int g = (colorShort & 0x07E0) >> 5;
+        int b = (colorShort & 0x001F);
+        return new Color4(r / 255f, g / 255f, b / 255f, 1f);
     }
 
     private Color4 readColorValue_RGBX8() throws IOException
@@ -140,13 +141,50 @@ public class Bmd
         return new Color4(r / 255f, g / 255f, b / 255f, 1f);
     }
     
+    private Color4 readColorValue_RGBA4() throws IOException
+    {
+        // Seemingly incorrect...
+        short colorShortA = file.readShort();
+        int r = (colorShortA & 0xF000) >> 12;
+        int g = (colorShortA & 0x0F00) >> 8;
+        int b = (colorShortA & 0x00F0) >> 4;
+        int a = (colorShortA & 0x000F);
+        return new Color4(r / 15f, g / 15f, b / 15f, a / 15f);
+    }
+    
+    private Color4 readColorValue_RGBA6() throws IOException
+    {
+        int colorInt = file.readInt();
+        colorInt >>= 8;
+        int r =  (colorInt & 0xFC0000) >> 18;
+        int g = (colorInt & 0x03F000) >> 12;
+        int b =  (colorInt & 0x000FC0) >> 6;
+        int a =  (colorInt & 0x00003F);
+        return new Color4(r / 63f, g / 63f, b / 63f, a / 63f);
+    }
+    
+    private Color4 readColorValue_RGBA8() throws IOException
+    {
+        int r = file.readByte() & 0xFF;
+        int g = file.readByte() & 0xFF;
+        int b = file.readByte() & 0xFF;
+        int a = file.readByte() & 0xFF;
+        return new Color4(r / 255f, g / 255f, b / 255f, a / 255f);
+    }
+    
     private Color4 readColorValue(int type) throws IOException
     {
         switch (type)
         {
+            case 0:
+                return readColorValue_RGB565();
             case 1:
             case 2:
                 return readColorValue_RGBX8();
+            case 3:
+                return readColorValue_RGBA4();
+            case 4:
+                return readColorValue_RGBA6();
             case 5:
                 return readColorValue_RGBA8();
         }
@@ -256,17 +294,22 @@ public class Bmd
             {
                 //if ((datatype < 3) ^ (compsize == 0))
                 //    throw new IOException(String.format("Bmd: component count mismatch in color array; DataType=%1$d, CompSize=%2$d", datatype, compsize));
-
+                
                 switch (datatype)
                 {
+                    //case 0:
+                    //case 3:
+                        //arraysize /= 2;
                     case 1:
                     case 2:
                         arraysize /= 3;
                         break;
+                    case 4:
                     case 5: 
                         arraysize /= 4;
                         break;
-                    default: throw new IOException(String.format("Bmd: unsupported color DataType %1$d", datatype));
+                    default:
+                        throw new IOException(String.format("Bmd: unsupported color DataType %1$d", datatype));
                 }
             }
             else
@@ -319,7 +362,8 @@ public class Bmd
                     {
                         int cid = arraytype - 11;
                         colorArray[cid] = new Color4[arraysize];
-                        for (int j = 0; j < arraysize; j++) colorArray[cid][j] = readColorValue(datatype);
+                        for (int j = 0; j < arraysize; j++)
+                            colorArray[cid][j] = readColorValue(datatype);
                     }
                     break;
 
