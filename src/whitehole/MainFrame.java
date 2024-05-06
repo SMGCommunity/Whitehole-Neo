@@ -16,6 +16,7 @@
  */
 package whitehole;
 
+import com.github.jacksonbrienen.jwfd.JWindowsFileDialog;
 import java.awt.Component;
 import java.awt.event.*;
 import java.io.*;
@@ -222,18 +223,9 @@ public final class MainFrame extends javax.swing.JFrame {
             //Cannot change workspaces with a galaxy open
             return;
         }
-        
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Open an SMG1/2 Directory");
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        
-        String lastGameDir = Settings.getLastGameDir();
-        if (lastGameDir != null) {
-            fc.setSelectedFile(new File(lastGameDir));
-        }
-        
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            openGameDir(fc.getSelectedFile().getPath());
+        String newPath = JWindowsFileDialog.showDirectoryDialog(this, "Open an SMG1/2 Directory", Settings.getLastGameDir());
+        if (newPath != null) {
+            openGameDir(newPath);
         }
     }
     
