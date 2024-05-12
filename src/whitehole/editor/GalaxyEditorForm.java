@@ -179,6 +179,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // Constructors and GUI Setup
     
     public GalaxyEditorForm(String galaxy) {
+        curScenarioID = 1;
         initComponents();
         galaxyName = galaxy;
         
@@ -865,9 +866,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 return;
             }
             
-            setStatusToInfo("Initilizing Object Tree...");
+            setStatusToInfo("Initializing Object Tree...");
             initObjectNodeTree();
-            setStatusToInfo("Initilizing GUI...");
+            setStatusToInfo("Initializing GUI...");
             initGUI();
 
             // Load scenario information
