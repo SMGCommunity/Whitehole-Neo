@@ -65,7 +65,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private String galaxyName;
     private GalaxyArchive galaxyArchive = null;
     private HashMap<String, StageArchive> zoneArchives;
-    private int curScenarioID;
+    private int curScenarioIndex;
     private Bcsv.Entry curScenario;
     private String curZone;
     private StageArchive curZoneArc;
@@ -714,8 +714,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if (!isGalaxyMode) {
             return null;
         }
-        listScenarios.updateUI();
-        
+        updateScenarioList();
         StageArchive z = zoneArchives.get(galaxyName);
         AbstractObj ret = getScenarioStartInLayer(z.objects.get("common"));
         
@@ -1410,7 +1409,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if(!isGalaxyMode)
             return new Vec3f();
 
-        String stageKey = String.format("%d/%s", curScenarioID, curZone);
+        String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
         if(zonePlacements.containsKey(stageKey)) {
             StageObj szdata = zonePlacements.get(stageKey);
 
@@ -2944,7 +2943,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public String objectType;
         public String name;
         public String layer;
-        public int scenarioID;
+        public int scenarioIndex;
         public String zoneName;
         public Vec3f position;
         public Vec3f rotation;
@@ -2962,7 +2961,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             name = obj.name;
             objectType = obj.getFileType();
             zoneName = obj.stage.stageName;
-            scenarioID = curScenarioID;
+            scenarioIndex = curScenarioIndex;
         }
         
         @Override
@@ -3151,7 +3150,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public final Bcsv.Entry pathData;
         public final int prevUID;
         public final String layer;
-        public final int scenarioID;
+        public final int scenarioIndex;
         public final String zoneName;
         
         public final int pointIdx;
@@ -3174,7 +3173,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             positionCtrl2 = (Vec3f)obj.point2.clone();
             
             layer = obj.layerKey;
-            scenarioID = curScenarioID;
+            scenarioIndex = curScenarioIndex;
             zoneName = obj.stage.stageName;
         }
         
@@ -3988,7 +3987,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             gl.glDisable(GL2.GL_TEXTURE_2D);
             
-            gl.glCallList(zoneDisplayLists.get(curScenarioID)[0]);
+            gl.glCallList(zoneDisplayLists.get(curScenarioIndex)[0]);
             
             gl.glDepthMask(true);
             
@@ -4025,9 +4024,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
             }
             
-            gl.glCallList(zoneDisplayLists.get(curScenarioID)[1]);
+            gl.glCallList(zoneDisplayLists.get(curScenarioIndex)[1]);
             
-            gl.glCallList(zoneDisplayLists.get(curScenarioID)[2]);
+            gl.glCallList(zoneDisplayLists.get(curScenarioIndex)[2]);
             
             gl.glDepthMask(true);
             try { gl.glUseProgram(0); } catch(GLException ex) { }
@@ -4373,7 +4372,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         Vec3f position = get3DCoords(mousePos, Math.min(pickingDepth, 1f));
                         if(isGalaxyMode)
                         {
-                            String stageKey = String.format("%d/%s", curScenarioID, curZone);
+                            String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
                             if (zonePlacements.containsKey(stageKey))
                             {
                                 StageObj zonePlacement = zonePlacements.get(stageKey);
@@ -4410,7 +4409,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         Vec3f position = get3DCoords(mousePos, Math.min(pickingDepth, 1f));
                         if(isGalaxyMode)
                         {
-                            String stageKey = String.format("%d/%s", curScenarioID, curZone);
+                            String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
                             if (zonePlacements.containsKey(stageKey))
                             {
                                 StageObj zonePlacement = zonePlacements.get(stageKey);
@@ -4724,7 +4723,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 camDistance = 0.25f;
                 
                 if (isGalaxyMode) {
-                    String stageKey = String.format("%d/%s", curScenarioID, obj.stage.stageName);
+                    String stageKey = String.format("%d/%s", curScenarioIndex, obj.stage.stageName);
 
                     if (zonePlacements.containsKey(stageKey)) {
                         scratchVec.scale(1.0f / SCALE_DOWN, zonePlacements.get(stageKey).position);
@@ -5533,13 +5532,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_itmScalePasteActionPerformed
 
-    private void listScenariosValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listScenariosValueChanged
-        if (evt.getValueIsAdjusting() || listScenarios.getSelectedValue() == null) {
-            return;
+    private void updateScenarioList() {
+        if (listScenarios.getSelectedValue() == null) {
+            curScenarioIndex = 0;
+        } else {
+            curScenarioIndex = listScenarios.getSelectedIndex();
         }
-
-        curScenarioID = listScenarios.getSelectedIndex();
-        curScenario = galaxyArchive.scenarioData.get(curScenarioID);
+        
+        curScenario = galaxyArchive.scenarioData.get(curScenarioIndex);
 
         DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
         zonelist.removeAllElements();
@@ -5562,6 +5562,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         listZones.setSelectedIndex(0);
+    }
+    
+    private void listScenariosValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listScenariosValueChanged
+        if (!evt.getValueIsAdjusting())
+            updateScenarioList();
     }//GEN-LAST:event_listScenariosValueChanged
 
     private void btnAddScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddScenarioActionPerformed
