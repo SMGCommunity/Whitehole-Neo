@@ -179,7 +179,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // Constructors and GUI Setup
     
     public GalaxyEditorForm(String galaxy) {
-        curScenarioID = 1;
         initComponents();
         galaxyName = galaxy;
         
@@ -715,6 +714,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if (!isGalaxyMode) {
             return null;
         }
+        listScenarios.updateUI();
         
         StageArchive z = zoneArchives.get(galaxyName);
         AbstractObj ret = getScenarioStartInLayer(z.objects.get("common"));
