@@ -4380,7 +4380,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                                 applySubzoneRotation(position);
                             }
                         }
-                        addObject(position, addingObject, addingObjectOnLayer, curZone, false);
+                        addObject(position, addingObject, addingObjectOnLayer, curZone, true);
 
                         addUndoEntry(IUndo.Action.ADD, newobj); //This is the only one that happens after the event occurs?
         
