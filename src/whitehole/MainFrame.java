@@ -149,8 +149,8 @@ public final class MainFrame extends javax.swing.JFrame {
         if (Whitehole.getCurrentGameType() == 0) {
             lbStatusBar.setText("Selected directory isn't an SMG1/2 workspace.");
             setInfo("Invalid Directory", 
-                    "The current directory isn't an SMG1/2 workspace. Valid workspaces contain a \"StageData\" folder,",
-                    "typically located in the \"data/files\" folder of your extracted game files.", true);
+                    "The current directory isn't an SMG1/2 workspace. Valid workspaces contain a ObjNameTable.arc in",
+                    "\"StageData\" (SMG1) or \"SystemData\" (SMG2), typically located in the \"data/files\" folder of your extracted game files.", true);
             tabLists.setSelectedIndex(2);
             return;
         }
