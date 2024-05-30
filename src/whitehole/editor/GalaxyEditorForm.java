@@ -4755,11 +4755,76 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 updateCamera();
                 glCanvas.repaint();
             }
+            // Move To Galaxy -- Shift+[
+            // HOW TO USE:
+            // This function is intended to be used when moving things from a zone with an offset to the main galaxy while preserving world position
+            // Simply press this ONCE, and then change the Zone of the selected objects to the main galaxy
+            else if (keyCode == KeyEvent.VK_OPEN_BRACKET && e.isShiftDown())
+            {
+                if (!isGalaxyMode)
+                {
+                    setStatusToWarning("You cannot Move to Galaxy while editing a zone solo.");
+                    return;
+                }
+                if (selectedObjs.isEmpty())
+                {
+                    setStatusToWarning("You need objects selected to Move to Galaxy!");
+                    return;
+                }
+                startUndoMulti();
+                for(AbstractObj selectedObj : selectedObjs.values())
+                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+                
+                Vec3f delta = new Vec3f();
+                String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
+
+                if (zonePlacements.containsKey(stageKey)) {
+                    delta.add(zonePlacements.get(stageKey).position);
+                }
+                
+                offsetSelectionBy(delta, false);
+                endUndoMulti();
+            }
+            // Move To Zone -- Shift+]
+            // HOW TO USE:
+            // This function is intended to be used when moving things from the main galaxy into a zone that has an offset while preserving world position
+            // Simply change the zone of the selected objects to be that of the destination zone, and press this ONCE
+            // NOTE: To switch from Zone to Zone (while both zones are not the Main Galaxy),
+            //       you have to first move the objects into the main galaxy, then you can move them into the destination zone.
+            else if (keyCode == KeyEvent.VK_CLOSE_BRACKET && e.isShiftDown())
+            {
+                if (!isGalaxyMode)
+                {
+                    setStatusToWarning("You cannot Move to Zone while editing a zone solo.");
+                    return;
+                }
+                if (selectedObjs.isEmpty())
+                {
+                    setStatusToWarning("You need objects selected to Move to Zone!");
+                    return;
+                }
+                startUndoMulti();
+                for(AbstractObj selectedObj : selectedObjs.values())
+                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+                
+                Vec3f delta = new Vec3f();
+                String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
+
+                if (zonePlacements.containsKey(stageKey)) {
+                    delta.subtract(zonePlacements.get(stageKey).position);
+                }
+                
+                offsetSelectionBy(delta, false);
+                endUndoMulti();
+            }
             
+            
+            
+            
+            // Should this be Else if?
             if ((keyMask & 0x3F) != 0) {
                 // Arrow Key Shortcuts
                 Vec3f delta = new Vec3f();
-                Vec3f finaldelta = new Vec3f();
 
                 if((keyMask & 1) != 0) {
                     delta.x = 1;
@@ -4788,6 +4853,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
 
                 if(!selectedObjs.isEmpty()) {
+                    startUndoMulti();
                     if((keyMask & (1 << 6)) != 0)
                     {
                         for(AbstractObj selectedObj : selectedObjs.values())
@@ -4806,13 +4872,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             addUndoEntry(IUndo.Action.SCALE, selectedObj);
                         scaleSelectionBy(delta);
                     }
+                    endUndoMulti();
                 } else {
-                    finaldelta.x =(float)(-(delta.x * Math.sin(camRotation.x)) - (delta.y * Math.cos(camRotation.x) * Math.sin(camRotation.y)) + (delta.z * Math.cos(camRotation.x) * Math.cos(camRotation.y)));
-                    finaldelta.y =(float)((delta.y * Math.cos(camRotation.y)) + (delta.z * Math.sin(camRotation.y)));
-                    finaldelta.z =(float)((delta.x * Math.cos(camRotation.x)) - (delta.y * Math.sin(camRotation.x) * Math.sin(camRotation.y)) + (delta.z * Math.sin(camRotation.x) * Math.cos(camRotation.y)));
-                    camTarget.x += finaldelta.x * 0.005f;
-                    camTarget.y += finaldelta.y * 0.005f;
-                    camTarget.z += finaldelta.z * 0.005f;
+                    Vec3f cameraMoveDelta = new Vec3f();
+                    cameraMoveDelta.x =(float)(-(delta.x * Math.sin(camRotation.x)) - (delta.y * Math.cos(camRotation.x) * Math.sin(camRotation.y)) + (delta.z * Math.cos(camRotation.x) * Math.cos(camRotation.y)));
+                    cameraMoveDelta.y =(float)((delta.y * Math.cos(camRotation.y)) + (delta.z * Math.sin(camRotation.y)));
+                    cameraMoveDelta.z =(float)((delta.x * Math.cos(camRotation.x)) - (delta.y * Math.sin(camRotation.x) * Math.sin(camRotation.y)) + (delta.z * Math.sin(camRotation.x) * Math.cos(camRotation.y)));
+                    camTarget.x += cameraMoveDelta.x * 0.005f;
+                    camTarget.y += cameraMoveDelta.y * 0.005f;
+                    camTarget.z += cameraMoveDelta.z * 0.005f;
                     
                     updateCamera();
                     glCanvas.repaint();
