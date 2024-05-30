@@ -4716,20 +4716,40 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
             }
             // Jump to Object -- SPC
-            else if (keyCode == KeyEvent.VK_SPACE && selectedObjs.size() == 1) {
-                AbstractObj obj = selectedObjs.values().iterator().next();
-                
-                camTarget.scale(1.0f / SCALE_DOWN, obj.position);
-                camDistance = 0.25f;
-                
-                if (isGalaxyMode) {
-                    String stageKey = String.format("%d/%s", curScenarioIndex, obj.stage.stageName);
+            else if (keyCode == KeyEvent.VK_SPACE) {
+                if (e.isShiftDown()) // Jump to Selected Zone Center
+                {
+                    camTarget.set(new Vec3f());
+                    camDistance = 0.35f;
+                    if (isGalaxyMode) {
+                        String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
 
-                    if (zonePlacements.containsKey(stageKey)) {
-                        scratchVec.scale(1.0f / SCALE_DOWN, zonePlacements.get(stageKey).position);
-                        camTarget.add(scratchVec);
-                        
+                        if (zonePlacements.containsKey(stageKey)) {
+                            scratchVec.scale(1.0f / SCALE_DOWN, zonePlacements.get(stageKey).position);
+                            camTarget.set(scratchVec);
+                        }
                     }
+                }
+                else if (selectedObjs.size() == 1) // Jump to Object
+                {
+                    AbstractObj obj = selectedObjs.values().iterator().next();
+                
+                    camTarget.scale(1.0f / SCALE_DOWN, obj.position);
+                    camDistance = 0.25f;
+
+                    if (isGalaxyMode) {
+                        String stageKey = String.format("%d/%s", curScenarioIndex, obj.stage.stageName);
+
+                        if (zonePlacements.containsKey(stageKey)) {
+                            scratchVec.scale(1.0f / SCALE_DOWN, zonePlacements.get(stageKey).position);
+                            camTarget.add(scratchVec);
+
+                        }
+                    }
+                }
+                else
+                {
+                    setStatusToWarning("Can't jump to multiple objects.");
                 }
                 
                 updateCamera();
