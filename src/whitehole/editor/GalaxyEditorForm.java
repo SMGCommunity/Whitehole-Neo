@@ -2606,6 +2606,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     {
         if (objPosition == null)
             objPosition = obj.getVector("pnt0");
+        if (point1 == null)
+            point1 = obj.getVector("pnt1");
+        if (point2 == null)
+            point2 = obj.getVector("pnt2");
         
         //We need to create the point manually again
         PathPointObj thepoint = new PathPointObj(owner, objPosition);
@@ -4703,7 +4707,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 popupAddItems.setVisible(true);
             }
             // Copy/Paste
-            else if (e.isControlDown() && (keyMask & 0x3F) == 0)
+            else if ((keyCode == KeyEvent.VK_C || keyCode == KeyEvent.VK_V) && e.isControlDown() && (keyMask & 0x3F) == 0)
             {
                 // Copy -- Ctrl+C
                 if (keyCode == KeyEvent.VK_C) {
