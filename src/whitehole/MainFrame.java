@@ -218,9 +218,15 @@ public final class MainFrame extends javax.swing.JFrame {
     }
     
     private void openGame() {
-        if (checkGalaxyEditorOpen() || checkZoneEditorOpen() || checkBcsvEditorOpen())
+        //Cannot change workspaces with a galaxy open
+        if (checkGalaxyEditorOpen() || checkZoneEditorOpen())
         {
-            //Cannot change workspaces with a galaxy open
+            System.out.println("[WARNING] Can't change Game Directory while a Galaxy or Zone is open!");
+            return;
+        }
+        if (checkBcsvEditorOpen())
+        {
+            System.out.println("[WARNING] Can't change Game Directory while the BCSV Editor is open!");
             return;
         }
         String newPath = JWindowsFileDialog.showDirectoryDialog(this, "Open an SMG1/2 Directory", Settings.getLastGameDir());
