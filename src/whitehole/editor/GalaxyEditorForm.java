@@ -3654,7 +3654,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     gl.glNewList(dl, GL2.GL_COMPILE);
                     
                     Bcsv.Entry scenario = galaxyArchive.scenarioData.get(s);
-                    renderZone(gl, scenario, galaxyName,(int)scenario.get(galaxyName), 0);
+                    var sc = scenario.get(galaxyName);
+                    int scc;
+                    try
+                    {
+                        if (sc == null)
+                            throw new java.lang.NullPointerException("Could not find "+galaxyName+" in ScenarioData.bcsv");
+                        scc = (int)sc;
+                    }
+                    catch (NullPointerException npex)
+                    {
+                        setStatusToError("Failed to render level!", npex);
+                        gl.glEndList();
+                        return;
+                    }
+                    renderZone(gl, scenario, galaxyName, scc, 0);
 
                     gl.glEndList();
                 }
