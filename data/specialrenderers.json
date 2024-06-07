@@ -181,7 +181,7 @@
         {
           "BRK": {
             "Filename": "ColorChange",
-            "FrameSource": "Obj_arg0S"
+            "FrameSource": "Obj_arg0"
           }
         }
       ]
