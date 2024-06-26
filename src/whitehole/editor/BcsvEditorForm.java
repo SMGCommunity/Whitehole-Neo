@@ -512,6 +512,59 @@ public class BcsvEditorForm extends javax.swing.JFrame {
                 tableModel.addRow(row.toArray());
             }
             
+            // Fix bad sorting
+            tblBcsv.setAutoCreateRowSorter(true);
+            TableRowSorter<DefaultTableModel> rowSorter = new TableRowSorter(tableModel);
+            class IntComparator implements Comparator {
+                @Override
+                public int compare(Object o1, Object o2) {
+                    try
+                    {
+                        Integer left = Integer.parseInt(o1.toString()),
+                            right = Integer.parseInt(o2.toString());
+                        return left.compareTo(right);
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        return o1.toString().compareTo(o2.toString());
+                    }
+                }
+            }
+            class FloatComparator implements Comparator {
+                @Override
+                public int compare(Object o1, Object o2) {
+                    try
+                    {
+                        Float left = Float.parseFloat(o1.toString()),
+                            right = Float.parseFloat(o2.toString());
+                        return left.compareTo(right);
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        return o1.toString().compareTo(o2.toString());
+                    }
+                }
+            }
+            int colID = 0;
+            for (Bcsv.Field field : bcsv.fields.values()) {
+                switch (field.type) {
+                    case 0:
+                    case 3: //Even though nobody uses 3...
+                    case 4:
+                    case 5:
+                        rowSorter.setComparator(colID, new IntComparator());
+                        break;
+                    case 2:
+                        rowSorter.setComparator(colID, new FloatComparator());
+                        break;
+                    // Let case 6 (and case 1... I guess) just use the default string comparer
+                    default:
+                        break;
+                }
+                colID++;
+            }
+            tblBcsv.setRowSorter(rowSorter);
+            
             // Save path
             Settings.setLastBcsvArchive(tbArchiveName.getText());
             Settings.setLastBcsvFile(tbFileName.getText());
@@ -560,6 +613,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
                     }
                 }
                 catch(NumberFormatException ex) {
+                    System.out.println("Failed to convert \"" + val + "\" to the data type \""+field.type+"\". Using default value...");
                     switch (field.type) {
                         case 0:
                         case 3: entry.put(field.hash, -1); break;
