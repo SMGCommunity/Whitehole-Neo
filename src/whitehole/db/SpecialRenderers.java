@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import whitehole.Whitehole;
 import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
+import static whitehole.rendering.RendererFactory.createDummyCubeRenderer;
 import whitehole.rendering.special.*;
 import whitehole.smg.object.AbstractObj;
 
@@ -47,6 +48,9 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     return TwoJointScaleRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                 case "Phantom":
                     return PhantomRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
+                case "ShapeModelNo":
+                    return ShapeModelRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
+                    
                 case "PowerStar":
                     return PowerStarRenderer.getAdditiveCacheKey(obj, (Integer)renderinfo.getRenderParamByName("DefaultFrame"));
                 case "BlackHole":
@@ -71,6 +75,10 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                 case "Phantom":
                     result = new PhantomRenderer(info, objModelName, obj, renderinfo.rendererParams);
                     break;
+                case "ShapeModelNo":
+                    result = new ShapeModelRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    break;
+                    
                 case "PowerStar":
                     result = new PowerStarRenderer(info, objModelName, obj,
                             (Integer)renderinfo.getRenderParamByName("DefaultFrame"),
@@ -89,8 +97,13 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
             }
         
         if (result instanceof BmdRenderer)
-            if (!((BmdRenderer)result).isValidBmdModel())
+        {
+            BmdRenderer rrr = (BmdRenderer)result;
+            if (rrr.isForceFail)
+                return createDummyCubeRenderer();
+            if (!rrr.isValidBmdModel())
                 return null;
+        }
         
         return result;
     }

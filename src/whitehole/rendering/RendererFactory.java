@@ -30,12 +30,12 @@ import whitehole.math.Vec3f;
 import whitehole.smg.object.LevelObj;
 
 public final class RendererFactory {
-    private static final String[] SHAPE_MODEL_COMPATIBILITY = {
-        "assemblyblock", "clipfieldmapparts", "flexiblesphere", "gorogorocylinderrock", "hipdropmoveblock", "marineplant",
-        "memoryroadstep", "mercatorfixparts", "mercatorrailmoveparts", "mercatorrotateparts", "planta", "plantb", "plantc",
-        "plantd", "repeattimerswitchingblock", "simplenormalmapobj", "sunshademapparts", "switchingmoveblock",
-        "tripodbossfixparts", "tripodbossrailmoveparts", "tripodbossrotateparts"
-    };
+//    private static final String[] SHAPE_MODEL_COMPATIBILITY = {
+//        "assemblyblock", "clipfieldmapparts", "flexiblesphere", "gorogorocylinderrock", "hipdropmoveblock", "marineplant",
+//        "memoryroadstep", "mercatorfixparts", "mercatorrailmoveparts", "mercatorrotateparts", "planta", "plantb", "plantc",
+//        "plantd", "repeattimerswitchingblock", "simplenormalmapobj", "sunshademapparts", "switchingmoveblock",
+//        "tripodbossfixparts", "tripodbossrailmoveparts", "tripodbossrotateparts"
+//    };
     
     private static final String[] AREA_SHAPE_NAMES = { "baseorigincube", "centerorigincube", "sphere", "cylinder", "bowl" };
     
@@ -142,11 +142,11 @@ public final class RendererFactory {
             return String.format("gravityobj_%s", getGravityShapeModelName((GravityObj)obj));
         
         // Some objects are programmed to load an indexed model
-        if (Arrays.binarySearch(SHAPE_MODEL_COMPATIBILITY, lowerObjModelName) >= 0)
-        {
-            int shapeModelNo = obj.data.getShort("ShapeModelNo", (short)-1);
-            return String.format("%s%02d", objModelName, shapeModelNo);
-        }
+//        if (Arrays.binarySearch(SHAPE_MODEL_COMPATIBILITY, lowerObjModelName) >= 0)
+//        {
+//            int shapeModelNo = obj.data.getShort("ShapeModelNo", (short)-1);
+//            return String.format("%s%02d", objModelName, shapeModelNo);
+//        }
         
         if (Arrays.binarySearch(OCEAN_SHAPE_NAMES, lowerObjModelName) >= 0)
         {
@@ -836,28 +836,17 @@ public final class RendererFactory {
             // Specified object rendering
             if (obj instanceof LevelObj || obj instanceof MapPartObj) {
                 switch (obj.name) {
-                    case "Pole":
-                    case "PoleNoModel": return new PoleRenderer(info, obj.scale, "Pole");
-                    case "PoleSquare":
-                    case "PoleSquareNoModel":
-                    case "Pole2Way": return new PoleRenderer(info, obj.scale, "PoleSquare");
-
                     // Comet Observatory objects
                     case "AstroStarPlate":
                     case "AstroDome":
                     case "AstroDomeEntrance": return new AstroRenderer(info, obj.name, (int)obj.data.get("Obj_arg0"));
                     case "AstroDomeSky": return new AstroSkyRenderer(info, obj.name, (int)obj.data.get("Obj_arg0"));
 
-                    // Black holes
-                    case "BlackHole": return new BlackHoleRenderer(info, (int) obj.data.get("Obj_arg0"), obj.scale, Shape.SPHERE,false);
-                    case "BlackHoleCube": return new BlackHoleRenderer(info, (int) obj.data.get("Obj_arg0"), obj.scale, Shape.CENTER_ORIGIN_BOX,true);
 
                     // Other
-                    case "Kinopio": 
                     case "KinopioAstro": return new KinopioRenderer(info, (int)obj.data.get("Obj_arg1"));
                     case "KinopioBank": return new KinopioRenderer(info, 1);
                     case "KinopioPostman": return new KinopioRenderer(info, 2);
-                    case "UFOKinoko": return new UFOKinokoRenderer(info, (int)obj.data.get("Obj_arg0"));
                     case "PowerStarHalo": return new PowerStarHaloRenderer(info);
                 }
             }

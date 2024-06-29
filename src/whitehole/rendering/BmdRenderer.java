@@ -689,6 +689,11 @@ public class BmdRenderer extends GLRenderer {
     protected Bva shapeVisibleAnim = null;
     protected int shapeVisibleAnimIndex = 0;
     
+    /**
+     * Set this flag to force a blue cube to be created
+     */
+    public boolean isForceFail = false;
+    
     public BmdRenderer() {
         
     }

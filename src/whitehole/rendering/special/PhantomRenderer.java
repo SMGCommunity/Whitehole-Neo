@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.json.*;
 import whitehole.math.Vec3f;
-import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
 import whitehole.smg.object.AbstractObj;
 
@@ -30,7 +29,7 @@ import whitehole.smg.object.AbstractObj;
  *
  * @author Hackio
  */
-public class PhantomRenderer extends BasicAnimationRenderer {
+public class PhantomRenderer extends ShapeModelRenderer {
     
     protected HashMap<String, Object> rendererParams;
     protected ArrayList<PhantomParam> phantomList;
@@ -39,19 +38,11 @@ public class PhantomRenderer extends BasicAnimationRenderer {
     
     public PhantomRenderer(RenderInfo info, String modelName, AbstractObj obj, HashMap<String, Object> params)
     {
-        if (!ctor_tryLoadModelDefault(modelName))
-            return;
+        super(info, modelName, obj, params);
         
         rendererParams = params;
         scale = obj.scale;
         phantomList = createPhantoms(obj);
-        
-        ctor_initBRK(modelName, obj, params);
-        ctor_initBTK(modelName, obj, params);
-        ctor_initBTP(modelName, obj, params);
-        ctor_initBVA(modelName, obj, params);
-        
-        ctor_uploadData(info);
     }
     
     
@@ -204,7 +195,7 @@ public class PhantomRenderer extends BasicAnimationRenderer {
     }
     
     public static String getAdditiveCacheKey(AbstractObj obj, HashMap<String, Object> params) {        
-        return "_" +
+        return "_" + ShapeModelRenderer.getAdditiveCacheKey(obj, params) +
                 obj.scale.toString() +
                 obj.data.getInt("Obj_arg0") +
                 obj.data.getInt("Obj_arg1") +

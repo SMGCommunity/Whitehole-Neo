@@ -305,7 +305,8 @@
               "SourceRotY": "Obj_arg4",
               "SourceRotZ": "Obj_arg5",
             }
-          ]
+          ],
+          "OptionalShapeModelNo": true
         }
       ]
     },
@@ -346,6 +347,165 @@
             "Filename": "TexChange",
             "FrameSource": "Obj_arg1"
           }
+        }
+      ]
+    },
+    {
+      "ClassName": "AssemblyBlock",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": true
+        }
+      ]
+    },
+    {
+      "ClassName": "ClipFieldMapParts",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": false
+        }
+      ]
+    },
+    {
+      "ClassName": "FlexibleSphere",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": true
+        }
+      ]
+    },
+    {
+      "ClassName": "GorogoroCylinderRock",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": true
+        }
+      ]
+    },
+    {
+      "ClassName": "HipDropMoveBlock",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": true
+        }
+      ]
+    },
+    {
+      "ClassName": "MarinePlant",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+          "BTP": {
+            "Filename": "Color",
+            "FrameSource": "Obj_arg1"
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "MemoryRoadStep",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": true
+        }
+      ]
+    },
+    {
+      "ClassName": "MercatorFixParts",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": false
+        }
+      ]
+    },
+    {
+      "ClassName": "MercatorRailMoveParts",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": false
+        }
+      ]
+    },
+    {
+      "ClassName": "MercatorRotateParts",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": false
+        }
+      ]
+    },
+    {
+      "ClassName": "PlantGroup",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+          "BTP": {
+            "Filename": "Color",
+            "FrameSource": "Obj_arg3"
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "RepeatTimerSwitchingBlock",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": true
+        }
+      ]
+    },
+    {
+      "ClassName": "SimpleNormalMapObj",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": false
+        }
+      ]
+    },
+    {
+      "ClassName": "SunshadeMapParts",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": false
+        }
+      ]
+    },
+    {
+      "ClassName": "TripodBossFixParts",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": true
+        }
+      ]
+    },
+    {
+      "ClassName": "TripodBossRailMoveParts",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": true
+        }
+      ]
+    },
+    {
+      "ClassName": "TripodBossRotateParts",
+      "RendererType": "ShapeModelNo",
+      "RendererParams": [
+        {
+            "OptionalShapeModelNo": true
         }
       ]
     }
