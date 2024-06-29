@@ -4767,7 +4767,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
                 else
                 {
-                    setStatusToWarning("Can't jump to multiple objects.");
+                    if (selectedObjs.isEmpty())
+                        setStatusToWarning("Can't jump to no selection.");
+                    else
+                        setStatusToWarning("Can't jump to multiple objects.");
                 }
                 
                 updateCamera();
