@@ -87,7 +87,7 @@ public class Btp {
         {
             if (anm.name.equals(materialName))
                 if (anm.texID == textureIndex)
-                    return anm.frameData.get(frameIndex);
+                    return anm.frameData.get(frameIndex < anm.frameData.size() ? frameIndex : anm.frameData.size()-1);
         }
         return null;
     }
