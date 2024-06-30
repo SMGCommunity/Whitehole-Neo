@@ -445,9 +445,31 @@
     },
     {
       "ClassName": "PlantGroup",
-      "RendererType": "ShapeModelNo",
+      "RendererType": "PlantGroup",
       "RendererParams": [
         {
+          "ShapeModelRemap":[
+            {
+                "ObjectName": "CutBushGroup",
+                "ShapeModelName": "PlantA",
+                "ShapeModelRemap": 8,
+                "Games": 2
+            },
+            {
+                "ObjectName": "FlowerBlueGroup",
+                "ShapeModelName": "PlantA",
+                "ShapeModelRemap": 7,
+                "Games": 2
+            },
+            {
+                "ObjectName": "FlowerGroup",
+                "ShapeModelName": "PlantA",
+                "ShapeModelRemap": 7,
+                "ColorOverride": 1,
+                "Games":2
+            }
+          ],
+          "OptionalShapeModelNo": true,
           "BTP": {
             "Filename": "Color",
             "FrameSource": "Obj_arg3"

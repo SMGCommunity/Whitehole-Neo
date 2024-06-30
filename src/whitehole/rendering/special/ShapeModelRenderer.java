@@ -26,10 +26,9 @@ import whitehole.smg.object.AbstractObj;
  */
 public class ShapeModelRenderer extends BasicAnimationRenderer {
     protected ShapeModelRenderer() { super(); }
-    public ShapeModelRenderer(RenderInfo info, String modelName, AbstractObj obj, HashMap<String, Object> params) throws GLException
+    public ShapeModelRenderer(RenderInfo info, String modelName, AbstractObj obj, HashMap<String, Object> params, int shapeModelNo) throws GLException
     {
         String newModelName;
-        int shapeModelNo = obj.data.getShort("ShapeModelNo", (short)-1);
         
         Boolean IsOptional = (Boolean)params.get("OptionalShapeModelNo");
         if (IsOptional == null)

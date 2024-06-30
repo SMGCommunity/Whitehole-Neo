@@ -55,6 +55,8 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     return PowerStarRenderer.getAdditiveCacheKey(obj, (Integer)renderinfo.getRenderParamByName("DefaultFrame"));
                 case "BlackHole":
                     return BlackHoleRenderer.getAdditiveCacheKey(obj);
+                case "PlantGroup":
+                    return PlantGroupRenderer.getAdditiveCacheKey(objModelName, obj, renderinfo.rendererParams);
             }
         return "";
     }
@@ -76,7 +78,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     result = new PhantomRenderer(info, objModelName, obj, renderinfo.rendererParams);
                     break;
                 case "ShapeModelNo":
-                    result = new ShapeModelRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    result = new ShapeModelRenderer(info, objModelName, obj, renderinfo.rendererParams, obj.data.getShort("ShapeModelNo", (short)-1));
                     break;
                     
                 case "PowerStar":
@@ -93,6 +95,9 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     if (shp == null)
                         break;
                     result = new BlackHoleRenderer(info, obj, shp);
+                    break;
+                case "PlantGroup":
+                    result = new PlantGroupRenderer(info, objModelName, obj, renderinfo .rendererParams);
                     break;
             }
         

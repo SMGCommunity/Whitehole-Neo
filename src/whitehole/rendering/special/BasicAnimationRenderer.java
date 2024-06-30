@@ -28,10 +28,10 @@ import whitehole.smg.object.AbstractObj;
  * @author Hackio
  */
 public class BasicAnimationRenderer extends BmdRenderer {
-    AnimationParam brkData;
-    AnimationParam btkData;
-    AnimationParam btpData;
-    AnimationParam bvaData;
+    protected AnimationParam brkData;
+    protected AnimationParam btkData;
+    protected AnimationParam btpData;
+    protected AnimationParam bvaData;
     
     protected BasicAnimationRenderer() { super(); }
     

@@ -38,7 +38,7 @@ public class PhantomRenderer extends ShapeModelRenderer {
     
     public PhantomRenderer(RenderInfo info, String modelName, AbstractObj obj, HashMap<String, Object> params)
     {
-        super(info, modelName, obj, params);
+        super(info, modelName, obj, params, obj.data.getShort("ShapeModelNo", (short)-1));
         
         rendererParams = params;
         scale = obj.scale;

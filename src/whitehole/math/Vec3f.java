@@ -160,6 +160,17 @@ public class Vec3f implements Cloneable {
         out.x = x; out.y = y; out.z = z;
     }
     
+        /**
+     * Calculates dot product of two vectors.
+     * @param vector1 First vector to use for dot product calculation.
+     * @param vector2 Second vector to use for dot product calculation.
+     * @return Returns dot product of the two specified vectors.
+     */
+    public static float dot(Vec3f vector1, Vec3f vector2 )
+    {
+        return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z;
+    }
+    
     public static Vec3f centroid(Vec3f[] points)
     {
         if (points.length == 0)
@@ -178,4 +189,9 @@ public class Vec3f implements Cloneable {
         centroid.z = centroid.z / points.length;
         return centroid;
     }
+    
+    public static Vec3f zero() { return new Vec3f(); }
+    public static Vec3f unitX() { return new Vec3f(1,0,0); }
+    public static Vec3f unitY() { return new Vec3f(0,1,0); }
+    public static Vec3f unitZ() { return new Vec3f(0,0,1); }
 }
