@@ -504,6 +504,7 @@ public class GravityShapeRenderer extends GLRenderer {
             gl.glColor3f(Col.r, Col.g, Col.b);
         gl.glTranslatef(0f, 0f, 0f);
         gl.glRotatef(90f, 1f, 0f, 0f);
+        // Horizontal Rings
         for(int h = 0; h < Horizontal; h++)
         {
             gl.glBegin(GL2.GL_LINE_STRIP);
@@ -515,11 +516,11 @@ public class GravityShapeRenderer extends GLRenderer {
                 else
                     p = Points[h][v];
                 gl.glVertex3f(p.x, p.y, p.z);
-                gl.glVertex3f(p.x*DISTANT_SIZE, p.y*DISTANT_SIZE, p.z*DISTANT_SIZE);
                 gl.glVertex3f(p.x, p.y, p.z);
             }
             gl.glEnd();
         }
+        // Vertical rings
         for(int v = 0; v < Vertical; v++)
         {
             gl.glBegin(GL2.GL_LINE_STRIP);
@@ -536,22 +537,29 @@ public class GravityShapeRenderer extends GLRenderer {
             }
             gl.glEnd();
         }
+        // Distant value
         if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor3f(Col.r, Col.g, Col.b);
         gl.glBegin(GL2.GL_LINES);
         for(int h = 0; h < Horizontal; h++)
         {
-            for(int v = 0; v <= Vertical; v++)
+            for(int v = 1; v <= Vertical; v++)
             {
                 Vec3f p;
                 if (v == Vertical)
                     p = Points[h][0];
                 else
                     p = Points[h][v];
+                
                 gl.glVertex3f(p.x, p.y, p.z);
                 gl.glVertex3f(p.x*DISTANT_SIZE, p.y*DISTANT_SIZE, p.z*DISTANT_SIZE);
+                if (h == 0 || h == Horizontal)
+                    break;
             }
         }
+        gl.glVertex3f(BottomPoint.x, BottomPoint.y, BottomPoint.z);
+        gl.glVertex3f(BottomPoint.x*DISTANT_SIZE, BottomPoint.y*DISTANT_SIZE, BottomPoint.z*DISTANT_SIZE);
+        
         gl.glEnd();
         gl.glTranslatef(0f, 0f, 0f);
     }
