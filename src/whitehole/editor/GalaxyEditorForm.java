@@ -4714,11 +4714,39 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             else if (keyCode == KeyEvent.VK_Z && e.isControlDown()) {
                 doUndo();
             }
-            // Pull Up Add menu
+            // Pull Up Add menu -- Shift+A
             else if (keyCode == KeyEvent.VK_A && e.isShiftDown()) {
                 popupAddItems.setLightWeightPopupEnabled(false);
                 popupAddItems.show(pnlGLPanel, mousePos.x, mousePos.y);
                 popupAddItems.setVisible(true);
+            }
+            // Reset Path control points -- Ctrl+Shift+Alt+C
+            else if (keyCode == KeyEvent.VK_C && e.isControlDown() && e.isShiftDown() && e.isAltDown())
+            {
+                int ResetNum = 0;
+                for (AbstractObj obj : selectedObjs.values())
+                {
+                    if (obj instanceof PathPointObj)
+                    {
+                        PathPointObj x = (PathPointObj)obj;
+                        x.point1.x = obj.position.x;
+                        x.point1.y = obj.position.y;
+                        x.point1.z = obj.position.z;
+                        x.point2.x = obj.position.x;
+                        x.point2.y = obj.position.y;
+                        x.point2.z = obj.position.z;
+                        addRerenderTask("path:"+x.path.uniqueID);
+                        
+                        ResetNum++;
+                    }
+                    addRerenderTask("zone:" + obj.stage.stageName);
+                }
+                if (ResetNum == 0)
+                    setStatusToWarning("No path points were reset.");
+                else
+                    setStatusToInfo("Reset "+ResetNum+" path points.");
+                glCanvas.repaint();
+                unsavedChanges = true;
             }
             // Copy/Paste
             else if ((keyCode == KeyEvent.VK_C || keyCode == KeyEvent.VK_V) && e.isControlDown() && (keyMask & 0x3F) == 0)
@@ -4838,7 +4866,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 offsetSelectionBy(delta, false);
                 endUndoMulti();
             }
-            
             
             
             
