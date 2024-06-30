@@ -32,7 +32,7 @@ public class ShapeModelRenderer extends BasicAnimationRenderer {
         
         Boolean IsOptional = (Boolean)params.get("OptionalShapeModelNo");
         if (IsOptional == null)
-            IsOptional = false; //Default to False
+            IsOptional = true; //Default to True
         if (shapeModelNo == -1)
         {
             if (!IsOptional)
