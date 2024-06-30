@@ -4686,6 +4686,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             // Truncate feature. Removes all decimals from the selected objects
             else if (keyCode == KeyEvent.VK_N && e.isControlDown())
             {
+                startUndoMulti();
+                for(AbstractObj selectedObj : selectedObjs.values())
+                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+                
                 for (AbstractObj obj : selectedObjs.values())
                 {
                     obj.position.x = (int)obj.position.x;
@@ -4706,6 +4710,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         addRerenderTask("object:" + obj.uniqueID);
                     addRerenderTask("zone:" + obj.stage.stageName);
                 }
+                endUndoMulti();
                 selectionChanged();
                 glCanvas.repaint();
                 unsavedChanges = true;
