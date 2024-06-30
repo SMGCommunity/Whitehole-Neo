@@ -4728,6 +4728,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             // Reset Path control points -- Ctrl+Shift+Alt+C
             else if (keyCode == KeyEvent.VK_C && e.isControlDown() && e.isShiftDown() && e.isAltDown())
             {
+                startUndoMulti();
+                for(AbstractObj selectedObj : selectedObjs.values())
+                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+                
                 int ResetNum = 0;
                 for (AbstractObj obj : selectedObjs.values())
                 {
@@ -4746,6 +4750,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     }
                     addRerenderTask("zone:" + obj.stage.stageName);
                 }
+                
+                endUndoMulti();
+                
                 if (ResetNum == 0)
                     setStatusToWarning("No path points were reset.");
                 else
