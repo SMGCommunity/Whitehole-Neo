@@ -530,6 +530,88 @@
             "OptionalShapeModelNo": true
         }
       ]
+    },
+    {
+      "ClassName": "AstroMapObj",
+      "RendererType": "ModelByProperty",
+      "RendererParams": [
+        {
+          "ModelByPropertyEntries": [
+            {
+              "ObjectName": "AstroDomeEntrance",
+              "SourceParam": "Obj_arg0",
+              "ParamOffset": -1,
+              "ModelNames": [
+                "AstroDomeEntranceObservatory",
+                "AstroDomeEntranceWell",
+                "AstroDomeEntranceKitchen",
+                "AstroDomeEntranceBedRoom",
+                "AstroDomeEntranceMachine",
+                "AstroDomeEntranceTower"
+              ]
+            },
+            {
+              "ObjectName": "AstroStarPlate",
+              "SourceParam": "Obj_arg0",
+              "ParamOffset": -1,
+              "ModelNames": [
+                "AstroStarPlateObservatory",
+                "AstroStarPlateWell",
+                "AstroStarPlateKitchen",
+                "AstroStarPlateBedRoom",
+                "AstroStarPlateMachine",
+                "AstroStarPlateTower"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ClassName": "AstroDome",
+      "RendererType": "ModelByProperty",
+      "RendererParams": [
+        {
+          "ModelByPropertyEntries": [
+            {
+              "ObjectName": "AstroDome",
+              "SourceParam": "Obj_arg0",
+              "ParamOffset": -1,
+              "ModelNames": [
+                "AstroDomeObservatory",
+                "AstroDomeWell",
+                "AstroDomeKitchen",
+                "AstroDomeBedRoom",
+                "AstroDomeMachine",
+                "AstroDomeTower"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ClassName": "AstroDomeSky",
+      "RendererType": "ModelByProperty",
+      "RendererParams": [
+        {
+          "ModelByPropertyEntries": [
+            {
+              "ObjectName": "AstroDomeSky",
+              "SourceParam": "Obj_arg0",
+              "ParamOffset": -1,
+              "ModelNames": [
+                "AstroDomeSkyA",
+                "AstroDomeSkyB",
+                "AstroDomeSkyC",
+                "AstroDomeSkyA",
+                "AstroDomeSkyB",
+                "AstroDomeSkyC"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

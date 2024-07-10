@@ -50,6 +50,8 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     return PhantomRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                 case "ShapeModelNo":
                     return ShapeModelRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
+                case "ModelByProperty":
+                    return ModelByPropertyRenderer.getAdditiveCacheKey(obj, objModelName, renderinfo.rendererParams);
                     
                 case "PowerStar":
                     return PowerStarRenderer.getAdditiveCacheKey(obj, (Integer)renderinfo.getRenderParamByName("DefaultFrame"));
@@ -79,6 +81,9 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     break;
                 case "ShapeModelNo":
                     result = new ShapeModelRenderer(info, objModelName, obj, renderinfo.rendererParams, obj.data.getShort("ShapeModelNo", (short)-1));
+                    break;
+                case "ModelByProperty":
+                    result = new ModelByPropertyRenderer(info, objModelName, obj, renderinfo.rendererParams);
                     break;
                     
                 case "PowerStar":
