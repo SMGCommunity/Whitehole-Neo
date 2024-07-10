@@ -187,6 +187,22 @@
       ]
     },
     {
+      "ObjectName": "PowerStarHalo",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "Disappear",
+            "Frame": 25
+          },
+          "BTK": {
+            "Filename": "PowerStarHalo",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
       "ObjectName": "EarthenPipe",
       "RendererType": "TwoJointScale",
       "RendererParams": [
