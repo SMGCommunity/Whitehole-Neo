@@ -25,6 +25,10 @@
             "Game": 0
         },
         {
+            "Hint": "Press Shift + Space to jump to the center of the current zone in the level view.",
+            "Game": 0
+        },
+        {
             "Hint": "Press Ctrl + C or the copy button to copy the selected object/path. This is put on the clipboard.",
             "Game": 0
         },
@@ -34,6 +38,10 @@
         },
         {
             "Hint": "Don't forget to save by pressing Ctrl + S.",
+            "Game": 0
+        },
+        {
+            "Hint": "Need to try curving your path again? use Ctrl + Shift + Alt + C to reset Path control points!",
             "Game": 0
         }
     ]
