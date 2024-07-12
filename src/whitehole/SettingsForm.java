@@ -30,7 +30,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
-import whitehole.io.FilesystemBase;
 
 public class SettingsForm extends javax.swing.JDialog {
     public SettingsForm(JFrame parent) {

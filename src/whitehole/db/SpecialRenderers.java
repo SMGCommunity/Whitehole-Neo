@@ -228,6 +228,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
     {
         switch(n)
         {
+            case "BCK":
             case "BRK":
             case "BTK":
             case "BTP":

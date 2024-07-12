@@ -680,6 +680,8 @@ public class BmdRenderer extends GLRenderer {
     protected Vec3f rotation = DEFAULT_ROTATION;
     protected Vec3f scale = DEFAULT_SCALE;
     
+    protected Bck jointAnim = null;
+    protected int jointAnimIndex = 0;
     protected Brk colRegisterAnim = null;
     protected int colRegisterAnimIndex = 0;
     protected Btk texMatrixAnim = null;
@@ -890,6 +892,18 @@ public class BmdRenderer extends GLRenderer {
         }
     }
     
+    protected final Bck ctor_tryLoadBCK(String modelName, String animName, RarcFile archive) {
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".bck";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Bck(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+     
     protected final Brk ctor_tryLoadBRK(String modelName, String animName, RarcFile archive) {
         try
         {
@@ -1070,6 +1084,38 @@ public class BmdRenderer extends GLRenderer {
         
         if(model == null)
             return;
+        
+        if (jointAnim != null && jointAnim.BoneCount == model.joints.length)
+        {
+            int Frame = jointAnimIndex;
+            if (Frame < 0)
+                Frame = 0;
+            if (Frame > jointAnim.Duration)
+                Frame = jointAnim.Duration-1;
+            
+            //init BCK data
+            for (int i = 0; i < model.joints.length; i++) {
+                Bmd.Joint jnt = model.getJointByIndex(i);
+                if (jnt == null)
+                    continue; //what
+                
+                Bck.Animation animdata = jointAnim.animData.get(i);
+                if (animdata == null)
+                    continue; //what
+                
+                jnt.translation.x = animdata.TranslationX.getValueAtFrame((short)Frame);
+                jnt.translation.y = animdata.TranslationY.getValueAtFrame((short)Frame);
+                jnt.translation.z = animdata.TranslationZ.getValueAtFrame((short)Frame);
+                jnt.rotation.x = animdata.RotationX.getValueAtFrame((short)Frame) * (float)(Math.PI/180); //Convert to radians because yes.
+                jnt.rotation.y = animdata.RotationY.getValueAtFrame((short)Frame) * (float)(Math.PI/180);
+                jnt.rotation.z = animdata.RotationZ.getValueAtFrame((short)Frame) * (float)(Math.PI/180);
+                jnt.scale.x = animdata.ScaleX.getValueAtFrame((short)Frame);
+                jnt.scale.y = animdata.ScaleY.getValueAtFrame((short)Frame);
+                jnt.scale.z = animdata.ScaleZ.getValueAtFrame((short)Frame);
+            }
+            
+            model.recalcAllJoints();
+        }
         
         gl.glPushMatrix();
             

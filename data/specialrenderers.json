@@ -203,6 +203,46 @@
       ]
     },
     {
+      "ObjectName": "LavaHomeVolcanoFlow",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BCK": {
+            "Filename": "LavaHomeVolcanoFlow",
+            "Frame": 199
+          },
+          "BTK": {
+            "Filename": "LavaHomeVolcanoFlow",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "ItemBlock",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BCK": {
+            "Filename": "Wait",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "BeeJumpBall",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BCK": {
+            "Filename": "Wait",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
       "ObjectName": "EarthenPipe",
       "RendererType": "TwoJointScale",
       "RendererParams": [

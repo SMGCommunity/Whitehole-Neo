@@ -37,11 +37,7 @@ public class ModelByPropertyRenderer extends BasicAnimationRenderer  {
         if (!ctor_tryLoadModelDefault(newModelName))
             return;
         
-        ctor_initBRK(newModelName, obj, params);
-        ctor_initBTK(newModelName, obj, params);
-        ctor_initBTP(newModelName, obj, params);
-        ctor_initBVA(newModelName, obj, params);
-        
+        ctor_initAllAnim(modelName, obj, params);
         ctor_uploadData(info);
     }
     

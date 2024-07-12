@@ -163,6 +163,51 @@ public class Matrix4 {
         return ret;
     }
     
+//    public static Matrix4 createSRTMatrixForJoint(Vec3f scale, Vec3f rotation, Vec3f translation, boolean ignoreParentScale, Vec3f parentScale)
+//    {
+//        var cx = Math.cos(rotation.x);
+//        var sx = Math.sin(rotation.x);
+//        var cy = Math.cos(rotation.y);
+//        var sy = Math.sin(rotation.y);
+//        var cz = Math.cos(rotation.z);
+//        var sz = Math.sin(rotation.z);
+//        
+//        float ipsx, ipsy, ipsz;
+//        
+//        if (ignoreParentScale)
+//        {
+//            ipsx = 1/parentScale.x;
+//            ipsy = 1/parentScale.y;
+//            ipsz = 1/parentScale.z;
+//        }
+//        else
+//        {
+//            ipsx = 1;
+//            ipsy = 1;
+//            ipsz = 1;
+//        }
+//        
+//        // I hope this is right...
+//        Matrix4 ret = new Matrix4();
+//        ret.m[0] = (float)(cy*cz*scale.x*ipsx);
+//        ret.m[1] = (float)(cy*sz*scale.x*ipsy);
+//        ret.m[2] = (float)(-sy*scale.x*ipsz);
+//        
+//        ret.m[4] = (float)((sx*sy*cz - cx*sz)*scale.y*ipsx);
+//        ret.m[5] = (float)((sx*sy*sz + cx*cz)*scale.y*ipsy);
+//        ret.m[6] = (float)(sx*cy*scale.y*ipsz);
+//        
+//        ret.m[8] = (float)((cx*sy*cz + sx*sz)*scale.z*ipsx);
+//        ret.m[9] = (float)((cx*sy*sz - sx*cz)*scale.z*ipsy);
+//        ret.m[10] = (float)(cx*cy*scale.z*ipsz);
+//        
+//        ret.m[12] = translation.x;
+//        ret.m[13] = translation.y;
+//        ret.m[14] = translation.z;
+//        
+//        return ret;
+//    }
+    
     public static void mult(Matrix4 left, Matrix4 right, Matrix4 out) {
         float m0 = left.m[0] * right.m[0] + left.m[1] * right.m[4] + left.m[2] * right.m[8] + left.m[3] * right.m[12],
               m1 = left.m[0] * right.m[1] + left.m[1] * right.m[5] + left.m[2] * right.m[9] + left.m[3] * right.m[13],

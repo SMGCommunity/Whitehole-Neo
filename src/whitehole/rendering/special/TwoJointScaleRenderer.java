@@ -37,6 +37,7 @@ public class TwoJointScaleRenderer extends BasicAnimationRenderer {
         if (!ctor_tryLoadModelDefault(modelName))
             return;
         
+        // Do not support BCK since we're editing the bones already
         ctor_initBRK(modelName, obj, params);
         ctor_initBTK(modelName, obj, params);
         ctor_initBTP(modelName, obj, params);

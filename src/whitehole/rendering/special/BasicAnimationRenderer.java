@@ -28,6 +28,7 @@ import whitehole.smg.object.AbstractObj;
  * @author Hackio
  */
 public class BasicAnimationRenderer extends BmdRenderer {
+    protected AnimationParam bckData;
     protected AnimationParam brkData;
     protected AnimationParam btkData;
     protected AnimationParam btpData;
@@ -40,12 +41,30 @@ public class BasicAnimationRenderer extends BmdRenderer {
         if (!ctor_tryLoadModelDefault(modelName))
             return;
         
+        ctor_initAllAnim(modelName, obj, params);
+        ctor_uploadData(info);
+    }
+    
+    protected final void ctor_initAllAnim(String modelName, AbstractObj obj, HashMap<String, Object> params)
+    {
+        ctor_initBCK(modelName, obj, params);
         ctor_initBRK(modelName, obj, params);
         ctor_initBTK(modelName, obj, params);
         ctor_initBTP(modelName, obj, params);
         ctor_initBVA(modelName, obj, params);
-        
-        ctor_uploadData(info);
+    }
+    
+    // ==============================================
+    
+    protected final void ctor_initBCK(String modelName, AbstractObj obj, HashMap<String, Object> params)
+    {
+        bckData = (AnimationParam)params.get("BCK");
+        if (bckData != null)
+        {
+            if (jointAnim == null)
+                jointAnim = ctor_tryLoadBCK(modelName, bckData.filename, archive);
+            jointAnimIndex = getAnimationFrameOrSource(obj, bckData);
+        }
     }
     
     protected final void ctor_initBRK(String modelName, AbstractObj obj, HashMap<String, Object> params)
@@ -92,6 +111,8 @@ public class BasicAnimationRenderer extends BmdRenderer {
         }
     }
     
+    // ==============================================
+    
     @Override
     protected void initModel(GLRenderer.RenderInfo info, String modelName) throws GLException
     {
@@ -129,6 +150,11 @@ public class BasicAnimationRenderer extends BmdRenderer {
     @Override
     public boolean boundToObjArg(int arg)
     {
+        if (bckData != null && bckData.hasSource())
+        {
+            if (bckData.isSourceObjArg(arg))
+                return true;
+        }
         if (brkData != null && brkData.hasSource())
         {
             if (brkData.isSourceObjArg(arg))
@@ -153,12 +179,14 @@ public class BasicAnimationRenderer extends BmdRenderer {
     }
     
     public static String getAdditiveCacheKey(AbstractObj obj, HashMap<String, Object> params) {
+        AnimationParam bckData = (AnimationParam)params.get("BCK");
         AnimationParam brkData = (AnimationParam)params.get("BRK");
         AnimationParam btkData = (AnimationParam)params.get("BTK");
         AnimationParam btpData = (AnimationParam)params.get("BTP");
         AnimationParam bvaData = (AnimationParam)params.get("BVA");
         
         return "_"+
+                getAnimationFrameOrSource(obj, bckData)+
                 getAnimationFrameOrSource(obj, brkData)+
                 getAnimationFrameOrSource(obj, btkData)+
                 getAnimationFrameOrSource(obj, btpData)+

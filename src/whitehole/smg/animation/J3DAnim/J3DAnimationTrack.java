@@ -21,7 +21,8 @@ import java.util.ArrayList;
 import whitehole.io.FileBase;
 
 /**
- *
+ * From https://github.com/SuperHackio/Hack.io
+ * Used with explicit permission.
  * @author Hackio
  */
 public class J3DAnimationTrack extends ArrayList<J3DKeyFrame>{

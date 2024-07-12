@@ -85,6 +85,12 @@ public class Bmd
         }
     }
     
+    public Joint getJointByIndex(int idx)
+    {
+        if (idx < 0 || idx >= joints.length)
+            return null;
+        return joints[idx];
+    }
     public Joint getJointByName(String name)
     {
         for(var j : joints)
@@ -206,7 +212,8 @@ public class Bmd
         matstack.push(0xFFFF);
         nodestack.push(-1);
 
-        file.skip(8);
+        MiscFlags = file.readShort();
+        file.skip(6);
         numVertices = file.readInt();
 
         int datastart = file.readInt();
@@ -501,8 +508,8 @@ public class Bmd
             Joint jnt = new Joint();
             joints[i] = jnt;
 
-            jnt.unk1 = file.readShort();
-            jnt.unk2 = file.readByte();
+            jnt.matrixTypeFlags = file.readShort();
+            jnt.doNotInheritParentScale = file.readByte();
             file.skip(1);
 
             jnt.scale = new Vec3f(file.readFloat(), file.readFloat(), file.readFloat());
@@ -1177,8 +1184,15 @@ public class Bmd
     public class Joint
     {
         public String name;
-        public short unk1;
-        public byte unk2;
+        
+        // 0x0 = ScalingRule_Basic
+        // 0x1 = ScalingRule_XSI
+        // 0x2 = ScalingRule_Maya
+        // 0xF = ScalingRule_Mask
+        public short matrixTypeFlags;
+        
+        public byte doNotInheritParentScale;
+        
         public int jointIndex;
 
         public Vec3f scale, rotation, translation;
@@ -1187,8 +1201,6 @@ public class Bmd
         
         public void doCalc()
         {
-            matrix = Matrix4.SRTToMatrix(scale, rotation, translation);
-
             for (SceneGraphNode node : sceneGraph)
             {
                 if (node.nodeType != 1) continue;
@@ -1207,10 +1219,32 @@ public class Bmd
 
                 } while (parentnode.nodeType != 1);
 
+                matrix = Matrix4.SRTToMatrix(scale, rotation, translation);
                 if (parentnode != null)
                 {
+                    Joint parent = joints[parentnode.nodeID];
+                    
+                    int matrixCalcFlag = (MiscFlags & 0xF);
+                    if (matrixCalcFlag == 2 && ((doNotInheritParentScale & 0x01) == 1))
+                    {
+                        float ipsx = 1/parent.scale.x;
+                        float ipsy = 1/parent.scale.y;
+                        float ipsz = 1/parent.scale.z;
+                        
+                        matrix.m[0] *= ipsx;
+                        matrix.m[4] *= ipsx;
+                        matrix.m[8] *= ipsx;
+                        
+                        matrix.m[1] *= ipsy;
+                        matrix.m[5] *= ipsy;
+                        matrix.m[9] *= ipsy;
+                        
+                        matrix.m[2] *= ipsz;
+                        matrix.m[6] *= ipsz;
+                        matrix.m[10] *= ipsz;
+                    }
                     finalMatrix = new Matrix4();
-                    Matrix4.mult(matrix, joints[parentnode.nodeID].finalMatrix, finalMatrix);
+                    Matrix4.mult(matrix, parent.finalMatrix, finalMatrix);
                 }
                 else
                     finalMatrix = matrix;
@@ -1459,6 +1493,7 @@ public class Bmd
     public Vec3f bboxMin, bboxMax;
 
     // INF1
+    public short MiscFlags;
     public int numVertices;
     public List<SceneGraphNode> sceneGraph;
 

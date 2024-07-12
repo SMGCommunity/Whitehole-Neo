@@ -76,10 +76,7 @@ public class PlantGroupRenderer extends ShapeModelRenderer {
             return;
         }
         
-        ctor_initBRK(newModelName, obj, params);
-        ctor_initBTK(newModelName, obj, params);
-        ctor_initBTP(newModelName, obj, params);
-        ctor_initBVA(newModelName, obj, params);
+        ctor_initAllAnim(modelName, obj, params);
         
         if (plant.colorOverride != null)
         {
