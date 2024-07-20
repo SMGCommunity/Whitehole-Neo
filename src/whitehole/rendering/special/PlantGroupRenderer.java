@@ -76,7 +76,7 @@ public class PlantGroupRenderer extends ShapeModelRenderer {
             return;
         }
         
-        ctor_initAllAnim(modelName, obj, params);
+        ctor_initAllAnim(newModelName, obj, params);
         
         if (plant.colorOverride != null)
         {
@@ -174,8 +174,11 @@ public class PlantGroupRenderer extends ShapeModelRenderer {
         return "_" +
                 makeModelName(plant.shapeModelName, plant.shapeModelRemap) +
                 animKey +
+                "_" +
                 obj.scale.toString() +
+                "_" +
                 obj.data.getInt("Obj_arg0") +
+                "_" +
                 obj.data.getShort("CommonPath_ID");
     }
 }
