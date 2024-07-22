@@ -5584,6 +5584,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         Vec3f offset = new Vec3f();
         
         for (AbstractObj obj : selectedObjs.values()) {
+            addUndoEntry(IUndo.Action.TRANSLATE, obj);
             if (obj instanceof PathPointObj) {
                 PathPointObj pointObj = (PathPointObj)obj;
                 offset.subtract(COPY_POSITION, pointObj.position);
@@ -5607,8 +5608,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 addRerenderTask("zone:" + pointObj.stage.stageName);
             }
             else {
-                addUndoEntry(IUndo.Action.TRANSLATE, obj);
-                
                 obj.position.set(COPY_POSITION);
                 pnlObjectSettings.setFieldValue("pos_x", obj.position.x);
                 pnlObjectSettings.setFieldValue("pos_y", obj.position.y);
