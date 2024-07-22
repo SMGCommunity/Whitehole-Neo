@@ -1559,7 +1559,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private void rotateSelectionBy(Vec3f delta) {
         unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
-            if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
+            if(selectedObj instanceof StageObj || selectedObj instanceof PathPointObj)
                 return;
             
             selectedObj.rotation.x += delta.x;
