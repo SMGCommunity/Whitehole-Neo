@@ -173,6 +173,7 @@ public class GalaxyPropertiesForm extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(Whitehole.NAME + (isGalaxyMode ? " -- Galaxy Properties" : " -- Zone Properties"));
+        setIconImage(Whitehole.ICON);
 
         lblGalaxyName.setText(isGalaxyMode ? "Galaxy Name" : "Zone Name");
 

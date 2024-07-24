@@ -251,6 +251,7 @@ public class CreateGalaxyForm extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(Whitehole.NAME + (isGalaxyMode ? " -- Create a Galaxy" : " -- Create a Zone"));
+        setIconImage(Whitehole.ICON);
 
         lblGalaxyName.setText(isGalaxyMode ? "Galaxy Name" : "Zone Name");
 
