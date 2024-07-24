@@ -16,6 +16,7 @@
  */
 package whitehole;
 
+import com.github.jacksonbrienen.jwfd.JWindowsFileDialog;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -564,17 +565,8 @@ public class SettingsForm extends javax.swing.JDialog {
     }//GEN-LAST:event_chkUseBetterQualityItemStateChanged
 
     private void btnBrowseBaseGamePathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseBaseGamePathActionPerformed
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Open a base SMG1/2 Directory");
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-
-        String lastGameDir = Settings.getBaseGameDir();
-        if (lastGameDir != null && lastGameDir.length() > 0) {
-            fc.setSelectedFile(new File(lastGameDir));
-        }
-
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            String pth = fc.getSelectedFile().getPath();
+        String pth = JWindowsFileDialog.showDirectoryDialog(null, "Open a base SMG1/2 Directory", Settings.getBaseGameDir());
+        if (pth != null && !pth.isBlank()) {
             txtBaseGame.setText(pth);
             setBaseGamePath(pth);
         }
