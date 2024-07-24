@@ -619,6 +619,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         {
             messages.addAll(StageUtil.validateZone(arc));
         }
+        if (isGalaxyMode)
+            messages.addAll(StageUtil.checkAreaLimitsReached(zoneArchives, galaxyArchive));
         
         String title = Whitehole.NAME+": Object Warning";
         messages.forEach((msg) -> JOptionPane.showMessageDialog(this, msg, title, JOptionPane.WARNING_MESSAGE, null));

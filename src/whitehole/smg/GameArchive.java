@@ -41,6 +41,7 @@ public class GameArchive {
     private boolean hasOverwriteGalaxyNames;
     private boolean hasOverwriteZoneNames;
     private boolean hasOverwriteHints;
+    private boolean hasOverwriteAreaManagerLimits;
     private boolean hasOverwriteSpecialRenderer;
     
     public GameArchive(FilesystemBase fs) {
@@ -103,6 +104,7 @@ public class GameArchive {
             hasOverwriteGalaxyNames = Whitehole.GalaxyNames.initProject((ExternalFilesystem)filesystem);
             hasOverwriteZoneNames = Whitehole.ZoneNames.initProject((ExternalFilesystem)filesystem);
             hasOverwriteHints = Whitehole.Hints.initProject((ExternalFilesystem)filesystem);
+            hasOverwriteAreaManagerLimits = Whitehole.AreaManagerLimits.initProject((ExternalFilesystem)filesystem);
             hasOverwriteSpecialRenderer = Whitehole.SpecialRenderers.initProject((ExternalFilesystem)filesystem);
         }
     }
@@ -178,6 +180,14 @@ public class GameArchive {
     
     public boolean hasOverwriteZoneNames() {
         return hasOverwriteZoneNames;
+    }
+    
+    public boolean hasOverwriteHints() {
+        return hasOverwriteHints;
+    }
+    
+    public boolean hasOverwriteAreaManagerLimits() {
+        return hasOverwriteAreaManagerLimits;
     }
     
     public boolean hasOverwriteSpecialRenderer() {

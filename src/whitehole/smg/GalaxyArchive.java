@@ -50,6 +50,26 @@ public class GalaxyArchive {
         return new StageArchive(this, name);
     }
     
+    public int getLayerInt(String zoneName, int scenarioIndex)
+    {
+        return scenarioData.get(scenarioIndex).getInt(zoneName, 0);
+        
+    }
+    
+    public ArrayList<String> getActiveLayerNames(String zoneName, int scenarioIndex)
+    {
+        ArrayList<String> layerList = new ArrayList<>();
+        layerList.add("Common");
+        int layerMask = getLayerInt(zoneName, scenarioIndex);
+        for (int i = 0; i < 16; i++) {
+            if ((layerMask & (1 << i)) != 0) {
+                String layer = "Layer" + ((char) ('A' + i));
+                layerList.add(layer);
+            }
+        }
+        return layerList;
+    }
+    
     public GameArchive game;
     public FilesystemBase filesystem;
     

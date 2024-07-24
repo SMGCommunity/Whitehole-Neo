@@ -17,12 +17,18 @@
 package whitehole.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 import whitehole.Whitehole;
+import static whitehole.Whitehole.AreaManagerLimits;
 import whitehole.db.ObjectDB;
+import whitehole.smg.GalaxyArchive;
 import whitehole.smg.StageArchive;
 import whitehole.smg.object.AbstractObj;
+import whitehole.smg.object.AreaObj;
+import whitehole.smg.object.CameraObj;
+import whitehole.smg.object.StageObj;
 
 /**
  *
@@ -93,6 +99,67 @@ public class StageUtil {
         }
         
         return messages;
+    }
+    
+    /**
+     * Verifies that the areas in the provided galaxy have not reached their limit.
+     * This is not made for individual zones (because checking with those is useless).
+     * @param zoneArchives A hashmap of the StageArchives in the current galaxy.
+     * @param galaxyArchive The current galaxy's GalaxyArchive.
+     * @return Warning messages for areas that have surpassed their limit.
+     */
+    
+    public static ArrayList<String> checkAreaLimitsReached(HashMap<String, StageArchive> zoneArchives, GalaxyArchive galaxyArchive)
+    {
+        // first, we make the variables that only need to be made once.
+        ArrayList<String> managerWarnings = new ArrayList<>();
+        StageArchive galaxyStageArc = zoneArchives.get(galaxyArchive.galaxyName);
+        
+        // second, go through each scenario and make the 
+        // necessary variables that only need to be made once per scenario.
+        for (int i = 0; i < galaxyArchive.scenarioData.size(); i++)
+        {
+            int scenarioNo = (int)galaxyArchive.scenarioData.get(i).get("ScenarioNo");
+            HashMap<String, Integer> managerCounts = new HashMap();
+            ArrayList<String> zoneNames = getActiveZoneNames(i, galaxyArchive, galaxyStageArc);
+            
+            // third, calculate the number of times each area manager is used with this scenario's layers.
+            for (StageArchive arc : zoneArchives.values())
+            {
+                // zones that do not appear in this scenario do not apply
+                if (!zoneNames.contains(arc.stageName))
+                    continue;
+                for (String layerName : galaxyArchive.getActiveLayerNames(arc.stageName, i))
+                {
+                    List<AbstractObj> curLayer = arc.objects.get(layerName.toLowerCase());
+                    for (AbstractObj obj : curLayer)
+                    {
+                        // any object that is not an area or camera does not apply
+                        if (!isCameraOrArea(obj))
+                            continue;
+                        String areaManagerName = getAreaManagerName(obj);
+                        managerCounts.putIfAbsent(areaManagerName, 0);
+                        int currentManagerCount = managerCounts.get(areaManagerName) + 1;
+                        managerCounts.put(areaManagerName, currentManagerCount);
+                    }
+                }
+            }
+        
+            // fourth, check if the area count is over its manager's limit and if it is, add a warning.
+            for (String key : managerCounts.keySet())
+            {
+                int areaManagerLimit = AreaManagerLimits.getManagerLimit(key, Whitehole.getCurrentGameType());
+                int areaManagerCount = managerCounts.get(key);
+                if (areaManagerCount > areaManagerLimit && areaManagerLimit != -1)
+                {
+                    String warn = "Scenario " + scenarioNo + "\n" + 
+                            "Area Manager limit has been reached for " + key + "\n" +
+                            "There are "+areaManagerCount+" areas with this manager, when the limit is "+areaManagerLimit;
+                    managerWarnings.add(warn);
+                }
+            }
+        }
+        return managerWarnings;
     }
     
     // ---------------------------------------------------------------
@@ -281,5 +348,40 @@ public class StageUtil {
         if (!appliesToObject || !propInfo.needed())
             return false;
         return true;
+    }
+    
+    // ---------------------------------------------------------------
+    
+    /**
+     * Gets the names of zones that appear on the scenario provided.
+     * Made for galaxy mode only.
+     * @param scenarioIndex The index of the scenario in the ScenarioData BCSV.
+     * @param galArc The galaxy archive of the stage.
+     * @param stgArc The stage archive of the stage.
+     * @return A list of zone names that appear on the scenario provided.
+     */
+    public static ArrayList<String> getActiveZoneNames(int scenarioIndex, GalaxyArchive galArc, StageArchive stgArc)
+    {
+        ArrayList<String> zoneNames = new ArrayList<>();
+        for (String activeLayer : galArc.getActiveLayerNames(galArc.galaxyName, scenarioIndex))
+        {
+            for (StageObj obj : stgArc.zones.get(activeLayer.toLowerCase()))
+            {
+                zoneNames.add(obj.oldName);
+            }
+        }
+        if (!zoneNames.contains(stgArc.stageName))
+            zoneNames.add(stgArc.stageName);
+        return zoneNames;
+    }
+        
+    public static boolean isCameraOrArea(AbstractObj obj)
+    {
+        return obj.getClass().equals(AreaObj.class) || obj.getClass().equals(CameraObj.class);
+    }
+    
+    public static String getAreaManagerName(AbstractObj obj)
+    {
+        return AreaManagerLimits.getManagerWithAlias(obj.oldName, Whitehole.getCurrentGameType());
     }
 }
