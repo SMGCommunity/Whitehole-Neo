@@ -5707,6 +5707,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 layers = "Common";
             }
             
+            if (!StageUtil.getActiveZoneNames(curScenarioIndex, galaxyArchive, zoneArchives.get(galaxyArchive.galaxyName)).contains(zone))
+                layers = "None";
             zonelist.addElement(zone + " [" + layers + "]");
         }
         
