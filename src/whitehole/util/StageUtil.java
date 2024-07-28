@@ -113,6 +113,7 @@ public class StageUtil {
     {
         // first, we make the variables that only need to be made once.
         ArrayList<String> managerWarnings = new ArrayList<>();
+        HashMap<String, ArrayList<String>> individualScenarioWarnings = new HashMap<>();
         StageArchive galaxyStageArc = zoneArchives.get(galaxyArchive.galaxyName);
         
         // second, go through each scenario and make the 
@@ -152,12 +153,38 @@ public class StageUtil {
                 int areaManagerCount = managerCounts.get(key);
                 if (areaManagerCount > areaManagerLimit && areaManagerLimit != -1)
                 {
-                    String warn = "Scenario " + scenarioNo + "\n" + 
-                            "Area Manager limit has been reached for " + key + "\n" +
-                            "There are "+areaManagerCount+" areas with this manager, when the limit is "+areaManagerLimit;
-                    managerWarnings.add(warn);
+                    individualScenarioWarnings.putIfAbsent(key, new ArrayList<String>());
+                    ArrayList<String> scenarioWarnings = individualScenarioWarnings.get(key);
+                    
+                    String warn = "Scenario " + scenarioNo + " (count: "
+                            +areaManagerCount+" > limit: "+areaManagerLimit + ")";
+                    scenarioWarnings.add(warn);
                 }
             }
+        }
+        
+        // finally, produce one single message per area over the limit
+        for (String key : individualScenarioWarnings.keySet())
+        {
+            StringBuilder fullWarn = new StringBuilder();
+            fullWarn.append("Area Manager limit has been reached for ");
+            fullWarn.append(key);
+            fullWarn.append("\nAffected Scenarios:\n");
+            
+            int i = 0;
+            for (String warn : individualScenarioWarnings.get(key))
+            {
+                fullWarn.append(warn);
+                boolean isFinalWarn = i == individualScenarioWarnings.get(key).size() - 1;
+                if (!isFinalWarn) {
+                    fullWarn.append(", ");
+                    if (i % 2 == 1)
+                        fullWarn.append("\n");
+                }
+                    
+                i++;
+            }
+            managerWarnings.add(fullWarn.toString());
         }
         return managerWarnings;
     }
