@@ -330,22 +330,106 @@
       ]
     },
     {
-        "ObjectName": "BlackHole",
-        "RendererType": "BlackHole",
-        "RendererParams": [
-          {
-            "Shape": 2
-          }
-        ]
+      "ObjectName": "BlackHole",
+      "RendererType": "BlackHole",
+      "RendererParams": [
+        {
+          "Shape": 2
+        }
+      ]
     },
     {
-        "ObjectName": "BlackHoleCube",
-        "RendererType": "BlackHole",
-        "RendererParams": [
-          {
-            "Shape": 1
+      "ObjectName": "BlackHoleCube",
+      "RendererType": "BlackHole",
+      "RendererParams": [
+        {
+          "Shape": 1
+        }
+      ]
+    },
+    {
+      "ObjectName": "KinopioBank",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "Frame": 1
           }
-        ]
+        }
+      ]
+    },
+    {
+      "ObjectName": "KinopioPostman",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "Frame": 2
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "TicoComet",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BVA": {
+            "Filename": "small0",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "TicoFat",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BVA": {
+            "Filename": "small0",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "TicoGalaxy",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BVA": {
+            "Filename": "small0",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "TicoFatCoin",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BVA": {
+            "Filename": "Small0",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "TicoFatStarPiece",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BVA": {
+            "Filename": "Small0",
+            "Frame": 0
+          }
+        }
+      ]
     },
     {
       "ClassName": "SwitchingMoveBlock",
@@ -411,7 +495,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": true
+          "OptionalShapeModelNo": true
         }
       ]
     },
@@ -420,7 +504,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": false
+          "OptionalShapeModelNo": false
         }
       ]
     },
@@ -429,7 +513,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": true
+          "OptionalShapeModelNo": true
         }
       ]
     },
@@ -438,7 +522,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": true
+          "OptionalShapeModelNo": true
         }
       ]
     },
@@ -447,7 +531,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": true
+          "OptionalShapeModelNo": true
         }
       ]
     },
@@ -468,7 +552,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": true
+          "OptionalShapeModelNo": true
         }
       ]
     },
@@ -477,7 +561,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": false
+          "OptionalShapeModelNo": false
         }
       ]
     },
@@ -486,7 +570,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": false
+          "OptionalShapeModelNo": false
         }
       ]
     },
@@ -495,7 +579,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": false
+          "OptionalShapeModelNo": false
         }
       ]
     },
@@ -504,25 +588,25 @@
       "RendererType": "PlantGroup",
       "RendererParams": [
         {
-          "ShapeModelRemap":[
+          "ShapeModelRemap": [
             {
-                "ObjectName": "CutBushGroup",
-                "ShapeModelName": "PlantA",
-                "ShapeModelRemap": 8,
-                "Games": 2
+              "ObjectName": "CutBushGroup",
+              "ShapeModelName": "PlantA",
+              "ShapeModelRemap": 8,
+              "Games": 2
             },
             {
-                "ObjectName": "FlowerBlueGroup",
-                "ShapeModelName": "PlantA",
-                "ShapeModelRemap": 7,
-                "Games": 2
+              "ObjectName": "FlowerBlueGroup",
+              "ShapeModelName": "PlantA",
+              "ShapeModelRemap": 7,
+              "Games": 2
             },
             {
-                "ObjectName": "FlowerGroup",
-                "ShapeModelName": "PlantA",
-                "ShapeModelRemap": 7,
-                "ColorOverride": 1,
-                "Games":2
+              "ObjectName": "FlowerGroup",
+              "ShapeModelName": "PlantA",
+              "ShapeModelRemap": 7,
+              "ColorOverride": 1,
+              "Games": 2
             }
           ],
           "OptionalShapeModelNo": true,
@@ -538,7 +622,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": true
+          "OptionalShapeModelNo": true
         }
       ]
     },
@@ -547,7 +631,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": false
+          "OptionalShapeModelNo": false
         }
       ]
     },
@@ -556,7 +640,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": false
+          "OptionalShapeModelNo": false
         }
       ]
     },
@@ -565,7 +649,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": true
+          "OptionalShapeModelNo": true
         }
       ]
     },
@@ -574,7 +658,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": true
+          "OptionalShapeModelNo": true
         }
       ]
     },
@@ -583,7 +667,7 @@
       "RendererType": "ShapeModelNo",
       "RendererParams": [
         {
-            "OptionalShapeModelNo": true
+          "OptionalShapeModelNo": true
         }
       ]
     },
