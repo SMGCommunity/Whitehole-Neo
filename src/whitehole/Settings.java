@@ -33,6 +33,7 @@ public final class Settings {
     public static boolean getSJISNotSupported() { return PREFERENCES.getBoolean("whitehole_sjisNotSupported", false); }
     public static boolean getUseDarkMode() { return PREFERENCES.getBoolean("whitehole_useDarkMode", true); }
     public static boolean getDebugAdditionalLogs() { return PREFERENCES.getBoolean("whitehole_debugAdditionalLogs", false); }
+    public static boolean getUseLowPolyModels() { return PREFERENCES.getBoolean("whitehole_useLowPolyModels", false); }
     public static Color getColor(String preferencesString, Color fallbackColor) { 
         int red = PREFERENCES.getInt(preferencesString + "Red", -1); 
         int green = PREFERENCES.getInt(preferencesString + "Green", -1); 
@@ -55,6 +56,7 @@ public final class Settings {
     public static void setSJISNotSupported(boolean val) { PREFERENCES.putBoolean("whitehole_sjisNotSupported", val); }
     public static void setUseDarkMode(boolean val) { PREFERENCES.putBoolean("whitehole_useDarkMode", val); }
     public static void setDebugAdditionalLogs(boolean val) { PREFERENCES.putBoolean("whitehole_debugAdditionalLogs", val); }
+    public static void setUseLowPolyModels(boolean val) { PREFERENCES.putBoolean("whitehole_useLowPolyModels", val); }
     
     // Rendering
     public static final Color DEFAULT_NORMAL_AREA_PRIMARY_COLOR = new Color(75, 255, 255);

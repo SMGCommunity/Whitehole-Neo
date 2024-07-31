@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import whitehole.Settings;
+import whitehole.Whitehole;
 
 public final class ModelSubstitutions {
     private ModelSubstitutions() {}
@@ -38,8 +40,21 @@ public final class ModelSubstitutions {
         }
     }
     
-    public static String getSubstitutedModelName(String model) {
+    public static String getSubstitutedModelName(String model) {     
         String key = model.toLowerCase();
-        return MODEL_SUBSTITUTIONS.optString(key, model);
+        model = MODEL_SUBSTITUTIONS.optString(key, model);
+        if (Whitehole.isExistObjectDataArc(model + "Low") && Settings.getUseLowPolyModels()) {
+            model += "Low";
+            if (Settings.getDebugAdditionalLogs())
+                System.out.println("Low model found: "+model);
+        }
+        // rarely if ever this happens...
+        // maybe in the future it could be a choice between "Low", "Middle", and "Normal".
+        else if (Whitehole.isExistObjectDataArc(model + "Middle") && Settings.getUseLowPolyModels()) {
+            model += "Middle";
+            if (Settings.getDebugAdditionalLogs())
+                System.out.println("Middle model found: "+model);
+        }
+        return model;
     }
 }

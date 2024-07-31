@@ -58,6 +58,7 @@ public class SettingsForm extends javax.swing.JDialog {
         lblAppearance = new javax.swing.JLabel();
         chkUseDarkMode = new javax.swing.JCheckBox();
         chkUseBetterQuality = new javax.swing.JCheckBox();
+        chkShowLowPolyModels = new javax.swing.JCheckBox();
         chkDebugFakeColor = new javax.swing.JCheckBox();
         chkDebugFastDrag = new javax.swing.JCheckBox();
         pnlAreaColors = new javax.swing.JPanel();
@@ -94,7 +95,7 @@ public class SettingsForm extends javax.swing.JDialog {
         setTitle(String.format("%s -- Settings", Whitehole.NAME));
         setBounds(new java.awt.Rectangle(0, 0, 629, 629));
         setIconImage(Whitehole.ICON);
-        setMinimumSize(new java.awt.Dimension(689, 338));
+        setMinimumSize(new java.awt.Dimension(689, 378));
         setPreferredSize(new java.awt.Dimension(689, 338));
         setSize(new java.awt.Dimension(689, 338));
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -125,7 +126,7 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkDebugAdditionalLogs, gridBagConstraints);
@@ -167,6 +168,21 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkUseBetterQuality, gridBagConstraints);
 
+        chkShowLowPolyModels.setSelected(Settings.getUseLowPolyModels());
+        chkShowLowPolyModels.setText("Show low or middle poly models (if possible)");
+        chkShowLowPolyModels.setToolTipText("Priority: Low -> Middle -> Normal");
+        chkShowLowPolyModels.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                chkShowLowPolyModelsItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        pnlAppearance.add(chkShowLowPolyModels, gridBagConstraints);
+
         chkDebugFakeColor.setSelected(Settings.getDebugFakeColor());
         chkDebugFakeColor.setText("[Debug] Render picking colors");
         chkDebugFakeColor.addItemListener(new java.awt.event.ItemListener() {
@@ -176,7 +192,7 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkDebugFakeColor, gridBagConstraints);
@@ -190,7 +206,7 @@ public class SettingsForm extends javax.swing.JDialog {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkDebugFastDrag, gridBagConstraints);
@@ -381,7 +397,7 @@ public class SettingsForm extends javax.swing.JDialog {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 1.0;
@@ -718,6 +734,10 @@ public class SettingsForm extends javax.swing.JDialog {
             Settings.setGravityAreaZeroSecondaryColor(newSecondaryColor);
         }
     }//GEN-LAST:event_btnGravityAreaZeroSecondaryColorActionPerformed
+
+    private void chkShowLowPolyModelsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkShowLowPolyModelsItemStateChanged
+        Settings.setUseLowPolyModels(evt.getStateChange() == ItemEvent.SELECTED);
+    }//GEN-LAST:event_chkShowLowPolyModelsItemStateChanged
     
     private void setBaseGamePath(String pth)
     {     
@@ -857,6 +877,7 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JCheckBox chkDebugAdditionalLogs;
     private javax.swing.JCheckBox chkDebugFakeColor;
     private javax.swing.JCheckBox chkDebugFastDrag;
+    private javax.swing.JCheckBox chkShowLowPolyModels;
     private javax.swing.JCheckBox chkUseBetterQuality;
     private javax.swing.JCheckBox chkUseDarkMode;
     private javax.swing.JCheckBox chkUseReverseRot;
