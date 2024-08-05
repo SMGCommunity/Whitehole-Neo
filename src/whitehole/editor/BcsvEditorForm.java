@@ -18,6 +18,7 @@ package whitehole.editor;
 
 import java.awt.Component;
 import static java.awt.event.KeyEvent.VK_ENTER;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -488,6 +489,13 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     // Reading & writing
     
     private void populateBcsvData() {
+        // disable buttons
+        btnSave.setEnabled(false);
+        btnAddRow.setEnabled(false);
+        btnDuplicateRow.setEnabled(false);
+        btnDeleteRow.setEnabled(false);
+        btnClear.setEnabled(false);
+        
         tableModel.setRowCount(0);
         tableModel.setColumnCount(0);
         closeIO();
@@ -569,6 +577,13 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             Settings.setLastBcsvArchive(tbArchiveName.getText());
             Settings.setLastBcsvFile(tbFileName.getText());
             archive.close();
+            
+            // Enable buttons
+            btnSave.setEnabled(true);
+            btnAddRow.setEnabled(true);
+            btnDuplicateRow.setEnabled(true);
+            btnDeleteRow.setEnabled(true);
+            btnClear.setEnabled(true);
         }
         catch(IOException ex) {
             String errmsg = String.format("Can't open BCSV file: %s", ex.getMessage());
@@ -580,16 +595,26 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     }
     
     private void storeBcsv() {
-        
         try
         {
             archive = new RarcFile(Whitehole.getCurrentGameFileSystem().openFile(tbArchiveName.getText()));
             bcsv = new Bcsv(archive.openFile(tbFileName.getText()));
         }
+        catch(FileNotFoundException ex)
+        {
+            JOptionPane.showMessageDialog(this, ex.toString() + 
+                    "\nWhitehole cannot currently create new RARC or BCSV files.", 
+                    Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
+            System.out.println(ex);
+            return;
+        }
         catch(IOException ex)
         {
+            JOptionPane.showMessageDialog(this, ex.toString(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
             System.out.println(ex);
+            return;
         }
+        
         
         bcsv.entries.clear();
         
@@ -754,6 +779,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         toolbarButtons.add(spr2);
 
         btnSave.setText("Save");
+        btnSave.setEnabled(false);
         btnSave.setFocusable(false);
         btnSave.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnSave.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -766,6 +792,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         toolbarButtons.add(spr3);
 
         btnAddRow.setText("Add Row");
+        btnAddRow.setEnabled(false);
         btnAddRow.setFocusable(false);
         btnAddRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnAddRow.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -779,6 +806,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
 
         btnDuplicateRow.setText("Duplicate row(s)");
         btnDuplicateRow.setToolTipText("");
+        btnDuplicateRow.setEnabled(false);
         btnDuplicateRow.setFocusable(false);
         btnDuplicateRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnDuplicateRow.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -791,6 +819,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         toolbarButtons.add(spr6);
 
         btnDeleteRow.setText("Delete row(s)");
+        btnDeleteRow.setEnabled(false);
         btnDeleteRow.setFocusable(false);
         btnDeleteRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnDeleteRow.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -803,6 +832,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         toolbarButtons.add(spr7);
 
         btnClear.setText("Clear all");
+        btnClear.setEnabled(false);
         btnClear.setFocusable(false);
         btnClear.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnClear.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
