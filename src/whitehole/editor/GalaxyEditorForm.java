@@ -5074,6 +5074,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(Whitehole.NAME);
+        setExtendedState(Settings.getOpenGalaxyEditorMaximized() ? JFrame.MAXIMIZED_BOTH : 0);
         setIconImage(Whitehole.ICON);
         setMinimumSize(new java.awt.Dimension(960, 720));
         addWindowListener(new java.awt.event.WindowAdapter() {

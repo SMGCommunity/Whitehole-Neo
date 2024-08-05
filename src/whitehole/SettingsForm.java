@@ -75,6 +75,7 @@ public class SettingsForm extends javax.swing.JDialog {
         lblGravityAreaZeroColor = new javax.swing.JLabel();
         btnGravityAreaZeroPrimaryColor = new javax.swing.JButton();
         btnGravityAreaZeroSecondaryColor = new javax.swing.JButton();
+        chkOpenGalaxyEditorMaximized = new javax.swing.JCheckBox();
         pnlControls = new javax.swing.JPanel();
         lblControls = new javax.swing.JLabel();
         chkUseReverseRot = new javax.swing.JCheckBox();
@@ -95,9 +96,8 @@ public class SettingsForm extends javax.swing.JDialog {
         setTitle(String.format("%s -- Settings", Whitehole.NAME));
         setBounds(new java.awt.Rectangle(0, 0, 629, 629));
         setIconImage(Whitehole.ICON);
-        setMinimumSize(new java.awt.Dimension(689, 378));
-        setPreferredSize(new java.awt.Dimension(689, 338));
-        setSize(new java.awt.Dimension(689, 338));
+        setMinimumSize(new java.awt.Dimension(800, 358));
+        setSize(new java.awt.Dimension(800, 358));
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
@@ -125,8 +125,8 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkDebugAdditionalLogs, gridBagConstraints);
@@ -136,6 +136,7 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(lblAppearance, gridBagConstraints);
@@ -191,8 +192,8 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkDebugFakeColor, gridBagConstraints);
@@ -205,8 +206,8 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkDebugFastDrag, gridBagConstraints);
@@ -398,16 +399,36 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 1.0;
         pnlAppearance.add(pnlAreaColors, gridBagConstraints);
 
+        chkOpenGalaxyEditorMaximized.setSelected(Settings.getOpenGalaxyEditorMaximized());
+        chkOpenGalaxyEditorMaximized.setText("Open galaxy editor maximized");
+        chkOpenGalaxyEditorMaximized.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                chkOpenGalaxyEditorMaximizedItemStateChanged(evt);
+            }
+        });
+        chkOpenGalaxyEditorMaximized.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chkOpenGalaxyEditorMaximizedActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        pnlAppearance.add(chkOpenGalaxyEditorMaximized, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-        gridBagConstraints.weightx = 3.0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 4.0;
         gridBagConstraints.weighty = 2.0;
         pnlSettings.add(pnlAppearance, gridBagConstraints);
 
@@ -502,6 +523,7 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 4.0;
         gridBagConstraints.weighty = 4.0;
         pnlSettings.add(pnlControls, gridBagConstraints);
@@ -738,6 +760,14 @@ public class SettingsForm extends javax.swing.JDialog {
     private void chkShowLowPolyModelsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkShowLowPolyModelsItemStateChanged
         Settings.setUseLowPolyModels(evt.getStateChange() == ItemEvent.SELECTED);
     }//GEN-LAST:event_chkShowLowPolyModelsItemStateChanged
+
+    private void chkOpenGalaxyEditorMaximizedItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkOpenGalaxyEditorMaximizedItemStateChanged
+        Settings.setOpenGalaxyEditorMaximized(evt.getStateChange() == ItemEvent.SELECTED);
+    }//GEN-LAST:event_chkOpenGalaxyEditorMaximizedItemStateChanged
+
+    private void chkOpenGalaxyEditorMaximizedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkOpenGalaxyEditorMaximizedActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_chkOpenGalaxyEditorMaximizedActionPerformed
     
     private void setBaseGamePath(String pth)
     {     
@@ -877,6 +907,7 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JCheckBox chkDebugAdditionalLogs;
     private javax.swing.JCheckBox chkDebugFakeColor;
     private javax.swing.JCheckBox chkDebugFastDrag;
+    private javax.swing.JCheckBox chkOpenGalaxyEditorMaximized;
     private javax.swing.JCheckBox chkShowLowPolyModels;
     private javax.swing.JCheckBox chkUseBetterQuality;
     private javax.swing.JCheckBox chkUseDarkMode;
