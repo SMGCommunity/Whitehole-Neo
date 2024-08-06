@@ -577,7 +577,8 @@
           <SubComponents>
             <Component class="javax.swing.JLabel" name="lblBaseGame">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Base Game Path (For objects only)"/>
+                <Property name="text" type="java.lang.String" value="Base Object Renderer Source Path"/>
+                <Property name="toolTipText" type="java.lang.String" value=""/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -603,6 +604,7 @@
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                   <Connection code="Settings.getBaseGameDir()" type="code"/>
                 </Property>
+                <Property name="toolTipText" type="java.lang.String" value="Set this to an unmodified copy of the Galaxy game you&apos;re modding. This will be used for rendering objects only."/>
               </Properties>
               <Events>
                 <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="txtBaseGameKeyReleased"/>

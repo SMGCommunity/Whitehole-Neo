@@ -531,7 +531,8 @@ public class SettingsForm extends javax.swing.JDialog {
         pnlMisc.setPreferredSize(new java.awt.Dimension(265, 62));
         pnlMisc.setLayout(new java.awt.GridBagLayout());
 
-        lblBaseGame.setText("Base Game Path (For objects only)");
+        lblBaseGame.setText("Base Object Renderer Source Path");
+        lblBaseGame.setToolTipText("");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -545,6 +546,7 @@ public class SettingsForm extends javax.swing.JDialog {
         pnlMisc.add(lblMisc, new java.awt.GridBagConstraints());
 
         txtBaseGame.setText(Settings.getBaseGameDir());
+        txtBaseGame.setToolTipText("Set this to an unmodified copy of the Galaxy game you're modding. This will be used for rendering objects only.");
         txtBaseGame.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 txtBaseGameKeyReleased(evt);
