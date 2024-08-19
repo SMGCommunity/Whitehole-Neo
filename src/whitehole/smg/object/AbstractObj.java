@@ -143,7 +143,11 @@ public abstract class AbstractObj {
             case "Obj_arg6":
             case "Obj_arg7":
                 String desc = objdbInfo.simpleParameterName(Whitehole.getCurrentGameType(), field);
-                panel.addField(field, desc, "int", null, data.getInt(field, -1), "Default");
+                ArrayList<String> vals = (ArrayList<String>)objdbInfo.parameterValues(Whitehole.getCurrentGameType(), field);
+                String fieldType = "int";
+                if (vals != null && !vals.isEmpty())
+                    fieldType = "intlist";
+                panel.addField(field, desc, fieldType, vals, data.getInt(field, -1), "Default");
                 break;
             
             // Switches

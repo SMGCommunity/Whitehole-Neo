@@ -21,6 +21,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -103,7 +104,17 @@ public class PropertyGrid extends JTable {
         field.name = name;
         field.row = curRow++;
         field.type = type;
-        field.choices = choices;
+        if (choices != null && type.equals("intlist")) {
+            ArrayList<String> wrappedChoices = new ArrayList<>();
+            for (Object choice : (ArrayList<Object>)choices)
+            {
+                wrappedChoices.add(UIUtil.textToHTMLLineWrap(String.valueOf(choice), 25, 40));
+            }
+            field.choices = wrappedChoices;
+        }
+        else {
+            field.choices = choices;
+        }
         field.value = val;
         field.label = new JLabel(caption);
         field.renderer = null;
@@ -125,6 +136,7 @@ public class PropertyGrid extends JTable {
                 field.editor = new ListCellEditor(field, false); 
                 break;
                 
+            case "intlist":
             case "textlist":
                 field.editor = new ListCellEditor(field, true);
                 break;
@@ -624,8 +636,30 @@ public class PropertyGrid extends JTable {
                     Object val = combo.getSelectedItem();
                     
                     if (!field.value.equals(val)) {
-                        field.value = val;
-                        eventListener.propertyChanged(field.name, val);
+                        if (field.type.equals("intlist")) {
+                            String strVal = UIUtil.HTMLToText(String.valueOf(val));
+                            int commentIndex = strVal.indexOf(':');
+                            if (commentIndex > -1) {
+                                strVal = strVal.substring(0, commentIndex);
+                                strVal = strVal.replace("\n", "");
+                            }
+                            
+                            try {
+                                val = Integer.valueOf(strVal);
+                                combo.setForeground(Color.getColor("text"));
+                                
+                                field.value = val;
+                                eventListener.propertyChanged(field.name, val);
+                                combo.setSelectedItem(val);
+                            }
+                            catch (NumberFormatException ex) {
+                                combo.setForeground(new Color(0xFF4040));
+                            }
+                        }
+                        else {
+                            field.value = val;
+                            eventListener.propertyChanged(field.name, val);
+                        }
                     }
                 }
             });

@@ -280,6 +280,7 @@ public final class ObjectDB {
         private boolean needed;
         private String description = "";
         private List<String> exclusives = null;
+        private List<String> values = null;
         
         PropertyInfo(String key, JSONObject info) {
             identifier = key;
@@ -303,6 +304,16 @@ public final class ObjectDB {
                     exclusives.add(rawExclusives.getString(i));
                 }
             }
+            JSONArray vals = info.optJSONArray("Values");
+            if (vals != null) {
+                values = new ArrayList(vals.length());
+                for (int i = 0; i < vals.length(); i++)
+                {
+                    JSONObject obj = vals.getJSONObject(i);
+                    values.add(obj.optString("Value", "") + ": " + obj.optString("Notes", ""));
+                }
+            }
+            
         }
         
         @Override
@@ -328,6 +339,10 @@ public final class ObjectDB {
         
         public List<String> exclusives() {
             return exclusives;
+        }
+        
+        public List<String> values() {
+            return values;
         }
     }
     
@@ -408,6 +423,21 @@ public final class ObjectDB {
             }
             
             return parameter;
+        }
+        
+        public List<String> parameterValues(int game, String parameter)
+        {
+            if (properties == null || !properties.containsKey(parameter)) {
+                return null;
+            }
+            
+            PropertyInfo prop = properties.get(parameter);
+            
+            if (prop.games > 4 && (prop.games & game) == 0) {
+                return null;
+            }
+            
+            return prop.values;
         }
     }
     
@@ -545,6 +575,14 @@ public final class ObjectDB {
                 case 1: return classInfoSMG1.simpleParameterName(game, field, internalName);
                 case 2: return classInfoSMG2.simpleParameterName(game, field, internalName);
                 default: return field;
+            }
+        }
+        
+        public List<String> parameterValues(int game, String field) {
+            switch(game & 3) {
+                case 1: return classInfoSMG1.parameterValues(game, field);
+                case 2: return classInfoSMG2.parameterValues(game, field);
+                default: return null;
             }
         }
     }

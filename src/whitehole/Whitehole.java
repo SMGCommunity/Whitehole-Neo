@@ -62,6 +62,9 @@ public class Whitehole {
             System.err.println(ex);
         }
         
+        ToolTipManager.sharedInstance().setLightWeightPopupEnabled(false);
+        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+        
         // Check if system supports SJIS or not
         if (!Settings.getSJISNotSupported() && !Charset.isSupported("SJIS")) {
             Settings.setSJISNotSupported(true);
