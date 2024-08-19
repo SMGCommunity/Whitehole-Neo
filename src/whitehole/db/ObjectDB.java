@@ -433,7 +433,7 @@ public final class ObjectDB {
             
             PropertyInfo prop = properties.get(parameter);
             
-            if (prop.games > 4 && (prop.games & game) == 0) {
+            if (prop.games < 4 && (prop.games & game) == 0) {
                 return null;
             }
             
