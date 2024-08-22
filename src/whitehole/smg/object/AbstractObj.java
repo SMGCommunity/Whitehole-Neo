@@ -250,37 +250,22 @@ public abstract class AbstractObj {
                 panel.addField(field, "Parent Object ID", "int", null, data.getShort(field, (short)-1), "Default");
                 break;
             case "MoveConditionType":
-                panel.addField(field, field, "int", null, data.getInt(field), "Default");
-                break;
             case "RotateSpeed":
-                panel.addField(field, field, "int", null, data.getInt(field), "Default");
-                break;
             case "RotateAngle":
-                panel.addField(field, field, "int", null, data.getInt(field), "Default");
-                break;
             case "RotateAxis":
-                panel.addField(field, field, "int", null, data.getInt(field), "Default");
-                break;
             case "RotateAccelType":
-                panel.addField(field, field, "int", null, data.getInt(field), "Default");
-                break;
             case "RotateStopTime":
-                panel.addField(field, field, "int", null, data.getInt(field), "Default");
-                break;
             case "RotateType":
-                panel.addField(field, field, "int", null, data.getInt(field), "Default");
-                break;
             case "ShadowType":
-                panel.addField(field, field, "int", null, data.getInt(field), "Default");
-                break;
             case "SignMotionType":
-                panel.addField(field, field, "int", null, data.getInt(field), "Default");
-                break;
             case "PressType":
-                panel.addField(field, field, "int", null, data.getInt(field), "Default");
-                break;
             case "FarClip":
-                panel.addField(field, field, "int", null, data.getInt(field, -1), "Default");
+                String mapPartFieldName = objdbInfo.simpleParameterName(Whitehole.getCurrentGameType(), field);
+                ArrayList<String> mapPartVals = (ArrayList<String>)objdbInfo.parameterValues(Whitehole.getCurrentGameType(), field);
+                String mapPartFieldType = "int";
+                if (mapPartVals != null && !mapPartVals.isEmpty())
+                    mapPartFieldType = "intlist";
+                panel.addField(field, mapPartFieldName, mapPartFieldType, mapPartVals, data.getInt(field, -1), "Default");
                 break;
                 
             // PlanetObjInfo
