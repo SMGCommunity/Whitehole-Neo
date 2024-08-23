@@ -103,7 +103,12 @@ public abstract class AbstractObj {
     private static final List<String> CHOICES_GRAVITY_POWERS =  new ArrayList() {{ add("Normal"); add("Light"); add("Heavy"); }};
     private static final List<String> CHOICES_GRAVITY_TYPES = new ArrayList() {{ add("Normal"); add("Shadow"); add("Magnet"); }};
     
+    private static final String UNUSED_FIELD_START = "<html><em>";
+    private static final String UNUSED_FIELD_END = "</em></html>";       
+    
     protected final void addField(PropertyGrid panel, String field) {
+        String fieldName;
+        String fieldType;
         switch(field) {
             case "pos_x":
                 panel.addField("pos_x", "X position", "float", null, position.x, "Default");
@@ -142,12 +147,15 @@ public abstract class AbstractObj {
             case "Obj_arg5":
             case "Obj_arg6":
             case "Obj_arg7":
-                String desc = objdbInfo.simpleParameterName(Whitehole.getCurrentGameType(), field);
+                if (!objdbInfo.isParameterUsed(Whitehole.getCurrentGameType(), field))
+                    fieldName = UNUSED_FIELD_START + field + UNUSED_FIELD_END;
+                else
+                    fieldName = objdbInfo.simpleParameterName(Whitehole.getCurrentGameType(), field);
                 ArrayList<String> vals = (ArrayList<String>)objdbInfo.parameterValues(Whitehole.getCurrentGameType(), field);
-                String fieldType = "int";
+                fieldType = "int";
                 if (vals != null && !vals.isEmpty())
                     fieldType = "intlist";
-                panel.addField(field, desc, fieldType, vals, data.getInt(field, -1), "Default");
+                panel.addField(field, fieldName, fieldType, vals, data.getInt(field, -1), "Default");
                 break;
             
             // Switches
@@ -158,7 +166,11 @@ public abstract class AbstractObj {
             case "SW_SLEEP":
             case "SW_AWAKE":
             case "SW_PARAM":
-                panel.addField(field, field, "switchid", null, data.getInt(field, -1), "Default");
+                if (!objdbInfo.isParameterUsed(Whitehole.getCurrentGameType(), field))
+                    fieldName = UNUSED_FIELD_START + field + UNUSED_FIELD_END;
+                else
+                    fieldName = field;
+                panel.addField(field, fieldName, "switchid", null, data.getInt(field, -1), "Default");
                 break;
                 
             // Linked Objects
@@ -180,7 +192,8 @@ public abstract class AbstractObj {
             
             // Object Groups
             case "GroupId":
-                panel.addField(field, "Group ID", "int", null, data.getShort(field, (short)-1), "Default");
+                boolean isFieldUsed = objdbInfo.isParameterUsed(Whitehole.getCurrentGameType(), "Group");
+                panel.addField(field, isFieldUsed ? "Group ID" : UNUSED_FIELD_START + "Group ID" + UNUSED_FIELD_END, "int", null, data.getShort(field, (short)-1), "Default");
                 break;
             case "ClippingGroupId":
                 panel.addField(field, "Clipping Group ID", "int", null, data.getShort(field, (short)-1), "Default");
@@ -260,12 +273,15 @@ public abstract class AbstractObj {
             case "SignMotionType":
             case "PressType":
             case "FarClip":
-                String mapPartFieldName = objdbInfo.simpleParameterName(Whitehole.getCurrentGameType(), field);
+                if (!objdbInfo.isParameterUsed(Whitehole.getCurrentGameType(), field))
+                    fieldName = UNUSED_FIELD_START + field + UNUSED_FIELD_END;
+                else
+                    fieldName = objdbInfo.simpleParameterName(Whitehole.getCurrentGameType(), field);
                 ArrayList<String> mapPartVals = (ArrayList<String>)objdbInfo.parameterValues(Whitehole.getCurrentGameType(), field);
-                String mapPartFieldType = "int";
+                fieldType = "int";
                 if (mapPartVals != null && !mapPartVals.isEmpty())
-                    mapPartFieldType = "intlist";
-                panel.addField(field, mapPartFieldName, mapPartFieldType, mapPartVals, data.getInt(field, -1), "Default");
+                    fieldType = "intlist";
+                panel.addField(field, fieldName, fieldType, mapPartVals, data.getInt(field, -1), "Default");
                 break;
                 
             // PlanetObjInfo

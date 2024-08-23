@@ -407,25 +407,7 @@ public final class ObjectDB {
             return properties;
         }
         
-        public String simpleParameterName(int game, String parameter, String objectName) {
-            if (properties == null || !properties.containsKey(parameter)) {
-                return parameter;
-            }
-            
-            PropertyInfo prop = properties.get(parameter);
-            
-            if (prop.games < 4 && (prop.games & game) == 0) {
-                return parameter;
-            }
-            
-            if (prop.exclusives == null || prop.exclusives.contains(objectName)) {
-                return prop.simpleName;
-            }
-            
-            return parameter;
-        }
-        
-        public List<String> parameterValues(int game, String parameter)
+        private PropertyInfo getPropertyInfo(int game, String parameter, String objectName)
         {
             if (properties == null || !properties.containsKey(parameter)) {
                 return null;
@@ -437,7 +419,32 @@ public final class ObjectDB {
                 return null;
             }
             
-            return prop.values;
+            if (prop.exclusives == null || prop.exclusives.contains(objectName))
+                return properties.get(parameter);
+            
+            return null;
+        }
+        
+        public String simpleParameterName(int game, String parameter, String objectName) {
+            PropertyInfo prop = getPropertyInfo(game, parameter, objectName);
+            if (prop == null)
+                return parameter;
+            else
+                return prop.simpleName;
+        }
+        
+        public List<String> parameterValues(int game, String parameter, String objectName)
+        {
+            PropertyInfo prop = getPropertyInfo(game, parameter, objectName);
+            if (prop == null)
+                return null;
+            else
+                return prop.values;
+        }
+        
+        public boolean isParameterUsed(int game, String parameter, String objectName)
+        {
+            return getPropertyInfo(game, parameter, objectName) != null;
         }
     }
     
@@ -580,9 +587,17 @@ public final class ObjectDB {
         
         public List<String> parameterValues(int game, String field) {
             switch(game & 3) {
-                case 1: return classInfoSMG1.parameterValues(game, field);
-                case 2: return classInfoSMG2.parameterValues(game, field);
+                case 1: return classInfoSMG1.parameterValues(game, field, internalName);
+                case 2: return classInfoSMG2.parameterValues(game, field, internalName);
                 default: return null;
+            }
+        }
+        
+        public boolean isParameterUsed(int game, String field) {
+            switch(game & 3) {
+                case 1: return classInfoSMG1.isParameterUsed(game, field, internalName);
+                case 2: return classInfoSMG2.isParameterUsed(game, field, internalName);
+                default: return false;
             }
         }
     }
