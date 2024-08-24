@@ -456,7 +456,7 @@ public class PropertyGrid extends JTable {
             
             spinner = new JSpinner();
             spinner.setModel(new SpinnerNumberModel(13.37f, min, max, 1f));
-            
+            setToolTip(spinner, f);
             spinner.addChangeListener(new ChangeListener() {
                 @Override
                 public void stateChanged(ChangeEvent evt) {
@@ -491,6 +491,7 @@ public class PropertyGrid extends JTable {
             
             spinner = new JSpinner();
             spinner.setModel(new SpinnerNumberModel(min, min, max, 1f));
+            setToolTip(spinner, f);
             
             spinner.addChangeListener(new ChangeListener() {
                 @Override
@@ -564,6 +565,7 @@ public class PropertyGrid extends JTable {
                 }
             });
             textfield.requestFocusInWindow();
+            setToolTip(textfield, f);
 
             // Add buttons and set their size
             generateValButton = new javax.swing.JButton("V");
@@ -630,6 +632,7 @@ public class PropertyGrid extends JTable {
             
             combo = new JComboBox(f.choices.toArray());
             combo.setEditable(editable);
+            setToolTip(combo, f);
             combo.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent evt) {
@@ -688,7 +691,7 @@ public class PropertyGrid extends JTable {
             field = f;
             
             checkbox = new JCheckBox();
-            
+            setToolTip(checkbox, f);
             checkbox.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent evt) {
@@ -725,6 +728,7 @@ public class PropertyGrid extends JTable {
             container.setLayout(new BorderLayout());
             
             textfield = new JTextField(f.value.toString());
+            setToolTip(textfield, f);
             container.add(textfield, BorderLayout.CENTER);
             textfield.addKeyListener(new KeyListener() {
                 @Override
@@ -791,6 +795,7 @@ public class PropertyGrid extends JTable {
             // Create text field and set its width
             textfield = new JTextField(f.value.toString());
             textfield.setPreferredSize(new Dimension(300, 20));
+            setToolTip(textfield, f);
             
             // Add event listener for textfield
             textfield.addKeyListener(new KeyListener() {
@@ -897,6 +902,14 @@ public class PropertyGrid extends JTable {
             textfield.setText(value == null ? "<multiple>" : value.toString());
             return mainPanel;
         }
+    }
+    
+    private void setToolTip(JComponent comp, Field f)
+    {
+        String tip = f.tip.getToolTipText();
+        if (tip == null || tip.isBlank() || tip.equals("Default"))
+            return;
+        comp.setToolTipText(UIUtil.textToHTMLLineWrap(tip, 50, 70));
     }
     
     public class Field {

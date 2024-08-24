@@ -446,6 +446,15 @@ public final class ObjectDB {
         {
             return getPropertyInfo(game, parameter, objectName) != null;
         }
+        
+        public String parameterDescription(int game, String parameter, String objectName)
+        {
+            PropertyInfo prop = getPropertyInfo(game, parameter, objectName);
+            if (prop == null)
+                return null;
+            else
+                return prop.description();
+        }
     }
     
     private static final ClassInfo NULL_CLASS_INFO = new ClassInfo();
@@ -598,6 +607,14 @@ public final class ObjectDB {
                 case 1: return classInfoSMG1.isParameterUsed(game, field, internalName);
                 case 2: return classInfoSMG2.isParameterUsed(game, field, internalName);
                 default: return false;
+            }
+        }
+        
+        public String parameterDescription(int game, String field) {
+            switch(game & 3) {
+                case 1: return classInfoSMG1.parameterDescription(game, field, internalName);
+                case 2: return classInfoSMG2.parameterDescription(game, field, internalName);
+                default: return null;
             }
         }
     }

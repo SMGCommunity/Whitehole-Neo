@@ -104,38 +104,50 @@ public abstract class AbstractObj {
     private static final List<String> CHOICES_GRAVITY_TYPES = new ArrayList() {{ add("Normal"); add("Shadow"); add("Magnet"); }};
     
     private static final String UNUSED_FIELD_START = "<html><em>";
-    private static final String UNUSED_FIELD_END = "</em></html>";       
+    private static final String UNUSED_FIELD_END = "</em></html>";    
+    
+    protected final String getFieldNameForObjectDB(String field)
+    {
+        switch (field)
+        {
+            case "GroupId":
+                return "Group";
+            default:
+                return field;
+        }
+    }
     
     protected final void addField(PropertyGrid panel, String field) {
         String fieldName;
         String fieldType;
+        String tooltip = objdbInfo.parameterDescription(Whitehole.getCurrentGameType(), getFieldNameForObjectDB(field));
         switch(field) {
             case "pos_x":
-                panel.addField("pos_x", "X position", "float", null, position.x, "Default");
+                panel.addField("pos_x", "X position", "float", null, position.x, tooltip);
                 break;
             case "pos_y":
-                panel.addField("pos_y", "Y position", "float", null, position.y, "Default");
+                panel.addField("pos_y", "Y position", "float", null, position.y, tooltip);
                 break;
             case "pos_z":
-                panel.addField("pos_z", "Z position", "float", null, position.z, "Default");
+                panel.addField("pos_z", "Z position", "float", null, position.z, tooltip);
                 break;
             case "dir_x":
-                panel.addField("dir_x", "X rotation", "float", null, rotation.x, "Default");
+                panel.addField("dir_x", "X rotation", "float", null, rotation.x, tooltip);
                 break;
             case "dir_y":
-                panel.addField("dir_y", "Y rotation", "float", null, rotation.y, "Default");
+                panel.addField("dir_y", "Y rotation", "float", null, rotation.y, tooltip);
                 break;
             case "dir_z":
-                panel.addField("dir_z", "Z rotation", "float", null, rotation.z, "Default");
+                panel.addField("dir_z", "Z rotation", "float", null, rotation.z, tooltip);
                 break;
             case "scale_x":
-                panel.addField("scale_x", "X size", "float", null, scale.x, "Default");
+                panel.addField("scale_x", "X size", "float", null, scale.x, tooltip);
                 break;
             case "scale_y":
-                panel.addField("scale_y", "Y size", "float", null, scale.y, "Default");
+                panel.addField("scale_y", "Y size", "float", null, scale.y, tooltip);
                 break;
             case "scale_z":
-                panel.addField("scale_z", "Z size", "float", null, scale.z, "Default");
+                panel.addField("scale_z", "Z size", "float", null, scale.z, tooltip);
                 break;
                 
             // Obj_args
@@ -155,7 +167,7 @@ public abstract class AbstractObj {
                 fieldType = "int";
                 if (vals != null && !vals.isEmpty())
                     fieldType = "intlist";
-                panel.addField(field, fieldName, fieldType, vals, data.getInt(field, -1), "Default");
+                panel.addField(field, fieldName, fieldType, vals, data.getInt(field, -1), tooltip);
                 break;
             
             // Switches
@@ -170,97 +182,97 @@ public abstract class AbstractObj {
                     fieldName = UNUSED_FIELD_START + field + UNUSED_FIELD_END;
                 else
                     fieldName = field;
-                panel.addField(field, fieldName, "switchid", null, data.getInt(field, -1), "Default");
+                panel.addField(field, fieldName, "switchid", null, data.getInt(field, -1), tooltip);
                 break;
                 
             // Linked Objects
             case "l_id":
-                panel.addField(field, "Link ID", "int", null, data.getInt(field, -1), "Default");
+                panel.addField(field, "Link ID", "int", null, data.getInt(field, -1), tooltip);
                 break;
             case "Obj_ID":
-                panel.addField(field, "Linked Object ID", "int", null, data.getShort(field, (short)-1), "Default");
+                panel.addField(field, "Linked Object ID", "int", null, data.getShort(field, (short)-1), tooltip);
                 break;
             case "MapParts_ID":
-                panel.addField(field, "Linked MapParts ID", "int", null, data.getShort(field, (short)-1), "Default");
+                panel.addField(field, "Linked MapParts ID", "int", null, data.getShort(field, (short)-1), tooltip);
                 break;
             case "ChildObjId":
-                panel.addField(field, "Linked Child ID", "int", null, data.getShort(field, (short)-1), "Default");
+                panel.addField(field, "Linked Child ID", "int", null, data.getShort(field, (short)-1), tooltip);
                 break;
             case "FollowId":
-                panel.addField(field, "Linked Area ID", "int", null, data.getInt(field, -1), "Default");
+                panel.addField(field, "Linked Area ID", "int", null, data.getInt(field, -1), tooltip);
                 break;
             
             // Object Groups
             case "GroupId":
                 boolean isFieldUsed = objdbInfo.isParameterUsed(Whitehole.getCurrentGameType(), "Group");
-                panel.addField(field, isFieldUsed ? "Group ID" : UNUSED_FIELD_START + "Group ID" + UNUSED_FIELD_END, "int", null, data.getShort(field, (short)-1), "Default");
+                panel.addField(field, isFieldUsed ? "Group ID" : UNUSED_FIELD_START + "Group ID" + UNUSED_FIELD_END, "int", null, data.getShort(field, (short)-1), tooltip);
                 break;
             case "ClippingGroupId":
-                panel.addField(field, "Clipping Group ID", "int", null, data.getShort(field, (short)-1), "Default");
+                panel.addField(field, "Clipping Group ID", "int", null, data.getShort(field, (short)-1), tooltip);
                 break;
             case "ViewGroupId":
-                panel.addField(field, "View Group ID", "int", null, data.getInt(field, -1), "Default");
+                panel.addField(field, "View Group ID", "int", null, data.getInt(field, -1), tooltip);
                 break;
             case "DemoGroupId":
-                panel.addField(field, "Cutscene Group ID", "int", null, data.getShort(field, (short)-1), "Default");
+                panel.addField(field, "Cutscene Group ID", "int", null, data.getShort(field, (short)-1), tooltip);
                 break;
             case "CastId":
-                panel.addField(field, "Cast Group ID", "int", null, data.getInt(field, -1), "Default");
+                panel.addField(field, "Cast Group ID", "int", null, data.getInt(field, -1), tooltip);
                 break;
             
             // Miscellaneous
             case "CommonPath_ID":
-                panel.addField(field, "Path ID", "int", null, data.getShort(field, (short)-1), "Default");
+                panel.addField(field, "Path ID", "int", null, data.getShort(field, (short)-1), tooltip);
                 break;
             case "ShapeModelNo":
-                panel.addField(field, "Model ID", "int", null, data.getShort(field, (short)-1), "Default");
+                panel.addField(field, "Model ID", "int", null, data.getShort(field, (short)-1), tooltip);
                 break;
             case "CameraSetId":
-                panel.addField(field, "Camera Set ID", "int", null, data.getInt(field, -1), "Default");
+                panel.addField(field, "Camera Set ID", "int", null, data.getInt(field, -1), tooltip);
                 break;
             case "MessageId":
-                panel.addField(field, "Message ID", "int", null, data.getInt(field, -1), "Default");
+                panel.addField(field, "Message ID", "int", null, data.getInt(field, -1), tooltip);
                 break;
             case "ParamScale":
-                panel.addField(field, "Speed Scale", "float", null, data.getFloat(field, 1.0f), "Default");
+                panel.addField(field, "Speed Scale", "float", null, data.getFloat(field, 1.0f), tooltip);
                 break;
             case "GeneratorID":
             case "ParentID":
-                panel.addField(field, "Generator Object ID", "int", null, data.getShort(field, (short)-1), "Default");
+                panel.addField(field, "Generator Object ID", "int", null, data.getShort(field, (short)-1), tooltip);
                 break;        
                 
             // AreaObjInfo
             case "AreaShapeNo":
-                panel.addField(field, "Shape ID", "int", null, data.getShort(field, (short)0), "Default");
+                panel.addField(field, "Shape ID", "int", null, data.getShort(field, (short)0), tooltip);
                 break;
             case "Priority":
-                panel.addField(field, "Priority", "int", null, data.getInt(field, -1), "Default");
+                panel.addField(field, "Priority", "int", null, data.getInt(field, -1), tooltip);
                 break;
                 
             // CameraCubeInfo
             case "Validity":
-                panel.addField("Validity", "Validity", "text", null, data.getString("Validity", "Valid"), "Default");
+                panel.addField("Validity", "Validity", "text", null, data.getString("Validity", "Valid"), tooltip);
                 break;
             
             // DemoObjInfo
             case "DemoName":
-                panel.addField(field, "Cutscene Name", "text", null, data.getString(field, "undefined"), "Default");
+                panel.addField(field, "Cutscene Name", "text", null, data.getString(field, "undefined"), tooltip);
                 break;
             case "TimeSheetName":
-                panel.addField(field, "Sheet Name", "text", null, data.getString(field, "undefined"), "Default");
+                panel.addField(field, "Sheet Name", "text", null, data.getString(field, "undefined"), tooltip);
                 break;
             case "DemoSkip":
-                panel.addField(field, "Skippable?", "int", null, data.getInt(field, -1), "Default");
+                panel.addField(field, "Skippable?", "int", null, data.getInt(field, -1), tooltip);
                 break;
                 
             // GeneralPosInfo
             case "PosName":
-                panel.addField(field, "Identifier", "text", null, data.getString(field, "undefined"), "Default");
+                panel.addField(field, "Identifier", "text", null, data.getString(field, "undefined"), tooltip);
                 break;
                 
             // MapPartsInfo
             case "ParentId":
-                panel.addField(field, "Parent Object ID", "int", null, data.getShort(field, (short)-1), "Default");
+                panel.addField(field, "Parent Object ID", "int", null, data.getShort(field, (short)-1), tooltip);
                 break;
             case "MoveConditionType":
             case "RotateSpeed":
@@ -281,32 +293,32 @@ public abstract class AbstractObj {
                 fieldType = "int";
                 if (mapPartVals != null && !mapPartVals.isEmpty())
                     fieldType = "intlist";
-                panel.addField(field, fieldName, fieldType, mapPartVals, data.getInt(field, -1), "Default");
+                panel.addField(field, fieldName, fieldType, mapPartVals, data.getInt(field, -1), tooltip);
                 break;
                 
             // PlanetObjInfo
             case "Range":
-                panel.addField(field, field, "float", null, data.getFloat(field, 0.0f), "Default");
+                panel.addField(field, field, "float", null, data.getFloat(field, 0.0f), tooltip);
                 break;
             case "Distant":
-                panel.addField(field, "Distance", "float", null, data.getFloat(field, 0.0f), "Default");
+                panel.addField(field, "Distance", "float", null, data.getFloat(field, 0.0f), tooltip);
                 break;
             case "Inverse":
-                panel.addField(field, "Inverse?", "int", null, data.getInt(field, -1), "Default");
+                panel.addField(field, "Inverse?", "int", null, data.getInt(field, -1), tooltip);
                 break;
             case "Power":
-                panel.addField(field, "Power", "list", CHOICES_GRAVITY_POWERS, data.getString(field, "Normal"), "Default");
+                panel.addField(field, "Power", "list", CHOICES_GRAVITY_POWERS, data.getString(field, "Normal"), tooltip);
                 break;
             case "Gravity_type":
-                panel.addField(field, "Type", "list", CHOICES_GRAVITY_TYPES, data.getString(field, "Normal"), "Default");
+                panel.addField(field, "Type", "list", CHOICES_GRAVITY_TYPES, data.getString(field, "Normal"), tooltip);
                 break;
                 
             // StartInfo
             case "MarioNo":
-                panel.addField(field, "Spawn ID", "int", null, data.getInt(field, 0), "Default");
+                panel.addField(field, "Spawn ID", "int", null, data.getInt(field, 0), tooltip);
                 break;
             case "Camera_id":
-                panel.addField(field, "Camera ID", "int", null, data.getInt(field, -1), "Default");
+                panel.addField(field, "Camera ID", "int", null, data.getInt(field, -1), tooltip);
                 break;
             
             default:
