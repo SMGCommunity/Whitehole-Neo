@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import whitehole.Whitehole;
 import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
+import whitehole.rendering.KclRenderer;
 import static whitehole.rendering.RendererFactory.createDummyCubeRenderer;
 import whitehole.rendering.special.*;
 import whitehole.smg.object.AbstractObj;
@@ -52,6 +53,8 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     return ShapeModelRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                 case "ModelByProperty":
                     return ModelByPropertyRenderer.getAdditiveCacheKey(obj, objModelName, renderinfo.rendererParams);
+                case "CollisionOnly":
+                    return KclRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                     
                 case "PowerStar":
                     return PowerStarRenderer.getAdditiveCacheKey(obj, (Integer)renderinfo.getRenderParamByName("DefaultFrame"));
@@ -84,6 +87,9 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     break;
                 case "ModelByProperty":
                     result = new ModelByPropertyRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    break;
+                case "CollisionOnly":
+                    result = new KclRenderer(info, objModelName);
                     break;
                     
                 case "PowerStar":

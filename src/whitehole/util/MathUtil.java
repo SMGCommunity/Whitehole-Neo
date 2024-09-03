@@ -39,10 +39,16 @@ public class MathUtil {
     
     public static boolean isNearZero(Vec3f v, float min)
     {
-        boolean r = v.x > -min && v.x < min &&
+        boolean r =
+            v.x > -min && v.x < min &&
             v.y > -min && v.y < min &&
             v.z > -min && v.z < min;
         return r;
+    }
+    
+    public static float distance(Vec3f vec1, Vec3f vec2)
+    {
+        return (float)Math.sqrt((vec2.x - vec1.x) * (vec2.x - vec1.x) + (vec2.y - vec1.y) * (vec2.y - vec1.y) + (vec2.z - vec1.z) * (vec2.z - vec1.z));
     }
     
     public static void makeAxisVerticalZX(Vec3f axisRight, Vec3f front)

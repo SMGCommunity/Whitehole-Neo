@@ -764,6 +764,18 @@
           ]
         }
       ]
+    },
+    {
+      "ClassName": "InvisiblePolygonObj",
+      "RendererType": "CollisionOnly"
+    },
+    {
+      "ClassName": "InvisiblePolygonObjGCapture",
+      "RendererType": "CollisionOnly"
+    },
+    {
+      "ClassName": "TransparentWall",
+      "RendererType": "CollisionOnly"
     }
   ]
 }
