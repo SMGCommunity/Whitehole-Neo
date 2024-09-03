@@ -272,6 +272,18 @@
       ]
     },
     {
+      "ObjectName": "PoleSquare",
+      "RendererType": "TwoJointScale",
+      "RendererParams": [
+        {
+          "CalcType": 1,
+          "TopJointName": "PoleTop",
+          "ScaleY": 100.0,
+          "BaseY": 100.0
+        }
+      ]
+    },
+    {
       "ObjectName": "Pole2Way",
       "RendererType": "TwoJointScale",
       "RendererParams": [
