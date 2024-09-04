@@ -153,6 +153,16 @@ public class BmdRenderer extends GLRenderer {
                 sig.put(mat.tevStage[i].alphaBias);
                 sig.put(mat.tevStage[i].alphaScale);
             }
+            
+            sig.put(mat.tevSwapMode[i].rasSel);
+            sig.put(mat.tevSwapMode[i].texSel);
+        }
+        
+        for (int i = 0; i < mat.tevSwapTable.length; i++) {
+            sig.put(mat.tevSwapTable[i].r);
+            sig.put(mat.tevSwapTable[i].g);
+            sig.put(mat.tevSwapTable[i].b);
+            sig.put(mat.tevSwapTable[i].a);
         }
 
         if(mat.alphaComp.mergeFunc == 1 &&(mat.alphaComp.func0 == 7 || mat.alphaComp.func1 == 7)) {
@@ -346,6 +356,7 @@ public class BmdRenderer extends GLRenderer {
             "k0.g", "k1.g", "k2.g", "k3.g", "k0.b", "k1.b", "k2.b", "k3.b", "k0.a", "k1.a", 
             "k2.a", "k3.a" };
         String[] tevbias = { "0.0", "0.5", "-0.5", "## ILLEGAL TEV BIAS ##" };
+        String[] tevSwapColor = { "r", "g", "b", "a" };
         String[] tevscale = { "1.0", "2.0", "4.0", "0.5" };
         String[] alphacompare = { "0 == 1", "%1$s < %2$f", "%1$s == %2$f", "%1$s <= %2$f", "%1$s > %2$f", "%1$s != %2$f", "%1$s >= %2$f", "1 == 1" };
         String[] alphacombine = { "(%1$s) && (%2$s)", "(%1$s) || (%2$s)", "((%1$s) && (!(%2$s))) || ((!(%1$s)) && (%2$s))", "((%1$s) && (%2$s)) || ((!(%1$s)) && (!(%2$s)))" };
@@ -515,8 +526,25 @@ public class BmdRenderer extends GLRenderer {
                     mat.tevOrder[i].texMap, mat.tevOrder[i].texcoordID));
             frag.append("    rascolor = gl_Color;\n");
             // TODO: take mat.TevOrder[i].ChanId into account
-            // TODO: tex/ras swizzle?(important or not?)
-            //mat.TevSwapMode[0].
+            
+            Bmd.Material.TevSwapModeInfo swapInfo = mat.tevSwapMode[i];
+            
+            Bmd.Material.TevSwapModeTable swapRasTable = mat.tevSwapTable[swapInfo.rasSel];
+            Bmd.Material.TevSwapModeTable swapTexTable = mat.tevSwapTable[swapInfo.texSel];
+            frag.append("{\n");
+            frag.append("    float SwapRed = rascolor.").append(tevSwapColor[swapRasTable.r]).append(";\n");
+            frag.append("    float SwapGreen = rascolor.").append(tevSwapColor[swapRasTable.g]).append(";\n");
+            frag.append("    float SwapBlue = rascolor.").append(tevSwapColor[swapRasTable.b]).append(";\n");
+            frag.append("    float SwapAlpha = rascolor.").append(tevSwapColor[swapRasTable.a]).append(";\n");
+            frag.append("    rascolor = vec4(SwapRed, SwapGreen, SwapBlue, SwapAlpha);\n");
+            frag.append("}\n");
+            frag.append("{\n");
+            frag.append("    float SwapRed = texcolor.").append(tevSwapColor[swapTexTable.r]).append(";\n");
+            frag.append("    float SwapGreen = texcolor.").append(tevSwapColor[swapTexTable.g]).append(";\n");
+            frag.append("    float SwapBlue = texcolor.").append(tevSwapColor[swapTexTable.b]).append(";\n");
+            frag.append("    float SwapAlpha = texcolor.").append(tevSwapColor[swapTexTable.a]).append(";\n");
+            frag.append("    texcolor = vec4(SwapRed, SwapGreen, SwapBlue, SwapAlpha);\n");
+            frag.append("}\n");
 
             //if(mat.tevOrder[i].chanID != 4)
             //    throw new GLException(String.format("!UNSUPPORTED CHANID %1$d", mat.tevOrder[i].chanID));
