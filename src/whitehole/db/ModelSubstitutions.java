@@ -56,7 +56,7 @@ public final class ModelSubstitutions {
                 System.out.println("Middle model found: "+substitution);
         }
         
-        if (!Whitehole.isExistObjectDataArc(substitution))
+        if (!model.equals(substitution) && !Whitehole.isExistObjectDataArc(substitution))
         {
             if (Settings.getDebugAdditionalLogs())
                 System.out.println("Failed to find model substitution \"" +substitution+ "\" for \"" + model + "\".");
