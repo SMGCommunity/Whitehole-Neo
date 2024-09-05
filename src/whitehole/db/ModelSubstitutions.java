@@ -42,19 +42,26 @@ public final class ModelSubstitutions {
     
     public static String getSubstitutedModelName(String model) {     
         String key = model.toLowerCase();
-        model = MODEL_SUBSTITUTIONS.optString(key, model);
-        if (Whitehole.isExistObjectDataArc(model + "Low") && Settings.getUseLowPolyModels()) {
-            model += "Low";
+        String substitution = MODEL_SUBSTITUTIONS.optString(key, model);
+        if (Whitehole.isExistObjectDataArc(substitution + "Low") && Settings.getUseLowPolyModels()) {
+            substitution += "Low";
             if (Settings.getDebugAdditionalLogs())
-                System.out.println("Low model found: "+model);
+                System.out.println("Low model found: "+substitution);
         }
         // rarely if ever this happens...
         // maybe in the future it could be a choice between "Low", "Middle", and "Normal".
-        else if (Whitehole.isExistObjectDataArc(model + "Middle") && Settings.getUseLowPolyModels()) {
-            model += "Middle";
+        else if (Whitehole.isExistObjectDataArc(substitution + "Middle") && Settings.getUseLowPolyModels()) {
+            substitution += "Middle";
             if (Settings.getDebugAdditionalLogs())
-                System.out.println("Middle model found: "+model);
+                System.out.println("Middle model found: "+substitution);
         }
-        return model;
+        
+        if (!Whitehole.isExistObjectDataArc(substitution))
+        {
+            if (Settings.getDebugAdditionalLogs())
+                System.out.println("Failed to find model substitution \"" +substitution+ "\" for \"" + model + "\".");
+            return model;
+        }
+        return substitution;
     }
 }
