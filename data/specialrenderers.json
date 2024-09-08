@@ -260,6 +260,21 @@
       ]
     },
     {
+      "ObjectName": "WaterLeakPipe",
+      "RendererType": "TwoJointScale",
+      "RendererParams": [
+        {
+          "CalcType": 0,
+          "TopJointName": "Top",
+          "BottomJointName": "Bottom",
+          "ScaleY": 1.0,
+          "BottomPosY": 50.0,
+          "ScaleSource": "Obj_arg0",
+          "DefaultScale": 500.0
+        }
+      ]
+    },
+    {
       "ObjectName": "Pole",
       "RendererType": "TwoJointScale",
       "RendererParams": [

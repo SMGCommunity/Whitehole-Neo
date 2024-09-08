@@ -54,11 +54,17 @@ public class TwoJointScaleRenderer extends BasicAnimationRenderer {
             BigDecimal scaleYTop = (BigDecimal)params.get("ScaleY");
             BigDecimal posYBottom = (BigDecimal)params.get("BottomPosY");
 
+            String ScaleSource = (String)params.get("ScaleSource");
+            Float scaleValue = Float.parseFloat(obj.data.get(ScaleSource == null ? "scale_y" : ScaleSource).toString());
+            
+            if (scaleValue == -1.0)
+                scaleValue = ((BigDecimal)params.get("DefaultScale")).floatValue();
+            
             if (topName != null && bottomName != null && scaleYTop != null && posYBottom != null)
             {
                 Bmd.Joint TopJoint = model.getJointByName(topName);
                 Bmd.Joint BottomJoint = model.getJointByName(bottomName);
-                float f = scaleYTop.floatValue() * obj.scale.y;
+                float f = scaleYTop.floatValue() * scaleValue;
                 float y = posYBottom.floatValue();
                 TopJoint.translation.y = f;
                 BottomJoint.translation.y = -(f+y);
@@ -71,11 +77,18 @@ public class TwoJointScaleRenderer extends BasicAnimationRenderer {
             BigDecimal scaleYTop = (BigDecimal)params.get("ScaleY");
             BigDecimal baseYTop = (BigDecimal)params.get("BaseY");
             
+            
+            String ScaleSource = (String)params.get("ScaleSource");
+            Float scaleValue = Float.parseFloat(obj.data.get(ScaleSource == null ? "scale_y" : ScaleSource).toString());
+            
+            if (scaleValue == -1.0)
+                scaleValue = ((BigDecimal)params.get("DefaultScale")).floatValue();
+            
             Boolean x = (Boolean)params.get("NeedsLines");
-            if (x != null&& scaleYTop != null)
+            if (x != null && scaleYTop != null)
             {
                 isNeedDrawLines = x;
-                drawLineLength = scaleYTop.floatValue() * obj.scale.y + baseYTop.floatValue();
+                drawLineLength = scaleYTop.floatValue() * scaleValue + baseYTop.floatValue();
                 BigDecimal fff = (BigDecimal)params.get("LinesRange");
                 if (fff == null)
                     drawLineRange = null;
@@ -86,7 +99,7 @@ public class TwoJointScaleRenderer extends BasicAnimationRenderer {
             if (topName != null && scaleYTop != null && baseYTop != null)
             {
                 Bmd.Joint TopJoint = model.getJointByName(topName);
-                float f = scaleYTop.floatValue() * obj.scale.y;
+                float f = scaleYTop.floatValue() * scaleValue;
                 TopJoint.translation.y = f + baseYTop.floatValue();
                 model.recalcAllJoints();
                 
@@ -160,6 +173,14 @@ public class TwoJointScaleRenderer extends BasicAnimationRenderer {
     public static String getAdditiveCacheKey(AbstractObj obj, HashMap<String, Object> params) {
         return "_" +
                 obj.scale.y +
+                obj.data.getInt("Obj_arg0") +
+                obj.data.getInt("Obj_arg1") +
+                obj.data.getInt("Obj_arg2") +
+                obj.data.getInt("Obj_arg3") +
+                obj.data.getInt("Obj_arg4") +
+                obj.data.getInt("Obj_arg5") +
+                obj.data.getInt("Obj_arg6") +
+                obj.data.getInt("Obj_arg7") +
                 BasicAnimationRenderer.getAdditiveCacheKey(obj, params);
     }
 }
