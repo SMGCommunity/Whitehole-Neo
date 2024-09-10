@@ -95,7 +95,7 @@ public final class ObjectDB {
     
     private static JSONObject download() {
         JSONObject newDb = null;
-        
+        final long time = System.currentTimeMillis();
         try {
             HttpURLConnection connection = (HttpURLConnection)new URL(SOURCE_URL).openConnection();
             
@@ -109,6 +109,8 @@ public final class ObjectDB {
             byte[] buf = new byte[length];
             
             for (int i = 0 ; i < length ; i++) {
+                if ((System.currentTimeMillis() - time) > 10000)
+                    throw new IOException("Object Database connection timed out.");
                 buf[i] = (byte)in.read();
             }
             
