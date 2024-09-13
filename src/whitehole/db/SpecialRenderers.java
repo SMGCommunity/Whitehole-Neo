@@ -53,6 +53,9 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     return ShapeModelRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                 case "ModelByProperty":
                     return ModelByPropertyRenderer.getAdditiveCacheKey(obj, objModelName, renderinfo.rendererParams);
+                case "PatternRenderer":
+                    return PatternRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
+                    
                 case "CollisionOnly":
                     return KclRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                     
@@ -88,9 +91,15 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                 case "ModelByProperty":
                     result = new ModelByPropertyRenderer(info, objModelName, obj, renderinfo.rendererParams);
                     break;
+                case "PatternRenderer":
+                    result = new PatternRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    break;
+                    
+                    
                 case "CollisionOnly":
                     result = new KclRenderer(info, objModelName);
                     break;
+                    
                     
                 case "PowerStar":
                     result = new PowerStarRenderer(info, objModelName, obj,

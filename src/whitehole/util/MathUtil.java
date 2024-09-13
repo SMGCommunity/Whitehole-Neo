@@ -16,14 +16,16 @@
  */
 package whitehole.util;
 
+import whitehole.math.Matrix4;
 import whitehole.math.Vec3f;
+import whitehole.smg.object.AbstractObj;
 
 /**
  *
  * @author Hackio
  */
 public class MathUtil {
-        public static float vecKillElement(Vec3f dst, Vec3f a, Vec3f b)
+    public static float vecKillElement(Vec3f dst, Vec3f a, Vec3f b)
     {
         float m = Vec3f.dot(a, b);
         scaleAndAdd(dst, a, b, -m);
@@ -64,5 +66,10 @@ public class MathUtil {
         makeAxisVerticalZX(axisRight, front);
         Vec3f.cross(front, axisRight, axisUp);
         Vec3f.normalize(axisUp, axisUp);
+    }
+    
+    public static Matrix4 createActorBaseMtx(AbstractObj obj)
+    {
+        return Matrix4.SRTToMatrix(obj.scale, obj.rotation, obj.position);
     }
 }

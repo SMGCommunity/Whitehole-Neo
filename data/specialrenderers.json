@@ -459,6 +459,52 @@
       ]
     },
     {
+      "ObjectName": "FireRing",
+      "RendererType": "PatternRenderer",
+      "RendererParams": [
+        {
+          "CirclePattern": {
+              "Axis": 0,
+              "RadiusSource": "Obj_arg0",
+              "RadiusDefault": 300,
+              "CountSource": "Obj_arg2",
+              "CountDefault": 8
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "CircleCoinGroup",
+      "RendererType": "PatternRenderer",
+      "RendererParams": [
+        {
+          "CirclePattern": {
+              "Axis": 1,
+              "RadiusSource": "Obj_arg2",
+              "RadiusDefault": 200,
+              "CountSource": "Obj_arg0",
+              "CountDefault": 8
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "StarPieceGroup",
+      "RendererType": "PatternRenderer",
+      "RendererParams": [
+        {
+          "CirclePattern": {
+              "Axis": 1,
+              "RadiusSource": "Obj_arg1",
+              "RadiusDefault": 400,
+              "CountSource": "Obj_arg0",
+              "CountDefault": 6,
+              "IsPathOnly": false
+          }
+        }
+      ]
+    },
+    {
       "ClassName": "SwitchingMoveBlock",
       "RendererType": "Phantom",
       "RendererParams": [
