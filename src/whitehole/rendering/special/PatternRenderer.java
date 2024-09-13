@@ -98,7 +98,7 @@ public class PatternRenderer extends BasicAnimationRenderer {
     
     public static String getAdditiveCacheKey(AbstractObj obj, HashMap<String, Object> params) {
         
-        return "_" +
+        return "_" + obj.scale.toString() + "_" +
                 AbstractObj.getObjectPathId(obj) +
                 "_" +
                 BasicAnimationRenderer.getAdditiveCacheKey(obj, params)+
