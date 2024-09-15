@@ -1325,7 +1325,7 @@ public class Bmd
 //                                    0, 1, 0, 0,
 //                                    0, 0, 1, 0,
 //                                    0, 0, 0, 1);
-//                    CI = Matrix4.invert(C);
+//                    CI = Matrix4.negate(C);
                     
                     switch ((int)type)
                     {

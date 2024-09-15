@@ -252,9 +252,17 @@ public class Matrix4 {
     
     
     public static Matrix4 lookAt(Vec3f eye, Vec3f target, Vec3f up) {
-        Vec3f z = new Vec3f(); Vec3f.subtract(eye, target, z); Vec3f.normalize(z, z);
-        Vec3f x = new Vec3f(); Vec3f.cross(up, z, x); Vec3f.normalize(x, x);
-        Vec3f y = new Vec3f(); Vec3f.cross(z, x, y); Vec3f.normalize(y, y);
+        Vec3f z = new Vec3f(eye);
+        z.subtract(target);
+        Vec3f.normalize(z, z);
+        
+        Vec3f x = new Vec3f(up);
+        x.subtract(z);
+        Vec3f.normalize(x, x);
+        
+        Vec3f y = new Vec3f(z);
+        y.subtract(x);
+        Vec3f.normalize(y, y);
         
         Matrix4 rot = new Matrix4(
                 x.x, y.x, z.x, 0f,
@@ -275,9 +283,17 @@ public class Matrix4 {
      * @return 
      */
     public static Matrix4 lookAtNoInv(Vec3f eye, Vec3f target, Vec3f up) {
-        Vec3f z = new Vec3f(); Vec3f.subtract(target, eye, z); Vec3f.normalize(z, z);
-        Vec3f x = new Vec3f(); Vec3f.cross(up, z, x); Vec3f.normalize(x, x);
-        Vec3f y = new Vec3f(); Vec3f.cross(z, x, y); Vec3f.normalize(y, y);
+        Vec3f z = new Vec3f(eye);
+        z.subtract(target);
+        Vec3f.normalize(z, z);
+        
+        Vec3f x = new Vec3f(up);
+        x.subtract(z);
+        Vec3f.normalize(x, x);
+        
+        Vec3f y = new Vec3f(z);
+        y.subtract(x);
+        Vec3f.normalize(y, y);
         
         Matrix4 rot = new Matrix4(
                 x.x, x.y, x.z, 0f,

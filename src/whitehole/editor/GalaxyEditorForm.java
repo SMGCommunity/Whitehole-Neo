@@ -62,7 +62,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     // General
     private boolean isGalaxyMode = true;
     private boolean isSeparateZoneMode = false;
-    private String galaxyName;
+    private final String galaxyName;
     private GalaxyArchive galaxyArchive = null;
     private HashMap<String, StageArchive> zoneArchives;
     private int curScenarioIndex;
@@ -70,7 +70,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private String curZone;
     private StageArchive curZoneArc;
     
-    private HashMap<String, GalaxyEditorForm> zoneEditors = new HashMap();
+    private final HashMap<String, GalaxyEditorForm> zoneEditors = new HashMap();
     private GalaxyEditorForm parentForm = null;
     private volatile boolean unsavedChanges = false;
     private int zoneModeLayerBitmask;
@@ -120,7 +120,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private float camDistance = 1.0f;
     private final Vec2f camRotation = new Vec2f(0.0f, 0.0f);
     private final Vec3f camPosition = new Vec3f(0.0f, 0.0f, 0.0f);
-    private Vec3f camTarget = new Vec3f(0.0f, 0.0f, 0.0f);
+    private final Vec3f camTarget = new Vec3f(0.0f, 0.0f, 0.0f);
     private boolean isUpsideDown = false;
     
     // Controls
@@ -134,9 +134,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private final FloatBuffer pickingDepthBuffer = FloatBuffer.allocate(1);
     private float pickingDepth = 1.0f;
     
-    // Assorted
-    private final Vec3f scratchVec = new Vec3f();
-    
+    // Assorted    
     private float g_move_x=0;
     private float g_move_y=0;
     private float g_move_z=0;
@@ -170,7 +168,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     public ArrayList<IUndo> undoList = new ArrayList();
     private int undoIndex = 0;
     private UndoMultiEntry currentUndoMulti = null;
-    private float lastDist;
     
     // If true, all closing events like Object validation and unsaved changes are skipped
     public boolean isForceClose = false;
@@ -1406,6 +1403,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     /**
     * Attempt to apply rotation/translation of the current zone to {@code delta}.
     * @param delta the position to change
+    * @return subzone rotation
     */
     public Vec3f applySubzoneRotation(Vec3f delta) {
         if(!isGalaxyMode)
@@ -4152,7 +4150,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             camPosition.y = camDistance *(float)Math.sin(camRotation.y);
             camPosition.z = camDistance *(float)Math.sin(camRotation.x) *(float)Math.cos(camRotation.y);
             
-            Vec3f.add(camPosition, camTarget, camPosition);
+            camPosition.add(camTarget);
             
             modelViewMatrix = Matrix4.lookAt(camPosition, camTarget, up);
             Matrix4.mult(Matrix4.scale(1f / SCALE_DOWN), modelViewMatrix, modelViewMatrix);
@@ -4396,7 +4394,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             if (zonePlacements.containsKey(stageKey))
                             {
                                 StageObj zonePlacement = zonePlacements.get(stageKey);
-                                Vec3f.subtract(position, zonePlacement.position, position);
+                                position.subtract(zonePlacement.position);
                                 applySubzoneRotation(position);
                             }
                         }
@@ -4433,7 +4431,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             if (zonePlacements.containsKey(stageKey))
                             {
                                 StageObj zonePlacement = zonePlacements.get(stageKey);
-                                Vec3f.subtract(position, zonePlacement.position, position);
+                                position.subtract(zonePlacement.position);
                                 applySubzoneRotation(position);
                             }
                         }
@@ -4785,8 +4783,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
 
                         if (zonePlacements.containsKey(stageKey)) {
-                            scratchVec.scale(1.0f / SCALE_DOWN, zonePlacements.get(stageKey).position);
-                            camTarget.set(scratchVec);
+                            Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
+                            scratch.scale(1.0f / SCALE_DOWN);
+                            camTarget.set(scratch);
                         }
                     }
                 }
@@ -4794,16 +4793,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 {
                     AbstractObj obj = selectedObjs.values().iterator().next();
                 
-                    camTarget.scale(1.0f / SCALE_DOWN, obj.position);
+                    camTarget.set(obj.position);
+                    camTarget.scale(1.0f / SCALE_DOWN);
                     camDistance = 0.25f;
 
                     if (isGalaxyMode) {
                         String stageKey = String.format("%d/%s", curScenarioIndex, obj.stage.stageName);
 
                         if (zonePlacements.containsKey(stageKey)) {
-                            scratchVec.scale(1.0f / SCALE_DOWN, zonePlacements.get(stageKey).position);
-                            camTarget.add(scratchVec);
-
+                            Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
+                            scratch.scale(1.0f / SCALE_DOWN);
+                            camTarget.add(scratch);
                         }
                     }
                 }
@@ -4920,13 +4920,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     {
                         for(AbstractObj selectedObj : selectedObjs.values())
                             addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
-                        offsetSelectionBy(delta.multiplyScalar(100), e.isShiftDown());
+                        delta.scale(100);
+                        offsetSelectionBy(delta, e.isShiftDown());
                     }
                     else if((keyMask & (1 << 7)) != 0)
                     {
                         for(AbstractObj selectedObj : selectedObjs.values())
                             addUndoEntry(IUndo.Action.ROTATE, selectedObj);
-                        rotateSelectionBy(delta.multiplyScalar(5));
+                        delta.scale(5);
+                        rotateSelectionBy(delta);
                     }
                     else if((keyMask & (1 << 8)) != 0)
                     {
@@ -5584,13 +5586,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if (!isAllowPasteAction())
             return;
         
-        Vec3f offset = new Vec3f();
-        
         for (AbstractObj obj : selectedObjs.values()) {
             addUndoEntry(IUndo.Action.TRANSLATE, obj);
             if (obj instanceof PathPointObj) {
                 PathPointObj pointObj = (PathPointObj)obj;
-                offset.subtract(COPY_POSITION, pointObj.position);
+                Vec3f offset = new Vec3f(COPY_POSITION);
+                offset.subtract(pointObj.position);
                 
                 pointObj.position.set(COPY_POSITION);
                 pointObj.point1.add(offset);

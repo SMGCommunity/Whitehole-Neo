@@ -2207,8 +2207,8 @@ public class GravityShapeRenderer extends GLRenderer {
             Vec3f.cross(up, direction, up);
             Vec3f.normalize(up, up);
             
-            Vec3f target = new Vec3f();
-            Vec3f.add(point, direction, target);
+            Vec3f target = new Vec3f(point);
+            target.add(direction);
             
             GravityPoints[i] = point;
             RingMatrices[i] = Matrix4.lookAtNoInv(point, target, up);

@@ -452,12 +452,14 @@ public class KclRenderer extends GLRenderer {
             Vec3f CrossA = new Vec3f(), CrossB = new Vec3f();
             Vec3f.cross(model.normalArray[prim.normalAIndex], Dir, CrossA);
             Vec3f.cross(model.normalArray[prim.normalBIndex], Dir, CrossB);
-            Vec3f B = new Vec3f(), C = new Vec3f(), N = new Vec3f();
-            Vec3f.add(A, CrossB.multiplyScalar(prim.Length / Vec3f.dot(CrossB, model.normalArray[prim.normalCIndex])), B);
-            Vec3f.add(A, CrossA.multiplyScalar(prim.Length / Vec3f.dot(CrossA, model.normalArray[prim.normalCIndex])), C);
-            Vec3f V = new Vec3f(), V2 = new Vec3f();
-            Vec3f.subtract(B, A, V);
-            Vec3f.subtract(C, A, V2);
+            CrossB.scale(prim.Length / Vec3f.dot(CrossB, model.normalArray[prim.normalCIndex]));
+            CrossA.scale(prim.Length / Vec3f.dot(CrossA, model.normalArray[prim.normalCIndex]));
+            Vec3f B = new Vec3f(A), C = new Vec3f(A);
+            B.add(CrossB);
+            C.add(CrossA);
+            Vec3f V = new Vec3f(B), V2 = new Vec3f(C), N = new Vec3f();
+            V.subtract(A);
+            V2.subtract(A);
             Vec3f.cross(V, V2, N);
             Vec3f.normalize(N, N);
 

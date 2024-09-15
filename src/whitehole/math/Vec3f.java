@@ -64,22 +64,16 @@ public class Vec3f implements Cloneable {
         this.z += that.z;
     }
     
-    public void add(Vec3f a, Vec3f b) {
-        x = a.x + b.x;
-        y = a.y + b.y;
-        z = a.z + b.z;
-    }
-    
     public void subtract(Vec3f that) {
         this.x -= that.x;
         this.y -= that.y;
         this.z -= that.z;
     }
     
-    public void subtract(Vec3f a, Vec3f b) {
-        x = a.x - b.x;
-        y = a.y - b.y;
-        z = a.z - b.z;
+    public void multiply(Vec3f that) {
+        this.x *= that.x;
+        this.y *= that.y;
+        this.z *= that.z;
     }
     
     public void scale(float scalar) {
@@ -88,13 +82,7 @@ public class Vec3f implements Cloneable {
         z *= scalar;
     }
     
-    public void scale(float scalar, Vec3f that) {
-        this.x = scalar * that.x;
-        this.y = scalar * that.y;
-        this.z = scalar * that.z;
-    }
-    
-    public void invert()
+    public void negate()
     {
         this.x = -this.x;
         this.y = -this.y;
@@ -105,12 +93,7 @@ public class Vec3f implements Cloneable {
         return (float)Math.sqrt(x * x + y * y + z * z);
     }
     
-    public Vec3f multiplyScalar(float val) {
-        this.x *= val;
-        this.y *= val;
-        this.z *= val;
-        return this;
-    }
+    // -------------------------------------------------------------------------------------------------------------------------
     
     public static boolean roughlyEqual(Vec3f a, Vec3f b) {
         float epsilon = 0.00001f;
@@ -119,10 +102,7 @@ public class Vec3f implements Cloneable {
             return false;
         if (Math.abs(a.y - b.y) > epsilon)
             return false;
-        if (Math.abs(a.z - b.z) > epsilon)
-            return false;
-        
-        return true;
+        return Math.abs(a.z - b.z) <= epsilon;
     }
     
     public static void transform(Vec3f v, Matrix4 m, Vec3f out) {
@@ -141,18 +121,6 @@ public class Vec3f implements Cloneable {
         out.x = x; out.y = y; out.z = z;
     }
     
-    public static void add(Vec3f a, Vec3f b, Vec3f out) {
-        out.x = a.x + b.x;
-        out.y = a.y + b.y;
-        out.z = a.z + b.z;
-    }
-    
-    public static void subtract(Vec3f a, Vec3f b, Vec3f out) {
-        out.x = a.x - b.x;
-        out.y = a.y - b.y;
-        out.z = a.z - b.z;
-    }
-    
     public static void cross(Vec3f a, Vec3f b, Vec3f out) {
         float x = a.y * b.z - a.z * b.y,
               y = a.z * b.x - a.x * b.z,
@@ -160,7 +128,7 @@ public class Vec3f implements Cloneable {
         out.x = x; out.y = y; out.z = z;
     }
     
-        /**
+     /**
      * Calculates dot product of two vectors.
      * @param vector1 First vector to use for dot product calculation.
      * @param vector2 Second vector to use for dot product calculation.
@@ -178,11 +146,10 @@ public class Vec3f implements Cloneable {
         
         Vec3f centroid = new Vec3f();
         
-        for (int i = 0; i < points.length; i++)
-        {
-            centroid.x += points[i].x;
-            centroid.y += points[i].y;
-            centroid.z += points[i].z;
+        for (Vec3f point : points) {
+            centroid.x += point.x;
+            centroid.y += point.y;
+            centroid.z += point.z;
         }
         centroid.x = centroid.x / points.length;
         centroid.y = centroid.y / points.length;
