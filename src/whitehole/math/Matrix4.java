@@ -256,12 +256,12 @@ public class Matrix4 {
         z.subtract(target);
         Vec3f.normalize(z, z);
         
-        Vec3f x = new Vec3f(up);
-        x.subtract(z);
+        Vec3f x = new Vec3f();
+        Vec3f.cross(up, z, x);
         Vec3f.normalize(x, x);
         
-        Vec3f y = new Vec3f(z);
-        y.subtract(x);
+        Vec3f y = new Vec3f();
+        Vec3f.cross(z, x, y);
         Vec3f.normalize(y, y);
         
         Matrix4 rot = new Matrix4(
@@ -287,12 +287,12 @@ public class Matrix4 {
         z.subtract(target);
         Vec3f.normalize(z, z);
         
-        Vec3f x = new Vec3f(up);
-        x.subtract(z);
+        Vec3f x = new Vec3f();
+        Vec3f.cross(up, z, x);
         Vec3f.normalize(x, x);
         
-        Vec3f y = new Vec3f(z);
-        y.subtract(x);
+        Vec3f y = new Vec3f();
+        Vec3f.cross(z, x, y);
         Vec3f.normalize(y, y);
         
         Matrix4 rot = new Matrix4(
