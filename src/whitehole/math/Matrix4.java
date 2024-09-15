@@ -283,8 +283,8 @@ public class Matrix4 {
      * @return 
      */
     public static Matrix4 lookAtNoInv(Vec3f eye, Vec3f target, Vec3f up) {
-        Vec3f z = new Vec3f(eye);
-        z.subtract(target);
+        Vec3f z = new Vec3f(target);
+        z.subtract(eye);
         Vec3f.normalize(z, z);
         
         Vec3f x = new Vec3f();
