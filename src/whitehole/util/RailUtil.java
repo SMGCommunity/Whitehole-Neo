@@ -158,7 +158,8 @@ public final class RailUtil
                 double z = (1-t2)*(1-t2)*(1-t2)*A.z + 3*(1-t2)*(1-t2)*t2*B.z + 3*(1-t2)*t2*t2*C.z + t2*t2*t2*D.z;
                 PointB = new Vec3f((float)x, (float)y, (float)z);
             }
-            Vec3f DistanceBetween = vecSubtract(PointB, PointA);
+            Vec3f DistanceBetween = new Vec3f(PointB);
+            DistanceBetween.subtract(PointA);
             Vec3f.normalize(DistanceBetween, DistanceBetween);
             return DistanceBetween;
         }
@@ -197,14 +198,16 @@ public final class RailUtil
               B = Current.point2,
               C = Next.point1,
               D = Next.position;
-        Vec3f DmA = vecSubtract(D, A);
+        Vec3f DmA = new Vec3f(D);
+        DmA.subtract(A);
         double dt = LineInterpolationPrecision / DmA.length(),
                 length = 0.0;
         for (double t = dt; t < 1.0; t += dt)
         {
             Vec3f tA = getP(t - dt, A, B, C, D);
             Vec3f tB = getP(t, A, B, C, D);
-            Vec3f tC = vecSubtract(tA, tB);
+            Vec3f tC = new Vec3f(tA);
+            tC.subtract(tB);
             length += tC.length();
         }
         return length;
@@ -213,42 +216,68 @@ public final class RailUtil
     // ==============================================================
     
     protected static final double InterpolationPrecision = 0.001;
-    protected static final double LineInterpolationPrecision = 0.5;
+    protected static final double LineInterpolationPrecision = 1;
     protected static final double Sqrt3 = Math.sqrt(3d);
     protected static final double Div18Sqrt3 = 18d / Sqrt3;
     protected static final double OneThird = 1d / 3d;
     protected static final double Sqrt3Div36 = Sqrt3 / 36d;
     
     private static Vec3f getP(double t, Vec3f A, Vec3f B, Vec3f C, Vec3f D)
-    {        
-        //A + (3.0 * t * (B - A)) + (3.0 * t * t * (C - (2.0 * B) + A)) + t * t * t * (D - (3.0 * C) + (3.0 * B) - A)
-        Vec3f res = vecAdd(A, vecMultiplyScale(vecSubtract(B, A), (float)(3.0 * t)));
-        res = vecAdd(res, vecMultiplyScale(vecAdd(vecSubtract(C, vecMultiplyScale(B, 2.0f)), A), (float)(3.0 * t * t)));
-        res = vecAdd(res, vecMultiplyScale(vecSubtract(vecAdd(vecSubtract(D, vecMultiplyScale(C, 3.0f)), vecMultiplyScale(B, 3.0f)), A), (float)(t * t * t)));
-        return res;
-    }
-    
-    public static Vec3f vecAdd(Vec3f a, Vec3f b) {
-        Vec3f out = new Vec3f();
-        out.x = a.x + b.x;
-        out.y = a.y + b.y;
-        out.z = a.z + b.z;
-        return out;
-    }
-    
-    public static Vec3f vecSubtract(Vec3f a, Vec3f b) {
-        Vec3f out = new Vec3f();
-        out.x = a.x - b.x;
-        out.y = a.y - b.y;
-        out.z = a.z - b.z;
-        return out;
-    }
-    public static Vec3f vecMultiplyScale(Vec3f a, float b)
     {
-        Vec3f out = new Vec3f();
-        out.x = a.x * b;
-        out.y = a.y * b;
-        out.z = a.z * b;
-        return out;
+        //A + (3.0 * t * (B - A)) + (3.0 * t * t * (C - (2.0 * B) + A)) + t * t * t * (D - (3.0 * C) + (3.0 * B) - A)
+//        Vec3f res = vecAdd(A, vecMultiplyScale(vecSubtract(B, A), (float)(3.0 * t)));
+//        res = vecAdd(res, vecMultiplyScale(vecAdd(vecSubtract(C, vecMultiplyScale(B, 2.0f)), A), (float)(3.0 * t * t)));
+//        res = vecAdd(res, vecMultiplyScale(vecSubtract(vecAdd(vecSubtract(D, vecMultiplyScale(C, 3.0f)), vecMultiplyScale(B, 3.0f)), A), (float)(t * t * t)));
+        
+        Vec3f tmpA = new Vec3f(B);
+        tmpA.subtract(A);
+        tmpA.scale((float)(3.0 * t));
+        
+        Vec3f tmpB = new Vec3f(B);
+        tmpB.scale(2.0f);
+        Vec3f tmpb2 = new Vec3f(C);
+        tmpb2.subtract(tmpB);
+        tmpb2.add(A);
+        tmpb2.scale((float)(3.0 * t * t));
+        
+        Vec3f tmpC = new Vec3f(B);
+        tmpC.scale(3.0f);
+        Vec3f tmpC2 = new Vec3f(C);
+        tmpC2.scale(3.0f);
+        Vec3f tmpC3 = new Vec3f(D);
+        tmpC3.subtract(tmpC2);
+        tmpC3.add(tmpC);
+        tmpC3.subtract(A);
+        tmpC3.scale((float)(t * t * t));
+        
+        Vec3f result = new Vec3f(A);
+        result.add(tmpA);
+        result.add(tmpb2);
+        result.add(tmpC3);
+        return result;
     }
+    
+//    public static Vec3f vecAdd(Vec3f a, Vec3f b) {
+//        Vec3f out = new Vec3f();
+//        out.x = a.x + b.x;
+//        out.y = a.y + b.y;
+//        out.z = a.z + b.z;
+//        return out;
+//    }
+//    
+//    public static Vec3f vecSubtract(Vec3f a, Vec3f b) {
+//        Vec3f out = new Vec3f();
+//        out.x = a.x - b.x;
+//        out.y = a.y - b.y;
+//        out.z = a.z - b.z;
+//        return out;
+//    }
+//    public static Vec3f vecMultiplyScale(Vec3f a, float b)
+//    {
+//        Vec3f out = new Vec3f();
+//        out.x = a.x * b;
+//        out.y = a.y * b;
+//        out.z = a.z * b;
+//        return out;
+//    }
 }
