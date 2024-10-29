@@ -74,6 +74,11 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void toggleShortcutVisibility() {
         tableModel.setRowCount(0);
         tableModel.setColumnCount(0);
+        btnSave.setEnabled(false);
+        btnAddRow.setEnabled(false);
+        btnDuplicateRow.setEnabled(false);
+        btnDeleteRow.setEnabled(false);
+        btnClear.setEnabled(false);
         
         try(FileReader reader = new FileReader("data/shortcuts.json", StandardCharsets.UTF_8)) {
             JSONObject customShortcutsList = new JSONObject(new JSONTokener(reader));
