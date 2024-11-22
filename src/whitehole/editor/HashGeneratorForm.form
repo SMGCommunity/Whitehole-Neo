@@ -41,7 +41,7 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="btnCopyHash" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="41" max="32767" attributes="0"/>
+                      <EmptySpace pref="46" max="32767" attributes="0"/>
                       <Component id="btnAddHash" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
@@ -114,7 +114,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="btnAddHash">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Add Hash to Lookup"/>
+        <Property name="text" type="java.lang.String" value="Add Text to Lookup"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAddHashActionPerformed"/>
