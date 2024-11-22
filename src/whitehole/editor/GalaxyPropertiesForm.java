@@ -32,8 +32,9 @@ public class GalaxyPropertiesForm extends javax.swing.JFrame {
     ArrayList<String> existingLayers = null;
     
     /**
-     * Creates new form CreateGalaxyForm
-     * @param isGalaxy Whether it is creating a new galaxy or a new zone
+     * Creates new form GalaxyPropertiesForm
+     * @param isGalaxy Whether it is editing a galaxy or a zone
+     * @param zoneName The name of the zone that will be edited
      */
     public GalaxyPropertiesForm(boolean isGalaxy, String zoneName) {
         isGalaxyMode = isGalaxy;

@@ -75,6 +75,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         tableModel.setRowCount(0);
         tableModel.setColumnCount(0);
         btnSave.setEnabled(false);
+        subSave.setEnabled(false);
         btnAddRow.setEnabled(false);
         btnDuplicateRow.setEnabled(false);
         btnDeleteRow.setEnabled(false);
@@ -496,6 +497,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void populateBcsvData() {
         // disable buttons
         btnSave.setEnabled(false);
+        subSave.setEnabled(false);
         btnAddRow.setEnabled(false);
         btnDuplicateRow.setEnabled(false);
         btnDeleteRow.setEnabled(false);
@@ -585,6 +587,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             
             // Enable buttons
             btnSave.setEnabled(true);
+            subSave.setEnabled(true);
             btnAddRow.setEnabled(true);
             btnDuplicateRow.setEnabled(true);
             btnDeleteRow.setEnabled(true);
@@ -731,6 +734,8 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         subSave = new javax.swing.JMenuItem();
         subClose = new javax.swing.JMenuItem();
         mnuShortcuts = new javax.swing.JMenu();
+        mnuTools = new javax.swing.JMenu();
+        subHashGenerator = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(String.format("%s -- BCSV Editor", Whitehole.NAME));
@@ -914,6 +919,18 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         });
         menubar.add(mnuShortcuts);
 
+        mnuTools.setText("Tools");
+
+        subHashGenerator.setText("Hash Generator");
+        subHashGenerator.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                subHashGeneratorActionPerformed(evt);
+            }
+        });
+        mnuTools.add(subHashGenerator);
+
+        menubar.add(mnuTools);
+
         setJMenuBar(menubar);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -1039,6 +1056,11 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_tbFileNameKeyPressed
 
+    private void subHashGeneratorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subHashGeneratorActionPerformed
+        HashGeneratorForm hashForm = new HashGeneratorForm();
+        hashForm.setVisible(true);
+    }//GEN-LAST:event_subHashGeneratorActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public javax.swing.JButton btnAddRow;
     private javax.swing.JButton btnClear;
@@ -1055,12 +1077,14 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private javax.swing.JMenuBar menubar;
     private javax.swing.JMenu mnuFile;
     private javax.swing.JMenu mnuShortcuts;
+    private javax.swing.JMenu mnuTools;
     private javax.swing.JToolBar.Separator spr2;
     private javax.swing.JToolBar.Separator spr3;
     private javax.swing.JToolBar.Separator spr5;
     private javax.swing.JToolBar.Separator spr6;
     private javax.swing.JToolBar.Separator spr7;
     private javax.swing.JMenuItem subClose;
+    private javax.swing.JMenuItem subHashGenerator;
     private javax.swing.JMenuItem subOpen;
     private javax.swing.JMenuItem subSave;
     public javax.swing.JTextField tbArchiveName;
