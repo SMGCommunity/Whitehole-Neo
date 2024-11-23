@@ -16,12 +16,12 @@
 package whitehole.rendering.special;
 
 import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLException;
 import whitehole.rendering.special.AreaShapeRenderer.Shape;
 import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.GLRenderer.RenderInfo;
 import whitehole.util.Color4;
-import whitehole.math.Vec3f;
 import whitehole.smg.object.AbstractObj;
 
 public class BlackHoleRenderer extends GLRenderer {
@@ -46,9 +46,20 @@ public class BlackHoleRenderer extends GLRenderer {
         renderAreaShape = new AreaShapeRenderer(color, shp, obj.scale);
     }
     
+    public boolean isValidBlackHoleModel()
+    {
+        return renderBlackHole.isValidBmdModel();
+    }
+    public boolean isValidRangeModel()
+    {
+        return renderBlackHoleRange.isValidBmdModel();
+    }
+    
     @Override
     public boolean gottaRender(RenderInfo info) {
-        return renderBlackHole.gottaRender(info) || renderBlackHoleRange.gottaRender(info) || renderAreaShape.gottaRender(info);
+        boolean isValidHole = !isValidBlackHoleModel() ? false : renderBlackHole.gottaRender(info);
+        boolean isValidRange = !isValidRangeModel()? false : renderBlackHoleRange.gottaRender(info);
+        return isValidHole || isValidRange || renderAreaShape.gottaRender(info);
     }
     
     @Override
@@ -60,7 +71,7 @@ public class BlackHoleRenderer extends GLRenderer {
         gl.glPushMatrix();
         float s = sclBlackHole * (isRenderNormal ? 0.5f : 0.89f); //The 0.89 is just so that the picking is more aligned to the visual.
         gl.glScalef(s, s, s);
-        if (renderBlackHole.isValidBmdModel())
+        if (isValidBlackHoleModel())
         {
             renderBlackHole.render(info);
         }
@@ -68,7 +79,7 @@ public class BlackHoleRenderer extends GLRenderer {
         
         gl.glPushMatrix();
         gl.glScalef(sclBlackHole, sclBlackHole, sclBlackHole);
-        if (isRenderNormal && renderBlackHoleRange.isValidBmdModel())
+        if (isRenderNormal && isValidRangeModel())
         {
             renderBlackHoleRange.render(info);
         }
@@ -88,6 +99,20 @@ public class BlackHoleRenderer extends GLRenderer {
     @Override
     public boolean boundToObjArg(int arg) {
         return arg == 0;
+    }
+    
+    @Override
+    public void close(RenderInfo info) throws GLException {
+        renderBlackHoleRange.close(info);
+        renderBlackHole.close(info);
+        renderAreaShape.close(info);
+    }
+    
+    @Override
+    public void releaseStorage() {
+        renderBlackHoleRange.releaseStorage();
+        renderBlackHole.releaseStorage();
+        renderAreaShape.releaseStorage();
     }
     
     public BmdRenderer renderBlackHole;
