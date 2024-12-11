@@ -40,6 +40,8 @@ public class PlantGroupRenderer extends ShapeModelRenderer {
         PlantNum = obj.data.getInt("Obj_arg0", 7);
         if (PlantNum <= 0)
             PlantNum = 7;
+        if (PlantNum > 481)
+            PlantNum = 481;
         
         PlantRemapParam plant = PlantRemapParam.decidePlantFromRemap(obj, params);
         if (plant == null)
