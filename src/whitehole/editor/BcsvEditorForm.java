@@ -43,6 +43,7 @@ import whitehole.io.FilesystemBase;
 import whitehole.io.RarcFile;
 import whitehole.smg.Bcsv;
 import whitehole.util.TableColumnAdjuster;
+import whitehole.util.UIUtil;
 
 public class BcsvEditorForm extends javax.swing.JFrame {
     private final DefaultTableModel tableModel;
@@ -93,19 +94,10 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             System.out.println(ex);
         }
         
-        if (Settings.getLastBcsvArchive() != null && Settings.getLastBcsvFile() != null) {
-            tbArchiveName.setText(Settings.getLastBcsvArchive());
-            tbFileName.setText(Settings.getLastBcsvFile());
-        }
-        else if (Whitehole.getCurrentGameType()==1) {
-            tbArchiveName.setText("/StageData/CocoonExGalaxy/CocoonExGalaxyScenario.arc");
-            tbFileName.setText("/CocoonExGalaxyScenario/ScenarioData.bcsv");
-        }
-        else {
-            tbArchiveName.setText("/StageData/RedBlueExGalaxy/RedBlueExGalaxyScenario.arc");
-            tbFileName.setText("/RedBlueExGalaxyScenario/ScenarioData.bcsv");
-        }
-
+        String[] lastBcsv = Settings.getLastBcsv();
+        tbArchiveName.setText(lastBcsv[0]);
+        tbFileName.setText(lastBcsv[1]);
+        refreshRecentlyOpened();
     }
     
     @Override
@@ -581,8 +573,8 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             tblBcsv.setRowSorter(rowSorter);
             
             // Save path
-            Settings.setLastBcsvArchive(tbArchiveName.getText());
-            Settings.setLastBcsvFile(tbFileName.getText());
+            Settings.setLastBcsv(tbArchiveName.getText(), tbFileName.getText());
+            refreshRecentlyOpened();
             archive.close();
             
             // Enable buttons
@@ -600,6 +592,23 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         }
         
         adjuster.adjustColumns();
+    }
+    
+    private void refreshRecentlyOpened()
+    {
+        subOpenRecent.removeAll();
+        for (String recentBcsvStr : Settings.getRecentBcsvs())
+        {
+            if (recentBcsvStr.isBlank())
+                continue;
+            JMenuItem customMnuItem = new javax.swing.JMenuItem();
+            customMnuItem.setText(UIUtil.textToHTML(recentBcsvStr));
+            String[] recentBcsv = recentBcsvStr.split("\n");
+            customMnuItem.addActionListener((java.awt.event.ActionEvent evt) -> {
+                handleShortcut(recentBcsv[0], recentBcsv[1]);
+            });
+            subOpenRecent.add(customMnuItem);
+        }
     }
     
     private void storeBcsv() {
@@ -731,6 +740,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         menubar = new javax.swing.JMenuBar();
         mnuFile = new javax.swing.JMenu();
         subOpen = new javax.swing.JMenuItem();
+        subOpenRecent = new javax.swing.JMenu();
         subSave = new javax.swing.JMenuItem();
         subClose = new javax.swing.JMenuItem();
         mnuShortcuts = new javax.swing.JMenu();
@@ -885,6 +895,9 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             }
         });
         mnuFile.add(subOpen);
+
+        subOpenRecent.setText("Open Recent");
+        mnuFile.add(subOpenRecent);
 
         subSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         subSave.setText("Save");
@@ -1086,6 +1099,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private javax.swing.JMenuItem subClose;
     private javax.swing.JMenuItem subHashGenerator;
     private javax.swing.JMenuItem subOpen;
+    private javax.swing.JMenu subOpenRecent;
     private javax.swing.JMenuItem subSave;
     public javax.swing.JTextField tbArchiveName;
     public javax.swing.JTextField tbFileName;

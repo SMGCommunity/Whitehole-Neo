@@ -18,6 +18,10 @@ package whitehole;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 public final class Settings {
@@ -25,11 +29,31 @@ public final class Settings {
     
     private static final Preferences PREFERENCES = Preferences.userRoot();
     
-    // General 
+    public static final String[] DEFAULT_BCSV_2 = {"/StageData/RedBlueExGalaxy/RedBlueExGalaxyScenario.arc", 
+        "/RedBlueExGalaxyScenario/ScenarioData.bcsv"};
+    public static final String[] DEFAULT_BCSV_1 = {"/StageData/CocoonExGalaxy/CocoonExGalaxyScenario.arc", 
+        "/CocoonExGalaxyScenario/ScenarioData.bcsv"};
+// General 
     public static String getLastGameDir() { return PREFERENCES.get("whitehole_lastGameDir", null); }
     public static String getBaseGameDir() { return PREFERENCES.get("whitehole_baseGameDir", null); }
-    public static String getLastBcsvArchive() { return PREFERENCES.get("whitehole_bcsvLastArchive", null); }
-    public static String getLastBcsvFile() { return PREFERENCES.get("whitehole_bcsvLastFile", null); }
+    public static String[] getRecentBcsvs() {  return PREFERENCES.get("whitehole_recentBcsvs", "").split(", ");}
+    public static String[] getLastBcsv() {
+        String[] recentBcsvs = getRecentBcsvs();
+        if (recentBcsvs[0].isBlank())
+        {
+            if (Whitehole.getCurrentGameType() == 2)
+            {
+                return DEFAULT_BCSV_2;
+            }
+            else
+            {
+                return DEFAULT_BCSV_1;
+            }
+        }
+        return getRecentBcsvs()[0].split("\n");
+    }
+    public static String getLastBcsvArchive() { return getLastBcsv()[0]; }
+    public static String getLastBcsvFile() { return getLastBcsv()[1]; }
     public static boolean getSJISNotSupported() { return PREFERENCES.getBoolean("whitehole_sjisNotSupported", false); }
     public static boolean getUseDarkMode() { return PREFERENCES.getBoolean("whitehole_useDarkMode", true); }
     public static boolean getDebugAdditionalLogs() { return PREFERENCES.getBoolean("whitehole_debugAdditionalLogs", false); }
@@ -52,8 +76,20 @@ public final class Settings {
     
     public static void setLastGameDir(String val) { PREFERENCES.put("whitehole_lastGameDir", val); }
     public static void setBaseGameDir(String val) { PREFERENCES.put("whitehole_baseGameDir", val); }
-    public static void setLastBcsvArchive(String val) { PREFERENCES.put("whitehole_bcsvLastArchive", val); }
-    public static void setLastBcsvFile(String val) { PREFERENCES.put("whitehole_bcsvLastFile", val); }
+    public static void setLastBcsv(String archivePath, String filePath)
+    {
+        ArrayList<String> recentBcsvs = new ArrayList<>();
+        Collections.addAll(recentBcsvs, getRecentBcsvs());
+        String mostRecentBcsv = archivePath + "\n" + filePath;
+        if (recentBcsvs.contains(mostRecentBcsv))
+            recentBcsvs.removeIf(s -> s.equals(mostRecentBcsv));
+        if (recentBcsvs.size() >= 5)
+            recentBcsvs = new ArrayList<>(recentBcsvs.subList(0, 4));
+        recentBcsvs.addFirst(mostRecentBcsv);
+        setRecentBcsvs(recentBcsvs);
+    }
+    
+    public static void setRecentBcsvs(List<String> val) { PREFERENCES.put("whitehole_recentBcsvs", String.join(", ", val)); }
     public static void setSJISNotSupported(boolean val) { PREFERENCES.putBoolean("whitehole_sjisNotSupported", val); }
     public static void setUseDarkMode(boolean val) { PREFERENCES.putBoolean("whitehole_useDarkMode", val); }
     public static void setDebugAdditionalLogs(boolean val) { PREFERENCES.putBoolean("whitehole_debugAdditionalLogs", val); }
