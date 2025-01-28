@@ -85,7 +85,7 @@ public final class Settings {
             recentBcsvs.removeIf(s -> s.equals(mostRecentBcsv));
         if (recentBcsvs.size() >= 5)
             recentBcsvs = new ArrayList<>(recentBcsvs.subList(0, 4));
-        recentBcsvs.addFirst(mostRecentBcsv);
+        recentBcsvs.add(0, mostRecentBcsv);
         setRecentBcsvs(recentBcsvs);
     }
     
