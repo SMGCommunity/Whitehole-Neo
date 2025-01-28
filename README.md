@@ -7,7 +7,9 @@ Several outdated or questionable parts of the code have been upgraded, but there
 Major new additions include support for the [new object database](https://github.com/SMGCommunity/galaxydatabase), simple galaxy names that are displayed on the main window, a completely new Light Mode and Dark Mode UI, The ability to Undo actions, and Copy & Paste for objects.
 It is also fully compatible with all of SMG1's stages. Tons of bugs introduced in older versions of Whitehole have been fixed as well.
 
-This is intended for Java 11, though the program runs fine on newer Java versions as well, but requires the tool to be started using this command: ```java --add-exports=java.desktop/sun.awt=ALL-UNNAMED -jar Whitehole.jar```.<br/>Alternatively, run the included `.bat` file
+This is intended for Java 11, though the program runs fine on newer Java versions as well, but requires the tool to be started using this command: ```java --add-exports=java.desktop/sun.awt=ALL-UNNAMED -Dsun.java2d.uiScale=1.0 -Dsun.awt.noerasebackground=true -jar Whitehole.jar```.<br/>Alternatively, run the included `.bat` file.
+
+`-Dsun.java2d.uiScale=1.0` can be modified to scale the UI if it is too small (ex. `-Dsun.java2d.uiScale=1.5` will scale it 1.5x).
 
 ## Controls
 - Left Click: Select/Deselect object (hold Shift/Ctrl to select multiple)
