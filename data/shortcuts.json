@@ -634,6 +634,31 @@
 					]
 				},
 				{
+					"Type": "Menu",
+					"DefaultName": "MarioConst",
+					"DefaultTooltip": "Contains various constant parameters for Mario/Luigi/Yoshi.",
+					"MenuElements": [
+						{
+							"Type": "Shortcut",
+							"DefaultName": "MorphConditionTable",
+							"DefaultArchivePath": "/ObjectData/MarioConst.arc",
+							"DefaultBcsvPath": "/MarioConst/ActorInfo/MorphConditionTable.bcsv"
+						},
+						{
+							"Type": "Shortcut",
+							"DefaultName": "RushInfluenceTable",
+							"DefaultArchivePath": "/ObjectData/MarioConst.arc",
+							"DefaultBcsvPath": "/MarioConst/ActorInfo/RushInfluenceTable.bcsv"
+						},
+						{
+							"Type": "Shortcut",
+							"DefaultName": "ObjectInfluenceTable",
+							"DefaultArchivePath": "/ObjectData/MarioConst.arc",
+							"DefaultBcsvPath": "/MarioConst/ActorInfo/ObjectInfluenceTable.bcsv"
+						}
+					]
+				},
+				{
 					"Type": "Shortcut",
 					"DefaultName": "AstroNamePlateData",
 					"DefaultArchivePath": "/ObjectData/AstroNamePlateData.arc",
