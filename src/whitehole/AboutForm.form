@@ -50,7 +50,7 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="label">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&lt;html&gt;&#xa;  &lt;h2&gt;Whitehole&lt;/h2&gt; A level editor for Super Mario Galaxy and Super Mario Galaxy 2. &lt;br&gt; Whitehole is free software and shouldn&apos;t be provided as a part &lt;br&gt; of a paid software package. &lt;h2&gt;Credits&lt;/h2&gt; Arisotura, Aurum, AwesomeTMC, Bussun, Dirbaio, &lt;br/&gt;groepaz, IonicPixels, JuPaHe64, Lord-Giganticus, NWPlayer123, &lt;br/&gt;PhantomWings, Rob Camick, shibboleet, Super Hackio, thakis, &lt;br/&gt;TheSunCat, Treeki, and yaz0r. &lt;h4&gt;Current Version:&lt;br/&gt;Whitehole Neo (Beta 7)&lt;/h4&gt;&lt;/html&gt;"/>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;&#xa;  &lt;h2&gt;Whitehole&lt;/h2&gt; A level editor for Super Mario Galaxy and Super Mario Galaxy 2. &lt;br&gt; Whitehole is free software and shouldn&apos;t be provided as a part &lt;br&gt; of a paid software package. &lt;h2&gt;Credits&lt;/h2&gt; Arisotura, Aurum, AwesomeTMC, Bussun, Dirbaio, &lt;br/&gt;groepaz, IonicPixels, JuPaHe64, Lord-Giganticus, NWPlayer123, &lt;br/&gt;PhantomWings, Rob Camick, shibboleet, Super Hackio, thakis, &lt;br/&gt;TheSunCat, Treeki, and yaz0r. &lt;h4&gt;Current Version:&lt;br/&gt;Whitehole Neo (Beta 8)&lt;/h4&gt;&lt;/html&gt;"/>
       </Properties>
     </Component>
   </SubComponents>

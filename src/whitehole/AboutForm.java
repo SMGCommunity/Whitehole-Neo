@@ -35,7 +35,7 @@ public class AboutForm extends javax.swing.JDialog {
         setIconImage(Whitehole.ICON);
         setResizable(false);
 
-        label.setText("<html>\n  <h2>Whitehole</h2> A level editor for Super Mario Galaxy and Super Mario Galaxy 2. <br> Whitehole is free software and shouldn't be provided as a part <br> of a paid software package. <h2>Credits</h2> Arisotura, Aurum, AwesomeTMC, Bussun, Dirbaio, <br/>groepaz, IonicPixels, JuPaHe64, Lord-Giganticus, NWPlayer123, <br/>PhantomWings, Rob Camick, shibboleet, Super Hackio, thakis, <br/>TheSunCat, Treeki, and yaz0r. <h4>Current Version:<br/>Whitehole Neo (Beta 7)</h4></html>");
+        label.setText("<html>\n  <h2>Whitehole</h2> A level editor for Super Mario Galaxy and Super Mario Galaxy 2. <br> Whitehole is free software and shouldn't be provided as a part <br> of a paid software package. <h2>Credits</h2> Arisotura, Aurum, AwesomeTMC, Bussun, Dirbaio, <br/>groepaz, IonicPixels, JuPaHe64, Lord-Giganticus, NWPlayer123, <br/>PhantomWings, Rob Camick, shibboleet, Super Hackio, thakis, <br/>TheSunCat, Treeki, and yaz0r. <h4>Current Version:<br/>Whitehole Neo (Beta 8)</h4></html>");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
