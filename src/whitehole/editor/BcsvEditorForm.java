@@ -42,6 +42,7 @@ import whitehole.Whitehole;
 import whitehole.io.FilesystemBase;
 import whitehole.io.RarcFile;
 import whitehole.smg.Bcsv;
+import whitehole.util.SuperFastHash;
 import whitehole.util.TableColumnAdjuster;
 import whitehole.util.UIUtil;
 
@@ -68,19 +69,39 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         tblBcsv.setAutoCreateRowSorter(true);
         
         tblBcsv.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
-            lblColAndRow.setText(getSelectedColRowFormatted());
+            selectionUpdated();
         });
+    }
+    
+    private void toggleButtonsEnabled(boolean val)
+    {
+        btnSave.setEnabled(val);
+        btnAddRow.setEnabled(val);
+        btnDuplicateRow.setEnabled(val);
+        btnDeleteRow.setEnabled(val);
+        btnClear.setEnabled(val);
+        btnAddColumn.setEnabled(val);
+        btnDeleteColumn.setEnabled(val);
+    }
+    
+    private void selectionUpdated()
+    {
+        lblColAndRow.setText(getSelectedColRowFormatted());
+        if (tblBcsv.getSelectedColumnCount() == 1)
+        {
+            btnEditColumn.setEnabled(true);
+        }
+        else
+        {
+            btnEditColumn.setEnabled(false);
+        }
     }
     
     private void toggleShortcutVisibility() {
         tableModel.setRowCount(0);
         tableModel.setColumnCount(0);
-        btnSave.setEnabled(false);
-        subSave.setEnabled(false);
-        btnAddRow.setEnabled(false);
-        btnDuplicateRow.setEnabled(false);
-        btnDeleteRow.setEnabled(false);
-        btnClear.setEnabled(false);
+        toggleButtonsEnabled(false);
+        selectionUpdated();
         
         try(FileReader reader = new FileReader("data/shortcuts.json", StandardCharsets.UTF_8)) {
             JSONObject customShortcutsList = new JSONObject(new JSONTokener(reader));
@@ -488,12 +509,8 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     
     private void populateBcsvData() {
         // disable buttons
-        btnSave.setEnabled(false);
-        subSave.setEnabled(false);
-        btnAddRow.setEnabled(false);
-        btnDuplicateRow.setEnabled(false);
-        btnDeleteRow.setEnabled(false);
-        btnClear.setEnabled(false);
+        toggleButtonsEnabled(false);
+        selectionUpdated();
         
         tableModel.setRowCount(0);
         tableModel.setColumnCount(0);
@@ -578,12 +595,8 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             archive.close();
             
             // Enable buttons
-            btnSave.setEnabled(true);
-            subSave.setEnabled(true);
-            btnAddRow.setEnabled(true);
-            btnDuplicateRow.setEnabled(true);
-            btnDeleteRow.setEnabled(true);
-            btnClear.setEnabled(true);
+            toggleButtonsEnabled(true);
+            selectionUpdated();
         }
         catch(IOException ex) {
             String errmsg = String.format("Can't open BCSV file: %s", ex.getMessage());
@@ -615,7 +628,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         try
         {
             archive = new RarcFile(Whitehole.getCurrentGameFileSystem().openFile(tbArchiveName.getText()));
-            bcsv = new Bcsv(archive.openFile(tbFileName.getText()));
+            bcsv.setFile(archive.openFile(tbFileName.getText()));
         }
         catch(FileNotFoundException ex)
         {
@@ -656,16 +669,10 @@ public class BcsvEditorForm extends javax.swing.JFrame {
                 }
                 catch(NumberFormatException ex) {
                     System.out.println("Failed to convert \"" + val + "\" to the data type \""+field.type+"\". Using default value...");
-                    switch (field.type) {
-                        case 0:
-                        case 3: entry.put(field.hash, -1); break;
-                        case 1:
-                        case 6: entry.put(field.hash, ""); break;
-                        case 2: entry.put(field.hash, 0f); break;
-                        case 4: entry.put(field.hash, (short)-1); break;
-                        case 5: entry.put(field.hash, (byte)-1); break;
-                    }
+                    Object defaultVal = Bcsv.getFieldDefault(field.type);
+                    entry.put(field.hash, defaultVal);
                 }
+                tblBcsv.setValueAt(entry.get(field.hash), r, c);
                 c++;
             }
             bcsv.entries.add(entry);
@@ -700,12 +707,15 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     // Gets the string that will be put in the top right.
     // If the column or row is invalid, it will return an empty string.
     private String getSelectedColRowFormatted() {
-        int col = tblBcsv.getSelectedColumn();
-        int row = tblBcsv.getSelectedRow();
+        int[] cols = tblBcsv.getSelectedColumns();
+        int[] rows = tblBcsv.getSelectedRows();
         
-        if (col!=-1 && row!=-1)
-            return "["+col+", "+row+"]";
-        return "";
+        if (cols.length == 0 || rows.length == 0)
+            return "";
+        String endStr = "["+cols[0]+", "+rows[0]+"]";
+        if (cols.length > 1 || rows.length > 1)
+            endStr += "-[" + cols[cols.length - 1] + ", " + rows[rows.length - 1] + "]";
+        return endStr;
     }
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content
@@ -715,6 +725,18 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        AddFieldForm = new javax.swing.JDialog();
+        txtFieldName = new javax.swing.JTextField();
+        cbxFieldType = new javax.swing.JComboBox<>();
+        lblFieldName = new javax.swing.JLabel();
+        lblFieldType = new javax.swing.JLabel();
+        btnCreateField = new javax.swing.JButton();
+        EditFieldForm = new javax.swing.JDialog();
+        txtFieldRename = new javax.swing.JTextField();
+        cbxNewFieldType = new javax.swing.JComboBox<>();
+        lblFieldName1 = new javax.swing.JLabel();
+        lblFieldType1 = new javax.swing.JLabel();
+        btnSaveField = new javax.swing.JButton();
         toolbarPaths = new javax.swing.JToolBar();
         lblArchive = new javax.swing.JLabel();
         tbArchiveName = new javax.swing.JTextField();
@@ -733,6 +755,12 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         btnDeleteRow = new javax.swing.JButton();
         spr7 = new javax.swing.JToolBar.Separator();
         btnClear = new javax.swing.JButton();
+        spr8 = new javax.swing.JToolBar.Separator();
+        btnAddColumn = new javax.swing.JButton();
+        spr9 = new javax.swing.JToolBar.Separator();
+        btnDeleteColumn = new javax.swing.JButton();
+        spr10 = new javax.swing.JToolBar.Separator();
+        btnEditColumn = new javax.swing.JButton();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         lblColAndRow = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -746,6 +774,110 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         mnuShortcuts = new javax.swing.JMenu();
         mnuTools = new javax.swing.JMenu();
         subHashGenerator = new javax.swing.JMenuItem();
+
+        AddFieldForm.setTitle(Whitehole.NAME + " -- Add Column");
+        AddFieldForm.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        AddFieldForm.setResizable(false);
+        AddFieldForm.setSize(new java.awt.Dimension(215, 204));
+
+        cbxFieldType.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Long", "Float", "Short", "Char", "String" }));
+
+        lblFieldName.setText("Field Name");
+
+        lblFieldType.setText("Field Type");
+
+        btnCreateField.setText("Create Field");
+        btnCreateField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCreateFieldActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout AddFieldFormLayout = new javax.swing.GroupLayout(AddFieldForm.getContentPane());
+        AddFieldForm.getContentPane().setLayout(AddFieldFormLayout);
+        AddFieldFormLayout.setHorizontalGroup(
+            AddFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(AddFieldFormLayout.createSequentialGroup()
+                .addContainerGap(71, Short.MAX_VALUE)
+                .addGroup(AddFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(btnCreateField)
+                    .addGroup(AddFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(lblFieldName)
+                        .addComponent(txtFieldName, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(AddFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(lblFieldType)
+                        .addComponent(cbxFieldType, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(71, Short.MAX_VALUE))
+        );
+        AddFieldFormLayout.setVerticalGroup(
+            AddFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(AddFieldFormLayout.createSequentialGroup()
+                .addContainerGap(26, Short.MAX_VALUE)
+                .addComponent(lblFieldName)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtFieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(20, 20, 20)
+                .addComponent(lblFieldType)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cbxFieldType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(20, 20, 20)
+                .addComponent(btnCreateField)
+                .addContainerGap(27, Short.MAX_VALUE))
+        );
+
+        AddFieldForm.setLocationRelativeTo(null);
+
+        EditFieldForm.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        EditFieldForm.setResizable(false);
+        EditFieldForm.setSize(new java.awt.Dimension(233, 204));
+
+        cbxNewFieldType.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Long", "Float", "Short", "Char", "String" }));
+
+        lblFieldName1.setText("Field Name");
+
+        lblFieldType1.setText("Field Type");
+
+        btnSaveField.setText("Save Field");
+        btnSaveField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveFieldActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout EditFieldFormLayout = new javax.swing.GroupLayout(EditFieldForm.getContentPane());
+        EditFieldForm.getContentPane().setLayout(EditFieldFormLayout);
+        EditFieldFormLayout.setHorizontalGroup(
+            EditFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(EditFieldFormLayout.createSequentialGroup()
+                .addContainerGap(71, Short.MAX_VALUE)
+                .addGroup(EditFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnSaveField, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(EditFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(EditFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblFieldName1)
+                            .addComponent(txtFieldRename, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(EditFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblFieldType1)
+                            .addComponent(cbxNewFieldType, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(71, Short.MAX_VALUE))
+        );
+        EditFieldFormLayout.setVerticalGroup(
+            EditFieldFormLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(EditFieldFormLayout.createSequentialGroup()
+                .addContainerGap(26, Short.MAX_VALUE)
+                .addComponent(lblFieldName1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtFieldRename, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(20, 20, 20)
+                .addComponent(lblFieldType1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cbxNewFieldType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(20, 20, 20)
+                .addComponent(btnSaveField)
+                .addContainerGap(27, Short.MAX_VALUE))
+        );
+
+        EditFieldForm.setLocationRelativeTo(null);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(String.format("%s -- BCSV Editor", Whitehole.NAME));
@@ -862,6 +994,45 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             }
         });
         toolbarButtons.add(btnClear);
+        toolbarButtons.add(spr8);
+
+        btnAddColumn.setText("Add Column");
+        btnAddColumn.setEnabled(false);
+        btnAddColumn.setFocusable(false);
+        btnAddColumn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnAddColumn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnAddColumn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddColumnActionPerformed(evt);
+            }
+        });
+        toolbarButtons.add(btnAddColumn);
+        toolbarButtons.add(spr9);
+
+        btnDeleteColumn.setText("Delete Column(s)");
+        btnDeleteColumn.setEnabled(false);
+        btnDeleteColumn.setFocusable(false);
+        btnDeleteColumn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnDeleteColumn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnDeleteColumn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteColumnActionPerformed(evt);
+            }
+        });
+        toolbarButtons.add(btnDeleteColumn);
+        toolbarButtons.add(spr10);
+
+        btnEditColumn.setText("Edit Column");
+        btnEditColumn.setEnabled(false);
+        btnEditColumn.setFocusable(false);
+        btnEditColumn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnEditColumn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnEditColumn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditColumnActionPerformed(evt);
+            }
+        });
+        toolbarButtons.add(btnEditColumn);
         toolbarButtons.add(filler2);
 
         lblColAndRow.setToolTipText("Column, Row");
@@ -876,9 +1047,21 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             }
         ));
         tblBcsv.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        tblBcsv.setColumnSelectionAllowed(true);
+        tblBcsv.getTableHeader().setReorderingAllowed(false);
+        tblBcsv.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                tblBcsvMouseDragged(evt);
+            }
+        });
         tblBcsv.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 tblBcsvMouseClicked(evt);
+            }
+        });
+        tblBcsv.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                tblBcsvKeyReleased(evt);
             }
         });
         jScrollPane1.setViewportView(tblBcsv);
@@ -984,7 +1167,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         storeBcsv();
     }//GEN-LAST:event_btnSaveActionPerformed
-
+    
     private void btnAddRowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddRowActionPerformed
         DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
         
@@ -992,16 +1175,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         int i = 0;
         
         for (Bcsv.Field field : bcsv.fields.values()) {
-            switch(field.type) {
-                case 0:
-                case 3: row[i] = 0; break;
-                case 1:
-                case 6: row[i] = ""; break;
-                case 2: row[i] = 0.0f; break;
-                case 4: row[i] = (short)0; break;
-                case 5: row[i] = (byte)0; break;
-            }
-            
+            row[i] = Bcsv.getFieldDefault(field.type);
             i++;
         }
         
@@ -1054,7 +1228,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_mnuShortcutsActionPerformed
 
     private void tblBcsvMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblBcsvMouseClicked
-        lblColAndRow.setText(getSelectedColRowFormatted());
+        selectionUpdated();
     }//GEN-LAST:event_tblBcsvMouseClicked
 
     private void tbArchiveNameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tbArchiveNameKeyPressed
@@ -1074,28 +1248,186 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         hashForm.setVisible(true);
     }//GEN-LAST:event_subHashGeneratorActionPerformed
 
+    private void btnAddColumnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddColumnActionPerformed
+        AddFieldForm.setVisible(true);
+    }//GEN-LAST:event_btnAddColumnActionPerformed
+
+    private void btnCreateFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateFieldActionPerformed
+        String fieldName = txtFieldName.getText();
+        addField(fieldName, getCorrespondingFieldType(cbxFieldType.getSelectedIndex()));
+    }//GEN-LAST:event_btnCreateFieldActionPerformed
+
+    private void btnDeleteColumnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteColumnActionPerformed
+        deleteSelectedColumns();
+    }//GEN-LAST:event_btnDeleteColumnActionPerformed
+
+    private void deleteSelectedColumns()
+    {
+        int[] selectedColumns = tblBcsv.getSelectedColumns();
+        
+        if (selectedColumns.length > 0) {
+            // Start at the end. Otherwise it doesn't work.
+            for (int selectedColumn = selectedColumns.length - 1 ; selectedColumn >= 0 ; selectedColumn--) {
+                bcsv.removeField(getColummnName(selectedColumns[selectedColumn]));
+                tblBcsv.removeColumn(tblBcsv.getColumnModel().getColumn(selectedColumns[selectedColumn]));
+            }
+        }
+    }
+    
+    private void tblBcsvKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tblBcsvKeyReleased
+        selectionUpdated();
+    }//GEN-LAST:event_tblBcsvKeyReleased
+
+    private void tblBcsvMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblBcsvMouseDragged
+        selectionUpdated();
+    }//GEN-LAST:event_tblBcsvMouseDragged
+
+    private String getColummnName(int i)
+    {
+        return (String)tblBcsv.getColumnModel().getColumn(i).getHeaderValue();
+    }
+    
+    void renameSelectedField(String fieldName)
+    {
+        String oldName = getColummnName(tblBcsv.getSelectedColumn());
+        if (fieldName.equals(oldName))
+            return;
+        if (bcsv.fields.containsKey(Bcsv.calcJGadgetHash(fieldName)))
+        {
+            System.out.println("Column with name " + fieldName + " already exists!");
+            return;
+        }
+        bcsv.renameField(oldName, fieldName);
+        tblBcsv.getColumnModel().getColumn(tblBcsv.getSelectedColumn()).setHeaderValue(fieldName);
+        tblBcsv.getTableHeader().repaint();
+    }
+    
+    private void btnSaveFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveFieldActionPerformed
+        String fieldName = txtFieldRename.getText();
+        if (fieldName.isEmpty())
+            return;
+        renameSelectedField(fieldName);
+        int fieldType = getCorrespondingFieldType(cbxNewFieldType.getSelectedIndex());
+        bcsv.changeFieldType(fieldName, (byte)fieldType);
+        SuperFastHash.addToLookup(fieldName);
+        EditFieldForm.setVisible(false);
+    }//GEN-LAST:event_btnSaveFieldActionPerformed
+
+    private void btnEditColumnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditColumnActionPerformed
+        String selectedColumnName = getColummnName(tblBcsv.getSelectedColumn());
+        txtFieldRename.setText(selectedColumnName);
+        int correspondingType = getCorrespondingComboBoxIndex(bcsv.getField(selectedColumnName).type);
+        cbxNewFieldType.setSelectedIndex(correspondingType);
+        EditFieldForm.setVisible(true);
+        
+    }//GEN-LAST:event_btnEditColumnActionPerformed
+
+    
+    private static int getCorrespondingFieldType(int comboBoxIndex)
+    {
+        switch (comboBoxIndex)
+        {
+            // Long
+            case 0:
+                return 0;
+            // Float
+            case 1:
+                return 2;
+            // Short
+            case 2:
+                return 4;
+            // Char
+            case 3:
+                return 5;
+            // String (Offset)
+            case 4:
+                return 6;
+            default:
+                return -1;
+        }
+    }
+    
+    private static int getCorrespondingComboBoxIndex(int fieldType)
+    {
+        switch (fieldType)
+        {
+            case 0: // Long
+            case 3: // Long (2)
+                return 0;
+            case 2: // Float
+                return 1;
+            case 4: // Short
+                return 2;
+            case 5: // Char
+                return 3;
+            case 6: // String (Offset)
+            case 1: // Embedded String (even though it isn't really supported)
+                return 4;
+            default:
+                return -1;
+        }
+    }
+    
+    private void addField(String fieldName, int fieldType)
+    {
+        if (fieldName.isEmpty())
+            return;
+        if (bcsv.fields.containsKey(Bcsv.calcJGadgetHash(fieldName)))
+        {
+            System.out.println("Column with name " + fieldName + " already exists!");
+            return;
+        }
+        bcsv.addField(fieldName, fieldType, -1, 0, Bcsv.getFieldDefault((byte)fieldType));
+        tableModel.addColumn(fieldName);
+        
+        DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
+        for (int i = 0; i < table.getRowCount(); i++)
+        {
+            int c = table.findColumn(fieldName);
+            table.setValueAt(Bcsv.getFieldDefault((byte)fieldType), i, c);
+        }
+        
+        SuperFastHash.addToLookup(fieldName);
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JDialog AddFieldForm;
+    private javax.swing.JDialog EditFieldForm;
+    public javax.swing.JButton btnAddColumn;
     public javax.swing.JButton btnAddRow;
     private javax.swing.JButton btnClear;
+    private javax.swing.JButton btnCreateField;
+    private javax.swing.JButton btnDeleteColumn;
     private javax.swing.JButton btnDeleteRow;
     private javax.swing.JButton btnDuplicateRow;
+    private javax.swing.JButton btnEditColumn;
     private javax.swing.JButton btnOpen;
     private javax.swing.JButton btnSave;
+    private javax.swing.JButton btnSaveField;
+    private javax.swing.JComboBox<String> cbxFieldType;
+    private javax.swing.JComboBox<String> cbxNewFieldType;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblArchive;
     private javax.swing.JLabel lblColAndRow;
+    private javax.swing.JLabel lblFieldName;
+    private javax.swing.JLabel lblFieldName1;
+    private javax.swing.JLabel lblFieldType;
+    private javax.swing.JLabel lblFieldType1;
     private javax.swing.JLabel lblFile;
     private javax.swing.JMenuBar menubar;
     private javax.swing.JMenu mnuFile;
     private javax.swing.JMenu mnuShortcuts;
     private javax.swing.JMenu mnuTools;
+    private javax.swing.JToolBar.Separator spr10;
     private javax.swing.JToolBar.Separator spr2;
     private javax.swing.JToolBar.Separator spr3;
     private javax.swing.JToolBar.Separator spr5;
     private javax.swing.JToolBar.Separator spr6;
     private javax.swing.JToolBar.Separator spr7;
+    private javax.swing.JToolBar.Separator spr8;
+    private javax.swing.JToolBar.Separator spr9;
     private javax.swing.JMenuItem subClose;
     private javax.swing.JMenuItem subHashGenerator;
     private javax.swing.JMenuItem subOpen;
@@ -1106,5 +1438,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     public javax.swing.JTable tblBcsv;
     private javax.swing.JToolBar toolbarButtons;
     private javax.swing.JToolBar toolbarPaths;
+    private javax.swing.JTextField txtFieldName;
+    private javax.swing.JTextField txtFieldRename;
     // End of variables declaration//GEN-END:variables
 }

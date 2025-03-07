@@ -24,6 +24,7 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
+import whitehole.util.SuperFastHash;
 /**
  *
  * @author AwesomeTMC
@@ -143,15 +144,7 @@ public class HashGeneratorForm extends javax.swing.JDialog {
     }//GEN-LAST:event_btnCopyHashActionPerformed
 
     private void btnAddHashActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddHashActionPerformed
-        try(BufferedWriter writer = new BufferedWriter(new FileWriter("data/hashlookup.txt", true))) {
-            writer.newLine();
-            writer.append(fldInputText.getText());
-            writer.close();
-        }
-        catch(IOException ex) {
-            JOptionPane.showMessageDialog(rootPane, "Failed to add hash to hashlookup.txt");
-            System.err.println(ex);
-        }
+        SuperFastHash.addToLookup(fldInputText.getText());
     }//GEN-LAST:event_btnAddHashActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

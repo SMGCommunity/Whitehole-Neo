@@ -40,6 +40,37 @@ public class Bcsv {
         return ret;
     }
     
+    public static Object getFieldDefault(byte type)
+    {
+        switch(type) {
+            case 0:
+            case 3: return 0;
+            case 1:
+            case 6: return "";
+            case 2: return 0.0f;
+            case 4: return (short)0;
+            case 5: return (byte)0;
+            default: return null;
+        }
+    }
+    
+    public static int getNameHash(String name)
+    {
+        if (name.startsWith("[") && name.endsWith("]"))
+        {
+            try
+            {
+                String newName = name.replace("[", "").replace("]", "");
+                return Integer.parseInt(newName, 16);
+            }
+            catch (NumberFormatException e)
+            {
+                return calcJGadgetHash(name);
+            }
+        }
+        return calcJGadgetHash(name);
+    }
+    
     // -------------------------------------------------------------------------------------------------------------------------
     
     private FileBase file;
@@ -253,6 +284,11 @@ public class Bcsv {
         file.close();
     }
     
+    public void setFile(FileBase f)
+    {
+        file = f;
+    }
+    
     // -------------------------------------------------------------------------------------------------------------------------
     
     public Field addField(String name, int type, int mask, int shift, Object defaultval) {
@@ -271,11 +307,10 @@ public class Bcsv {
         
         // Create the actual field
         Field newfield = new Field();
-        newfield.hash = FieldHashes.add(name);
+        newfield.setName(name);
         newfield.mask = mask;
         newfield.shift = (byte)shift;
         newfield.type = (byte)type;
-        newfield.name = name;
         
         // Populate data
         fields.put(newfield.hash, newfield);
@@ -291,11 +326,37 @@ public class Bcsv {
         fields.remove(hash);
 
         for (Entry entry : entries)
+        {
             entry.remove(hash);
+        }
     }
 
     public void removeField(String name) {
         removeField(Bcsv.calcJGadgetHash(name));
+    }
+    
+    public void renameField(String name, String newName)
+    {
+        if (containsField(newName) || name.equals(newName))
+            return;
+        Field fld = getField(name);
+        fld.name = newName;
+        int oldHash = fld.hash;
+        fld.setName(newName);
+        
+        for (Entry entry : entries)
+        {
+            entry.put(fld.hash, entry.remove(oldHash));
+        }
+    }
+    
+    public void changeFieldType(String name, int newType)
+    {
+        // everything else will be handled on saving
+        Field fld = getField(name);
+        fld.changeType(newType);
+        // force recalculation of entry size
+        entrySize = -1;
     }
     
     public boolean containsField(String name) {
@@ -304,6 +365,15 @@ public class Bcsv {
                 return true;
         }
         return false;
+    }
+    
+    public Field getField(String name)
+    {
+        for (Field field : fields.values()) {
+            if (field.name.equals(name))
+                return field;
+        }
+        return null;
     }
        
     // -------------------------------------------------------------------------------------------------------------------------
@@ -319,6 +389,34 @@ public class Bcsv {
         @Override
         public String toString() {
             return name;
+        }
+        public void setName(String newName)
+        {
+            name = newName;
+            hash = getNameHash(newName);
+        }
+        
+        public void changeType(int newType)
+        {
+            if (type == newType)
+                return;
+            type = (byte)newType;
+
+            switch (type) {
+                case 1:
+                    mask = 0;
+                    shift = 0;
+                    break;
+                case 2:
+                case 6:
+                    mask = 0xFFFFFFFF;
+                    shift = 0;
+                    break;
+                default:
+                    mask = -1;
+                    shift = 0;
+                    break;
+            }
         }
     }
 
