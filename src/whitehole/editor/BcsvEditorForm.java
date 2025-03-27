@@ -827,6 +827,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
 
         AddFieldForm.setLocationRelativeTo(null);
 
+        EditFieldForm.setTitle(Whitehole.NAME + " -- Edit Column");
         EditFieldForm.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         EditFieldForm.setResizable(false);
         EditFieldForm.setSize(new java.awt.Dimension(233, 204));

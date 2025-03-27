@@ -98,6 +98,9 @@
     </Container>
     <Container class="javax.swing.JDialog" name="EditFieldForm">
       <Properties>
+        <Property name="title" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="Whitehole.NAME + &quot; -- Edit Column&quot;" type="code"/>
+        </Property>
         <Property name="modalityType" type="java.awt.Dialog$ModalityType" editor="org.netbeans.modules.form.editors.EnumEditor">
           <Value id="APPLICATION_MODAL"/>
         </Property>
