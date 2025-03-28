@@ -841,7 +841,7 @@ public class BmdRenderer extends GLRenderer {
             {
                 return new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bmd"));
             }
-                return null;
+            return null;
         }
         catch(IOException up)
         {

@@ -505,6 +505,59 @@
       ]
     },
     {
+      "ClassName": "GCaptureTarget",
+      "RendererType": "Range",
+      "RendererParams": [
+        {
+          "RangeDefine": [
+           {
+               "Color": "#D63900",
+               "Source": "Obj_arg0",
+               "OnlyOnSelect": true
+           },
+           {
+               "Color": "#006CD8",
+               "Source": "Obj_arg1",
+               "Default": 2500,
+               "OnlyOnSelect": true
+           }
+          ]
+        }
+      ]
+    },
+    {
+      "ClassName": "YellowChipGroup",
+      "RendererType": "Range",
+      "RendererParams": [
+        {
+          "RangeDefine": [
+           {
+               "Color": "#FFDD00",
+               "Source": "Obj_arg2",
+               "Default": 20000,
+               "OnlyOnSelect": true
+           }
+          ]
+        }
+      ]
+    },
+    {
+      "ClassName": "BlueChipGroup",
+      "RendererType": "Range",
+      "RendererParams": [
+        {
+          "RangeDefine": [
+           {
+               "Color": "#005DFF",
+               "Source": "Obj_arg2",
+               "Default": 20000,
+               "OnlyOnSelect": true
+           }
+          ]
+        }
+      ]
+    },
+    {
       "ClassName": "SwitchingMoveBlock",
       "RendererType": "Phantom",
       "RendererParams": [
@@ -565,10 +618,17 @@
     },
     {
       "ClassName": "AssemblyBlock",
-      "RendererType": "ShapeModelNo",
+      "RendererType": "Range",
       "RendererParams": [
         {
-          "OptionalShapeModelNo": true
+          "OptionalShapeModelNo": true,
+          "RangeDefine": [
+           {
+               "Color": "#FFFFBF4C",
+               "Source": "Obj_arg0",
+               "OnlyOnSelect": true
+           }
+          ]
         }
       ]
     },

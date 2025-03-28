@@ -61,4 +61,23 @@ public class Color4 implements Cloneable {
             return null;
         }
     }
+    
+    public static Color4 fromString(String hex)
+    {
+        hex = hex.replace("#", "");
+        switch (hex.length()) {
+            case 6:
+                return new Color4(
+                (float) (Integer.valueOf(hex.substring(0, 2), 16) / 255.0),
+                (float) (Integer.valueOf(hex.substring(2, 4), 16) / 255.0),
+                (float) (Integer.valueOf(hex.substring(4, 6), 16) / 255.0));
+            case 8:
+                return new Color4(
+                (float) (Integer.valueOf(hex.substring(0, 2), 16) / 255.0),
+                (float) (Integer.valueOf(hex.substring(2, 4), 16) / 255.0),
+                (float) (Integer.valueOf(hex.substring(4, 6), 16) / 255.0),
+                (float) (Integer.valueOf(hex.substring(6, 8), 16) / 255.0));
+        }
+        return null;
+    }
 }
