@@ -48,19 +48,23 @@ public final class RendererFactory {
     }
     
     public static GLRenderer tryCreateBmdRenderer(GLRenderer.RenderInfo info, String objModelName) {
+        if (Settings.getUseCollisionModels())
+        {
+            KclRenderer bmdRenderer = new KclRenderer(info, objModelName);
+
+            if (bmdRenderer.isValidModel())
+                return bmdRenderer;
+
+            return createDummyCubeRenderer();
+        }
+        
+        
         BmdRenderer bmdRenderer = new BmdRenderer(info, objModelName);
 
         if (bmdRenderer.isValidBmdModel())
             return bmdRenderer;
         
         return createDummyCubeRenderer();
-        
-//        KclRenderer bmdRenderer = new KclRenderer(info, objModelName);
-//
-//        if (bmdRenderer.isValidModel())
-//            return bmdRenderer;
-//        
-//        return createDummyCubeRenderer();
     }
     
     public static GLRenderer tryCreateBtiRenderer(GLRenderer.RenderInfo info, String objModelName, Vec3f pt1, Vec3f pt2, boolean vertical) {

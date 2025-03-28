@@ -50,6 +50,7 @@ import whitehole.util.PropertyGrid;
 import whitehole.math.RotationMatrix;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
+import whitehole.util.Color4;
 import whitehole.util.StageUtil;
 import whitehole.util.ObjIdUtil;
 
@@ -4105,7 +4106,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             renderInfo.drawable = glCanvas;
             RenderMode oldmode = renderInfo.renderMode;
             renderInfo.renderMode = RenderMode.HIGHLIGHT;
-            gl.glColor4f(1f, 1f, 0.75f, 0.3f);
+            Color4 HighlightColor = new Color4(Settings.getObjectHighlightColor());
+            gl.glColor4f(HighlightColor.r, HighlightColor.g, HighlightColor.b, HighlightColor.a);
             return oldmode;
         }
         
