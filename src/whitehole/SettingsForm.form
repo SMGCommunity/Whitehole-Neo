@@ -140,23 +140,6 @@
                 </Constraint>
               </Constraints>
             </Component>
-            <Component class="javax.swing.JCheckBox" name="chkShowLowPolyModels">
-              <Properties>
-                <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                  <Connection code="Settings.getUseLowPolyModels()" type="code"/>
-                </Property>
-                <Property name="text" type="java.lang.String" value="Show low or middle poly models (if possible)"/>
-                <Property name="toolTipText" type="java.lang.String" value="Priority: Low -&gt; Middle -&gt; Normal"/>
-              </Properties>
-              <Events>
-                <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="chkShowLowPolyModelsItemStateChanged"/>
-              </Events>
-              <Constraints>
-                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-                  <GridBagConstraints gridX="0" gridY="3" gridWidth="1" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="2" insetsBottom="2" insetsRight="2" anchor="10" weightX="0.0" weightY="0.0"/>
-                </Constraint>
-              </Constraints>
-            </Component>
             <Component class="javax.swing.JCheckBox" name="chkDebugFakeColor">
               <Properties>
                 <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
@@ -426,11 +409,44 @@
               </Properties>
               <Events>
                 <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="chkOpenGalaxyEditorMaximizedItemStateChanged"/>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="chkOpenGalaxyEditorMaximizedActionPerformed"/>
               </Events>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
                   <GridBagConstraints gridX="0" gridY="4" gridWidth="1" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="2" insetsBottom="2" insetsRight="2" anchor="10" weightX="0.0" weightY="0.0"/>
+                </Constraint>
+              </Constraints>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="chkShowCollisionModels">
+              <Properties>
+                <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="Settings.getUseCollisionModels()" type="code"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Show collision models (if possible)"/>
+                <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;&lt;p&gt;If &quot;Show low or middle poly models&quot; is enabled, it may cause some&lt;br&gt;&#xa;objects to not use the collision model, due to low poly versions not having KCLs.&lt;/p&gt;&lt;/html&gt;"/>
+              </Properties>
+              <Events>
+                <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="chkShowCollisionModelsItemStateChanged"/>
+              </Events>
+              <Constraints>
+                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                  <GridBagConstraints gridX="1" gridY="4" gridWidth="1" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="2" insetsBottom="2" insetsRight="2" anchor="10" weightX="0.0" weightY="0.0"/>
+                </Constraint>
+              </Constraints>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="chkShowLowPolyModels">
+              <Properties>
+                <Property name="selected" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="Settings.getUseLowPolyModels()" type="code"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Show low or middle poly models (if possible)"/>
+                <Property name="toolTipText" type="java.lang.String" value="Priority: Low -&gt; Middle -&gt; Normal"/>
+              </Properties>
+              <Events>
+                <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="chkShowLowPolyModelsItemStateChanged"/>
+              </Events>
+              <Constraints>
+                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                  <GridBagConstraints gridX="0" gridY="3" gridWidth="1" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="2" insetsBottom="2" insetsRight="2" anchor="10" weightX="0.0" weightY="0.0"/>
                 </Constraint>
               </Constraints>
             </Component>

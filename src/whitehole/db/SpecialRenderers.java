@@ -19,6 +19,7 @@ package whitehole.db;
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import whitehole.Settings;
 import whitehole.Whitehole;
 import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
@@ -73,31 +74,38 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
     
     public GLRenderer tryGetSpecialRenderer(GLRenderer.RenderInfo info, String objModelName, AbstractObj obj)
     {
-        SpecialRenderInfo renderinfo = getSpecialRenderInfo(obj.name);
+        if (Settings.getUseCollisionModels())
+        {
+            KclRenderer bmdRenderer = new KclRenderer(info, objModelName);
+
+            if (bmdRenderer.isValidModel())
+                return bmdRenderer;
+        }
+        SpecialRenderInfo specialInfo = getSpecialRenderInfo(obj.name);
         GLRenderer result = null;
-        if (renderinfo != null)
-            switch(renderinfo.rendererType)
+        if (specialInfo != null)
+            switch(specialInfo.rendererType)
             {
                 case "BasicAnim":
-                    result = new BasicAnimationRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    result = new BasicAnimationRenderer(info, objModelName, obj, specialInfo.rendererParams);
                     break;
                 case "TwoJointScale":
-                    result = new TwoJointScaleRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    result = new TwoJointScaleRenderer(info, objModelName, obj, specialInfo.rendererParams);
                     break;
                 case "Phantom":
-                    result = new PhantomRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    result = new PhantomRenderer(info, objModelName, obj, specialInfo.rendererParams);
                     break;
                 case "ShapeModelNo":
-                    result = new ShapeModelRenderer(info, objModelName, obj, renderinfo.rendererParams, obj.data.getShort("ShapeModelNo", (short)-1));
+                    result = new ShapeModelRenderer(info, objModelName, obj, specialInfo.rendererParams, obj.data.getShort("ShapeModelNo", (short)-1));
                     break;
                 case "ModelByProperty":
-                    result = new ModelByPropertyRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    result = new ModelByPropertyRenderer(info, objModelName, obj, specialInfo.rendererParams);
                     break;
                 case "PatternRenderer":
-                    result = new PatternRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    result = new PatternRenderer(info, objModelName, obj, specialInfo.rendererParams);
                     break;
                 case "Range":
-                    result = new ObjectRangeRenderer(info, objModelName, obj, renderinfo.rendererParams);
+                    result = new ObjectRangeRenderer(info, objModelName, obj, specialInfo.rendererParams);
                     break;
                     
                     
@@ -108,12 +116,12 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     
                 case "PowerStar":
                     result = new PowerStarRenderer(info, objModelName, obj,
-                            (Integer)renderinfo.getRenderParamByName("DefaultFrame"),
-                            (Boolean)renderinfo.getRenderParamByName("IsGrand"));
+                            (Integer)specialInfo.getRenderParamByName("DefaultFrame"),
+                            (Boolean)specialInfo.getRenderParamByName("IsGrand"));
                     break;
                 case "BlackHole":
                     AreaShapeRenderer.Shape shp;
-                    Integer x = (Integer)renderinfo.getRenderParamByName("Shape");
+                    Integer x = (Integer)specialInfo.getRenderParamByName("Shape");
                     if (x == null)
                         break;
                     shp = AreaShapeRenderer.shapeFromInteger(x);
@@ -122,7 +130,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     result = new BlackHoleRenderer(info, obj, shp);
                     break;
                 case "PlantGroup":
-                    result = new PlantGroupRenderer(info, objModelName, obj, renderinfo .rendererParams);
+                    result = new PlantGroupRenderer(info, objModelName, obj, specialInfo.rendererParams);
                     break;
             }
         

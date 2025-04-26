@@ -132,7 +132,7 @@ public final class Settings {
     public static Color getNormalAreaPrimaryColor() { return getColor("whitehole_normalAreaPrimaryColor", DEFAULT_NORMAL_AREA_PRIMARY_COLOR); }
     public static void setNormalAreaPrimaryColor(Color val) { setColor("whitehole_normalAreaPrimaryColor", val); }
     
-    public static final Color DEFAULT_NORMAL_AREA_SECONDARY_COLOR = new Color (255, 75, 75);
+    public static final Color DEFAULT_NORMAL_AREA_SECONDARY_COLOR = new Color(255, 75, 75);
     public static Color getNormalAreaSecondaryColor() { return getColor("whitehole_normalAreaSecondaryColor", DEFAULT_NORMAL_AREA_SECONDARY_COLOR); }
     public static void setNormalAreaSecondaryColor(Color val) { setColor("whitehole_normalAreaSecondaryColor", val); }
     

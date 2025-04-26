@@ -58,7 +58,6 @@ public class SettingsForm extends javax.swing.JDialog {
         lblAppearance = new javax.swing.JLabel();
         chkUseDarkMode = new javax.swing.JCheckBox();
         chkUseBetterQuality = new javax.swing.JCheckBox();
-        chkShowLowPolyModels = new javax.swing.JCheckBox();
         chkDebugFakeColor = new javax.swing.JCheckBox();
         chkDebugFastDrag = new javax.swing.JCheckBox();
         pnlAreaColors = new javax.swing.JPanel();
@@ -76,6 +75,8 @@ public class SettingsForm extends javax.swing.JDialog {
         btnGravityAreaZeroPrimaryColor = new javax.swing.JButton();
         btnGravityAreaZeroSecondaryColor = new javax.swing.JButton();
         chkOpenGalaxyEditorMaximized = new javax.swing.JCheckBox();
+        chkShowCollisionModels = new javax.swing.JCheckBox();
+        chkShowLowPolyModels = new javax.swing.JCheckBox();
         pnlControls = new javax.swing.JPanel();
         lblControls = new javax.swing.JLabel();
         chkUseReverseRot = new javax.swing.JCheckBox();
@@ -168,21 +169,6 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkUseBetterQuality, gridBagConstraints);
-
-        chkShowLowPolyModels.setSelected(Settings.getUseLowPolyModels());
-        chkShowLowPolyModels.setText("Show low or middle poly models (if possible)");
-        chkShowLowPolyModels.setToolTipText("Priority: Low -> Middle -> Normal");
-        chkShowLowPolyModels.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                chkShowLowPolyModelsItemStateChanged(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-        pnlAppearance.add(chkShowLowPolyModels, gridBagConstraints);
 
         chkDebugFakeColor.setSelected(Settings.getDebugFakeColor());
         chkDebugFakeColor.setText("[Debug] Render picking colors");
@@ -412,17 +398,42 @@ public class SettingsForm extends javax.swing.JDialog {
                 chkOpenGalaxyEditorMaximizedItemStateChanged(evt);
             }
         });
-        chkOpenGalaxyEditorMaximized.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chkOpenGalaxyEditorMaximizedActionPerformed(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkOpenGalaxyEditorMaximized, gridBagConstraints);
+
+        chkShowCollisionModels.setSelected(Settings.getUseCollisionModels());
+        chkShowCollisionModels.setText("Show collision models (if possible)");
+        chkShowCollisionModels.setToolTipText("<html><p>If \"Show low or middle poly models\" is enabled, it may cause some<br>\nobjects to not use the collision model, due to low poly versions not having KCLs.</p></html>");
+        chkShowCollisionModels.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                chkShowCollisionModelsItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        pnlAppearance.add(chkShowCollisionModels, gridBagConstraints);
+
+        chkShowLowPolyModels.setSelected(Settings.getUseLowPolyModels());
+        chkShowLowPolyModels.setText("Show low or middle poly models (if possible)");
+        chkShowLowPolyModels.setToolTipText("Priority: Low -> Middle -> Normal");
+        chkShowLowPolyModels.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                chkShowLowPolyModelsItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        pnlAppearance.add(chkShowLowPolyModels, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -767,9 +778,9 @@ public class SettingsForm extends javax.swing.JDialog {
         Settings.setOpenGalaxyEditorMaximized(evt.getStateChange() == ItemEvent.SELECTED);
     }//GEN-LAST:event_chkOpenGalaxyEditorMaximizedItemStateChanged
 
-    private void chkOpenGalaxyEditorMaximizedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkOpenGalaxyEditorMaximizedActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_chkOpenGalaxyEditorMaximizedActionPerformed
+    private void chkShowCollisionModelsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkShowCollisionModelsItemStateChanged
+        Settings.setUseCollisionModels(evt.getStateChange() == ItemEvent.SELECTED);
+    }//GEN-LAST:event_chkShowCollisionModelsItemStateChanged
     
     private void setBaseGamePath(String pth)
     {     
@@ -910,6 +921,7 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JCheckBox chkDebugFakeColor;
     private javax.swing.JCheckBox chkDebugFastDrag;
     private javax.swing.JCheckBox chkOpenGalaxyEditorMaximized;
+    private javax.swing.JCheckBox chkShowCollisionModels;
     private javax.swing.JCheckBox chkShowLowPolyModels;
     private javax.swing.JCheckBox chkUseBetterQuality;
     private javax.swing.JCheckBox chkUseDarkMode;
