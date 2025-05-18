@@ -21,6 +21,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.*;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Locale;
 import whitehole.Settings;
 import whitehole.Whitehole;
@@ -80,7 +83,7 @@ public class BmdRenderer extends GLRenderer {
     }
     
     private int shaderHash(int matid) {
-        byte[] sigarray = new byte[500];
+        byte[] sigarray = new byte[1000];
         ByteBuffer sig = ByteBuffer.wrap(sigarray);
         
         if(model == null || model.materials.length - 1 < matid) { // avoid nullpointer exception
@@ -89,33 +92,81 @@ public class BmdRenderer extends GLRenderer {
         
         Bmd.Material mat = model.materials[matid];
         
-        sig.put((byte)mat.numTexgens);
-        for(int i = 0; i < mat.numTexgens; i++)  {
-            sig.put(mat.texGen[i].src);
-            var mtxid = mat.texGen[i].matrix;
-            sig.put(mtxid);
-            if (mtxid >= 30 && mtxid <= 57)
-            {
-                Bmd.Material.TexMtxInfo texmtx = mat.texMtx[(mtxid - 30) / 3];
-                sig.put(texmtx.proj);
-                sig.put(texmtx.type);
-                sig.putFloat(texmtx.centerS);
-                sig.putFloat(texmtx.centerT);
-                sig.putFloat(texmtx.centerU);
-                sig.putFloat(texmtx.scaleS);
-                sig.putFloat(texmtx.scaleT);
-                sig.putFloat(texmtx.rotate);
-                sig.putFloat(texmtx.transS);
-                sig.putFloat(texmtx.transT);
+        // Hash it all
+        // ...except the name
+        
+        sig.put(mat.pixelEngineMode);
+        sig.putInt(mat.cullingMode);
+        sig.put((byte)(mat.dither ? 1 : 0));
+        
+        sig.putInt(mat.matColors[0].r);
+        sig.putInt(mat.matColors[0].g);
+        sig.putInt(mat.matColors[0].b);
+        sig.putInt(mat.matColors[0].a);
+        sig.putInt(mat.matColors[1].r);
+        sig.putInt(mat.matColors[1].g);
+        sig.putInt(mat.matColors[1].b);
+        sig.putInt(mat.matColors[1].a);
+        
+        for (Bmd.Material.LightChannelControl lightChannel : mat.lightChannels) {
+            if (lightChannel == null) {
+                continue;
+            }
+            sig.put((byte) (lightChannel.color.lightEnabled ? 1 : 0));
+            sig.put(lightChannel.color.materialColorSource);
+            sig.put(lightChannel.color.lightMask);
+            sig.put(lightChannel.color.diffuseFunc);
+            sig.put(lightChannel.color.attenuationFunc);
+            sig.put(lightChannel.color.ambientColorSource);
+            sig.put((byte) (lightChannel.alpha.lightEnabled ? 1 : 0));
+            sig.put(lightChannel.alpha.materialColorSource);
+            sig.put(lightChannel.alpha.lightMask);
+            sig.put(lightChannel.alpha.diffuseFunc);
+            sig.put(lightChannel.alpha.attenuationFunc);
+            sig.put(lightChannel.alpha.ambientColorSource);
+        }
+        
+        sig.putInt(mat.ambColors[0].r);
+        sig.putInt(mat.ambColors[0].g);
+        sig.putInt(mat.ambColors[0].b);
+        sig.putInt(mat.ambColors[0].a);
+        sig.putInt(mat.ambColors[1].r);
+        sig.putInt(mat.ambColors[1].g);
+        sig.putInt(mat.ambColors[1].b);
+        sig.putInt(mat.ambColors[1].a);
+        
+        // Lights need to get added here if the lights are implemented ever...
+        for (Bmd.Material.TextureGenerator texGen : mat.texGen) {
+            if (texGen == null) {
+                continue;
+            }
+            sig.put(texGen.type);
+            sig.put(texGen.src);
+            sig.put(texGen.matrix);
+        }
+        
+        for (Bmd.Material.TextureMatrix texMtx : mat.texMtx) {
+            if (texMtx == null) {
+                continue;
+            }
+            sig.put(texMtx.projection);
+            sig.put(texMtx.mappingMode);
+            sig.put((byte) (texMtx.IsMaya ? 1 : 0));
+            sig.putFloat(texMtx.center.x);
+            sig.putFloat(texMtx.center.y);
+            sig.putFloat(texMtx.center.z);
+            sig.putFloat(texMtx.scale.x);
+            sig.putFloat(texMtx.scale.y);
+            sig.putFloat(texMtx.rotate);
+            sig.putFloat(texMtx.translation.x);
+            sig.putFloat(texMtx.translation.y);
+            for (int k = 0; k < 16; k++) {
+                sig.putFloat(texMtx.projectionMatrix.m[k]);
             }
         }
-
-        for(int i = 0; i < 4; i++) {
-            sig.putShort((short)mat.tevRegisterColors[i].r);
-            sig.putShort((short)mat.tevRegisterColors[i].g);
-            sig.putShort((short)mat.tevRegisterColors[i].b);
-            sig.putShort((short)mat.tevRegisterColors[i].a);
-        }
+        
+        for (int x = 0; x < mat.textureIndicies.length; x++)
+            sig.putShort(mat.textureIndicies[x]);
 
         for(int i = 0; i < 4; i++) {
             sig.put((byte)mat.constColors[i].r);
@@ -123,79 +174,78 @@ public class BmdRenderer extends GLRenderer {
             sig.put((byte)mat.constColors[i].b);
             sig.put((byte)mat.constColors[i].a);
         }
-
-        sig.put((byte)mat.numTevStages);
-        for(int i = 0; i < mat.numTevStages; i++) {
-            sig.put(mat.constColorSel[i]);
-            sig.put(mat.constAlphaSel[i]);
-            sig.put(mat.tevOrder[i].texMap);
-            sig.put(mat.tevOrder[i].texcoordID);
-            
-            sig.put(mat.tevStage[i].colorOp);
-            sig.put(mat.tevStage[i].colorRegID);
-            sig.put(mat.tevStage[i].colorIn[0]);
-            sig.put(mat.tevStage[i].colorIn[1]);
-            sig.put(mat.tevStage[i].colorIn[2]);
-            sig.put(mat.tevStage[i].colorIn[3]);
-            if(mat.tevStage[i].colorOp < 2) {
-                sig.put(mat.tevStage[i].colorBias);
-                sig.put(mat.tevStage[i].colorScale);
-            }
-
-            sig.put(mat.tevStage[i].alphaOp);
-            sig.put(mat.tevStage[i].alphaRegID);
-            sig.put(mat.tevStage[i].alphaIn[0]);
-            sig.put(mat.tevStage[i].alphaIn[1]);
-            sig.put(mat.tevStage[i].alphaIn[2]);
-            sig.put(mat.tevStage[i].alphaIn[3]);
-            if(mat.tevStage[i].alphaOp < 2)
-            {
-                sig.put(mat.tevStage[i].alphaBias);
-                sig.put(mat.tevStage[i].alphaScale);
-            }
-            
-            sig.put(mat.tevSwapMode[i].rasSel);
-            sig.put(mat.tevSwapMode[i].texSel);
+        
+        for(int i = 0; i < 4; i++) {
+            sig.putShort((short)mat.tevRegisterColors[i].r);
+            sig.putShort((short)mat.tevRegisterColors[i].g);
+            sig.putShort((short)mat.tevRegisterColors[i].b);
+            sig.putShort((short)mat.tevRegisterColors[i].a);
         }
         
-        for (int i = 0; i < mat.tevSwapTable.length; i++) {
-            sig.put(mat.tevSwapTable[i].r);
-            sig.put(mat.tevSwapTable[i].g);
-            sig.put(mat.tevSwapTable[i].b);
-            sig.put(mat.tevSwapTable[i].a);
-        }
-
-        if(mat.alphaComp.mergeFunc == 1 &&(mat.alphaComp.func0 == 7 || mat.alphaComp.func1 == 7)) {
-            sig.put((byte)0x77);
-        }
-        else if(mat.alphaComp.mergeFunc == 0 &&(mat.alphaComp.func0 == 0 || mat.alphaComp.func1 == 0)) {
-            sig.put((byte)0x00);
-        }
-        else {
-            int b2 = 3;
-
-            if(mat.alphaComp.mergeFunc == 1) {
-                if(mat.alphaComp.func0 == 0) b2 = 2;
-                else if(mat.alphaComp.func1 == 0) b2 = 1;
+        for (Bmd.Material.TevStage tv : mat.tevStages) {
+            if (tv == null)
+                continue;
+            sig.put(tv.constantColor);
+            sig.put(tv.constantAlpha);
+            sig.put(tv.textureGeneratorID);
+            sig.put(tv.textureMapID);
+            
+            sig.put(tv.operationColor);
+            sig.put(tv.outputColor);
+            sig.put(tv.combineColorA);
+            sig.put(tv.combineColorB);
+            sig.put(tv.combineColorC);
+            sig.put(tv.combineColorD);
+            if(tv.operationColor < 2) {
+                sig.put(tv.biasColor);
+                sig.put(tv.scaleColor);
             }
-            else if(mat.alphaComp.mergeFunc == 0) {
-                if(mat.alphaComp.func0 == 7) b2 = 2;
-                else if(mat.alphaComp.func1 == 7) b2 = 1;
+
+            sig.put(tv.operationAlpha);
+            sig.put(tv.outputAlpha);
+            sig.put(tv.combineAlphaA);
+            sig.put(tv.combineAlphaB);
+            sig.put(tv.combineAlphaC);
+            sig.put(tv.combineAlphaD);
+            if(tv.operationAlpha < 2)
+            {
+                sig.put(tv.biasAlpha);
+                sig.put(tv.scaleAlpha);
             }
             
-            if((b2 & 1) != 0) {
-                sig.put((byte)0x01);
-                sig.put(mat.alphaComp.func0);
-                sig.put((byte)mat.alphaComp.ref0);
-            }
-            if((b2 & 2) != 0) {
-                sig.put((byte)0x02);
-                sig.put(mat.alphaComp.func1);
-                sig.put((byte)mat.alphaComp.ref1);
-            }
-            if(b2 == 3)
-                sig.put(mat.alphaComp.mergeFunc);
+            sig.put(tv.swapColorId);
+            sig.put(tv.swapTextureId);
         }
+        
+        // TODO: Register Indirect stuff once it's added
+        for (Bmd.Material.TevSwapModeTable tevSwapTable : mat.tevSwapTable) {
+            if (tevSwapTable == null) {
+                continue;
+            }
+            sig.put(tevSwapTable.r);
+            sig.put(tevSwapTable.g);
+            sig.put(tevSwapTable.b);
+            sig.put(tevSwapTable.a);
+        }
+        // TODO: Fog...?
+        
+        
+        sig.put((byte)(mat.blendTestDepthBeforeTexture ? 1 : 0));
+
+        sig.put((byte)(mat.BlendEnableDepthTest ? 1 : 0));
+        sig.put(mat.BlendDepthFunction);
+        sig.put((byte)(mat.BlendWriteToZBuffer ? 1 : 0));
+
+        sig.put(mat.BlendMode);
+        sig.put(mat.BlendSourceFactor);
+        sig.put(mat.BlendDestinationFactor);
+        sig.put(mat.BlendOperation);
+        
+        sig.put(mat.AlphaCompareFunction0);
+        sig.putInt(mat.AlphaCompareReference0);
+        sig.put(mat.AlphaCompareOperation);
+        sig.put(mat.AlphaCompareFunction1);
+        sig.putInt(mat.AlphaCompareReference1);
         
         return(int) SuperFastHash.calculate(sigarray, 0, 0, sig.position());
     }
@@ -247,14 +297,14 @@ public class BmdRenderer extends GLRenderer {
             var anim = texMatrixAnim.getAnimByName(mat.name);
             if (anim != null)
             {
-                mat.texMtx[anim.TextureGeneratorId].centerS = anim.Center[0];
-                mat.texMtx[anim.TextureGeneratorId].centerT = anim.Center[1];
-                mat.texMtx[anim.TextureGeneratorId].centerU = anim.Center[2];
-                mat.texMtx[anim.TextureGeneratorId].scaleS = anim.ScaleU.getValueAtFrame((short)Frame);
-                mat.texMtx[anim.TextureGeneratorId].scaleT = anim.ScaleV.getValueAtFrame((short)Frame);
+                mat.texMtx[anim.TextureGeneratorId].center.x = anim.Center[0];
+                mat.texMtx[anim.TextureGeneratorId].center.y = anim.Center[1];
+                mat.texMtx[anim.TextureGeneratorId].center.z = anim.Center[2];
+                mat.texMtx[anim.TextureGeneratorId].scale.x = anim.ScaleU.getValueAtFrame((short)Frame);
+                mat.texMtx[anim.TextureGeneratorId].scale.y = anim.ScaleV.getValueAtFrame((short)Frame);
                 mat.texMtx[anim.TextureGeneratorId].rotate = anim.RotationW.getValueAtFrame((short)Frame);
-                mat.texMtx[anim.TextureGeneratorId].transS = anim.TranslationU.getValueAtFrame((short)Frame);
-                mat.texMtx[anim.TextureGeneratorId].transT = anim.TranslationV.getValueAtFrame((short)Frame);
+                mat.texMtx[anim.TextureGeneratorId].translation.x = anim.TranslationU.getValueAtFrame((short)Frame);
+                mat.texMtx[anim.TextureGeneratorId].translation.y = anim.TranslationV.getValueAtFrame((short)Frame);
                 mat.texMtx[anim.TextureGeneratorId].doCalc();
             }
         }
@@ -372,14 +422,12 @@ public class BmdRenderer extends GLRenderer {
         vert.append("    gl_FrontColor = gl_Color;\n");
         vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
         vert.append("    vec4 texcoord;\n");
-        for (int i = 0; i < mat.numTexgens; i++)
-        {
-            if (mat.name.equals("SunFaceMat_v"))
-            {
-                int x = 0;
-            }
+        for (int i = 0; i < mat.texGen.length; i++)
+        {            
+            if (mat.texGen[i] == null)
+                continue;
             
-          vert.append(String.format("    texcoord = %1$s;\n", texgensrc[mat.texGen[i].src]));
+            vert.append(String.format("    texcoord = %1$s;\n", texgensrc[mat.texGen[i].src]));
             
             // TODO matrices
             int mtxid = mat.texGen[i].matrix;
@@ -387,46 +435,43 @@ public class BmdRenderer extends GLRenderer {
             String thematrix = "";
             if (mtxid >= 30 && mtxid <= 57)
             {
-                Bmd.Material.TexMtxInfo texmtx = mat.texMtx[(mtxid - 30) / 3];
+                Bmd.Material.TextureMatrix texmtx = mat.texMtx[(mtxid - 30) / 3];
                 
 
                 
-                if (texmtx.type == 9) //Screen projection?
-                {
-                    vert.append("   texcoord = (vec4((gl_ModelViewProjectionMatrix * texcoord).xyz, 1.0));\n");
-                }
-                else if (texmtx.type == 6 || texmtx.type == 7)
-                {
-                    vert.append("    texcoord *= (mat4(");
-                    for (int j = 0; j < 16; j++)
-                    {
-                        var mtxTMP = texmtx.basicMatrix.m[j];
-                        vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
-                    } 
-
-                    vert.append("));\n");
-                }
-                else if (texmtx.type == 8)
-                {
-                    vert.append("    texcoord *= (mat4(");
-                    for (int j = 0; j < 16; j++)
-                    {
-                        var mtxTMP = texmtx.basicMatrix.m[j];
-                        vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
-                    } 
-
-                    vert.append("));\n");
-                }
-                else
-                {
-                    vert.append("    texcoord *= transpose(mat4(");
-                    for (int j = 0; j < 16; j++)
-                    {
-                        var mtxTMP = texmtx.basicMatrix.m[j];
-                        vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
-                    } 
-
-                    vert.append("));\n");
+                switch (texmtx.mappingMode) {
+                //Screen projection?
+                    case 9:
+                        vert.append("   texcoord = (vec4((gl_ModelViewProjectionMatrix * texcoord).xyz, 1.0));\n");
+                        break;
+                    case 6:
+                    case 7:
+                        vert.append("    texcoord *= (mat4(");
+                        for (int j = 0; j < 16; j++)
+                        {
+                            var mtxTMP = texmtx.basicMatrix.m[j];
+                            vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
+                        }
+                        vert.append("));\n");
+                        break;
+                    case 8:
+                        vert.append("    texcoord *= (mat4(");
+                        for (int j = 0; j < 16; j++)
+                        {
+                            var mtxTMP = texmtx.basicMatrix.m[j];
+                            vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
+                        }
+                        vert.append("));\n");
+                        break;
+                    default:
+                        vert.append("    texcoord *= transpose(mat4(");
+                        for (int j = 0; j < 16; j++)
+                        {
+                            var mtxTMP = texmtx.basicMatrix.m[j];
+                            vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
+                        }
+                        vert.append("));\n");
+                        break;
                 }
             }
             else if (mtxid == 60)
@@ -471,7 +516,7 @@ public class BmdRenderer extends GLRenderer {
 
         for(int i = 0; i < 8; i++)
         {
-            if(mat.texStages[i] ==(short)0xFFFF) continue;
+            if(mat.textureIndicies[i] ==(short)0xFFFF) continue;
             frag.append(String.format("uniform sampler2D texture%1$d;\n", i));
         }
 
@@ -506,10 +551,27 @@ public class BmdRenderer extends GLRenderer {
                (float)mat.constColors[i].b / 255f,(float)mat.constColors[i].a / 255f));
         }
 
-        frag.append("    vec4 texcolor, rascolor, konst;\n");
+        frag.append("    vec4 texcolor, rascolor, konst, lightmatsrc;\n");
 
-        for(int i = 0; i < mat.numTevStages; i++)
+        if (mat.lightChannels[0] != null && mat.lightChannels[0].color.materialColorSource == 0) // Defaulting to color channel 0...
+            frag.append("    lightmatsrc.rgb = vec3(").append(String.format("%1$f, %2$f, %3$f", mat.matColors[0].r/255f, mat.matColors[0].g/255f, mat.matColors[0].b/255f)).append(");\n");
+        else
+            frag.append("    lightmatsrc.rgb = gl_Color.rgb;\n");
+        
+        if (mat.lightChannels[0] != null && mat.lightChannels[0].alpha.materialColorSource == 0) // Defaulting to color channel 0...
+            frag.append("    lightmatsrc.a = ").append(String.format("%1$f", mat.matColors[0].a/255f)).append(";\n");
+        else
+            frag.append("    lightmatsrc.a = gl_Color.a;\n");
+        
+        
+        
+        for(int i = 0; i < mat.tevStages.length; i++)
         {
+            if (mat.tevStages[i] == null)
+                continue;
+            
+            Bmd.Material.TevStage tv = mat.tevStages[i];
+            
             frag.append(String.format("\n    // TEV stage %1$d\n", i));
 
             // TEV inputs
@@ -517,20 +579,20 @@ public class BmdRenderer extends GLRenderer {
             // if they're selected into a, b or c
             String rout, a, b, c, d, operation;
 
-            if(mat.constColorSel[i] !=(byte)0xFF)
-                frag.append("    konst.rgb = ").append(c_konstsel[mat.constColorSel[i]]).append(";\n");
-            if(mat.constAlphaSel[i] !=(byte)0xFF)
-                frag.append("    konst.a = ").append(a_konstsel[mat.constAlphaSel[i]]).append(";\n");
-            if(mat.tevOrder[i].texMap !=(byte)0xFF && mat.tevOrder[i].texcoordID !=(byte)0xFF)
-                frag.append(String.format("    texcolor = texture2D(texture%1$d, gl_TexCoord[%2$d].xy);\n",
-                    mat.tevOrder[i].texMap, mat.tevOrder[i].texcoordID));
-            frag.append("    rascolor = gl_Color;\n");
+            if(tv.constantColor != (byte)0xFF)
+                frag.append("    konst.rgb = ").append(c_konstsel[tv.constantColor]).append(";\n");
+            if(tv.constantAlpha != (byte)0xFF)
+                frag.append("    konst.a = ").append(a_konstsel[tv.constantAlpha]).append(";\n");
+            if(tv.textureMapID != (byte)0xFF && tv.textureGeneratorID != (byte)0xFF)
+                frag.append(String.format("    texcolor = texture2D(texture%1$d, gl_TexCoord[%2$d].xy);\n", tv.textureMapID, tv.textureGeneratorID));
+            
+            frag.append("    rascolor = lightmatsrc;\n");
+            
             // TODO: take mat.TevOrder[i].ChanId into account
             
-            Bmd.Material.TevSwapModeInfo swapInfo = mat.tevSwapMode[i];
             
-            Bmd.Material.TevSwapModeTable swapRasTable = mat.tevSwapTable[swapInfo.rasSel];
-            Bmd.Material.TevSwapModeTable swapTexTable = mat.tevSwapTable[swapInfo.texSel];
+            Bmd.Material.TevSwapModeTable swapRasTable = mat.tevSwapTable[tv.swapColorId];
+            Bmd.Material.TevSwapModeTable swapTexTable = mat.tevSwapTable[tv.swapTextureId];
             frag.append("{\n");
             frag.append("    float SwapRed = rascolor.").append(tevSwapColor[swapRasTable.r]).append(";\n");
             frag.append("    float SwapGreen = rascolor.").append(tevSwapColor[swapRasTable.g]).append(";\n");
@@ -549,22 +611,24 @@ public class BmdRenderer extends GLRenderer {
             //if(mat.tevOrder[i].chanID != 4)
             //    throw new GLException(String.format("!UNSUPPORTED CHANID %1$d", mat.tevOrder[i].chanID));
 
-            rout = outputregs[mat.tevStage[i].colorRegID] + ".rgb";
-            a = c_inputregs[mat.tevStage[i].colorIn[0]];
-            b = c_inputregs[mat.tevStage[i].colorIn[1]];
-            c = c_inputregs[mat.tevStage[i].colorIn[2]];
-            d = c_inputregsD[mat.tevStage[i].colorIn[3]];
+            rout = outputregs[tv.outputColor] + ".rgb";
+            a = c_inputregs[tv.combineColorA];
+            b = c_inputregs[tv.combineColorB];
+            c = c_inputregs[tv.combineColorC];
+            d = c_inputregsD[tv.combineColorD];
 
-            switch(mat.tevStage[i].colorOp)
+            switch(tv.operationColor)
             {
                 case 0:
                     operation = "    %1$s =(%5$s + mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
-                    if(mat.tevStage[i].colorClamp != 0) operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
+                    if(tv.clampColor)
+                        operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
                     break;
 
                 case 1:
                     operation = "    %1$s =(%5$s - mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
-                    if(mat.tevStage[i].colorClamp != 0) operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
+                    if(tv.clampColor)
+                        operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
                     break;
 
                 case 8:
@@ -573,42 +637,42 @@ public class BmdRenderer extends GLRenderer {
 
                 default:
                     operation = "    %1$s = vec3(1.0,0.0,1.0);\n";
-                    System.out.println("COLOROP ARGH"); System.out.println(mat.tevStage[i].colorOp);
-                    throw new GLException(String.format("!colorop %1$d", mat.tevStage[i].colorOp));
+                    System.out.println("COLOROP ARGH");
+                    System.out.println(tv.operationColor);
+                    throw new GLException(String.format("!colorop %1$d", tv.operationColor));
             }
 
-            operation = String.format(operation, 
-                rout, a, b, c, d, tevbias[mat.tevStage[i].colorBias],
-                tevscale[mat.tevStage[i].colorScale]);
+            operation = String.format(operation, rout, a, b, c, d, tevbias[tv.biasColor], tevscale[tv.scaleColor]);
             frag.append(operation);
 
-            rout = outputregs[mat.tevStage[i].alphaRegID] + ".a";
-            a = a_inputregs[mat.tevStage[i].alphaIn[0]];
-            b = a_inputregs[mat.tevStage[i].alphaIn[1]];
-            c = a_inputregs[mat.tevStage[i].alphaIn[2]];
-            d = a_inputregsD[mat.tevStage[i].alphaIn[3]];
+            rout = outputregs[tv.outputAlpha] + ".a";
+            a = a_inputregs[tv.combineAlphaA];
+            b = a_inputregs[tv.combineAlphaB];
+            c = a_inputregs[tv.combineAlphaC];
+            d = a_inputregsD[tv.combineAlphaD];
 
-            switch(mat.tevStage[i].alphaOp)
+            switch(tv.operationAlpha)
             {
                 case 0:
                     operation = "    %1$s =(%5$s + mix(%2$s,%3$s,%4$s) + %6$s) * %7$s;\n";
-                    if(mat.tevStage[i].alphaClamp != 0) operation += "   %1$s = clamp(%1$s, 0.0, 1.0);\n";
+                    if(tv.clampAlpha)
+                        operation += "   %1$s = clamp(%1$s, 0.0, 1.0);\n";
                     break;
 
                 case 1:
                     operation = "    %1$s =(%5$s - mix(%2$s,%3$s,%4$s) + %6$s) * %7$s;\n";
-                    if(mat.tevStage[i].alphaClamp != 0) operation += "   %1$s = clamp(%1$s, 0.0, 1.0);\n";
+                    if(tv.clampAlpha)
+                        operation += "   %1$s = clamp(%1$s, 0.0, 1.0);\n";
                     break;
 
                 default:
                     operation = "    %1$s = 1.0;";
-                    System.out.println("ALPHAOP ARGH"); System.out.println(mat.tevStage[i].alphaOp);
-                    throw new GLException(String.format("!alphaop %1$d", mat.tevStage[i].alphaOp));
+                    System.out.println("ALPHAOP ARGH");
+                    System.out.println(tv.operationAlpha);
+                    throw new GLException(String.format("!alphaop %1$d", tv.operationAlpha));
             }
 
-            operation = String.format(operation,
-                rout, a, b, c, d, tevbias[mat.tevStage[i].alphaBias],
-                tevscale[mat.tevStage[i].alphaScale]);
+            operation = String.format(operation, rout, a, b, c, d, tevbias[tv.biasAlpha], tevscale[tv.scaleAlpha]);
             frag.append(operation);
         }
 
@@ -618,11 +682,11 @@ public class BmdRenderer extends GLRenderer {
         frag.append("\n");
 
         frag.append("    // Alpha test\n");
-        if(mat.alphaComp.mergeFunc == 1 &&(mat.alphaComp.func0 == 7 || mat.alphaComp.func1 == 7))
+        if(mat.AlphaCompareOperation == 1 &&(mat.AlphaCompareFunction0 == 7 || mat.AlphaCompareFunction1 == 7))
         {
             // always pass -- do nothing :)
         }
-        else if(mat.alphaComp.mergeFunc == 0 &&(mat.alphaComp.func0 == 0 || mat.alphaComp.func1 == 0))
+        else if(mat.AlphaCompareOperation == 0 &&(mat.AlphaCompareFunction0 == 0 || mat.AlphaCompareFunction1 == 0))
         {
             // never pass
             //(we did all those color/alpha calculations for uh, nothing ;_; )
@@ -630,28 +694,35 @@ public class BmdRenderer extends GLRenderer {
         }
         else
         {
-            String compare0 = String.format(usa, alphacompare[mat.alphaComp.func0], "gl_FragColor.a",(float)mat.alphaComp.ref0 / 255f);
-            String compare1 = String.format(usa, alphacompare[mat.alphaComp.func1], "gl_FragColor.a",(float)mat.alphaComp.ref1 / 255f);
+            String compare0 = String.format(usa, alphacompare[mat.AlphaCompareFunction0], "gl_FragColor.a",(float)mat.AlphaCompareReference0 / 255f);
+            String compare1 = String.format(usa, alphacompare[mat.AlphaCompareFunction1], "gl_FragColor.a",(float)mat.AlphaCompareReference1 / 255f);
             String fullcompare = "";
 
-            if(mat.alphaComp.mergeFunc == 1)
+            if(mat.AlphaCompareOperation == 1)
             {
-                if(mat.alphaComp.func0 == 0) fullcompare = compare1;
-                else if(mat.alphaComp.func1 == 0) fullcompare = compare0;
+                if(mat.AlphaCompareFunction0 == 0)
+                    fullcompare = compare1;
+                else if(mat.AlphaCompareFunction1 == 0)
+                    fullcompare = compare0;
             }
-            else if(mat.alphaComp.mergeFunc == 0)
+            else if(mat.AlphaCompareOperation == 0)
             {
-                if(mat.alphaComp.func0 == 7) fullcompare = compare1;
-                else if(mat.alphaComp.func1 == 7) fullcompare = compare0;
+                if(mat.AlphaCompareFunction0 == 7)
+                    fullcompare = compare1;
+                else if(mat.AlphaCompareFunction1 == 7)
+                    fullcompare = compare0;
             }
 
-            if(fullcompare.isEmpty()) fullcompare = String.format(alphacombine[mat.alphaComp.mergeFunc], compare0, compare1);
+            if(fullcompare.isEmpty())
+                fullcompare = String.format(alphacombine[mat.AlphaCompareOperation], compare0, compare1);
 
             frag.append("    if(!(").append(fullcompare).append(")) discard;\n");
         }
 
         frag.append("}\n");
 
+
+        
         int fragid = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
         shaders[matid].fragmentShader = fragid;
         gl.glShaderSource(fragid, 1, new String[] { frag.toString() }, new int[] { frag.length()}, 0);
@@ -903,6 +974,8 @@ public class BmdRenderer extends GLRenderer {
                     generateShaders(gl, i);
                 }
                 catch(GLException ex) {
+                    
+                    System.out.println(ex.getMessage());
                     // really ugly hack
                     if(ex.getMessage().charAt(0) == '!') {
                         //StringBuilder src = new StringBuilder(10000);
@@ -915,6 +988,7 @@ public class BmdRenderer extends GLRenderer {
                     shaders[i].program = 0;
                 } catch(Exception ex) {
                     //hope it continues?
+                    throw ex;
                 }
             }
         }
@@ -1079,7 +1153,7 @@ public class BmdRenderer extends GLRenderer {
             return true;
         
         for(Bmd.Material mat : model.materials) {
-            if(!((mat.drawFlag == 4) ^(info.renderMode == RenderMode.TRANSLUCENT)))
+            if(!((mat.pixelEngineMode == 4) ^(info.renderMode == RenderMode.TRANSLUCENT)))
                 return true;
         }
 
@@ -1188,7 +1262,7 @@ public class BmdRenderer extends GLRenderer {
                 
                 if(info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 {
-                    if((mat.drawFlag == 4) ^(info.renderMode == RenderMode.TRANSLUCENT))
+                    if((mat.pixelEngineMode == 4) ^(info.renderMode == RenderMode.TRANSLUCENT))
                         continue;
                     if(hasShaders) {
                         // shader: handles multitexturing, color combination, alpha test
@@ -1202,7 +1276,7 @@ public class BmdRenderer extends GLRenderer {
                                 gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
 
                             // Decide textures based on the BTP if it exists
-                            short TextureSelectIndex = mat.texStages[i];
+                            short TextureSelectIndex = mat.textureIndicies[i];
                             
                             if (texPatternAnim != null)
                             {
@@ -1234,8 +1308,8 @@ public class BmdRenderer extends GLRenderer {
 
                         // texturing -- texture 0 will be used
                         if(gl.isFunctionAvailable("glActiveTexture")) {try { gl.glActiveTexture(GL2.GL_TEXTURE0); } catch(GLException ex) {}}
-                        if(mat.texStages[0] !=(short)0xFFFF) {
-                            int texid = TextureCache.getTextureID(textures[mat.texStages[0]]);
+                        if(mat.textureIndicies[0] != (short)0xFFFF) {
+                            int texid = TextureCache.getTextureID(textures[mat.textureIndicies[0]]);
                             gl.glEnable(GL2.GL_TEXTURE_2D);
                             gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
                         }
@@ -1243,23 +1317,23 @@ public class BmdRenderer extends GLRenderer {
                             gl.glDisable(GL2.GL_TEXTURE_2D);
 
                         // alpha test -- only one comparison can be done
-                        if(mat.alphaComp.mergeFunc == 1 &&(mat.alphaComp.func0 == 7 || mat.alphaComp.func1 == 7))
+                        if(mat.AlphaCompareOperation == 1 &&(mat.AlphaCompareFunction0 == 7 || mat.AlphaCompareFunction1 == 7))
                             gl.glDisable(GL2.GL_ALPHA_TEST);
-                        else if(mat.alphaComp.mergeFunc == 0 &&(mat.alphaComp.func0 == 0 || mat.alphaComp.func1 == 0)) {
+                        else if(mat.AlphaCompareOperation == 0 &&(mat.AlphaCompareFunction0 == 0 || mat.AlphaCompareFunction1 == 0)) {
                             gl.glEnable(GL2.GL_ALPHA_TEST);
                             gl.glAlphaFunc(GL2.GL_NEVER, 0f);
                         }
                         else {
                             gl.glEnable(GL2.GL_ALPHA_TEST);
 
-                            if((mat.alphaComp.mergeFunc == 1 && mat.alphaComp.func0 == 0) ||(mat.alphaComp.mergeFunc == 0 && mat.alphaComp.func0 == 7))
-                                gl.glAlphaFunc(alphafunc[mat.alphaComp.func1],(float)mat.alphaComp.ref1 / 255f);
+                            if((mat.AlphaCompareOperation == 1 && mat.AlphaCompareFunction0 == 0) ||(mat.AlphaCompareOperation == 0 && mat.AlphaCompareFunction0 == 7))
+                                gl.glAlphaFunc(alphafunc[mat.AlphaCompareFunction1],(float)mat.AlphaCompareReference1 / 255f);
                             else
-                                gl.glAlphaFunc(alphafunc[mat.alphaComp.func0],(float)mat.alphaComp.ref0 / 255f);
+                                gl.glAlphaFunc(alphafunc[mat.AlphaCompareFunction0],(float)mat.AlphaCompareReference0 / 255f);
                         }
                     }
 
-                    switch(mat.blendMode.blendMode) {
+                    switch(mat.BlendMode) {
                         case 0: 
                             gl.glDisable(GL2.GL_BLEND);
                             gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
@@ -1270,19 +1344,19 @@ public class BmdRenderer extends GLRenderer {
                             gl.glEnable(GL2.GL_BLEND);
                             gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
                             if(gl.isFunctionAvailable("glBlendEquation")) {
-                                if(mat.blendMode.blendMode == 3)
+                                if(mat.BlendMode == 3)
                                     gl.glBlendEquation(GL2.GL_FUNC_SUBTRACT);
                                 else
                                     gl.glBlendEquation(GL2.GL_FUNC_ADD);
                             }
                             if(gl.isFunctionAvailable("glBlendFunc"))
-                                gl.glBlendFunc(blendsrc[mat.blendMode.srcFactor], blenddst[mat.blendMode.dstFactor]);
+                                gl.glBlendFunc(blendsrc[mat.BlendSourceFactor], blenddst[mat.BlendDestinationFactor]);
                             break;
 
                         case 2:
                             gl.glDisable(GL2.GL_BLEND);
                             gl.glEnable(GL2.GL_COLOR_LOGIC_OP);
-                            gl.glLogicOp(logicop[mat.blendMode.blendOp]);
+                            gl.glLogicOp(logicop[mat.BlendOperation]);
                             break;
                     }
                 }
@@ -1293,22 +1367,22 @@ public class BmdRenderer extends GLRenderer {
                     //gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
                 }
 
-                if(mat.cullMode == 0)
+                if(mat.cullingMode == 0)
                     gl.glDisable(GL2.GL_CULL_FACE);
                 else {
                     gl.glEnable(GL2.GL_CULL_FACE);
-                    gl.glCullFace(cullmodes[mat.cullMode - 1]);
+                    gl.glCullFace(cullmodes[mat.cullingMode - 1]);
                 }
 
                 if (info.renderMode != RenderMode.PICKING)
                 {
-                    if(mat.zMode.enableZTest) {
+                    if(mat.BlendEnableDepthTest) {
                         gl.glEnable(GL2.GL_DEPTH_TEST);
-                        gl.glDepthFunc(depthfuncs[mat.zMode.func]);
+                        gl.glDepthFunc(depthfuncs[mat.BlendDepthFunction]);
                     }
                     else
                         gl.glDisable(GL2.GL_DEPTH_TEST);
-                    gl.glDepthMask(mat.zMode.enableZWrite);
+                    gl.glDepthMask(mat.BlendWriteToZBuffer);
                 }
                 else
                 {

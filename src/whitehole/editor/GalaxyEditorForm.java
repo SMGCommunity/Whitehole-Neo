@@ -3549,9 +3549,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         }
                     }
                     
-                    renderInfo.renderMode = GLRenderer.RenderMode.PICKING; renderAllObjects(gl);
-                    renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
-                    renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
+                    renderInfo.renderMode = GLRenderer.RenderMode.PICKING;
+                    renderAllObjects(gl);
+                    renderInfo.renderMode = GLRenderer.RenderMode.OPAQUE;
+                    renderAllObjects(gl);
+                    renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;
+                    renderAllObjects(gl);
                     
                     gl.getContext().release();
                     glCanvas.repaint();
@@ -3620,7 +3623,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     break;
                 }
             }
-            if(!gotany) return;
+            if(!gotany)
+                return;
             
             RenderMode oldmode = doHighLightSettings(gl);
             

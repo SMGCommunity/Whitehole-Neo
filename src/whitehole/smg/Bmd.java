@@ -75,6 +75,7 @@ public class Bmd
         file.close();
     }
     
+    // ======================================
     
     public void setMaterialHidden(String name, boolean isHidden)
     {
@@ -84,7 +85,6 @@ public class Bmd
                 m.isHiddenMaterial = isHidden;
         }
     }
-    
     public Joint getJointByIndex(int idx)
     {
         if (idx < 0 || idx >= joints.length)
@@ -105,7 +105,9 @@ public class Bmd
             jnt.doCalc();
         }
     }
-
+    
+    // ======================================
+    
     private float readArrayValue_s16(int fixedpoint) throws IOException
     {
         short val = file.readShort();
@@ -693,348 +695,449 @@ public class Bmd
 
     private void readMAT3() throws IOException
     {
-        long sectionstart = file.position() - 4;
-        int sectionsize = file.readInt();
+        long ChunkStart = file.position() - 4;
+        int ChunkSize = file.readInt();
 
-        short nummaterials = file.readShort();
+        short Count = file.readShort();
         file.skip(2);
 
-        materials = new Material[nummaterials];
+        materials = new Material[Count];
 
-        // uh yeah let's create 30 separate variables
-        int[] offsets = new int[30];
-        for (int i = 0; i < 30; i++) offsets[i] = file.readInt();
-
-        for (int i = 0; i < nummaterials; i++)
+        // Screw you in particular *expands your array*
+        int InitDataTableOffset = file.readInt();
+        int RemapTableOffset = file.readInt();
+        int NameTableOffset = file.readInt();
+        int IndirectTextureInfoOffset = file.readInt();
+        int CullModeInfoOffset = file.readInt();
+        int MaterialColorTableOffset = file.readInt();
+        int ColorChannelCountTableOffset = file.readInt();
+        int ColorChannelTableOffset = file.readInt();
+        int AmbientColorTableOffset = file.readInt();
+        int LightTableOffset = file.readInt();
+        int TexGenCountTableOffset = file.readInt();
+        int TexCoordTableOffset = file.readInt();
+        int TexCoord2TableOffset = file.readInt();
+        int TexMatrixTableOffset = file.readInt();
+        int PostTexMatrixTableOffset = file.readInt();
+        int TextureIndexTableOffset = file.readInt();
+        int TevOrderTableOffset = file.readInt();
+        int TevColorTableOffset = file.readInt();
+        int TevKColorTableOffset = file.readInt();
+        int TevStageCountTableOffset = file.readInt();
+        int TevStageTableOffset = file.readInt();
+        int TevSwapModeTableOffset = file.readInt();
+        int TevSwapTableOffset = file.readInt();
+        int FogTableOffset = file.readInt();
+        int AlphaCompareTableOffset = file.readInt();
+        int BlendInfoTableOffset = file.readInt();
+        int ZModeTableOffset = file.readInt();
+        int ZCompLocTableOffset = file.readInt();
+        int DitherTableOffset = file.readInt();
+        int NBTScaleTableOffset = file.readInt();
+        
+        
+        boolean IsNoIndirectData = IndirectTextureInfoOffset == NameTableOffset;
+        
+        for (int i = 0; i < Count; i++)
         {
             Material mat = new Material();
             materials[i] = mat;
-
-            // idk if that's right
-            file.position(sectionstart + offsets[2] + 4 + (i * 4) + 2);
-            short nameoffset = file.readShort();
-            file.position(sectionstart + offsets[2] + nameoffset);
-            mat.name = file.readString("ASCII", 0);
-
-            file.position(sectionstart + offsets[1] + (i * 2));
-            short matindex = file.readShort();
             
-            // offsets[3] -> ind texturing
-            /*file.position(sectionstart + offsets[3] + (i * 312));
-            System.out.println("INDTEX FOR MAT "+i+" -- "+mat.name);
-            {
-                String lolz = "UNK1: ";
-                for (int j = 0; j < 10; j++)
-                    lolz += String.format("%1$04X ", file.readShort());
-                System.out.println(lolz);
+            // Technically wrong but it won't matter for Whitehole's purposes 99.9% of the time
+            file.position(ChunkStart + NameTableOffset + 4 + (i * 4) + 2);
+            short nameoffset = file.readShort();
+            file.position(ChunkStart + NameTableOffset + nameoffset);
+            mat.name = file.readString("ASCII", 0);
+            
+            
+            file.position(ChunkStart + RemapTableOffset + (i * 2));
+            short remapidx = file.readShort();
+            
+            file.position(ChunkStart + InitDataTableOffset + (remapidx * 0x14C));
+            
+            mat.pixelEngineMode = file.readByte();
+            mat.cullingMode = _mat3_readIntFromByteTable(ChunkStart + CullModeInfoOffset);
+            byte ColorChannelControlCount = _mat3_readByteFromByteTable(ChunkStart + ColorChannelCountTableOffset);
+            byte TexGenCount = _mat3_readByteFromByteTable(ChunkStart + TexGenCountTableOffset);
+            byte TevStageCount = _mat3_readByteFromByteTable(ChunkStart + TevStageCountTableOffset);
+            mat.blendTestDepthBeforeTexture = _mat3_readByteFromByteTable(ChunkStart + ZCompLocTableOffset) > 0;
+            {   // ZMode
+                byte id = file.readByte();
+                long p = file.position();
+                file.position(ChunkStart + ZModeTableOffset + (4 * id));
                 
-                for (int poopo = 0; poopo < 3; poopo++)
-                {
-                    lolz = "UNK2 "+poopo+": ";
-                    for (int j = 0; j < 6; j++)
-                        lolz += String.format("%1$f ", file.readFloat());
-                    for (int j = 0; j < 4; j++)
-                        lolz += String.format("%1$02X ", file.readByte());
-                    System.out.println(lolz);
-                }
+                mat.BlendEnableDepthTest = file.readByte() > 0;
+                mat.BlendDepthFunction = file.readByte();
+                mat.BlendWriteToZBuffer = file.readByte() > 0;
                 
-                lolz = "UNK3: ";
-                for (int j = 0; j < 4; j++)
-                    lolz += String.format("%1$08X ", file.readInt());
-                System.out.println(lolz);
-                
-                for (int tev = 0; tev < 16; tev++)
-                {
-                    lolz = "TEV"+tev+" UNK: ";
-                    for (int j = 0; j < 6; j++)
-                        lolz += String.format("%1$04X ", file.readShort());
-                    System.out.println(lolz);
-                }
-            }*/
-
-            file.position(sectionstart + offsets[0] + (matindex * 0x14C));
-
-            // giant chunk of poop here.
-            // why everything has to be an index into some silly array, this
-            // is beyond me
-            mat.drawFlag = file.readByte();
-            byte cull_id = file.readByte();
-            byte numchans_id = file.readByte();
-            byte numtexgens_id = file.readByte();
-            byte numtev_id = file.readByte();
-            file.skip(1); // index into matData6 -- 27
-            byte zmode_id = file.readByte();
-            file.skip(1); // index into matData7 -- 28
-            file.skip(4); // color1 -- 5
-            file.skip(8); // chanControls -- 7?
-            file.skip(4); // color2 -- 8
-            file.skip(16); // lights -- 9
-            short[] texgen_id = new short[8];
-            for (int j = 0; j < 8; j++) texgen_id[j] = file.readShort();
-            short[] texgen2_id = new short[8];
-            for (int j = 0; j < 8; j++) texgen2_id[j] = file.readShort();
-            //file.skip(16); // texGenInfo2 -- 12
-            short[] texmtx_id = new short[10];
-            for (int j = 0; j < 10; j++) texmtx_id[j] = file.readShort();
-            file.skip(40); // dttMatrices -- 14?
-            short[] texstage_id = new short[8];
-            for (int j = 0; j < 8; j++) texstage_id[j] = file.readShort();
-            short[] constcolor_id = new short[4];
-            for (int j = 0; j < 4; j++) constcolor_id[j] = file.readShort();
-            mat.constColorSel = new byte[16];
-            for (int j = 0; j < 16; j++) mat.constColorSel[j] = file.readByte();
-            mat.constAlphaSel = new byte[16];
-            for (int j = 0; j < 16; j++) mat.constAlphaSel[j] = file.readByte();
-            short[] tevorder_id = new short[16];
-            for (int j = 0; j < 16; j++) tevorder_id[j] = file.readShort();
-            short[] colors10_id = new short[4];
-            for (int j = 0; j < 4; j++) colors10_id[j] = file.readShort();
-            short[] tevstage_id = new short[16];
-            for (int j = 0; j < 16; j++) tevstage_id[j] = file.readShort();
-            short[] tevswap_id = new short[16];
-            for (int j = 0; j < 16; j++) tevswap_id[j] = file.readShort();
-            short[] tevswaptbl_id = new short[4];
-            for (int j = 0; j < 4; j++) tevswaptbl_id[j] = file.readShort();
-            file.skip(24); // unknown6
-            short fog_id = file.readShort();
-            short alphacomp_id = file.readShort();
-            short blendmode_id = file.readShort();
-
-            file.position(sectionstart + offsets[4] + (cull_id * 4));
-            mat.cullMode = (byte)file.readInt();
-
-            file.position(sectionstart + offsets[6] + numchans_id);
-            mat.numChans = file.readByte();
-
-            file.position(sectionstart + offsets[10] + numtexgens_id);
-            mat.numTexgens = file.readByte();
-
-            file.position(sectionstart + offsets[19] + numtev_id);
-            mat.numTevStages = file.readByte();
-
-            file.position(sectionstart + offsets[26] + (zmode_id * 4));
-            mat.zMode = mat.new ZModeInfo();
-            mat.zMode.enableZTest = file.readByte() != 0;
-            mat.zMode.func = file.readByte();
-            mat.zMode.enableZWrite = file.readByte() != 0;
-
-            //
-
-            mat.texGen = new Material.TexGenInfo[mat.numTexgens];
-            for (int j = 0; j < mat.numTexgens; j++)
-            {
-                mat.texGen[j] = mat.new TexGenInfo();
-                file.position(sectionstart + offsets[11] + (texgen_id[j] * 4));
-
-                mat.texGen[j].type = file.readByte();
-                mat.texGen[j].src = file.readByte();
-                mat.texGen[j].matrix = file.readByte();
-                
-                /*if (mat.texGen[j].type == 10 || mat.texGen[j].src >= 19)
-                    System.out.println("SRTG TEXTURING -- "+mat.texGen[j].src+" -- "+mat.texGen[j].matrix);
-                else if (mat.texGen[j].type >= 2)*/
-                    //System.out.println("TEXTURING -- TYPE "+mat.texGen[j].type+" -- SRC "+mat.texGen[j].src+" -- MTX "+mat.texGen[j].matrix);
+                file.position(p);
             }
-
-            // with some luck we don't need to support texgens2
-            // SMG models don't seem to use it
-            /*String lolz = "TEXGEN2: ";
-            for (int j = 0; j < 8; j++)
-                lolz += String.format("%1$04X ", texgen2_id[j]);
-            System.out.println(lolz);*/
-
-            mat.texMtx = new Material.TexMtxInfo[10];
-            for (int j = 0; j < 10; j++)
+            mat.dither = _mat3_readByteFromByteTable(ChunkStart + DitherTableOffset) > 0;
+            
+            mat.matColors = new Material.ColorInfo[2];
+            mat.matColors[0] = _mat3_readColor8FromShortTable(ChunkStart + MaterialColorTableOffset, mat);
+            mat.matColors[1] = _mat3_readColor8FromShortTable(ChunkStart + MaterialColorTableOffset, mat);
+            
+            mat.lightChannels = new Material.LightChannelControl[2];
+            for (int x = 0; x < 2; x++)
             {
-                Material.TexMtxInfo texmtx = mat.new TexMtxInfo();
-                mat.texMtx[j] = texmtx;
-                
-                if (texmtx_id[j] == (short)0xFFFF)
+                if (x >= ColorChannelControlCount)
                 {
-                    // invalid texmtx -- todo
-                    
-                    texmtx.basicMatrix = new Matrix4();
-                }
-                else
-                {
-                    file.position(sectionstart + offsets[13] + (texmtx_id[j] * 100));
-                    // CollapsePlane:
-                    // 0: 1EC8
-                    // 1: 1F2C
-                    
-                    texmtx.proj = file.readByte();
-                    texmtx.type = file.readByte();
-                    texmtx.padding = file.readShort();
-                    
-                    //System.out.println(String.format("MATRIX %1$d @ %2$08X :: %3$02X %4$02X", 
-                    //        texmtx_id[j], file.position()-4, texmtx.proj, texmtx.type));
-                    
-                    texmtx.centerS = file.readFloat();
-                    texmtx.centerT = file.readFloat();
-                    texmtx.centerU = file.readFloat();
-                    texmtx.scaleS = file.readFloat();
-                    texmtx.scaleT = file.readFloat();
-                    
-                    short rotateValue = file.readShort();
-                    texmtx.rotate = ((float)rotateValue * (float)Math.PI) / 32768f;
-                    texmtx.padding2 = file.readShort();
-                    
-                    texmtx.transS = file.readFloat();
-                    texmtx.transT = file.readFloat();
-                    
-                    texmtx.projectionMatrix = new Matrix4();
-                    for (int k = 0; k < 16; k++)
-                        texmtx.projectionMatrix.m[k] = file.readFloat();
-                    
-                    if (mat.name.equals("FooMat") && j == 2)
-                    {
-                        int x = 0;
-                    }
-                    texmtx.doCalc();
-                }
-            }
-
-            mat.texStages = new short[8];
-            for (int j = 0; j < 8; j++)
-            {
-                if (texstage_id[j] == (short)0xFFFF)
-                {
-                    mat.texStages[j] = (short)0xFFFF;
+                    mat.lightChannels[x] = null;
+                    file.skip(4);
                     continue;
                 }
+                mat.lightChannels[x] = mat.new LightChannelControl();
+                {
+                    short id = file.readShort();
+                    long p = file.position();
+                    file.position(ChunkStart + ColorChannelTableOffset + (8 * id));
 
-                file.position(sectionstart + offsets[15] + (texstage_id[j] * 2));
-                mat.texStages[j] = file.readShort();
+                    mat.lightChannels[x].color = mat.lightChannels[x].new Entry();
+                    mat.lightChannels[x].color.lightEnabled = file.readByte() > 0;
+                    mat.lightChannels[x].color.materialColorSource = file.readByte();
+                    mat.lightChannels[x].color.lightMask = file.readByte();
+                    mat.lightChannels[x].color.diffuseFunc = file.readByte();
+                    mat.lightChannels[x].color.attenuationFunc = file.readByte();
+                    mat.lightChannels[x].color.ambientColorSource = file.readByte();
+
+                    file.position(p);
+                }
+                {
+                    short id = file.readShort();
+                    long p = file.position();
+                    file.position(ChunkStart + ColorChannelTableOffset + (8 * id));
+
+                    mat.lightChannels[x].alpha = mat.lightChannels[x].new Entry();
+                    mat.lightChannels[x].alpha.lightEnabled = file.readByte() > 0;
+                    mat.lightChannels[x].alpha.materialColorSource = file.readByte();
+                    mat.lightChannels[x].alpha.lightMask = file.readByte();
+                    mat.lightChannels[x].alpha.diffuseFunc = file.readByte();
+                    mat.lightChannels[x].alpha.attenuationFunc = file.readByte();
+                    mat.lightChannels[x].alpha.ambientColorSource = file.readByte();
+
+                    file.position(p);
+                }
+            }
+            
+            mat.ambColors = new Material.ColorInfo[2];
+            mat.ambColors[0] = _mat3_readColor8FromShortTable(ChunkStart + AmbientColorTableOffset, mat);
+            mat.ambColors[1] = _mat3_readColor8FromShortTable(ChunkStart + AmbientColorTableOffset, mat);
+            
+            // Whitehole can't do anything with the lighting engine atm so I will skip it in the interest of time
+            file.skip(8*2); // eight shorts
+            
+            mat.texGen = new Material.TextureGenerator[8];
+            for (int x = 0; x < 8; x++)
+            {
+                if (x >= TexGenCount)
+                {
+                    mat.texGen[x] = null;
+                    file.skip(2);
+                    continue;
+                }
+                
+                mat.texGen[x] = mat.new TextureGenerator();
+                {
+                    short id = file.readShort();
+                    long p = file.position();
+                    file.position(ChunkStart + TexCoordTableOffset + (4 * id));
+                    
+                    mat.texGen[x].type = file.readByte();
+                    mat.texGen[x].src = file.readByte();
+                    mat.texGen[x].matrix = file.readByte();
+
+                    file.position(p);
+                }
+            }
+            
+            // Skipping Post Tex Gen
+            file.skip(8 * 2);
+            
+            mat.texMtx = new Material.TextureMatrix[10];
+            for (int x = 0; x < 10; x++)
+            {
+                mat.texMtx[x] = null;
+                if (TexMatrixTableOffset == 0)
+                {
+                    file.skip(2);
+                    continue;
+                }
+                
+                {
+                    short id = file.readShort();
+                    if (id == (short)0xFFFF)
+                    {
+                        continue;
+                    }
+                    mat.texMtx[x] = mat.new TextureMatrix();
+                    
+                    long p = file.position();
+                    file.position(ChunkStart + TexMatrixTableOffset + (0x64 * id));
+                    
+                    mat.texMtx[x].projection = file.readByte();
+                    byte info = file.readByte();
+                    mat.texMtx[x].mappingMode = (byte)(info & 0x3F);
+                    mat.texMtx[x].IsMaya = ((info & ~0x3F) >>> 7) != 0;
+                    file.skip(2);
+                    mat.texMtx[x].center = new Vec3f(file.readFloat(), file.readFloat(), file.readFloat());
+                    mat.texMtx[x].scale = new Vec2f(file.readFloat(), file.readFloat());
+                    mat.texMtx[x].rotate = file.readShort() * (180f / 32768f);
+                    file.skip(2);
+                    mat.texMtx[x].translation = new Vec2f(file.readFloat(), file.readFloat());
+                    mat.texMtx[x].projectionMatrix = new Matrix4();
+                    for (int k = 0; k < 16; k++)
+                        mat.texMtx[x].projectionMatrix.m[k] = file.readFloat();
+                    
+                    mat.texMtx[x].doCalc();
+                    
+                    file.position(p);
+                }
+            }
+            
+            // Skipping Post Tex Mtx
+            file.skip(20 * 2);
+            
+            mat.textureIndicies = new short[8];
+            for (int x = 0; x < 8; x++)
+                mat.textureIndicies[x] = _mat3_readShortFromShortTable(ChunkStart + TextureIndexTableOffset);
+            
+            mat.constColors = new Material.ColorInfo[4];
+            for (int x = 0; x < 4; x++)
+                mat.constColors[x] = _mat3_readColor8FromShortTable(ChunkStart + TevKColorTableOffset, mat);
+            
+            mat.tevStages = new Material.TevStage[16];
+            for (int x = 0; x < 16; x++)
+            {
+                if (x < TevStageCount)
+                    mat.tevStages[x] = mat.new TevStage();
+                else
+                    mat.tevStages[x] = null;
+            }
+            for (int x = 0; x < 16; x++)
+            {
+                Material.TevStage tv = mat.tevStages[x];
+                if (x < TevStageCount && tv != null)
+                    tv.constantColor = file.readByte();
+                else
+                    file.skip(1);
+            }
+            for (int x = 0; x < 16; x++)
+            {
+                Material.TevStage tv = mat.tevStages[x];
+                if (x < TevStageCount && tv != null)
+                    tv.constantAlpha = file.readByte();
+                else
+                    file.skip(1);
             }
 
-            mat.constColors = new Material.ColorInfo[4];
-            for (int j = 0; j < 4; j++)
+            for (int x = 0; x < 16; x++)
             {
-                mat.constColors[j] = mat.new ColorInfo();
-                
-                if (constcolor_id[j] == (short)0xFFFF)
+                Material.TevStage tv = mat.tevStages[x];
+                if (x < TevStageCount && tv != null)
                 {
-                    mat.constColors[j].r = 0; mat.constColors[j].g = 0;
-                    mat.constColors[j].b = 0; mat.constColors[j].a = 0;
+                    {
+                        short id = file.readShort();
+                        long p = file.position();
+                        file.position(ChunkStart + TevOrderTableOffset + (4 * id));
+
+                        tv.textureGeneratorID = file.readByte();
+                        tv.textureMapID = file.readByte();
+                        tv.colorChannelID = file.readByte();
+
+                        file.position(p);
+                    }
                 }
                 else
-                {
-                    file.position(sectionstart + offsets[18] + (constcolor_id[j] * 4));
-                    mat.constColors[j].r = file.readByte() & 0xFF;
-                    mat.constColors[j].g = file.readByte() & 0xFF;
-                    mat.constColors[j].b = file.readByte() & 0xFF;
-                    mat.constColors[j].a = file.readByte() & 0xFF;
-                }
-            }
-
-            mat.tevOrder = new Material.TevOrderInfo[mat.numTevStages];
-            for (int j = 0; j < mat.numTevStages; j++)
-            {
-                mat.tevOrder[j] = mat.new TevOrderInfo();
-                file.position(sectionstart + offsets[16] + (tevorder_id[j] * 4));
-
-                mat.tevOrder[j].texcoordID = file.readByte();
-                mat.tevOrder[j].texMap = file.readByte();
-                mat.tevOrder[j].chanID = file.readByte();
+                    file.skip(2);
             }
 
             mat.tevRegisterColors = new Material.ColorInfo[4];
-            for (int j = 0; j < 4; j++)
+            for (int x = 0; x < 4; x++)
+                mat.tevRegisterColors[x] = _mat3_readColor16FromShortTable(ChunkStart + TevColorTableOffset, mat);
+            
+            for (int x = 0; x < 16; x++)
             {
-                mat.tevRegisterColors[j] = mat.new ColorInfo();
-                
-                if (colors10_id[j] == (short)0xFFFF)
+                Material.TevStage tv = mat.tevStages[x];
+                if (x < TevStageCount && tv != null)
                 {
-                    mat.tevRegisterColors[j].r = 255; mat.tevRegisterColors[j].g = 0;
-                    mat.tevRegisterColors[j].b = 255; mat.tevRegisterColors[j].a = 255;
+                    {
+                        short id = file.readShort();
+                        long p = file.position();
+                        file.position(ChunkStart + TevStageTableOffset + (20 * id));
+                        
+                        tv.tevMode = file.readByte();
+                        tv.combineColorA = file.readByte();
+                        tv.combineColorB = file.readByte();
+                        tv.combineColorC = file.readByte();
+                        tv.combineColorD = file.readByte();
+                        tv.operationColor = file.readByte();
+                        tv.biasColor = file.readByte();
+                        tv.scaleColor = file.readByte();
+                        tv.clampColor = file.readByte() > 0;
+                        tv.outputColor = file.readByte();
+
+                        tv.combineAlphaA = file.readByte();
+                        tv.combineAlphaB = file.readByte();
+                        tv.combineAlphaC = file.readByte();
+                        tv.combineAlphaD = file.readByte();
+                        tv.operationAlpha = file.readByte();
+                        tv.biasAlpha = file.readByte();
+                        tv.scaleAlpha = file.readByte();
+                        tv.clampAlpha = file.readByte() > 0;
+                        tv.outputAlpha = file.readByte();
+                        
+                        file.position(p);
+                    }
                 }
                 else
-                {
-                    file.position(sectionstart + offsets[17] + (colors10_id[j] * 8));
-                    mat.tevRegisterColors[j].r = file.readShort();
-                    mat.tevRegisterColors[j].g = file.readShort();
-                    mat.tevRegisterColors[j].b = file.readShort();
-                    mat.tevRegisterColors[j].a = file.readShort();
-                }
+                    file.skip(2);
             }
 
-            mat.tevStage = new Material.TevStageInfo[mat.numTevStages];
-            for (int j = 0; j < mat.numTevStages; j++)
+            for (int x = 0; x < 16; x++)
             {
-                mat.tevStage[j] = mat.new TevStageInfo();
-                file.position(sectionstart + offsets[20] + (tevstage_id[j] * 20) + 1);
-
-                mat.tevStage[j].colorIn = new byte[4];
-                for (int k = 0; k < 4; k++) mat.tevStage[j].colorIn[k] = file.readByte();
-                mat.tevStage[j].colorOp = file.readByte();
-                mat.tevStage[j].colorBias = file.readByte();
-                mat.tevStage[j].colorScale = file.readByte();
-                mat.tevStage[j].colorClamp = file.readByte();
-                mat.tevStage[j].colorRegID = file.readByte();
-
-                mat.tevStage[j].alphaIn = new byte[4];
-                for (int k = 0; k < 4; k++) mat.tevStage[j].alphaIn[k] = file.readByte();
-                mat.tevStage[j].alphaOp = file.readByte();
-                mat.tevStage[j].alphaBias = file.readByte();
-                mat.tevStage[j].alphaScale = file.readByte();
-                mat.tevStage[j].alphaClamp = file.readByte();
-                mat.tevStage[j].alphaRegID = file.readByte();
-            }
-
-            mat.tevSwapMode = new Material.TevSwapModeInfo[mat.numTevStages];
-            for (int j = 0; j < mat.numTevStages; j++)
-            {
-                mat.tevSwapMode[j] = mat.new TevSwapModeInfo();
-                
-                if (tevswap_id[j] == (short)0xFFFF)
+                Material.TevStage tv = mat.tevStages[x];
+                if (x < TevStageCount && tv != null)
                 {
-                    mat.tevSwapMode[j].rasSel = 0;
-                    mat.tevSwapMode[j].texSel = 0;
+                    {
+                        short id = file.readShort();
+                        long p = file.position();
+                        file.position(ChunkStart + TevSwapModeTableOffset + (4 * id));
+                        
+                        tv.swapColorId = file.readByte();
+                        tv.swapTextureId = file.readByte();
+                        
+                        file.position(p);
+                    }
                 }
                 else
-                {
-                    file.position(sectionstart + offsets[21] + (tevswap_id[j] * 4));
+                    file.skip(2);
+            }
 
-                    mat.tevSwapMode[j].rasSel = file.readByte();
-                    mat.tevSwapMode[j].texSel = file.readByte();
+            mat.tevSwapTable = new Material.TevSwapModeTable[16];
+            for (int x = 0; x < 16; x++)
+            {
+                {
+                    short id = file.readShort();
+                    if (id == (short)0xFFFF)
+                    {
+                        mat.tevSwapTable[x] = null;
+                        continue;
+                    }
+                    long p = file.position();
+                    file.position(ChunkStart + TevSwapTableOffset + (4 * id));
+
+                    mat.tevSwapTable[x] = mat.new TevSwapModeTable();
+                    mat.tevSwapTable[x].r = file.readByte();
+                    mat.tevSwapTable[x].g = file.readByte();
+                    mat.tevSwapTable[x].b = file.readByte();
+                    mat.tevSwapTable[x].a = file.readByte();
+
+                    file.position(p);
                 }
             }
-
-            mat.tevSwapTable = new Material.TevSwapModeTable[4];
-            for (int j = 0; j < 4; j++)
+            
+            // No need for Fog
+            file.skip(2);
+            
             {
-                mat.tevSwapTable[j] = mat.new TevSwapModeTable();
-                if (tevswaptbl_id[j] == (short)0xFFFF) continue; // safety
-                file.position(sectionstart + offsets[22] + (tevswaptbl_id[j] * 4));
+                short id = file.readShort();
+                long p = file.position();
+                file.position(ChunkStart + AlphaCompareTableOffset + (8 * id));
 
-                mat.tevSwapTable[j].r = file.readByte();
-                mat.tevSwapTable[j].g = file.readByte();
-                mat.tevSwapTable[j].b = file.readByte();
-                mat.tevSwapTable[j].a = file.readByte();
+                mat.AlphaCompareFunction0 = file.readByte();
+                mat.AlphaCompareReference0 = file.readByte() & 0xFF;
+                mat.AlphaCompareOperation = file.readByte();
+                mat.AlphaCompareFunction1 = file.readByte();
+                mat.AlphaCompareReference1 = file.readByte() & 0xFF;
+
+                file.position(p);
             }
+            {
+                short id = file.readShort();
+                long p = file.position();
+                file.position(ChunkStart + BlendInfoTableOffset + (4 * id));
 
-            file.position(sectionstart + offsets[24] + (alphacomp_id * 8));
-            mat.alphaComp = mat.new AlphaCompInfo();
-            mat.alphaComp.func0 = file.readByte();
-            mat.alphaComp.ref0 = (int)file.readByte() & 0xFF;
-            mat.alphaComp.mergeFunc = file.readByte();
-            mat.alphaComp.func1 = file.readByte();
-            mat.alphaComp.ref1 = (int)file.readByte() & 0xFF;
+                mat.BlendMode = file.readByte();
+                mat.BlendSourceFactor = file.readByte();
+                mat.BlendDestinationFactor = file.readByte();
+                mat.BlendOperation = file.readByte();
 
-            file.position(sectionstart + offsets[25] + (blendmode_id * 4));
-            mat.blendMode = mat.new BlendModeInfo();
-            mat.blendMode.blendMode = file.readByte();
-            mat.blendMode.srcFactor = file.readByte();
-            mat.blendMode.dstFactor = file.readByte();
-            mat.blendMode.blendOp = file.readByte();
-
-            if (mat.drawFlag != 1 && mat.drawFlag != 4)
-                throw new IOException(String.format("Unknown DrawFlag %1$d for material %2$s", mat.drawFlag, mat.name));
+                file.position(p);
+            }
+            
+            // What does NBT even do...?
+            file.skip(2);
+            
+            
+            
+            // TODO: Add Indirect support maybe?
         }
 
-        file.position(sectionstart + sectionsize);
+        file.position(ChunkStart + ChunkSize);
     }
-
+    private int _mat3_readIntFromByteTable(long AbsTableOffset) throws IOException
+    {
+        int idx = file.readByte() & 0xFF;
+        long p = file.position();
+        file.position(AbsTableOffset + (4 * idx));
+        int r = file.readInt();
+        file.position(p);
+        return r;
+    }
+    private byte _mat3_readByteFromByteTable(long AbsTableOffset) throws IOException
+    {
+        int idx = file.readByte() & 0xFF;
+        long p = file.position();
+        file.position(AbsTableOffset + (1 * idx));
+        byte r = file.readByte();
+        file.position(p);
+        return r;
+    }
+    private short _mat3_readShortFromShortTable(long AbsTableOffset) throws IOException
+    {
+        int idx = file.readShort() & 0xFFFF;
+        if ((short)idx == (short)0xFFFF)
+            return (short)0xFFFF;
+        long p = file.position();
+        file.position(AbsTableOffset + (2 * idx));
+        short r = file.readShort();
+        file.position(p);
+        return r;
+    }
+    private Material.ColorInfo _mat3_readColor8FromShortTable(long AbsTableOffset, Material mat) throws IOException
+    {
+        int idx = file.readShort() & 0xFFFF;
+        long p = file.position();
+        file.position(AbsTableOffset + (4 * idx));
+        
+        Material.ColorInfo c = mat.new ColorInfo();
+        c.r = file.readByte() & 0xFF;
+        c.g = file.readByte() & 0xFF;
+        c.b = file.readByte() & 0xFF;
+        c.a = file.readByte() & 0xFF;
+        
+        file.position(p);
+        return c;
+    }
+    private Material.ColorInfo _mat3_readColor16FromShortTable(long AbsTableOffset, Material mat) throws IOException
+    {
+        int idx = file.readShort() & 0xFFFF;
+        long p = file.position();
+        file.position(AbsTableOffset + (8 * idx));
+        
+        Material.ColorInfo c = mat.new ColorInfo();
+        // Surprise! We do NOT want to add `& 0xFFFF` to these!
+        c.r = file.readShort();
+        c.g = file.readShort();
+        c.b = file.readShort();
+        c.a = file.readShort();
+        
+        file.position(p);
+        return c;
+    }
+    
+    
     private void readMDL3() throws IOException
     {
         long sectionstart = file.position() - 4;
@@ -1127,6 +1230,7 @@ public class Bmd
         file.position(sectionstart + sectionsize);
     }
 
+    // ======================================
 
     public class SceneGraphNode
     {
@@ -1262,41 +1366,98 @@ public class Bmd
 
     public class Material
     {
-        public class ZModeInfo
-        {
-            public boolean enableZTest;
-            public byte func;
-            public boolean enableZWrite;
-        }
+        // Custom to Whitehole
+        public boolean isHiddenMaterial;
+        
+        // -----------------------------------
+        
+        public String name;
+        
+        public byte pixelEngineMode; // apparently: 1=opaque, 4=translucent, 253=???
+        public int cullingMode;
+        public boolean dither;
+        public ColorInfo[] matColors;
+        public LightChannelControl[] lightChannels;
+        public ColorInfo[] ambColors;
+        public Light[] lights;
+        public TextureGenerator[] texGen;
+        // post tex gen
+        public TextureMatrix[] texMtx;
+        // post tex mtx
+        public short[] textureIndicies;
+        public ColorInfo[] constColors;
+        public ColorInfo[] tevRegisterColors;
+        public TevStage[] tevStages;
+        public TevStageIndirect indirectStages;
+        public TextureMatrixIndirect indirectTextureMatricies;
+        public TevSwapModeTable[] tevSwapTable;
+        // fog
+        
+        // ZCompLoc
+        public boolean blendTestDepthBeforeTexture;
 
-        public class TevOrderInfo
-        {
-            public byte texcoordID;
-            public byte texMap;
-            public byte chanID;
-        }
+        // ZCompare
+        public boolean BlendEnableDepthTest;
+        public byte BlendDepthFunction;
+        public boolean BlendWriteToZBuffer;
 
-        public class ColorInfo
-        {
-            public int r, g, b, a;
-        }
+        // BlendMode
+        public byte BlendMode;
+        public byte BlendSourceFactor;
+        public byte BlendDestinationFactor;
+        public byte BlendOperation;
 
-        public class TexGenInfo
+        // AlphaCompare
+        public byte AlphaCompareFunction0;
+        public int AlphaCompareReference0;
+        public byte AlphaCompareOperation;
+        public byte AlphaCompareFunction1;
+        public int AlphaCompareReference1;
+
+        // NBT
+        
+        // ===================================
+        
+        public class LightChannelControl
+        {
+            public Entry color, alpha;
+            
+            public class Entry
+            {
+                public boolean lightEnabled;
+                public byte materialColorSource;
+                public byte ambientColorSource;
+                public byte lightMask;
+                public byte diffuseFunc;
+                public byte attenuationFunc;
+            }
+        }
+        
+        public class Light
+        {
+            public Vec3f position;
+	    public Vec3f direction;
+	    public ColorInfo color;
+	    public float A0, A1, A2, K0, K1, K2;
+        }
+        
+        public class TextureGenerator
         {
             public byte type;
             public byte src;
             public byte matrix;
         }
         
-        public class TexMtxInfo
+        public class TextureMatrix
         {
-            public byte proj, type;
+            public byte projection;
+            public byte mappingMode;
+            public boolean IsMaya;
             public short padding;
-            public float centerS, centerT, centerU;
-            public float scaleS, scaleT;
+            public Vec3f center;
+            public Vec2f scale;
             public float rotate;
-            public short padding2;
-            public float transS, transT;
+            public Vec2f translation;
             public Matrix4 projectionMatrix;
             
             public Matrix4 basicMatrix;
@@ -1308,10 +1469,10 @@ public class Bmd
                     // create_matrix
                     // I'm going to assume the rotation is in radians for now...
                     Matrix4 R = Matrix4.createRotationZ(rotate);
-                    Matrix4 S = Matrix4.scale(new Vec3f(scaleS, scaleT, 1f));
-                    Matrix4 C = Matrix4.createTranslation(new Vec3f(centerS, centerT, centerU));
+                    Matrix4 S = Matrix4.scale(new Vec3f(scale.x, scale.y, 1f));
+                    Matrix4 C = Matrix4.createTranslation(new Vec3f(center.x, center.y, center.z));
                     Matrix4 CI = Matrix4.invert(C);
-                    Matrix4 T = Matrix4.createTranslation(new Vec3f(transS, transT, 0f));
+                    Matrix4 T = Matrix4.createTranslation(new Vec3f(translation.x, translation.y, 0f));
                     Matrix4 P;
 //                    S = new Matrix4(scaleS, 0,      0, 0,
 //                                    0,      1, 0, 0,
@@ -1327,7 +1488,7 @@ public class Bmd
 //                                    0, 0, 0, 1);
 //                    CI = Matrix4.negate(C);
                     
-                    switch ((int)type)
+                    switch ((int)mappingMode)
                     {
                         case 0x06: //Env Map projection
                             P = new Matrix4(0.5f, 0.0f, 0.0f, 0.5f,
@@ -1366,7 +1527,7 @@ public class Bmd
                     
 //                    resmat.m[3] = 0f; resmat.m[7] = 0f;
 //                    resmat.m[11] = 0f; resmat.m[15] = 1f;
-//                    if (proj == 0)
+//                    if (projection == 0)
 //                    {
 //                        resmat.m[2] = 0f; resmat.m[6] = 0f;
 //                        resmat.m[10] = 1f; resmat.m[14] = 0f;
@@ -1386,33 +1547,78 @@ public class Bmd
                     texmtx.basicMatrix = mtx;*/
             }
         }
-
-        public class TevStageInfo
+        
+        public class TevStage
         {
-            public byte[] colorIn;
-            public byte colorOp;
-            public byte colorBias;
-            public byte colorScale;
-            public byte colorClamp;
-            public byte colorRegID;
-
-            public byte[] alphaIn;
-            public byte alphaOp;
-            public byte alphaBias;
-            public byte alphaScale;
-            public byte alphaClamp;
-            public byte alphaRegID;
-        }
-
-        public class TevSwapModeInfo
-        {
-            public byte rasSel;
-            public byte texSel;
+            private byte tevMode;
+            
+            // TevOrder
+            public byte textureGeneratorID;
+            public byte textureMapID;
+            public byte colorChannelID;
+            
+            // Color Stage
+            public byte combineColorA, combineColorB, combineColorC, combineColorD;
+            public byte constantColor;
+            public byte operationColor;
+            public byte biasColor;
+            public byte scaleColor;
+            public boolean clampColor;
+            public byte outputColor;
+            
+            // Alpha Stage
+            public byte combineAlphaA, combineAlphaB, combineAlphaC, combineAlphaD;
+            public byte constantAlpha;
+            public byte operationAlpha;
+            public byte biasAlpha;
+            public byte scaleAlpha;
+            public boolean clampAlpha;
+            public byte outputAlpha;
+            
+            // Swap Mode
+            public byte swapColorId;
+            public byte swapTextureId;
+            
+            // Indirect
+            public byte indirectStageId;
+            public byte indirectMatrixId;
+            public byte indirectTextureFormat;
+            public byte indirectTextureBias;
+            public byte indirectTextureWrapS;
+            public byte indirectTextureWrapT;
+            public boolean indirectAddPreviousIndirectStage;
+            public boolean indirectUseOriginalLoD;
+            public byte indirectAlphaSelection;
         }
 
         public class TevSwapModeTable
         {
             public byte r, g, b, a;
+        }
+        
+        public class TevStageIndirect
+        {
+            public byte textureGeneratorID;
+            public byte textureMapID;
+
+            public byte scaleS;
+            public byte scaleT;
+        }
+        
+        public class TextureMatrixIndirect
+        {
+            public float M11;
+            public float M12;
+            public float M21;
+            public float M22;
+            public float M31;
+            public float M32;
+            public int Exponent;
+        }
+        
+        public class ColorInfo
+        {
+            public int r, g, b, a;
         }
 
         public class AlphaCompInfo
@@ -1429,41 +1635,6 @@ public class Bmd
             public byte blendOp;
         }
 
-
-        public String name;
-        
-        // Custom to Whitehole
-        public boolean isHiddenMaterial;
-
-        public byte drawFlag; // apparently: 1=opaque, 4=translucent, 253=???
-        public byte cullMode;
-        public int numChans;
-        public int numTexgens;
-        public int numTevStages;
-        // matData6
-        public ZModeInfo zMode;
-        // matData7
-
-        // lights
-
-        public TexGenInfo[] texGen;
-        // texGenInfo2
-
-        public TexMtxInfo[] texMtx;
-        // dttMatrices
-
-        public short[] texStages;
-        public ColorInfo[] constColors;
-        public byte[] constColorSel;
-        public byte[] constAlphaSel;
-        public TevOrderInfo[] tevOrder;
-        public ColorInfo[] tevRegisterColors;
-        public TevStageInfo[] tevStage;
-        public TevSwapModeInfo[] tevSwapMode;
-        public TevSwapModeTable[] tevSwapTable;
-        // fog
-        public AlphaCompInfo alphaComp;
-        public BlendModeInfo blendMode;
     }
 
     public class Texture
@@ -1487,6 +1658,7 @@ public class Bmd
         public byte[][] image; // texture data converted to ARGB
     }
 
+    // ======================================
 
     private FileBase file;
 
