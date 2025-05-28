@@ -109,6 +109,14 @@ public final class MainFrame extends javax.swing.JFrame {
         btnGalaxyProperties.setEnabled(false);
         lbStatusBar.setText("");
         
+        File gamedirfile = new File(gameDir);
+        if (!gamedirfile.exists()) {
+            lbStatusBar.setText("The directory \""+gameDir+"\" could not be found.");
+            setInfo("Missing Directory", "The directory below was unable to be found.", "\""+gameDir+"\"", true);
+            tabLists.setSelectedIndex(2);
+            return;
+        }
+        
         // Reload databases if previous selected game overwrote them
         if (Whitehole.GAME != null) {
             if (Whitehole.GAME.hasOverwriteObjectDatabase()) {
