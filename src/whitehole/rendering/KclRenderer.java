@@ -533,6 +533,10 @@ public class KclRenderer extends GLRenderer {
         colorTable.put(14, 0xD6FCFFFF);
         colorTable.put(15, 0xAC9D0EFF);
         
+        colorTable.put(29, 0xFFBE70FF); // Player crushing collision
+        
         colorTable.put(32, 0x7E5600FF);
+        
+        colorTable.put(39, 0xEFBE70FF); // Player crushing collision (No slipping)
     }
 }

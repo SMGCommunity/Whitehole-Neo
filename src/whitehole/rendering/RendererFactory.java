@@ -48,15 +48,6 @@ public final class RendererFactory {
     }
     
     public static GLRenderer tryCreateBmdRenderer(GLRenderer.RenderInfo info, String objModelName) {
-        if (Settings.getUseCollisionModels())
-        {
-            KclRenderer bmdRenderer = new KclRenderer(info, objModelName);
-
-            if (bmdRenderer.isValidModel())
-                return bmdRenderer;
-        }
-        
-        
         BmdRenderer bmdRenderer = new BmdRenderer(info, objModelName);
 
         if (bmdRenderer.isValidBmdModel())
@@ -66,14 +57,6 @@ public final class RendererFactory {
     }
     
     public static GLRenderer tryCreateBtiRenderer(GLRenderer.RenderInfo info, String objModelName, Vec3f pt1, Vec3f pt2, boolean vertical) {
-        if (Settings.getUseCollisionModels())
-        {
-            KclRenderer bmdRenderer = new KclRenderer(info, objModelName);
-
-            if (bmdRenderer.isValidModel())
-                return bmdRenderer;
-        }
-        
         BtiRenderer bmdRenderer = new BtiRenderer(info, objModelName, pt1, pt2, vertical);
 
         if (bmdRenderer.isValidBtiTexture())
@@ -248,6 +231,14 @@ public final class RendererFactory {
     
     public static GLRenderer createRenderer(GLRenderer.RenderInfo info, String objModelName, AbstractObj obj) {
         GLRenderer renderer;
+        
+        if (Settings.getUseCollisionModels())
+        {
+            KclRenderer kclRenderer = new KclRenderer(info, objModelName);
+
+            if (kclRenderer.isValidModel())
+                return kclRenderer;
+        }
         
         // Handle simple object renderers first
         renderer = tryCreateRendererForObjectType(info, objModelName, obj);
