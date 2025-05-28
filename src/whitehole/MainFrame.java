@@ -22,6 +22,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
+import whitehole.db.FieldHashes;
 import whitehole.db.ObjectDB;
 import whitehole.editor.BcsvEditorForm;
 import whitehole.editor.CreateGalaxyForm;
@@ -134,6 +135,7 @@ public final class MainFrame extends javax.swing.JFrame {
             if (Whitehole.GAME.hasOverwriteSpecialRenderer()) {
                 Whitehole.SpecialRenderers.clearProject();
             }
+            FieldHashes.clearProjectHashTable();
         }
         
         // Load game system and store last selected game directory

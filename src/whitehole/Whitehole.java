@@ -76,7 +76,8 @@ public class Whitehole {
         }
         
         // Initialize data
-        FieldHashes.init();
+        FieldHashes.initBaseHashTable();
+        FieldHashes.initExtraHashTable();
         GalaxyNames.initBaseGame();
         ZoneNames.initBaseGame();
         Hints.initBaseGame();

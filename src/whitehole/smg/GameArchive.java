@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import whitehole.Whitehole;
 import whitehole.db.FieldHashes;
-import whitehole.db.GalaxyNames;
 import whitehole.db.ObjectDB;
 import whitehole.io.ExternalFilesystem;
 import whitehole.io.FilesystemBase;
@@ -29,6 +28,12 @@ import whitehole.io.RarcFile;
 
 public class GameArchive {
     public static final String[] RESOURCE_FOLDERS = { "ObjectData", "LightData", "DemoData", "MapPartsData" };
+    
+    private static final String PATH_PLANET_MAP_DATA_TABLE_ARCHIVE = "/ObjectData/PlanetMapDataTable.arc";
+    private static final String PATH_PLANET_MAP_DATA_TABLE_BCSV = "/PlanetMapDataTable/PlanetMapDataTable.bcsv";
+    // Adding this now. It's a surprise tool that will help us later...
+    private static final String PATH_PRODUCT_MAP_OBJ_DATA_TABLE_ARCHIVE = "/ObjectData/ProductMapObjDataTable.arc";
+    private static final String PATH_PRODUCT_MAP_OBJ_DATA_TABLE_BCSV = "/ProductMapObjDataTable/ProductMapObjDataTable.bcsv";
     
     // -------------------------------------------------------------------------------------------------------------------------
     
@@ -59,53 +64,69 @@ public class GameArchive {
         }
         
         // Initialize galaxy and zone list and collect hashes
-        for (String stage : filesystem.getDirectories("/StageData")) {
-            FieldHashes.add(stage);
-            
-            if (filesystem.fileExists(String.format("/StageData/%1$s/%1$sScenario.arc", stage))) {
-                galaxies.add(stage);
-            }
-            
-            if (gameType == 2 && filesystem.fileExists(String.format("/StageData/%1$s/%1$sMap.arc", stage))) {
-                zones.add(stage);
-            } 
-        }
+        ArrayList<String> ZoneNames = new ArrayList();
         
-        // add zones for smg1
-        if (gameType == 1) {
-            for (String file : filesystem.getFiles("/StageData")) {
-                if (file.endsWith("Zone.arc") || file.endsWith("Galaxy.arc")) {
-                    zones.add(file.replace(".arc", ""));
+        // Scenarios are stored the same way for both games
+        for (String stage : filesystem.getDirectories("/StageData"))
+            if (filesystem.fileExists(String.format("/StageData/%1$s/%1$sScenario.arc", stage)))
+                galaxies.add(stage);
+        
+        // Zones... not so much
+        if (gameType == 1)
+        {
+            for (String stage : filesystem.getFiles("/StageData"))
+            {
+                if (stage.endsWith("Galaxy.arc") || stage.endsWith("Zone.arc"))
+                {
+                    ZoneNames.add(stage);
+                    zones.add(stage.replace(".arc", ""));
                 }
             }
         }
+        else if (gameType == 2)
+        {
+            for (String stage : filesystem.getDirectories("/StageData"))
+            {
+                if (filesystem.fileExists(String.format("/StageData/%1$s/%1$sMap.arc", stage)))
+                {
+                    ZoneNames.add(stage);
+                    zones.add(stage);
+                }
+            }
+        }
+        FieldHashes.initZoneHashTable(ZoneNames);
         
         // Initialize list of water planets
-        try {
-            RarcFile arc = new RarcFile(filesystem.openFile("/ObjectData/PlanetMapDataTable.arc"));
-            Bcsv bcsv = new Bcsv(arc.openFile("/PlanetMapDataTable/PlanetMapDataTable.bcsv"));
+        if (filesystem.fileExists(PATH_PLANET_MAP_DATA_TABLE_ARCHIVE))
+        {
+            try {
+                RarcFile arc = new RarcFile(filesystem.openFile(PATH_PLANET_MAP_DATA_TABLE_ARCHIVE));
+                Bcsv bcsv = new Bcsv(arc.openFile(PATH_PLANET_MAP_DATA_TABLE_BCSV));
 
-            for (Bcsv.Entry entry : bcsv.entries) {
-                if ((int)entry.get("WaterFlag") > 0) {
-                    planets.add((String)entry.get("PlanetName"));
+                for (Bcsv.Entry entry : bcsv.entries) {
+                    if ((int)entry.get("WaterFlag") > 0) {
+                        planets.add((String)entry.get("PlanetName"));
+                    }
                 }
-            }
 
-            bcsv.close();
-            arc.close();
-        }
-        catch (IOException ex) {
-            System.err.println(ex);
+                bcsv.close();
+                arc.close();
+            }
+            catch (IOException ex) {
+                System.err.println(ex);
+            }
         }
         
         // Try to load project's overwrite databases
         if (filesystem instanceof ExternalFilesystem) {
-            hasOverwriteObjectDatabase = ObjectDB.tryOverwriteWithProjectDatabase((ExternalFilesystem)filesystem);
-            hasOverwriteGalaxyNames = Whitehole.GalaxyNames.initProject((ExternalFilesystem)filesystem);
-            hasOverwriteZoneNames = Whitehole.ZoneNames.initProject((ExternalFilesystem)filesystem);
-            hasOverwriteHints = Whitehole.Hints.initProject((ExternalFilesystem)filesystem);
-            hasOverwriteAreaManagerLimits = Whitehole.AreaManagerLimits.initProject((ExternalFilesystem)filesystem);
-            hasOverwriteSpecialRenderer = Whitehole.SpecialRenderers.initProject((ExternalFilesystem)filesystem);
+            ExternalFilesystem efs = (ExternalFilesystem)filesystem;
+            hasOverwriteObjectDatabase = ObjectDB.tryOverwriteWithProjectDatabase(efs);
+            hasOverwriteGalaxyNames = Whitehole.GalaxyNames.initProject(efs);
+            hasOverwriteZoneNames = Whitehole.ZoneNames.initProject(efs);
+            hasOverwriteHints = Whitehole.Hints.initProject(efs);
+            hasOverwriteAreaManagerLimits = Whitehole.AreaManagerLimits.initProject(efs);
+            hasOverwriteSpecialRenderer = Whitehole.SpecialRenderers.initProject(efs);
+            FieldHashes.initProjectHashTable(efs);
         }
     }
     

@@ -16,11 +16,6 @@
  */
 package whitehole.util;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import whitehole.db.FieldHashes;
 import whitehole.smg.Bcsv;
 
@@ -81,32 +76,6 @@ public class SuperFastHash {
         if (Bcsv.getNameHash(fieldName) != Bcsv.calcJGadgetHash(fieldName))
             return;
         
-        // Check if field is already in lookup
-        try(BufferedReader reader = new BufferedReader(new FileReader("data/hashlookup.txt"))) {
-            for (Object line : reader.lines().toArray())
-            {
-                if (fieldName.equals(line))
-                {
-                    return;
-                }
-            }
-            reader.close();
-        }
-        catch(IOException ex) {
-            System.err.println(ex);
-            return;
-        }
-        
-        FieldHashes.add(fieldName);
-        
-        // Add to lookup
-        try(BufferedWriter writer = new BufferedWriter(new FileWriter("data/hashlookup.txt", true))) {
-            writer.newLine();
-            writer.append(fieldName);
-            writer.close();
-        }
-        catch(IOException ex) {
-            System.err.println(ex);
-        }
+        FieldHashes.addHashToBaseTable(fieldName);
     }
 }

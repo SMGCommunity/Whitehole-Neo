@@ -17,48 +17,191 @@
 package whitehole.db;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import whitehole.io.ExternalFilesystem;
 import whitehole.smg.Bcsv;
 
 public final class FieldHashes {
     private FieldHashes() {}
     
-    private static final HashMap<Integer, String> HASH_TABLE = new HashMap(1000);
+    private static HashMap<Integer, String> HASH_TABLE_BASE = new HashMap(0);
+    private static HashMap<Integer, String> HASH_TABLE_EXTRA = new HashMap(0);
+    private static HashMap<Integer, String> HASH_TABLE_PROJECT = new HashMap(0);
+    private static HashMap<Integer, String> HASH_TABLE_ZONE = new HashMap(0);
     
-    public static void init() {
-        try(BufferedReader reader = new BufferedReader(new FileReader("data/hashlookup.txt"))) {
-            String line;
-            
-            while((line = reader.readLine()) != null) {
-                line = line.trim();
-                
-                if (line.length() == 0 || line.charAt(0) == '#') {
-                    continue;
-                }
-                
-                add(line);
+    private static final String PATH_HASH_LOOKUP_BASE = "data/hashlookup.txt";
+    private static final String PATH_HASH_LOOKUP_BASE_EXTRA = "data/extrahashes";
+    private static final String PATH_HASH_LOOKUP_PROJECT = "/hashlookup.txt";
+    private static final String PATH_HASH_LOOKUP_PROJECT_EXTRA = "extrahashes";
+    
+    /// Initializes the base game hashes
+    public static void initBaseHashTable() {
+        HashMap<Integer, String> map = tryCreateHashTable(PATH_HASH_LOOKUP_BASE);
+        if (HASH_TABLE_BASE != null)
+            HASH_TABLE_BASE.clear(); // is this good for memory usage? I guess it doesn't hurt...
+        HASH_TABLE_BASE = map;
+    }
+    
+    /// Initializes the extra base hashes.
+    public static void initExtraHashTable() {
+        File extradir = new File(PATH_HASH_LOOKUP_BASE_EXTRA);
+        if (!extradir.exists())
+        {
+            //System.out.println(ExtraHashFolderPath + " not found.");
+            HASH_TABLE_EXTRA = new HashMap(0);
+            return;
+        }
+        File[] extras = extradir.listFiles((dir, name) -> name.toLowerCase().endsWith(".txt"));
+        String[] ex = new String[extras.length];
+        for (int i = 0; i < extras.length; i++) {
+            ex[i] = extras[i].getPath();
+        }
+        
+        HashMap<Integer, String> map = tryCreateHashTable(ex);
+        if (HASH_TABLE_EXTRA != null)
+            HASH_TABLE_EXTRA.clear(); // is this good for memory usage? I guess it doesn't hurt...
+        HASH_TABLE_EXTRA = map;
+    }
+    
+    /// Initializes the hashes included with the opened project
+    public static void initProjectHashTable(ExternalFilesystem filesystem) {
+        ArrayList<String> files = new ArrayList();
+        if (filesystem.directoryExists(PATH_HASH_LOOKUP_PROJECT_EXTRA))
+        {
+            List<String> listing = filesystem.getFiles(PATH_HASH_LOOKUP_PROJECT_EXTRA);
+            for (String p : listing)
+                if (p.endsWith(".txt"))
+                    files.add(p);
+        }
+        if (filesystem.fileExists(PATH_HASH_LOOKUP_PROJECT))
+            files.add(filesystem.getFileName(PATH_HASH_LOOKUP_PROJECT));
+        
+        
+        HashMap<Integer, String> map = tryCreateHashTable(files.toArray(String[]::new)); // what Java version added this???
+        if (HASH_TABLE_PROJECT != null)
+            HASH_TABLE_PROJECT.clear(); // is this good for memory usage? I guess it doesn't hurt...
+        HASH_TABLE_PROJECT = map;
+    }
+    public static void clearProjectHashTable() {
+        if (HASH_TABLE_PROJECT != null)
+            HASH_TABLE_PROJECT.clear(); // is this good for memory usage? I guess it doesn't hurt...
+        HASH_TABLE_PROJECT = new HashMap(0);
+    }
+    
+    public static void initZoneHashTable(ArrayList<String> stagehashlist) {
+        HashMap<Integer, String> result = new HashMap(stagehashlist.size());
+        for (String name : stagehashlist) {
+            int hash = Bcsv.calcJGadgetHash(name);
+            result.put(hash, name);
+        }
+        if (HASH_TABLE_ZONE != null)
+            HASH_TABLE_ZONE.clear(); // is this good for memory usage? I guess it doesn't hurt...
+        HASH_TABLE_ZONE = result;
+    }
+    
+    // ---------------------------------------------------
+    
+    public static void addHashToBaseTable(String name) {
+        File hashlookup = new File(PATH_HASH_LOOKUP_BASE);
+        if(!hashlookup.exists())
+        {
+            try {
+                hashlookup.createNewFile();
+            } catch (IOException ex) {
+                System.out.println(ex);
             }
         }
-        catch(IOException ex) {
-            System.out.println("FATAL! Could not load hashlookup.txt");
-            System.out.println(ex);
-            System.exit(1);
+        
+        // Check if field is already in lookup
+        try(BufferedReader reader = new BufferedReader(new FileReader(PATH_HASH_LOOKUP_BASE))) {
+            for (Object line : reader.lines().toArray())
+                if (name.equals(line))
+                    return;
+            reader.close();
         }
+        catch(IOException ex) {
+            System.err.println(ex);
+            return;
+        }
+        
+        // Add to lookup
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(PATH_HASH_LOOKUP_BASE, true))) {
+            writer.newLine();
+            writer.append(name);
+            writer.close();
+        }
+        catch(IOException ex) {
+            System.err.println(ex);
+        }
+        
+        initBaseHashTable();
     }
     
-    public static int calc(String name) {
-        return Bcsv.calcJGadgetHash(name);
-    }
-    
-    public static int add(String name) {
-        int hash = calc(name);
-        HASH_TABLE.put(hash, name);
-        return hash;
-    }
-    
+    /**
+     * Returns the string of the input Hash
+     * @param hash the hash to get the string of
+     * @return the string equivalent of the hash. If not found, returns a special formatted string
+     */
     public static String get(int hash) {
-        return HASH_TABLE.containsKey(hash) ? HASH_TABLE.get(hash) : String.format("[%08X]", hash);
+        if (HASH_TABLE_PROJECT.containsKey(hash))
+            return HASH_TABLE_PROJECT.get(hash);
+        
+        if (HASH_TABLE_ZONE.containsKey(hash))
+            return HASH_TABLE_ZONE.get(hash);
+        
+        if (HASH_TABLE_EXTRA.containsKey(hash))
+            return HASH_TABLE_EXTRA.get(hash);
+        
+        if (HASH_TABLE_BASE.containsKey(hash))
+            return HASH_TABLE_BASE.get(hash);
+        
+        return String.format("[%08X]", hash);
+    }
+    
+    // ======================================================================================================
+    
+    private static HashMap<Integer, String> tryCreateHashTable(String filepath) {
+        return tryCreateHashTable(new String[] {filepath});
+    }
+    private static HashMap<Integer, String> tryCreateHashTable(String[] filepaths) {
+        ArrayList<String> Collected = new ArrayList();
+        for (String filepath : filepaths) {
+            File f = new File(filepath);
+            if (!f.exists()) {
+                System.out.println("File \""+f.getAbsolutePath()+"\" could not be found.");
+                continue;
+            }
+            
+            try(BufferedReader reader = new BufferedReader(new FileReader(filepath))) {
+                String line;
+
+                while((line = reader.readLine()) != null) {
+                    line = line.trim();
+
+                    if (line.length() == 0 || line.charAt(0) == '#')
+                        continue;
+
+                    Collected.add(line);
+                }
+            }
+            catch(IOException ex) {
+                System.out.println("Could not load \""+filepath+"\".");
+                System.out.println(ex);
+            }
+        }
+        
+        HashMap<Integer, String> result = new HashMap(Collected.size());
+        for (String name : Collected) {
+            int hash = Bcsv.calcJGadgetHash(name);
+            result.put(hash, name);
+        }
+        return result;
     }
 }

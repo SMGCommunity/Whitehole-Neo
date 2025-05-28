@@ -24,7 +24,7 @@ import org.json.JSONTokener;
 import whitehole.io.ExternalFilesystem;
 
 /**
- *
+ * A Class that holds both base game and project information, where the project information will override the base game information when requested.
  * @author Hackio
  */
 public class GameAndProjectDataHolder {
