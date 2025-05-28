@@ -115,8 +115,7 @@ public class Whitehole {
         }
     }
     
-    public static void decideIconSize()
-    {
+    public static void decideIconSize() {
         GraphicsConfiguration cur = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         AffineTransform tx = cur.getDefaultTransform();
         var DPIScaleX = tx.getScaleX() * 32;
