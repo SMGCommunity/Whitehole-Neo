@@ -4010,7 +4010,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
             gl.glDisable(GL2.GL_TEXTURE_2D);
             
-            gl.glCallList(zoneDisplayLists.get(curScenarioIndex)[0]);
+            gl.glCallList(zoneDisplayLists.get(curScenarioIndex)[0]); // Picking Pass
             
             gl.glDepthMask(true);
             
@@ -4047,9 +4047,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
             }
             
-            gl.glCallList(zoneDisplayLists.get(curScenarioIndex)[1]);
-            
-            gl.glCallList(zoneDisplayLists.get(curScenarioIndex)[2]);
+            gl.glCallList(zoneDisplayLists.get(curScenarioIndex)[1]); // Opaque Pass
+            gl.glCallList(zoneDisplayLists.get(curScenarioIndex)[2]); // Alpha Pass (Includes highlights)
             
             gl.glDepthMask(true);
             try { gl.glUseProgram(0); } catch(GLException ex) { }
@@ -4988,8 +4987,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         return curZoneArc.getUniqueSwitchesInZone();
     }
     
-    public void rerenderPathOwners(PathObj path)
-    {
+    public void rerenderPathOwners(PathObj path) {
         for (AbstractObj obj : globalObjList.values())
         {
             if (obj.renderer == null)
