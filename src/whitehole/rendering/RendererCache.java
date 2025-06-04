@@ -17,7 +17,9 @@
 package whitehole.rendering;
 
 import com.jogamp.opengl.*;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
+import whitehole.Settings;
 import whitehole.smg.object.AbstractObj;
 
 public class RendererCache {
@@ -54,7 +56,7 @@ public class RendererCache {
     
     // -------------------------------------------------------------------------------------------------------------------------
     
-    public static GLRenderer getObjectRenderer(GLRenderer.RenderInfo info, AbstractObj obj) {
+    public static SimpleEntry<GLRenderer, String> getObjectRenderer(GLRenderer.RenderInfo info, AbstractObj obj) {
         String model = RendererFactory.getSubstitutedModelName(obj.name, obj, false);
         String key = RendererFactory.getSubstitutedCacheKey(model, obj) + RendererFactory.getAdditiveCacheKey(model, obj);
         
@@ -62,7 +64,9 @@ public class RendererCache {
         {
             CacheEntry entry = CACHE.get(key);
             entry.refCount++;
-            return entry.renderer;
+            if (Settings.getDebugAdditionalLogs())
+                System.out.println("[Cache - Add] "+entry.refCount+" entries for: "+key);
+            return new SimpleEntry(entry.renderer, key);
         }
         else
         {
@@ -72,15 +76,17 @@ public class RendererCache {
             entry.renderer = renderer;
             entry.refCount = 1;
             CACHE.put(key, entry);
-
-            return renderer;
+            if (Settings.getDebugAdditionalLogs())
+                System.out.println("[Cache - New] key: "+key);
+            return new SimpleEntry(renderer, key);
         }
     }
     
     public static void closeObjectRenderer(GLRenderer.RenderInfo info, AbstractObj obj) {
-        String model = RendererFactory.getSubstitutedModelName(obj.oldName, obj, true);
-        String key = RendererFactory.getSubstitutedCacheKey(model, obj);
+        //String model = RendererFactory.getSubstitutedModelName(obj.oldName, obj, true);
+        //String key = RendererFactory.getSubstitutedCacheKey(model, obj);
         
+        String key = obj.PreviousRenderKey;
         if (CACHE.containsKey(key)) {
             CacheEntry entry = CACHE.get(key);
             entry.refCount--;
@@ -88,7 +94,13 @@ public class RendererCache {
             if (entry.refCount == 0) {
                 entry.renderer.close(info);
                 CACHE.remove(key);
+                if (Settings.getDebugAdditionalLogs())
+                    System.out.println("[Cache - Del] fully closed key: "+key);
             }
+            else if (Settings.getDebugAdditionalLogs())
+                System.out.println("[Cache - Sub] "+entry.refCount+" entries for: "+key);
         }
+        else if (Settings.getDebugAdditionalLogs())
+            System.out.println("[Cache - Miss] unknown key: "+key);
     }
 }

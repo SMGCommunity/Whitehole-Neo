@@ -21,9 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.*;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Locale;
 import whitehole.Settings;
 import whitehole.Whitehole;
@@ -40,7 +37,332 @@ import whitehole.math.Vec3f;
 import whitehole.math.Matrix4;
 
 public class BmdRenderer extends GLRenderer {
-    private void uploadTexture(GL2 gl, int id) {
+    protected RarcFile archive = null;
+    protected Bmd model = null;
+    
+    protected Shader[] shaders = null;
+    protected int[] textures = null;
+    protected boolean hasShaders = false;
+    protected Vec3f translation = DEFAULT_TRANSLATION;
+    protected Vec3f rotation = DEFAULT_ROTATION;
+    protected Vec3f scale = DEFAULT_SCALE;
+    
+    protected Bck jointAnim = null;
+    protected int jointAnimIndex = 0;
+    protected Brk colRegisterAnim = null;
+    protected int colRegisterAnimIndex = 0;
+    protected Btk texMatrixAnim = null;
+    protected int texMatrixAnimIndex = 0;
+    protected Btp texPatternAnim = null;
+    protected int texPatternAnimIndex = 0;
+    protected Bva shapeVisibleAnim = null;
+    protected int shapeVisibleAnimIndex = 0;
+    
+    /**
+     * Set this flag to force a blue cube to be created
+     */
+    public boolean isForceFail = false;
+    
+    // -------------------------------------------------------------------------------------------------------------------------
+    
+    public BmdRenderer() {
+        
+    }
+    
+    /**
+     * Attempt to load model from {@code modelname}.
+     * @param info
+     * @param modelName
+     * @throws GLException 
+     */
+    public BmdRenderer(RenderInfo info, String modelName) throws GLException {
+        initModel(info, modelName);
+    }
+    
+    //=====================================================================
+    // These functions are to be called in the Ctor for custom renderers
+    
+    /**
+    * Initializes the model for this renderer. Intended to be overwritten by child classes
+    * @param info 
+    * @param modelName 
+    */
+    protected void initModel(RenderInfo info, String modelName) throws GLException {
+        ctor_doNonSpecialModelLoad(info, modelName);
+    }
+    
+    /**
+     * The default sequence to load a model.
+     * @param info 
+     * @param modelName 
+     */
+    protected final void ctor_doNonSpecialModelLoad(RenderInfo info, String modelName) {
+        if (!ctor_tryLoadModelDefault(modelName))
+            return;
+        
+        //Some default BVA files for things like Thwomps
+        if (shapeVisibleAnim == null)
+            shapeVisibleAnim = ctor_tryLoadBVA(modelName, "Wait", archive);
+        if (shapeVisibleAnim == null)
+            shapeVisibleAnim = ctor_tryLoadBVA(modelName, "Normal", archive);
+        
+        ctor_uploadData(info);
+    }
+    
+    /**
+     * Attempts to load the BMD/BDL from an archive of the same model name
+     * @param modelName
+     * @return false on all failures, true on success
+     */
+    protected final boolean ctor_tryLoadModelDefault(String modelName) {
+        try
+        {
+            archive = ctor_loadArchive(modelName);
+        }
+        catch(Exception ex)
+        {
+            return false;
+        }
+
+        if (archive == null)
+            return false; //No archive bruh
+        
+        model = ctor_loadModel(modelName, archive);
+        
+        if (!isValidBmdModel())
+        {
+            try
+            {
+                archive.close();
+            }
+            catch(Exception ex)
+            {
+                
+            }
+            return false;
+        }
+        return true;
+    }
+    
+    /**
+     * Load BMD/BDL from ARC using {@code modelname}.<br>
+     * NOTE: {@code modelname} is first run through Substitutor.
+     * @param modelName the name of the object
+     * @param archive a
+     * @return 
+     * @throws GLException 
+     */
+    protected final Bmd ctor_loadModel(String modelName, RarcFile archive) throws GLException {
+        // Load the BMD/BDL file
+        try
+        {
+            if (archive.fileExists("/" + modelName + "/" + modelName + ".bdl"))
+            {
+                return new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bdl"));
+            }
+            else if (archive.fileExists("/" + modelName + "/" + modelName + ".bmd"))
+            {
+                return new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bmd"));
+            }
+            return null;
+        }
+        catch(IOException up)
+        {
+        }
+        return null;
+    }
+    
+    /**
+     * Load the Archive for the model (either from the current or base directories)
+     * @param modelName The name of the model to try to load the archive for
+     * @return 
+     * @throws IOException 
+     */
+    protected final RarcFile ctor_loadArchive(String modelName) throws IOException {
+        String arcPath = Whitehole.createResourceArcPath(modelName);
+        
+        boolean UseAbsolutePath = false;
+        if (arcPath == null) {
+            //If a model is not found, we can try looking in the base directory instead
+            //We will only check ObjectData, as a vanilla game will not have models elsewhere
+            String base = Settings.getBaseGameDir();
+            if (base == null || base.length() == 0)
+                return null; //No base game path set
+            
+            arcPath = String.format("%s/%s/%s.arc", base, "ObjectData", modelName);
+            UseAbsolutePath = true;
+            File fi = new File(arcPath);
+            if (!fi.exists())
+                return null;
+        }
+        
+        FileBase fi = UseAbsolutePath ? new ExternalFile(arcPath) : Whitehole.getCurrentGameFileSystem().openFile(arcPath);
+        return new RarcFile(fi);
+    }
+    
+    /**
+     * Attempts to load a Joint (Bone) Animation from the archive
+     * @param modelName
+     * @param animName Name of the BCK file
+     * @param archive Archive that contains the BCK file
+     * @return null on failure
+     */
+    protected final Bck ctor_tryLoadBCK(String modelName, String animName, RarcFile archive) {
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".bck";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Bck(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+     
+    /**
+     * Attempts to load a TEV Register / Const Color Animation from the archive
+     * @param modelName
+     * @param animName Name of the BRK file
+     * @param archive Archive that contains the BRK file
+     * @return null on failure
+     */
+    protected final Brk ctor_tryLoadBRK(String modelName, String animName, RarcFile archive) {
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".brk";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Brk(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+        
+    /**
+     * Attempts to load a Texture Coordinate Animation from the archive
+     * @param modelName
+     * @param animName Name of the BTK file
+     * @param archive Archive that contains the BTK file
+     * @return null on failure
+     */
+    protected final Btk ctor_tryLoadBTK(String modelName, String animName, RarcFile archive) {
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".btk";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Btk(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+        
+    /**
+     * Attempts to load a Texture Pattern Animation from the archive
+     * @param modelName
+     * @param animName Name of the BTP file
+     * @param archive Archive that contains the BTP file
+     * @return null on failure
+     */
+    protected final Btp ctor_tryLoadBTP(String modelName, String animName, RarcFile archive) {
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".btp";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Btp(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+        
+    /**
+     * Attempts to load a Material Visibility Animation from the archive
+     * @param modelName 
+     * @param animName Name of the BVA file
+     * @param archive Archive that contains the BVA file
+     * @return null on failure
+     */
+    protected final Bva ctor_tryLoadBVA(String modelName, String animName, RarcFile archive) {
+        // Load a BVA file
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".bva";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Bva(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+    
+    /**
+     * Attempts to load a file from the archive by it's full path
+     * @param arcPath Archive path to find the file at
+     * @param archive Archive to find the file in
+     * @return null on failure
+     * @throws IOException
+     */
+    protected final FileBase ctor_tryLoadFile(String arcPath, RarcFile archive) throws IOException {
+        if(archive.fileExists(arcPath))
+            return archive.openFile(arcPath);
+        return null;
+    }
+    
+    // ------------------------------------------------------------------------------------------
+
+    /**
+     * Uploads the model data to OpenGL, including Textures and Shaders
+     * @param info
+     * @throws GLException
+     */
+    protected final void ctor_uploadData(RenderInfo info) throws GLException {
+        if(!isValidBmdModel())
+            return;
+        
+        GL2 gl = info.drawable.getGL().getGL2();
+        
+        String extensions = gl.glGetString(GL2.GL_EXTENSIONS);
+        hasShaders = extensions.contains("GL_ARB_shading_language_100") &&
+                     extensions.contains("GL_ARB_shader_objects") &&
+                     extensions.contains("GL_ARB_vertex_shader") &&
+                     extensions.contains("GL_ARB_fragment_shader");
+
+        textures = new int[model.textures.length];
+        for(int i = 0; i < model.textures.length; i++)
+            ctor_uploadTexture(gl, i);
+
+        if(!hasShaders)
+            return;
+        shaders = new Shader[model.materials.length];
+        
+        for(int i = 0; i < model.materials.length; i++) {
+            try {
+                shaders[i] = new Shader();
+                ctor_generateShaders_OpenGL_2_1(gl, i);
+            }
+            catch(GLException ex) {
+
+                System.out.println(ex.getMessage());
+                // really ugly hack
+                if(ex.getMessage().charAt(0) == '!') {
+                    //StringBuilder src = new StringBuilder(10000);
+                    //int lolz;
+                    //gl.glGetShaderSource(shaders[i].FragmentShader, 10000 out, lolz, src);
+                    //System.Windows.Forms.MessageBox.Show(ex.Message + "\n" + src.ToString());
+                    throw ex;
+                }
+
+                shaders[i].program = 0;
+            } catch(Exception ex) {
+                //hope it continues?
+                throw ex;
+            }
+        }
+    }
+    
+    
+    private void ctor_uploadTexture(GL2 gl, int id) {
         Bmd.Texture tex = model.textures[id];
         int hash = textureHash(id);
         textures[id] = hash;
@@ -82,210 +404,13 @@ public class BmdRenderer extends GLRenderer {
         }
     }
     
-    private int shaderHash(int matid) {
-        byte[] sigarray = new byte[1000];
-        ByteBuffer sig = ByteBuffer.wrap(sigarray);
-        
-        if(model == null || model.materials.length - 1 < matid) { // avoid nullpointer exception
-            return -1;
-        }
-        
-        Bmd.Material mat = model.materials[matid];
-        
-        // Hash it all
-        // ...except the name
-        
-        sig.put(mat.pixelEngineMode);
-        sig.putInt(mat.cullingMode);
-        sig.put((byte)(mat.dither ? 1 : 0));
-        
-        sig.putInt(mat.matColors[0].r);
-        sig.putInt(mat.matColors[0].g);
-        sig.putInt(mat.matColors[0].b);
-        sig.putInt(mat.matColors[0].a);
-        sig.putInt(mat.matColors[1].r);
-        sig.putInt(mat.matColors[1].g);
-        sig.putInt(mat.matColors[1].b);
-        sig.putInt(mat.matColors[1].a);
-        
-        for (Bmd.Material.LightChannelControl lightChannel : mat.lightChannels) {
-            if (lightChannel == null) {
-                continue;
-            }
-            sig.put((byte) (lightChannel.color.lightEnabled ? 1 : 0));
-            sig.put(lightChannel.color.materialColorSource);
-            sig.put(lightChannel.color.lightMask);
-            sig.put(lightChannel.color.diffuseFunc);
-            sig.put(lightChannel.color.attenuationFunc);
-            sig.put(lightChannel.color.ambientColorSource);
-            sig.put((byte) (lightChannel.alpha.lightEnabled ? 1 : 0));
-            sig.put(lightChannel.alpha.materialColorSource);
-            sig.put(lightChannel.alpha.lightMask);
-            sig.put(lightChannel.alpha.diffuseFunc);
-            sig.put(lightChannel.alpha.attenuationFunc);
-            sig.put(lightChannel.alpha.ambientColorSource);
-        }
-        
-        sig.putInt(mat.ambColors[0].r);
-        sig.putInt(mat.ambColors[0].g);
-        sig.putInt(mat.ambColors[0].b);
-        sig.putInt(mat.ambColors[0].a);
-        sig.putInt(mat.ambColors[1].r);
-        sig.putInt(mat.ambColors[1].g);
-        sig.putInt(mat.ambColors[1].b);
-        sig.putInt(mat.ambColors[1].a);
-        
-        // Lights need to get added here if the lights are implemented ever...
-        for (Bmd.Material.TextureGenerator texGen : mat.texGen) {
-            if (texGen == null) {
-                continue;
-            }
-            sig.put(texGen.type);
-            sig.put(texGen.src);
-            sig.put(texGen.matrix);
-        }
-        
-        for (Bmd.Material.TextureMatrix texMtx : mat.texMtx) {
-            if (texMtx == null) {
-                continue;
-            }
-            sig.put(texMtx.projection);
-            sig.put(texMtx.mappingMode);
-            sig.put((byte) (texMtx.IsMaya ? 1 : 0));
-            sig.putFloat(texMtx.center.x);
-            sig.putFloat(texMtx.center.y);
-            sig.putFloat(texMtx.center.z);
-            sig.putFloat(texMtx.scale.x);
-            sig.putFloat(texMtx.scale.y);
-            sig.putFloat(texMtx.rotate);
-            sig.putFloat(texMtx.translation.x);
-            sig.putFloat(texMtx.translation.y);
-            for (int k = 0; k < 16; k++) {
-                sig.putFloat(texMtx.projectionMatrix.m[k]);
-            }
-        }
-        
-        for (int x = 0; x < mat.textureIndicies.length; x++)
-            sig.putShort(mat.textureIndicies[x]);
-
-        for(int i = 0; i < 4; i++) {
-            sig.put((byte)mat.constColors[i].r);
-            sig.put((byte)mat.constColors[i].g);
-            sig.put((byte)mat.constColors[i].b);
-            sig.put((byte)mat.constColors[i].a);
-        }
-        
-        for(int i = 0; i < 4; i++) {
-            sig.putShort((short)mat.tevRegisterColors[i].r);
-            sig.putShort((short)mat.tevRegisterColors[i].g);
-            sig.putShort((short)mat.tevRegisterColors[i].b);
-            sig.putShort((short)mat.tevRegisterColors[i].a);
-        }
-        
-        for (Bmd.Material.TevStage tv : mat.tevStages) {
-            if (tv == null)
-                continue;
-            sig.put(tv.constantColor);
-            sig.put(tv.constantAlpha);
-            sig.put(tv.textureGeneratorID);
-            sig.put(tv.textureMapID);
-            
-            sig.put(tv.operationColor);
-            sig.put(tv.outputColor);
-            sig.put(tv.combineColorA);
-            sig.put(tv.combineColorB);
-            sig.put(tv.combineColorC);
-            sig.put(tv.combineColorD);
-            if(tv.operationColor < 2) {
-                sig.put(tv.biasColor);
-                sig.put(tv.scaleColor);
-            }
-
-            sig.put(tv.operationAlpha);
-            sig.put(tv.outputAlpha);
-            sig.put(tv.combineAlphaA);
-            sig.put(tv.combineAlphaB);
-            sig.put(tv.combineAlphaC);
-            sig.put(tv.combineAlphaD);
-            if(tv.operationAlpha < 2)
-            {
-                sig.put(tv.biasAlpha);
-                sig.put(tv.scaleAlpha);
-            }
-            
-            sig.put(tv.swapColorId);
-            sig.put(tv.swapTextureId);
-        }
-        
-        // TODO: Register Indirect stuff once it's added
-        for (Bmd.Material.TevSwapModeTable tevSwapTable : mat.tevSwapTable) {
-            if (tevSwapTable == null) {
-                continue;
-            }
-            sig.put(tevSwapTable.r);
-            sig.put(tevSwapTable.g);
-            sig.put(tevSwapTable.b);
-            sig.put(tevSwapTable.a);
-        }
-        // TODO: Fog...?
-        
-        
-        sig.put((byte)(mat.blendTestDepthBeforeTexture ? 1 : 0));
-
-        sig.put((byte)(mat.BlendEnableDepthTest ? 1 : 0));
-        sig.put(mat.BlendDepthFunction);
-        sig.put((byte)(mat.BlendWriteToZBuffer ? 1 : 0));
-
-        sig.put(mat.BlendMode);
-        sig.put(mat.BlendSourceFactor);
-        sig.put(mat.BlendDestinationFactor);
-        sig.put(mat.BlendOperation);
-        
-        sig.put(mat.AlphaCompareFunction0);
-        sig.putInt(mat.AlphaCompareReference0);
-        sig.put(mat.AlphaCompareOperation);
-        sig.put(mat.AlphaCompareFunction1);
-        sig.putInt(mat.AlphaCompareReference1);
-        
-        return(int) SuperFastHash.calculate(sigarray, 0, 0, sig.position());
-    }
-
-    private int textureHash(int texid)
-    {
-        Bmd.Texture tex = model.textures[texid];
-        
-        int size = 0;
-        for(int i = 0; i < tex.mipmapCount; i++)
-            size += tex.image[i].length;
-        
-        byte[] sigarray = new byte[size+100];
-        ByteBuffer sig = ByteBuffer.wrap(sigarray);
-        
-        for(int i = 0; i < tex.mipmapCount; i++)
-            sig.put(tex.image[i]);
-        
-        sig.put(tex.format);
-        sig.putShort(tex.width);
-        sig.putShort(tex.height);
-        sig.put(tex.magFilter);
-        sig.put(tex.minFilter);
-        sig.put(tex.wrapS);
-        sig.put(tex.wrapT);
-        sig.putFloat(tex.lodMin);
-        sig.putFloat(tex.lodMax);
-        sig.putFloat(tex.lodBias);
-        
-        return(int) SuperFastHash.calculate(sigarray, 0, 0, sig.position());
-    }
-    
     // Huge performance eater. rewrite will never happen :c
-    public void generateShaders(GL2 gl, int matid) throws GLException {
-        if(model == null)
-            return;
+    private void ctor_generateShaders_OpenGL_2_1(GL2 gl, int matid) throws GLException {
+        // Used to be a null check here, however it's completely useless since it's impossible to get to this function with an invalid BMD
         
-        // This MUST occur before the shader hash is calculated
         Bmd.Material mat = this.model.materials[matid];
         
+        // Handle the current animations that have to be done before the shaders are processed
         if (texMatrixAnim != null)
         {
             int Frame = texMatrixAnimIndex;
@@ -343,10 +468,7 @@ public class BmdRenderer extends GLRenderer {
             }
         }
         
-        if(shaders == null)
-            shaders = new Shader[1];
-        shaders[matid] = new Shader();
-        
+        // Now with the final texture matrix and color assignments handled, we can hash the material
         int hash = shaderHash(matid);
         shaders[matid].cacheKey = hash;
         
@@ -432,7 +554,7 @@ public class BmdRenderer extends GLRenderer {
             // TODO matrices
             int mtxid = mat.texGen[i].matrix;
             
-            String thematrix = "";
+            //String thematrix = "";
             if (mtxid >= 30 && mtxid <= 57)
             {
                 Bmd.Material.TextureMatrix texmtx = mat.texMtx[(mtxid - 30) / 3];
@@ -767,386 +889,209 @@ public class BmdRenderer extends GLRenderer {
         ShaderCache.addEntry(hash, vertid, fragid, sid);
     }
     
-    // -------------------------------------------------------------------------------------------------------------------------
-    
-    protected RarcFile archive = null;
-    protected Bmd model = null;
-    
-    protected Shader[] shaders = null;
-    protected int[] textures = null;
-    protected boolean hasShaders = false;
-    protected Vec3f translation = DEFAULT_TRANSLATION;
-    protected Vec3f rotation = DEFAULT_ROTATION;
-    protected Vec3f scale = DEFAULT_SCALE;
-    
-    protected Bck jointAnim = null;
-    protected int jointAnimIndex = 0;
-    protected Brk colRegisterAnim = null;
-    protected int colRegisterAnimIndex = 0;
-    protected Btk texMatrixAnim = null;
-    protected int texMatrixAnimIndex = 0;
-    protected Btp texPatternAnim = null;
-    protected int texPatternAnimIndex = 0;
-    protected Bva shapeVisibleAnim = null;
-    protected int shapeVisibleAnimIndex = 0;
-    
-    /**
-     * Set this flag to force a blue cube to be created
-     */
-    public boolean isForceFail = false;
-    
-    public BmdRenderer() {
+    private int shaderHash(int matid) {
+        byte[] sigarray = new byte[1000];
+        ByteBuffer sig = ByteBuffer.wrap(sigarray);
         
+        if(model == null || model.materials.length - 1 < matid) { // avoid nullpointer exception
+            return -1;
+        }
+        
+        Bmd.Material mat = model.materials[matid];
+        
+        // Hash it all
+        // ...except the name
+        
+        sig.put(mat.pixelEngineMode);
+        sig.putInt(mat.cullingMode);
+        sig.put((byte)(mat.dither ? 1 : 0));
+        
+        sig.putInt(mat.matColors[0].r);
+        sig.putInt(mat.matColors[0].g);
+        sig.putInt(mat.matColors[0].b);
+        sig.putInt(mat.matColors[0].a);
+        sig.putInt(mat.matColors[1].r);
+        sig.putInt(mat.matColors[1].g);
+        sig.putInt(mat.matColors[1].b);
+        sig.putInt(mat.matColors[1].a);
+        
+        for (Bmd.Material.LightChannelControl lightChannel : mat.lightChannels) {
+            if (lightChannel == null) {
+                continue;
+            }
+            sig.put((byte) (lightChannel.color.lightEnabled ? 1 : 0));
+            sig.put(lightChannel.color.materialColorSource);
+            sig.put(lightChannel.color.lightMask);
+            sig.put(lightChannel.color.diffuseFunc);
+            sig.put(lightChannel.color.attenuationFunc);
+            sig.put(lightChannel.color.ambientColorSource);
+            sig.put((byte) (lightChannel.alpha.lightEnabled ? 1 : 0));
+            sig.put(lightChannel.alpha.materialColorSource);
+            sig.put(lightChannel.alpha.lightMask);
+            sig.put(lightChannel.alpha.diffuseFunc);
+            sig.put(lightChannel.alpha.attenuationFunc);
+            sig.put(lightChannel.alpha.ambientColorSource);
+        }
+        
+        sig.putInt(mat.ambColors[0].r);
+        sig.putInt(mat.ambColors[0].g);
+        sig.putInt(mat.ambColors[0].b);
+        sig.putInt(mat.ambColors[0].a);
+        sig.putInt(mat.ambColors[1].r);
+        sig.putInt(mat.ambColors[1].g);
+        sig.putInt(mat.ambColors[1].b);
+        sig.putInt(mat.ambColors[1].a);
+        
+        // Lights need to get added here if the lights are implemented ever...
+        for (Bmd.Material.TextureGenerator texGen : mat.texGen) {
+            if (texGen == null) {
+                continue;
+            }
+            sig.put(texGen.type);
+            sig.put(texGen.src);
+            sig.put(texGen.matrix);
+        }
+        
+        for (Bmd.Material.TextureMatrix texMtx : mat.texMtx) {
+            if (texMtx == null) {
+                continue;
+            }
+            sig.put(texMtx.projection);
+            sig.put(texMtx.mappingMode);
+            sig.put((byte) (texMtx.IsMaya ? 1 : 0));
+            sig.putFloat(texMtx.center.x);
+            sig.putFloat(texMtx.center.y);
+            sig.putFloat(texMtx.center.z);
+            sig.putFloat(texMtx.scale.x);
+            sig.putFloat(texMtx.scale.y);
+            sig.putFloat(texMtx.rotate);
+            sig.putFloat(texMtx.translation.x);
+            sig.putFloat(texMtx.translation.y);
+            for (int k = 0; k < 16; k++) {
+                sig.putFloat(texMtx.projectionMatrix.m[k]);
+            }
+        }
+        
+        for (int x = 0; x < mat.textureIndicies.length; x++)
+            sig.putShort(mat.textureIndicies[x]);
+
+        for(int i = 0; i < 4; i++) {
+            sig.put((byte)mat.constColors[i].r);
+            sig.put((byte)mat.constColors[i].g);
+            sig.put((byte)mat.constColors[i].b);
+            sig.put((byte)mat.constColors[i].a);
+        }
+        
+        for(int i = 0; i < 4; i++) {
+            sig.putShort((short)mat.tevRegisterColors[i].r);
+            sig.putShort((short)mat.tevRegisterColors[i].g);
+            sig.putShort((short)mat.tevRegisterColors[i].b);
+            sig.putShort((short)mat.tevRegisterColors[i].a);
+        }
+        
+        for (Bmd.Material.TevStage tv : mat.tevStages) {
+            if (tv == null)
+                continue;
+            sig.put(tv.constantColor);
+            sig.put(tv.constantAlpha);
+            sig.put(tv.textureGeneratorID);
+            sig.put(tv.textureMapID);
+            
+            sig.put(tv.operationColor);
+            sig.put(tv.outputColor);
+            sig.put(tv.combineColorA);
+            sig.put(tv.combineColorB);
+            sig.put(tv.combineColorC);
+            sig.put(tv.combineColorD);
+            if(tv.operationColor < 2) {
+                sig.put(tv.biasColor);
+                sig.put(tv.scaleColor);
+            }
+
+            sig.put(tv.operationAlpha);
+            sig.put(tv.outputAlpha);
+            sig.put(tv.combineAlphaA);
+            sig.put(tv.combineAlphaB);
+            sig.put(tv.combineAlphaC);
+            sig.put(tv.combineAlphaD);
+            if(tv.operationAlpha < 2)
+            {
+                sig.put(tv.biasAlpha);
+                sig.put(tv.scaleAlpha);
+            }
+            
+            sig.put(tv.swapColorId);
+            sig.put(tv.swapTextureId);
+        }
+        
+        // TODO: Register Indirect stuff once it's added
+        for (Bmd.Material.TevSwapModeTable tevSwapTable : mat.tevSwapTable) {
+            if (tevSwapTable == null) {
+                continue;
+            }
+            sig.put(tevSwapTable.r);
+            sig.put(tevSwapTable.g);
+            sig.put(tevSwapTable.b);
+            sig.put(tevSwapTable.a);
+        }
+        // TODO: Fog...?
+        
+        
+        sig.put((byte)(mat.blendTestDepthBeforeTexture ? 1 : 0));
+
+        sig.put((byte)(mat.BlendEnableDepthTest ? 1 : 0));
+        sig.put(mat.BlendDepthFunction);
+        sig.put((byte)(mat.BlendWriteToZBuffer ? 1 : 0));
+
+        sig.put(mat.BlendMode);
+        sig.put(mat.BlendSourceFactor);
+        sig.put(mat.BlendDestinationFactor);
+        sig.put(mat.BlendOperation);
+        
+        sig.put(mat.AlphaCompareFunction0);
+        sig.putInt(mat.AlphaCompareReference0);
+        sig.put(mat.AlphaCompareOperation);
+        sig.put(mat.AlphaCompareFunction1);
+        sig.putInt(mat.AlphaCompareReference1);
+        
+        return(int) SuperFastHash.calculate(sigarray, 0, 0, sig.position());
+    }
+
+    private int textureHash(int texid) {
+        Bmd.Texture tex = model.textures[texid];
+        
+        int size = 0;
+        for(int i = 0; i < tex.mipmapCount; i++)
+            size += tex.image[i].length;
+        
+        byte[] sigarray = new byte[size+25]; // Size of all texture byte data + 23 bytes for the BTI settings + 2 Zeros
+        ByteBuffer sig = ByteBuffer.wrap(sigarray);
+        
+        for(int i = 0; i < tex.mipmapCount; i++)
+            sig.put(tex.image[i]);
+        
+        sig.put(tex.format);
+        sig.putShort(tex.width);
+        sig.putShort(tex.height);
+        sig.put(tex.wrapS);
+        sig.put(tex.wrapT);
+        sig.put(tex.maxAnisotropy);
+        sig.put(tex.minFilter);
+        sig.put(tex.magFilter);
+        sig.putFloat(tex.lodMin);
+        sig.putFloat(tex.lodMax);
+        sig.putFloat(tex.lodBias);
+        sig.put(tex.mipmapCount);
+        
+        return (int)SuperFastHash.calculate(sigarray, 0, 0, sig.position());
     }
     
-    /**
-     * Attempt to load model from {@code modelname}.
-     * @param info
-     * @param modelName
-     * @throws GLException 
-     */
-    public BmdRenderer(RenderInfo info, String modelName) throws GLException {
-        initModel(info, modelName);
-    }
+    //=====================================================================
     
     public final boolean isValidBmdModel() {
         return model != null;
     }
     
-    //=====================================================================
-    // These functions are to be called in the Ctor for custom renderers
-    
-    protected void initModel(RenderInfo info, String modelName) throws GLException
-    {
-        ctor_doNonSpecialModelLoad(info, modelName);
-    }
-    
-    /**
-     * The default sequence to load a model.
-     * @param modelName 
-     */
-    protected final void ctor_doNonSpecialModelLoad(RenderInfo info, String modelName) {
-        try
-        {
-            archive = ctor_loadArchive(modelName);
-        }
-        catch(Exception ex)
-        {
-            return;
-        }
-
-        if (archive == null)
-            return; //No archive bruh
-        
-        model = ctor_loadModel(modelName, archive);
-        
-        if (!isValidBmdModel())
-        {
-            try{
-                archive.close();
-            }
-            catch(Exception ex)
-            {
-                
-            }
-            return;
-        }
-        
-        //Some default BVA files for things like Thwomps
-        if (shapeVisibleAnim == null)
-            shapeVisibleAnim = ctor_tryLoadBVA(modelName, "Wait", archive);
-        if (shapeVisibleAnim == null)
-            shapeVisibleAnim = ctor_tryLoadBVA(modelName, "Normal", archive);
-        
-        if (isValidBmdModel())
-            ctor_uploadData(info);
-    }
-    
-    protected final boolean ctor_tryLoadModelDefault(String modelName)
-    {
-        try
-        {
-            archive = ctor_loadArchive(modelName);
-        }
-        catch(Exception ex)
-        {
-            return false;
-        }
-
-        if (archive == null)
-            return false; //No archive bruh
-        
-        model = ctor_loadModel(modelName, archive);
-        
-        if (!isValidBmdModel())
-        {
-            try
-            {
-                archive.close();
-            }
-            catch(Exception ex)
-            {
-                
-            }
-            return false;
-        }
-        return true;
-    }
-    
-    /**
-     * Load BMD/BDL from ARC using {@code modelname}.<br>
-     * NOTE: {@code modelname} is first run through Substitutor.
-     * @param modelName the name of the object
-     * @param archive a
-     * @throws GLException 
-     */
-    protected final Bmd ctor_loadModel(String modelName, RarcFile archive) throws GLException {
-        // Load the BMD/BDL file
-        try
-        {
-            if (archive.fileExists("/" + modelName + "/" + modelName + ".bdl"))
-            {
-                return new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bdl"));
-            }
-            else if (archive.fileExists("/" + modelName + "/" + modelName + ".bmd"))
-            {
-                return new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bmd"));
-            }
-            return null;
-        }
-        catch(IOException up)
-        {
-        }
-        return null;
-    }
-    
-    /**
-     * Load the Archive for the model (either from the current or base directories)
-     * @param modelName The name of the model to try to load the archive for
-     * @throws IOException 
-     */
-    protected final RarcFile ctor_loadArchive(String modelName) throws IOException {
-        String arcPath = Whitehole.createResourceArcPath(modelName);
-        
-        boolean UseAbsolutePath = false;
-        if (arcPath == null) {
-            //If a model is not found, we can try looking in the base directory instead
-            //We will only check ObjectData, as a vanilla game will not have models elsewhere
-            String base = Settings.getBaseGameDir();
-            if (base == null || base.length() == 0)
-                return null; //No base game path set
-            
-            arcPath = String.format("%s/%s/%s.arc", base, "ObjectData", modelName);
-            UseAbsolutePath = true;
-            File fi = new File(arcPath);
-            if (!fi.exists())
-                return null;
-        }
-        
-        FileBase fi = UseAbsolutePath ? new ExternalFile(arcPath) : Whitehole.getCurrentGameFileSystem().openFile(arcPath);
-        return new RarcFile(fi);
-    }
-    
-    protected final void ctor_uploadData(RenderInfo info) throws GLException {
-        if(model == null) {
-            return;
-        }
-        
-        GL2 gl = info.drawable.getGL().getGL2();
-        
-        String extensions = gl.glGetString(GL2.GL_EXTENSIONS);
-        hasShaders = extensions.contains("GL_ARB_shading_language_100") &&
-            extensions.contains("GL_ARB_shader_objects") &&
-            extensions.contains("GL_ARB_vertex_shader") &&
-            extensions.contains("GL_ARB_fragment_shader");
-
-        textures = new int[model.textures.length];
-        for(int i = 0; i < model.textures.length; i++)
-            uploadTexture(gl, i);
-
-        if(hasShaders) {
-            shaders = new Shader[model.materials.length];
-            if(shaders == null) {
-                shaders = new Shader[1];
-            }
-            for(int i = 0; i < model.materials.length; i++) {
-                try {
-                    generateShaders(gl, i);
-                }
-                catch(GLException ex) {
-                    
-                    System.out.println(ex.getMessage());
-                    // really ugly hack
-                    if(ex.getMessage().charAt(0) == '!') {
-                        //StringBuilder src = new StringBuilder(10000);
-                        //int lolz;
-                        //gl.glGetShaderSource(shaders[i].FragmentShader, 10000 out, lolz, src);
-                        //System.Windows.Forms.MessageBox.Show(ex.Message + "\n" + src.ToString());
-                        throw ex;
-                    }
-
-                    shaders[i].program = 0;
-                } catch(Exception ex) {
-                    //hope it continues?
-                    throw ex;
-                }
-            }
-        }
-    }
-    
-    protected final Bck ctor_tryLoadBCK(String modelName, String animName, RarcFile archive) {
-        try
-        {
-            String path = "/" + modelName + "/" + animName + ".bck";
-            FileBase fi = ctor_tryLoadFile(path, archive);
-            if(fi != null)
-                return new Bck(fi);
-        }
-        catch(IOException ex) {}
-        return null;
-    }
-     
-    protected final Brk ctor_tryLoadBRK(String modelName, String animName, RarcFile archive) {
-        try
-        {
-            String path = "/" + modelName + "/" + animName + ".brk";
-            FileBase fi = ctor_tryLoadFile(path, archive);
-            if(fi != null)
-                return new Brk(fi);
-        }
-        catch(IOException ex) {}
-        return null;
-    }
-        
-    protected final Btk ctor_tryLoadBTK(String modelName, String animName, RarcFile archive) {
-        try
-        {
-            String path = "/" + modelName + "/" + animName + ".btk";
-            FileBase fi = ctor_tryLoadFile(path, archive);
-            if(fi != null)
-                return new Btk(fi);
-        }
-        catch(IOException ex) {}
-        return null;
-    }
-        
-    protected final Btp ctor_tryLoadBTP(String modelName, String animName, RarcFile archive) {
-        try
-        {
-            String path = "/" + modelName + "/" + animName + ".btp";
-            FileBase fi = ctor_tryLoadFile(path, archive);
-            if(fi != null)
-                return new Btp(fi);
-        }
-        catch(IOException ex) {}
-        return null;
-    }
-        
-    /**
-     * Tries to load a visibility animation from the archive
-     * @param modelName The name of the model
-     * @param animName The name of the BVA animation file
-     * @param archive The archive to get the file from
-     * @return null if the animation is not found.
-     */
-    protected final Bva ctor_tryLoadBVA(String modelName, String animName, RarcFile archive) {
-        // Load a BVA file
-        try
-        {
-            String path = "/" + modelName + "/" + animName + ".bva";
-            FileBase fi = ctor_tryLoadFile(path, archive);
-            if(fi != null)
-                return new Bva(fi);
-        }
-        catch(IOException ex) {}
-        return null;
-    }
-    
-    protected final FileBase ctor_tryLoadFile(String arcPath, RarcFile archive) throws IOException
-    {
-        if(archive.fileExists(arcPath))
-            return archive.openFile(arcPath);
-        return null;
-    }
-    
-    //=====================================================================
-    
-    @Override
-    public void close(RenderInfo info) throws GLException {
-        if(model == null)
-            return;
-        
-        GL2 gl = info.drawable.getGL().getGL2();
-        
-        if(hasShaders) {
-            for(Shader shader : shaders) {
-                if(!ShaderCache.removeEntry(shader.cacheKey))
-                    continue;
-                
-                if(shader.vertexShader > 0) {
-                    gl.glDetachShader(shader.program, shader.vertexShader);
-                    gl.glDeleteShader(shader.vertexShader);
-                }
-
-                if(shader.fragmentShader > 0) {
-                    gl.glDetachShader(shader.program, shader.fragmentShader);
-                    gl.glDeleteShader(shader.fragmentShader);
-                }
-
-                if(shader.program > 0)
-                    gl.glDeleteProgram(shader.program);
-            }
-        }
-
-        for(int tex : textures) {
-            int theid = TextureCache.getTextureID(tex);
-            if(!TextureCache.removeEntry(tex))
-                continue;
-            
-            gl.glDeleteTextures(1, new int[] { theid }, 0);
-        }
-
-        if(model != null) {
-            try { model.close(); archive.close(); }
-            catch(IOException ex) {}
-        }
-    }
-    
-    @Override
-    public void releaseStorage() {
-        try
-        {
-            if(shapeVisibleAnim != null)
-                shapeVisibleAnim.close();
-            
-            if (texPatternAnim != null)
-                texPatternAnim.close();
-            
-            if (texMatrixAnim != null)
-                texMatrixAnim.close();
-            
-            if (colRegisterAnim != null)
-                colRegisterAnim.close();
-            
-            if (model != null)
-                model.close();
-            
-            if (archive != null)
-                archive.close();
-            
-            model = null;
-            shapeVisibleAnim = null;
-            texPatternAnim = null;
-            texMatrixAnim = null;
-            colRegisterAnim = null;
-            archive = null;
-        }
-        catch(Exception ex)
-        {
-            
-        }
-    }
-
     @Override
     public boolean gottaRender(RenderInfo info) throws GLException {
         if(info.renderMode == RenderMode.PICKING || info.renderMode == RenderMode.HIGHLIGHT)
@@ -1184,7 +1129,7 @@ public class BmdRenderer extends GLRenderer {
         if(info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
             gl.glColor4f(1f, 1f, 1f, 1f);
         
-        if(model == null)
+        if(!isValidBmdModel())
             return;
         
         if (jointAnim != null && jointAnim.BoneCount == model.joints.length)
@@ -1491,6 +1436,78 @@ public class BmdRenderer extends GLRenderer {
         }
         
         gl.glPopMatrix();
+    }
+    
+    @Override
+    public void close(RenderInfo info) throws GLException {
+        if(!isValidBmdModel())
+            return;
+        
+        GL2 gl = info.drawable.getGL().getGL2();
+        
+        if(hasShaders) {
+            for(Shader shader : shaders) {
+                if(!ShaderCache.removeEntry(shader.cacheKey))
+                    continue;
+                
+                if(shader.vertexShader > 0) {
+                    gl.glDetachShader(shader.program, shader.vertexShader);
+                    gl.glDeleteShader(shader.vertexShader);
+                }
+
+                if(shader.fragmentShader > 0) {
+                    gl.glDetachShader(shader.program, shader.fragmentShader);
+                    gl.glDeleteShader(shader.fragmentShader);
+                }
+
+                if(shader.program > 0)
+                    gl.glDeleteProgram(shader.program);
+            }
+        }
+
+        for(int tex : textures) {
+            int theid = TextureCache.getTextureID(tex);
+            if(!TextureCache.removeEntry(tex))
+                continue;
+            
+            gl.glDeleteTextures(1, new int[] { theid }, 0);
+        }
+
+    }
+    
+    @Override
+    public void releaseStorage() {
+        try
+        {
+            if(shapeVisibleAnim != null)
+                shapeVisibleAnim.close();
+            
+            if (texPatternAnim != null)
+                texPatternAnim.close();
+            
+            if (texMatrixAnim != null)
+                texMatrixAnim.close();
+            
+            if (colRegisterAnim != null)
+                colRegisterAnim.close();
+            
+            if (model != null)
+                model.close();
+            
+            if (archive != null)
+                archive.close();
+            
+            model = null;
+            shapeVisibleAnim = null;
+            texPatternAnim = null;
+            texMatrixAnim = null;
+            colRegisterAnim = null;
+            archive = null;
+        }
+        catch(Exception ex)
+        {
+            
+        }
     }
     
     protected class Shader {

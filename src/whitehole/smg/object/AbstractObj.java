@@ -17,9 +17,8 @@
 package whitehole.smg.object;
 
 import com.jogamp.opengl.*;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import whitehole.Whitehole;
 import whitehole.db.ObjectDB;
@@ -30,7 +29,6 @@ import whitehole.smg.StageArchive;
 import whitehole.smg.StageHelper;
 import whitehole.util.PropertyGrid;
 import whitehole.math.Vec3f;
-import whitehole.rendering.RendererFactory;
 
 public abstract class AbstractObj {
     public String name, layerKey, oldName;
@@ -334,10 +332,12 @@ public abstract class AbstractObj {
             return;
         }
         
-        renderer = RendererCache.getObjectRenderer(info, this);
+        SimpleEntry<GLRenderer, String> result = RendererCache.getObjectRenderer(info, this);
+        renderer = result.getKey();
         renderer.compileDisplayLists(info);
         renderer.releaseStorage();
-        PreviousRenderKey = RendererFactory.getSubstitutedModelName(name, this, false);
+        //PreviousRenderKey = RendererFactory.getSubstitutedModelName(name, this, false);
+        PreviousRenderKey = result.getValue();
     }
     
     public void closeRenderer(GLRenderer.RenderInfo info) {

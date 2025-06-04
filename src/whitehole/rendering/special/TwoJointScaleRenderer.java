@@ -32,8 +32,7 @@ public class TwoJointScaleRenderer extends BasicAnimationRenderer {
     boolean isNeedDrawLines;
     float drawLineLength;
     Float drawLineRange;
-    public TwoJointScaleRenderer(RenderInfo info, String modelName, AbstractObj obj, HashMap<String, Object> params) throws GLException
-    {
+    public TwoJointScaleRenderer(RenderInfo info, String modelName, AbstractObj obj, HashMap<String, Object> params) throws GLException {
         if (!ctor_tryLoadModelDefault(modelName))
             return;
         
@@ -55,9 +54,11 @@ public class TwoJointScaleRenderer extends BasicAnimationRenderer {
             BigDecimal posYBottom = (BigDecimal)params.get("BottomPosY");
 
             String ScaleSource = (String)params.get("ScaleSource");
-            Float scaleValue = Float.parseFloat(obj.data.get(ScaleSource == null ? "scale_y" : ScaleSource).toString());
+            Float scaleValue = obj.scale.y;
+            if (ScaleSource != null) 
+                scaleValue = Float.parseFloat(obj.data.get(ScaleSource).toString());
             
-            if (scaleValue == -1.0)
+            if (scaleValue == -1.0 && params.containsKey("DefaultScale"))
                 scaleValue = ((BigDecimal)params.get("DefaultScale")).floatValue();
             
             if (topName != null && bottomName != null && scaleYTop != null && posYBottom != null)
@@ -79,9 +80,11 @@ public class TwoJointScaleRenderer extends BasicAnimationRenderer {
             
             
             String ScaleSource = (String)params.get("ScaleSource");
-            Float scaleValue = Float.parseFloat(obj.data.get(ScaleSource == null ? "scale_y" : ScaleSource).toString());
+            Float scaleValue = obj.scale.y;
+            if (ScaleSource != null) 
+                scaleValue = Float.parseFloat(obj.data.get(ScaleSource).toString());
             
-            if (scaleValue == -1.0)
+            if (scaleValue == -1.0 && params.containsKey("DefaultScale"))
                 scaleValue = ((BigDecimal)params.get("DefaultScale")).floatValue();
             
             Boolean x = (Boolean)params.get("NeedsLines");
