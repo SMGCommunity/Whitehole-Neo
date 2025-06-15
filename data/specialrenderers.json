@@ -243,7 +243,7 @@
       ]
     },
     {
-      "ObjectName": "EarthenPipe",
+      "ClassName": "EarthenPipe",
       "RendererType": "TwoJointScale",
       "RendererParams": [
         {
