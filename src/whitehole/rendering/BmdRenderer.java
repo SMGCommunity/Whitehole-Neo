@@ -676,12 +676,12 @@ public class BmdRenderer extends GLRenderer {
         frag.append("    vec4 texcolor, rascolor, konst, lightmatsrc;\n");
 
         if (mat.lightChannels[0] != null && mat.lightChannels[0].color.materialColorSource == 0) // Defaulting to color channel 0...
-            frag.append("    lightmatsrc.rgb = vec3(").append(String.format("%1$f, %2$f, %3$f", mat.matColors[0].r/255f, mat.matColors[0].g/255f, mat.matColors[0].b/255f)).append(");\n");
+            frag.append("    lightmatsrc.rgb = vec3(").append(String.format(usa, "%1$f, %2$f, %3$f", mat.matColors[0].r/255f, mat.matColors[0].g/255f, mat.matColors[0].b/255f)).append(");\n");
         else
             frag.append("    lightmatsrc.rgb = gl_Color.rgb;\n");
         
         if (mat.lightChannels[0] != null && mat.lightChannels[0].alpha.materialColorSource == 0) // Defaulting to color channel 0...
-            frag.append("    lightmatsrc.a = ").append(String.format("%1$f", mat.matColors[0].a/255f)).append(";\n");
+            frag.append("    lightmatsrc.a = ").append(String.format(usa, "%1$f", mat.matColors[0].a/255f)).append(";\n");
         else
             frag.append("    lightmatsrc.a = gl_Color.a;\n");
         
