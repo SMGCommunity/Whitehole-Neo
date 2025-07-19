@@ -996,19 +996,24 @@ public class Bmd
 
             for (int x = 0; x < 16; x++)
             {
-                Material.TevStage tv = mat.tevStages[x];
+                Material.TevStage tv = mat.tevStages[x];                
                 if (x < TevStageCount && tv != null)
                 {
+                    if (TevSwapModeTableOffset == 0) // No swap modes stored in the file
                     {
-                        short id = file.readShort();
-                        long p = file.position();
-                        file.position(ChunkStart + TevSwapModeTableOffset + (4 * id));
-                        
-                        tv.swapColorId = file.readByte();
-                        tv.swapTextureId = file.readByte();
-                        
-                        file.position(p);
+                        tv.swapColorId = 0;
+                        tv.swapTextureId = 0;
+                        continue;
                     }
+                       
+                    short id = file.readShort();
+                    long p = file.position();
+                    file.position(ChunkStart + TevSwapModeTableOffset + (4 * id));
+
+                    tv.swapColorId = file.readByte();
+                    tv.swapTextureId = file.readByte();
+
+                    file.position(p);
                 }
                 else
                     file.skip(2);
@@ -1017,6 +1022,16 @@ public class Bmd
             mat.tevSwapTable = new Material.TevSwapModeTable[16];
             for (int x = 0; x < 16; x++)
             {
+                if (TevSwapTableOffset == 0)
+                {
+                    mat.tevSwapTable[x] = mat.new TevSwapModeTable();
+                    mat.tevSwapTable[x].r = 0;
+                    mat.tevSwapTable[x].g = 1;
+                    mat.tevSwapTable[x].b = 2;
+                    mat.tevSwapTable[x].a = 3;
+                    continue;
+                }
+                
                 {
                     short id = file.readShort();
                     if (id == (short)0xFFFF)
