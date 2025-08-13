@@ -351,6 +351,11 @@ public class KclRenderer extends GLRenderer {
     
     protected Bcsv.Entry getDataFromGroupIdx(int idx)
     {
+        if (idx >= data.entries.size() || idx < 0)
+        {
+            idx = 0; //Failsafe
+        }
+        
         return data.entries.get(idx);
     }
     
