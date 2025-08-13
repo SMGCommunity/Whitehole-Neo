@@ -68,6 +68,8 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     return BlackHoleRenderer.getAdditiveCacheKey(obj);
                 case "PlantGroup":
                     return PlantGroupRenderer.getAdditiveCacheKey(objModelName, obj, renderinfo.rendererParams);
+                case "WoodLogBridge":
+                    return WoodLogBridgeRenderer.getAdditiveCacheKey(objModelName, obj, renderinfo.rendererParams);
             }
         return "";
     }
@@ -131,6 +133,9 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     break;
                 case "PlantGroup":
                     result = new PlantGroupRenderer(info, objModelName, obj, specialInfo.rendererParams);
+                    break;
+                case "WoodLogBridge":
+                    result = new WoodLogBridgeRenderer(info, objModelName, obj, specialInfo.rendererParams);
                     break;
             }
         

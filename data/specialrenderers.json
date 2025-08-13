@@ -897,6 +897,10 @@
     {
       "ClassName": "TransparentWall",
       "RendererType": "CollisionOnly"
+    },
+    {
+      "ClassName": "WoodLogBridge",
+      "RendererType": "WoodLogBridge"
     }
   ]
 }
