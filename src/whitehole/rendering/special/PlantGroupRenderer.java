@@ -18,6 +18,7 @@ package whitehole.rendering.special;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -68,8 +69,6 @@ public class PlantGroupRenderer extends ShapeModelRenderer {
         }
         else
             newModelName = makeModelName(oldModelName, shapeModelNo);
-                
-        
         
         if (!ctor_tryLoadModelDefault(newModelName))
         {
@@ -112,6 +111,8 @@ public class PlantGroupRenderer extends ShapeModelRenderer {
         int numRings = 0;
         double radius = 0.0;
         
+        Vec3f[] PositionList = new Vec3f[PlantNum];
+        
         for (int i = 0; i < PlantNum; i++)
         {            
             // Build circular pattern.
@@ -127,21 +128,7 @@ public class PlantGroupRenderer extends ShapeModelRenderer {
             //Create the renderer position
             Vec3f s = new Vec3f(-scratchVec3a.z, scratchVec3a.y, scratchVec3a.x);
             
-            //Definitely did NOT steal this from PhantomRenderer...
-            gl.glPushMatrix();
-//                if (p.absoluteTranslation != null)
-//                {
-//                    gl.glRotatef(-p.baseRotation.x, 1f, 0f, 0f);
-//                    gl.glRotatef(-p.baseRotation.y, 0f, 1f, 0f);
-//                    gl.glRotatef(-p.baseRotation.z, 0f, 0f, 1f);
-//                    gl.glTranslatef(-p.baseTranslation.x, -p.baseTranslation.y, -p.baseTranslation.z);
-//                }
-                gl.glTranslatef(s.x, s.y, s.z);
-//                gl.glRotatef(s.z, 0f, 0f, 1f);
-//                gl.glRotatef(s.y, 0f, 1f, 0f);
-//                gl.glRotatef(s.x, 1f, 0f, 0f);
-                super.render(info);
-                gl.glPopMatrix();
+            PositionList[i] = s;
             
             if (angle >= TAU)
             {
@@ -156,6 +143,16 @@ public class PlantGroupRenderer extends ShapeModelRenderer {
             {
                 angle += (float)TAU / plantsPerRing;
             }
+        }
+        
+        // This is here for Accuracy. Granted I have no idea if the game does this, but it's otherwise not centered correctly for less than 7 plants
+        Vec3f Center = Vec3f.centroid(PositionList);
+        
+        for (Vec3f s : PositionList) {
+            gl.glPushMatrix();
+            gl.glTranslatef(s.x - Center.x, s.y - Center.y, s.z - Center.z);
+            super.render(info);
+            gl.glPopMatrix();
         }
     }
 
