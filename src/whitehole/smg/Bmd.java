@@ -22,6 +22,7 @@ import whitehole.util.Color4;
 import whitehole.math.Matrix4;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
+import whitehole.util.MathUtil;
 
 public class Bmd 
 {
@@ -1218,6 +1219,9 @@ public class Bmd
             tex.lodBias = ((float)fileBias) / 100.0f;
             
             int dataoffset = file.readInt();
+            
+            if (!MathUtil.isPowerOfTwo(tex.width) || !MathUtil.isPowerOfTwo(tex.height))
+                System.out.println("WARNING: Bad texture size: "+tex.width+"x"+tex.height);
             tex.image = ImageUtils.decodeTextureData(file, sectionstart + dataoffset + 0x20 + (0x20 * i), tex.mipmapCount, tex.format, tex.width, tex.height);
             
             /*try 
