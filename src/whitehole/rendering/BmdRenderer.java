@@ -484,18 +484,28 @@ public class BmdRenderer extends GLRenderer {
         
         Locale usa = new Locale("en-US");
         String[] texgensrc = { 
-            "(gl_Vertex / 100000.0)",
-            "normal",
-            "argh",
-            "argh",
-            "gl_MultiTexCoord0",
-            "gl_MultiTexCoord1",
-            "gl_MultiTexCoord2",
-            "gl_MultiTexCoord3",
-            "gl_MultiTexCoord4",
-            "gl_MultiTexCoord5", 
-            "gl_MultiTexCoord6",
-            "gl_MultiTexCoord7" };
+            "(gl_Vertex / 100000.0)", // TEXGENSRC_POSITION
+            "normal",                 // TEXGENSRC_NORMAL
+            "argh",                   // TEXGENSRC_BINORMAL
+            "argh",                   // TEXGENSRC_TANGENT
+            "gl_MultiTexCoord0",      // TEXGENSRC_TEXTURE0
+            "gl_MultiTexCoord1",      // TEXGENSRC_TEXTURE1
+            "gl_MultiTexCoord2",      // TEXGENSRC_TEXTURE2
+            "gl_MultiTexCoord3",      // TEXGENSRC_TEXTURE3
+            "gl_MultiTexCoord4",      // TEXGENSRC_TEXTURE4
+            "gl_MultiTexCoord5",      // TEXGENSRC_TEXTURE5
+            "gl_MultiTexCoord6",      // TEXGENSRC_TEXTURE6
+            "gl_MultiTexCoord7",      // TEXGENSRC_TEXTURE7
+            "argh",                   // TEXGENSRC_TEXCOORD0
+            "argh",                   // TEXGENSRC_TEXCOORD1
+            "argh",                   // TEXGENSRC_TEXCOORD2
+            "argh",                   // TEXGENSRC_TEXCOORD3
+            "argh",                   // TEXGENSRC_TEXCOORD4
+            "argh",                   // TEXGENSRC_TEXCOORD5
+            "argh",                   // TEXGENSRC_TEXCOORD6
+            "gl_Color",               // TEXGENSRC_COLOR0
+            "gl_Color"                // TEXGENSRC_COLOR1
+        };
         String[] outputregs = { "rprev", "r0", "r1", "r2" };
         String[] c_inputregs = { 
             "truncc3(rprev.rgb)",
