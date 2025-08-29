@@ -63,6 +63,13 @@ public class GameAndProjectDataHolder {
             if (isNeedForceQuit)
                 System.exit(1);
         }
+        catch (org.json.JSONException ex) {
+            System.out.println("WARNING! Unable to load "+path);
+            System.out.println(ex);
+            if (isNeedForceQuit)
+                System.exit(1);
+            return null;
+        }
         return result;
     }
     
