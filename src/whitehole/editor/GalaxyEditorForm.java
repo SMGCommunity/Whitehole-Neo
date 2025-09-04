@@ -53,6 +53,7 @@ import whitehole.math.Vec3f;
 import whitehole.util.Color4;
 import whitehole.util.StageUtil;
 import whitehole.util.ObjIdUtil;
+import whitehole.util.RailUtil;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     private static final float SCALE_DOWN = 10000f;
@@ -4765,6 +4766,89 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 glCanvas.repaint();
                 unsavedChanges = true;
             }
+            // Reverse Selected Path Points -- Ctrl+Shift+R
+            else if (keyCode == KeyEvent.VK_R && e.isControlDown() && e.isShiftDown())
+            {
+                if (selectedObjs.isEmpty())
+                {
+                    setStatusToWarning("Nothing selected to reverse");
+                    return;
+                }
+                
+                HashMap<PathObj, ArrayList<Integer>> SelectedPathPointsPerPath = new HashMap();
+                
+                // First, we're just going to collect all path points that are selected and separate them by their owning path
+                for(AbstractObj selectedObj : selectedObjs.values()){
+                    if (!(selectedObj instanceof PathPointObj))
+                        continue;
+                    
+                    PathPointObj curPathPoint = (PathPointObj)selectedObj;
+                    PathObj curPath = curPathPoint.path;
+                    if (!SelectedPathPointsPerPath.containsKey(curPath))
+                        SelectedPathPointsPerPath.put(curPath, new ArrayList());
+                    SelectedPathPointsPerPath.get(curPath).add(curPath.indexOf(curPathPoint));
+                }
+                
+                // Second, we need to fix the selection order, and then create groups based on holes
+                // Example: User selects points 1,2,3,7,6,8. This results with 1,2,3 | 6,7,8
+                startUndoMulti();
+                int SuccessfulSwapCount = 0;
+                for (HashMap.Entry<PathObj, ArrayList<Integer>> entry : SelectedPathPointsPerPath.entrySet()) {
+                    List<List<Integer>> result = new ArrayList<>();
+                    PathObj key = entry.getKey();
+                    ArrayList<Integer> value = entry.getValue();
+                    
+                    if (value.size() == 1) // Nothing can be reversed with only one path point selected...
+                        continue;
+                    
+                    value.sort(Comparator.naturalOrder()); // Fix selection order inaccuracies.
+                    
+                    List<Integer> currentSequence = new ArrayList<>();
+                    currentSequence.add(value.get(0));
+
+                    for (int i = 1; i < value.size(); i++) {
+                        int currentNumber = value.get(i);
+                        int previousNumber = value.get(i - 1);
+
+                        if (currentNumber == previousNumber + 1) {
+                            currentSequence.add(currentNumber);
+                        } else {
+                            result.add(currentSequence);
+                            currentSequence = new ArrayList<>();
+                            currentSequence.add(currentNumber);
+                        }
+                    }
+
+                    result.add(currentSequence);
+                    
+                    // Now we can call for reversing
+                    for(List<Integer> list : result)
+                    {
+                        List<PathPointObj> p = key.getPoints();
+                        for(Integer v : list)
+                            addUndoEntry(IUndo.Action.TRANSLATE, p.get(v));
+                        
+                        if (RailUtil.reversePath(key, list.get(0), list.get(list.size()-1)));
+                        {
+                            SuccessfulSwapCount++;
+                            addRerenderTask("path:"+key.uniqueID);
+                            addRerenderTask("zone:" + key.stage.stageName);
+                        }
+                    }
+                }
+                endUndoMulti();
+        
+                
+                if (SelectedPathPointsPerPath.isEmpty() || SuccessfulSwapCount <= 0)
+                {
+                    setStatusToWarning("None of the selected objects can be reversed");
+                    return;
+                }
+                
+                setStatusToInfo("Made "+SuccessfulSwapCount+" path point(s) reversals.");
+                glCanvas.repaint();
+                unsavedChanges = true;
+            }
             // Copy/Paste
             else if ((keyCode == KeyEvent.VK_C || keyCode == KeyEvent.VK_V) && e.isControlDown() && (keyMask & 0x3F) == 0)
             {
@@ -4957,6 +5041,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             }
         }
     }
+    
+    
+    
+    // Keyboard Shortcut Functions
+    // The reason for these is so that "return" can be used
+    // as the use of "return" previously was causing some inconsistent behaviours
+    
+    
     
     
     // -------------------------------------------------------------------------------------------------------------------------

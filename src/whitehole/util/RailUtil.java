@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package whitehole.util;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import whitehole.math.Vec3f;
 import whitehole.smg.object.PathObj;
@@ -27,6 +29,53 @@ import whitehole.smg.object.PathPointObj;
 public final class RailUtil
 {
     private RailUtil() {}
+    
+    /**
+    * Reverses the order of the path points between the StartIdx and EndIdx (inclusive)
+    * @param Path The path that hosts the points
+    * @param StartIdx The first path point. Cannot be less than Zero
+    * @param EndIdx The end path point. Cannot be greater than Path.size()
+    * @returns true on Success, false on Failure
+    */
+    public static boolean reversePath(PathObj Path, int StartIdx, int EndIdx)
+    {
+        if (StartIdx < 0 || StartIdx >= Path.size())
+            return false;
+        
+        if (EndIdx < 0 || EndIdx >= Path.size())
+            return false;
+        
+        if (StartIdx == EndIdx)
+            return true; // Technically, this was a successful swap...
+        
+        if (StartIdx > EndIdx) // Reorder them so the smaller index is always first
+        {
+            int t = EndIdx;
+            EndIdx = StartIdx;
+            StartIdx = t;
+        }
+        ArrayList<Vec3f> PosList = new ArrayList();
+        ArrayList<Vec3f> Ctrl1List = new ArrayList();
+        ArrayList<Vec3f> Ctrl2List = new ArrayList();
+        
+        List<PathPointObj> Points = Path.getPoints();
+        for (int i = StartIdx; i <= EndIdx; i++) {
+            PathPointObj current = Points.get(i);
+            PosList.add(current.position);
+            Ctrl1List.add(current.point1);
+            Ctrl2List.add(current.point2);
+        }
+        int p = EndIdx;
+        for (int i = 0; i < PosList.size(); i++) {
+            PathPointObj current = Points.get(p);
+            current.position = new Vec3f(PosList.get(i));
+            current.point1 = new Vec3f(Ctrl2List.get(i));
+            current.point2 = new Vec3f(Ctrl1List.get(i));
+            p--;
+        }
+        
+        return true;
+    }
     
     // ==============================================================
     
