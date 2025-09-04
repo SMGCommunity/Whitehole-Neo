@@ -51,6 +51,7 @@ import whitehole.math.RotationMatrix;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
 import whitehole.util.Color4;
+import whitehole.util.MathUtil;
 import whitehole.util.StageUtil;
 import whitehole.util.ObjIdUtil;
 import whitehole.util.RailUtil;
@@ -4654,327 +4655,46 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             else if (keyCode == Settings.getKeyScale())
                 keyMask |= (1 << 8);
 
-            
-            // Delete objects -- DEL
-            if (keyCode == KeyEvent.VK_DELETE) {
-                tgbDeleteObject.doClick();
-            }
-            // Hide & unhide objects -- H or Alt+H
-            else if (keyCode == KeyEvent.VK_H) {
-                if (e.isAltDown()) {
-                    for (AbstractObj obj : globalObjList.values()) {
-                        if (obj.isHidden) {
-                            obj.isHidden = false;
-                            addRerenderTask("zone:" + obj.stage.stageName);
-                        }
-                    }
-                    
-                    setStatusToInfo("Unhid all objects.");
-                }
-                else {
-                    if (selectedObjs.isEmpty()) {
-                        return;
-                    }
-                    
-                    List<AbstractObj> hideObjs = new ArrayList(selectedObjs.values());
-                    
-                    for (AbstractObj obj : hideObjs) {
-                        obj.isHidden = !obj.isHidden;
-                        addRerenderTask("zone:" + obj.stage.stageName);
-                    }
-                    
-                    setStatusToInfo("Hid/unhid selection.");
-                }
-                
-                glCanvas.repaint();
-                return;
-            }
-            // Truncate feature. Removes all decimals from the selected objects
-            else if (keyCode == KeyEvent.VK_N && e.isControlDown())
+            if ((keyMask & 0x1FF) == 0)
             {
-                startUndoMulti();
-                for(AbstractObj selectedObj : selectedObjs.values())
-                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+                // ============== Keyboard Shortcuts ==============
+                // TODO: Hook this up to a custom keybinds system
                 
-                for (AbstractObj obj : selectedObjs.values())
-                {
-                    obj.position.x = (int)obj.position.x;
-                    obj.position.y = (int)obj.position.y;
-                    obj.position.z = (int)obj.position.z;
-                    if (obj instanceof PathPointObj)
-                    {
-                        PathPointObj x = (PathPointObj)obj;
-                        x.point1.x = (int)x.point1.x;
-                        x.point1.y = (int)x.point1.y;
-                        x.point1.z = (int)x.point1.z;
-                        x.point2.x = (int)x.point2.x;
-                        x.point2.y = (int)x.point2.y;
-                        x.point2.z = (int)x.point2.z;
-                        addRerenderTask("path:"+x.path.uniqueID);
-                    }
-                    else
-                        addRerenderTask("object:" + obj.uniqueID);
-                    addRerenderTask("zone:" + obj.stage.stageName);
-                }
-                endUndoMulti();
-                selectionChanged();
-                glCanvas.repaint();
-                unsavedChanges = true;
-            }
-            // Undo event -- Ctrl+Z
-            else if (keyCode == KeyEvent.VK_Z && e.isControlDown()) {
-                doUndo();
-            }
-            // Pull Up Add menu -- Shift+A
-            else if (keyCode == KeyEvent.VK_A && e.isShiftDown()) {
-                popupAddItems.setLightWeightPopupEnabled(false);
-                popupAddItems.show(pnlGLPanel, mousePos.x, mousePos.y);
-                popupAddItems.setVisible(true);
-            }
-            // Reset Path control points -- Ctrl+Shift+Alt+C
-            else if (keyCode == KeyEvent.VK_C && e.isControlDown() && e.isShiftDown() && e.isAltDown())
-            {
-                startUndoMulti();
-                for(AbstractObj selectedObj : selectedObjs.values())
-                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+                // Quick Reference: The 3 modifiers' booleans are always ordered CTRL, SHIFT, ALT
+                if (isShortcutPressed(e, false, false, false, KeyEvent.VK_DELETE))            // Delete objects -- DEL
+                    shortcutDelete();
+                else if (isShortcutPressed(e, false, false, true, KeyEvent.VK_H))             // Unhide all hidden objects -- ALT+H
+                    shortcutUnhideAll();
+                else if (isShortcutPressed(e, false, false, false, KeyEvent.VK_H))            // Hide & Unhide objects -- H
+                    shortcutHideToggle();
+                else if (isShortcutPressed(e, true, false, false, KeyEvent.VK_N))             // Truncate Object Position (Remove Decimals) -- CTRL+N
+                    shortcutTruncate();
+                else if (isShortcutPressed(e, true, false, false, KeyEvent.VK_Z))             // Undo -- CTRL+Z
+                    shortcutUndo();
+                else if (isShortcutPressed(e, false, true, false, KeyEvent.VK_A))             // Pull Up Add menu -- SHIFT+A
+                    shortcutQuickAdd();
+                else if (isShortcutPressed(e, true, true, true, KeyEvent.VK_C))               // Reset Path control points -- CTRL+SHIFT+ALT+C
+                    shortcutResetPathControlPoints();
+                else if (isShortcutPressed(e, true, true, false, KeyEvent.VK_R))              // Reverse Selected Path Points -- CTRL+SHIFT+R
+                    shortcutReversePathPoints();
+                else if (isShortcutPressed(e, true, false, false, KeyEvent.VK_C))             // Copy -- CTRL+C
+                    shortcutCopy();
+                else if (isShortcutPressed(e, true, false, false, KeyEvent.VK_V))             // Paste (at mouse) -- CTRL+V
+                    shortcutPaste();
+                else if (isShortcutPressed(e, true, true, false, KeyEvent.VK_V))              // Paste (at copied position) -- CTRL+SHIFT+V
+                    shortcutPasteLiteral();
+                else if (isShortcutPressed(e, false, false, false, KeyEvent.VK_SPACE))        // Jump to Selection -- SPACE
+                    shortcutJumpToSelection();
+                else if (isShortcutPressed(e, false, true, false, KeyEvent.VK_SPACE))         // Jump to Zone -- SHIFT+SPACE
+                    shortcutJumpToZone();
+                else if (isShortcutPressed(e, false, true, false, KeyEvent.VK_OPEN_BRACKET))  // Add Zone Position -- SHIFT+[
+                    shortcutAddZonePosition();            
+                else if (isShortcutPressed(e, false, true, false, KeyEvent.VK_CLOSE_BRACKET)) // Subtract Zone Position -- SHIFT+]
+                    shortcutSubZonePosition();
                 
-                int ResetNum = 0;
-                for (AbstractObj obj : selectedObjs.values())
-                {
-                    if (obj instanceof PathPointObj)
-                    {
-                        PathPointObj x = (PathPointObj)obj;
-                        x.point1.x = obj.position.x;
-                        x.point1.y = obj.position.y;
-                        x.point1.z = obj.position.z;
-                        x.point2.x = obj.position.x;
-                        x.point2.y = obj.position.y;
-                        x.point2.z = obj.position.z;
-                        addRerenderTask("path:"+x.path.uniqueID);
-                        
-                        ResetNum++;
-                    }
-                    addRerenderTask("zone:" + obj.stage.stageName);
-                }
-                
-                endUndoMulti();
-                
-                if (ResetNum == 0)
-                    setStatusToWarning("No path points were reset.");
-                else
-                    setStatusToInfo("Reset "+ResetNum+" path points.");
-                glCanvas.repaint();
-                unsavedChanges = true;
-            }
-            // Reverse Selected Path Points -- Ctrl+Shift+R
-            else if (keyCode == KeyEvent.VK_R && e.isControlDown() && e.isShiftDown())
-            {
-                if (selectedObjs.isEmpty())
-                {
-                    setStatusToWarning("Nothing selected to reverse");
-                    return;
-                }
-                
-                HashMap<PathObj, ArrayList<Integer>> SelectedPathPointsPerPath = new HashMap();
-                
-                // First, we're just going to collect all path points that are selected and separate them by their owning path
-                for(AbstractObj selectedObj : selectedObjs.values()){
-                    if (!(selectedObj instanceof PathPointObj))
-                        continue;
-                    
-                    PathPointObj curPathPoint = (PathPointObj)selectedObj;
-                    PathObj curPath = curPathPoint.path;
-                    if (!SelectedPathPointsPerPath.containsKey(curPath))
-                        SelectedPathPointsPerPath.put(curPath, new ArrayList());
-                    SelectedPathPointsPerPath.get(curPath).add(curPath.indexOf(curPathPoint));
-                }
-                
-                // Second, we need to fix the selection order, and then create groups based on holes
-                // Example: User selects points 1,2,3,7,6,8. This results with 1,2,3 | 6,7,8
-                startUndoMulti();
-                int SuccessfulSwapCount = 0;
-                for (HashMap.Entry<PathObj, ArrayList<Integer>> entry : SelectedPathPointsPerPath.entrySet()) {
-                    List<List<Integer>> result = new ArrayList<>();
-                    PathObj key = entry.getKey();
-                    ArrayList<Integer> value = entry.getValue();
-                    
-                    if (value.size() == 1) // Nothing can be reversed with only one path point selected...
-                        continue;
-                    
-                    value.sort(Comparator.naturalOrder()); // Fix selection order inaccuracies.
-                    
-                    List<Integer> currentSequence = new ArrayList<>();
-                    currentSequence.add(value.get(0));
-
-                    for (int i = 1; i < value.size(); i++) {
-                        int currentNumber = value.get(i);
-                        int previousNumber = value.get(i - 1);
-
-                        if (currentNumber == previousNumber + 1) {
-                            currentSequence.add(currentNumber);
-                        } else {
-                            result.add(currentSequence);
-                            currentSequence = new ArrayList<>();
-                            currentSequence.add(currentNumber);
-                        }
-                    }
-
-                    result.add(currentSequence);
-                    
-                    // Now we can call for reversing
-                    for(List<Integer> list : result)
-                    {
-                        List<PathPointObj> p = key.getPoints();
-                        for(Integer v : list)
-                            addUndoEntry(IUndo.Action.TRANSLATE, p.get(v));
-                        
-                        if (RailUtil.reversePath(key, list.get(0), list.get(list.size()-1)));
-                        {
-                            SuccessfulSwapCount++;
-                            addRerenderTask("path:"+key.uniqueID);
-                            addRerenderTask("zone:" + key.stage.stageName);
-                        }
-                    }
-                }
-                endUndoMulti();
-        
-                
-                if (SelectedPathPointsPerPath.isEmpty() || SuccessfulSwapCount <= 0)
-                {
-                    setStatusToWarning("None of the selected objects can be reversed");
-                    return;
-                }
-                
-                setStatusToInfo("Made "+SuccessfulSwapCount+" path point(s) reversals.");
-                glCanvas.repaint();
-                unsavedChanges = true;
-            }
-            // Copy/Paste
-            else if ((keyCode == KeyEvent.VK_C || keyCode == KeyEvent.VK_V) && e.isControlDown() && (keyMask & 0x3F) == 0)
-            {
-                // Copy -- Ctrl+C
-                if (keyCode == KeyEvent.VK_C) {
-                    copySelectedObjects();
-                }
-                // Paste -- Ctrl+V
-                else if(keyCode == KeyEvent.VK_V)
-                {
-                    pasteClipboardIntoObjects(e.isShiftDown());
-                }
-            }
-            // Jump to Object -- SPC
-            else if (keyCode == KeyEvent.VK_SPACE) {
-                if (e.isShiftDown()) // Jump to Selected Zone Center
-                {
-                    camTarget.set(new Vec3f());
-                    camDistance = 0.35f;
-                    if (isGalaxyMode) {
-                        String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-
-                        if (zonePlacements.containsKey(stageKey)) {
-                            Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
-                            scratch.scale(1.0f / SCALE_DOWN);
-                            camTarget.set(scratch);
-                        }
-                    }
-                }
-                else if (selectedObjs.size() == 1) // Jump to Object
-                {
-                    AbstractObj obj = selectedObjs.values().iterator().next();
-                
-                    camTarget.set(obj.position);
-                    camTarget.scale(1.0f / SCALE_DOWN);
-                    camDistance = 0.25f;
-
-                    if (isGalaxyMode) {
-                        String stageKey = String.format("%d/%s", curScenarioIndex, obj.stage.stageName);
-
-                        if (zonePlacements.containsKey(stageKey)) {
-                            Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
-                            scratch.scale(1.0f / SCALE_DOWN);
-                            camTarget.add(scratch);
-                        }
-                    }
-                }
-                else
-                {
-                    if (selectedObjs.isEmpty())
-                        setStatusToWarning("Can't jump to no selection.");
-                    else
-                        setStatusToWarning("Can't jump to multiple objects.");
-                }
-                
-                updateCamera();
-                glCanvas.repaint();
-            }
-            // Move To Galaxy -- Shift+[
-            // HOW TO USE:
-            // This function is intended to be used when moving things from a zone with an offset to the main galaxy while preserving world position
-            // Simply press this ONCE, and then change the Zone of the selected objects to the main galaxy
-            else if (keyCode == KeyEvent.VK_OPEN_BRACKET && e.isShiftDown())
-            {
-                if (!isGalaxyMode)
-                {
-                    setStatusToWarning("You cannot Move to Galaxy while editing a zone solo.");
-                    return;
-                }
-                if (selectedObjs.isEmpty())
-                {
-                    setStatusToWarning("You need objects selected to Move to Galaxy!");
-                    return;
-                }
-                startUndoMulti();
-                for(AbstractObj selectedObj : selectedObjs.values())
-                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
-                
-                Vec3f delta = new Vec3f();
-                String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-
-                if (zonePlacements.containsKey(stageKey)) {
-                    delta.add(zonePlacements.get(stageKey).position);
-                }
-                
-                offsetSelectionBy(delta, false);
-                endUndoMulti();
-            }
-            // Move To Zone -- Shift+]
-            // HOW TO USE:
-            // This function is intended to be used when moving things from the main galaxy into a zone that has an offset while preserving world position
-            // Simply change the zone of the selected objects to be that of the destination zone, and press this ONCE
-            // NOTE: To switch from Zone to Zone (while both zones are not the Main Galaxy),
-            //       you have to first move the objects into the main galaxy, then you can move them into the destination zone.
-            else if (keyCode == KeyEvent.VK_CLOSE_BRACKET && e.isShiftDown())
-            {
-                if (!isGalaxyMode)
-                {
-                    setStatusToWarning("You cannot Move to Zone while editing a zone solo.");
-                    return;
-                }
-                if (selectedObjs.isEmpty())
-                {
-                    setStatusToWarning("You need objects selected to Move to Zone!");
-                    return;
-                }
-                startUndoMulti();
-                for(AbstractObj selectedObj : selectedObjs.values())
-                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
-                
-                Vec3f delta = new Vec3f();
-                String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-
-                if (zonePlacements.containsKey(stageKey)) {
-                    delta.subtract(zonePlacements.get(stageKey).position);
-                }
-                
-                offsetSelectionBy(delta, false);
-                endUndoMulti();
-            }
-            
-            
-            
-            // Should this be Else if?
-            if ((keyMask & 0x3F) != 0) {
-                // Arrow Key Shortcuts
+            } else {
+                // ==========================================
+                // Arrow Keys
                 Vec3f delta = new Vec3f();
 
                 if((keyMask & 1) != 0) {
@@ -5002,6 +4722,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     delta.y *= 0.5f;
                     delta.z *= 0.5f;
                 }
+                
+                if (MathUtil.isNearZero(delta, 0.001f))
+                    return; // Nothing to do if there's no value in delta
 
                 if(!selectedObjs.isEmpty()) {
                     startUndoMulti();
@@ -5040,14 +4763,357 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
             }
         }
+        
+        // Despite the fact that I used VarArgs here, Java's KeyEvent only holds a single unique key at a time (aside from modifiers)
+        // This does strict checking, so if a keyboard shortcut doesn't want Ctrl, it will check to ensure Ctrl is not pressed instead of just ignoring it
+        private boolean isShortcutPressed(KeyEvent Event, boolean Ctrl, boolean Shift, boolean Alt, int... KeyCodes) {
+            boolean isCtrl = Event.isControlDown();
+            boolean isShift = Event.isShiftDown();
+            boolean isAlt = Event.isAltDown();
+            int keyCode = Event.getKeyCode();
+            return (Ctrl == isCtrl) && (Shift == isShift) && (Alt == isAlt) && (KeyCodes[0] == keyCode);
+        }
+        
+        // Keyboard Shortcut Functions
+        private void shortcutDelete() {
+            tgbDeleteObject.doClick();
+        }
+        private void shortcutHideToggle() {
+            if (selectedObjs.isEmpty()) {
+                setStatusToWarning("Nothing selected to hide or unhide.");
+                return;
+            }
+
+            int HiddenCounter = 0;
+            int UnhideCounter = 0;
+            for (AbstractObj obj : selectedObjs.values()) {
+                if (obj.isHidden)
+                    UnhideCounter++;
+                else
+                    HiddenCounter++;
+                
+                obj.isHidden = !obj.isHidden;
+                addRerenderTask("zone:" + obj.stage.stageName);
+            }
+
+            if (HiddenCounter > 0 && UnhideCounter > 0)
+                setStatusToInfo("Hid "+HiddenCounter+" object(s), Unhid "+UnhideCounter+" object(s).");
+            else if (HiddenCounter > 0)
+                setStatusToInfo("Hid "+HiddenCounter+" object(s).");
+            else if (UnhideCounter > 0)
+                setStatusToInfo("Unhid "+UnhideCounter+" object(s).");
+            glCanvas.repaint();
+        }
+        private void shortcutUnhideAll() {
+            int UnhideCounter = 0;
+            for (AbstractObj obj : globalObjList.values()) {
+                if (obj.isHidden) {
+                    obj.isHidden = false;
+                    addRerenderTask("zone:" + obj.stage.stageName);
+                    UnhideCounter++;
+                }
+            }
+
+            setStatusToInfo("Unhid "+UnhideCounter+" object(s).");
+            glCanvas.repaint();
+        }
+        private void shortcutTruncate() {
+            if (selectedObjs.isEmpty()) {
+                setStatusToWarning("Nothing selected to truncate the positions of.");
+                return;
+            }
+            
+            startUndoMulti();
+            for(AbstractObj selectedObj : selectedObjs.values())
+                addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+
+            for (AbstractObj obj : selectedObjs.values())
+            {
+                obj.position.x = (int)obj.position.x;
+                obj.position.y = (int)obj.position.y;
+                obj.position.z = (int)obj.position.z;
+                if (obj instanceof PathPointObj)
+                {
+                    PathPointObj x = (PathPointObj)obj;
+                    x.point1.x = (int)x.point1.x;
+                    x.point1.y = (int)x.point1.y;
+                    x.point1.z = (int)x.point1.z;
+                    x.point2.x = (int)x.point2.x;
+                    x.point2.y = (int)x.point2.y;
+                    x.point2.z = (int)x.point2.z;
+                    addRerenderTask("path:"+x.path.uniqueID);
+                }
+                else
+                    addRerenderTask("object:" + obj.uniqueID);
+                addRerenderTask("zone:" + obj.stage.stageName);
+            }
+            endUndoMulti();
+            selectionChanged();
+            setStatusToInfo("Truncated the positions of "+selectedObjs.size()+" object(s).");
+            glCanvas.repaint();
+            unsavedChanges = true;
+        }
+        private void shortcutUndo() {
+            doUndo();
+        }
+        private void shortcutQuickAdd() {
+            popupAddItems.setLightWeightPopupEnabled(false);
+            popupAddItems.show(pnlGLPanel, mousePos.x, mousePos.y);
+            popupAddItems.setVisible(true);
+        }
+        private void shortcutResetPathControlPoints() {
+            int ResetNum = 0;
+            if (!selectedObjs.isEmpty()) {
+                startUndoMulti();
+                for(AbstractObj selectedObj : selectedObjs.values())
+                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+
+                ArrayList<PathObj> Paths = new ArrayList();
+                for (AbstractObj obj : selectedObjs.values())
+                {
+                    if (obj instanceof PathPointObj)
+                    {
+                        PathPointObj x = (PathPointObj)obj;
+                        x.point1.x = obj.position.x;
+                        x.point1.y = obj.position.y;
+                        x.point1.z = obj.position.z;
+                        x.point2.x = obj.position.x;
+                        x.point2.y = obj.position.y;
+                        x.point2.z = obj.position.z;
+
+                        Paths.add(x.path);
+                        ResetNum++;
+                    }
+                }
+                for (PathObj p : Paths)
+                {
+                    addRerenderTask("path:" + p.uniqueID);
+                    addRerenderTask("zone:" + p.stage.stageName);
+                    rerenderPathOwners(p);
+                }
+
+                endUndoMulti();
+            }
+            
+            if (ResetNum == 0)
+                setStatusToWarning("No path points were reset.");
+            else
+                setStatusToInfo("Reset " + ResetNum + " path points.");
+            
+            glCanvas.repaint();
+            unsavedChanges = true;
+        }
+        private void shortcutReversePathPoints() {
+            if (selectedObjs.isEmpty()) {
+                setStatusToWarning("Nothing selected to reverse");
+                return;
+            }
+
+            HashMap<PathObj, ArrayList<Integer>> SelectedPathPointsPerPath = new HashMap();
+
+            // First, we're just going to collect all path points that are selected and separate them by their owning path
+            for(AbstractObj selectedObj : selectedObjs.values()){
+                if (!(selectedObj instanceof PathPointObj))
+                    continue;
+
+                PathPointObj curPathPoint = (PathPointObj)selectedObj;
+                PathObj curPath = curPathPoint.path;
+                if (!SelectedPathPointsPerPath.containsKey(curPath))
+                    SelectedPathPointsPerPath.put(curPath, new ArrayList());
+                SelectedPathPointsPerPath.get(curPath).add(curPath.indexOf(curPathPoint));
+            }
+
+            // Second, we need to fix the selection order, and then create groups based on holes
+            // Example: User selects points 1,2,3,7,6,8. This results with 1,2,3 | 6,7,8
+            startUndoMulti();
+            int SuccessfulSwapCount = 0;
+            for (HashMap.Entry<PathObj, ArrayList<Integer>> entry : SelectedPathPointsPerPath.entrySet()) {
+                List<List<Integer>> result = new ArrayList<>();
+                PathObj key = entry.getKey();
+                ArrayList<Integer> value = entry.getValue();
+
+                if (value.size() == 1) // Nothing can be reversed with only one path point selected...
+                    continue;
+
+                value.sort(Comparator.naturalOrder()); // Fix selection order inaccuracies.
+
+                List<Integer> currentSequence = new ArrayList<>();
+                currentSequence.add(value.get(0));
+
+                for (int i = 1; i < value.size(); i++) {
+                    int currentNumber = value.get(i);
+                    int previousNumber = value.get(i - 1);
+
+                    if (currentNumber == previousNumber + 1) {
+                        currentSequence.add(currentNumber);
+                    } else {
+                        result.add(currentSequence);
+                        currentSequence = new ArrayList<>();
+                        currentSequence.add(currentNumber);
+                    }
+                }
+
+                result.add(currentSequence);
+
+                // Now we can call for reversing
+                for(List<Integer> list : result)
+                {
+                    List<PathPointObj> p = key.getPoints();
+                    for(Integer v : list)
+                        addUndoEntry(IUndo.Action.TRANSLATE, p.get(v));
+
+                    if (RailUtil.reversePath(key, list.get(0), list.get(list.size()-1)));
+                    {
+                        SuccessfulSwapCount++;
+                        addRerenderTask("path:" + key.uniqueID);
+                        addRerenderTask("zone:" + key.stage.stageName);
+                        rerenderPathOwners(key);
+                    }
+                }
+            }
+            endUndoMulti();
+
+
+            if (SelectedPathPointsPerPath.isEmpty() || SuccessfulSwapCount <= 0)
+            {
+                setStatusToWarning("None of the selected objects can be reversed.");
+                return;
+            }
+
+            setStatusToInfo("Made " + SuccessfulSwapCount + " path point(s) reversals.");
+            glCanvas.repaint();
+            unsavedChanges = true;
+        }
+        private void shortcutCopy() {
+            copySelectedObjects();
+        }
+        private void shortcutPaste() {
+            pasteClipboardIntoObjects(false);
+        }
+        private void shortcutPasteLiteral() {
+            pasteClipboardIntoObjects(true);
+        }
+        private void shortcutJumpToSelection() {
+            if (selectedObjs.isEmpty()) {
+                setStatusToWarning("Nothing selected to jump to.");
+                return;
+            }
+            
+            Vec3f TargetPos = new Vec3f();
+            String stageKey = "";
+            if (selectedObjs.size() == 1) {
+                AbstractObj obj = selectedObjs.values().iterator().next();
+
+                TargetPos.set(obj.position);
+                stageKey = String.format("%d/%s", curScenarioIndex, obj.stage.stageName);
+            }
+            else {
+                Vec3f[] selectionPositions = new Vec3f[selectedObjs.size()];
+                int idx = 0;
+                for (AbstractObj obj : selectedObjs.values())
+                {
+                    if (idx == 0) // Yoink
+                        stageKey = String.format("%d/%s", curScenarioIndex, obj.stage.stageName);
+                    
+                    selectionPositions[idx] = obj.position;
+                    idx++;
+                }
+                TargetPos.set(Vec3f.centroid(selectionPositions));
+            }
+            
+            camTarget.set(TargetPos);
+            camTarget.scale(1.0f / SCALE_DOWN);
+            camDistance = 0.25f;
+
+            if (isGalaxyMode) {
+                if (zonePlacements.containsKey(stageKey)) {
+                    Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
+                    scratch.scale(1.0f / SCALE_DOWN);
+                    camTarget.add(scratch);
+                }
+            }
+            
+            setStatusToInfo("Jumped to selection ("+TargetPos.toString()+")");
+            
+            updateCamera();
+            glCanvas.repaint();
+        }
+        private void shortcutJumpToZone() {
+            camTarget.set(new Vec3f());
+            camDistance = 0.35f;
+            if (isGalaxyMode) {
+                String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
+
+                if (zonePlacements.containsKey(stageKey)) {
+                    Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
+                    scratch.scale(1.0f / SCALE_DOWN);
+                    camTarget.set(scratch);
+                }
+                setStatusToInfo("Jumped to Zone ("+curZone+")");
+            }
+            else
+                setStatusToWarning("Cannot Jump To Zone while editing individually!");
+            
+            updateCamera();
+            glCanvas.repaint();
+        }
+        private void shortcutAddZonePosition() {
+            // HOW TO USE:
+            // This function is intended to be used when moving things from a zone with an offset to the main galaxy while preserving world position
+            // Simply press this ONCE, and then change the Zone of the selected objects to the main galaxy
+        
+            if (!isGalaxyMode) {
+                setStatusToWarning("You cannot Add Zone Position while editing a zone solo.");
+                return;
+            }
+            if (selectedObjs.isEmpty()) {
+                setStatusToWarning("You need objects selected to Add Zone Position!");
+                return;
+            }
+            startUndoMulti();
+            for(AbstractObj selectedObj : selectedObjs.values())
+                addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+
+            Vec3f delta = new Vec3f();
+            String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
+
+            if (zonePlacements.containsKey(stageKey)) {
+                delta.add(zonePlacements.get(stageKey).position);
+            }
+
+            offsetSelectionBy(delta, false);
+            endUndoMulti();
+        }
+        private void shortcutSubZonePosition() {
+            // HOW TO USE:
+            // This function is intended to be used when moving things from the main galaxy into a zone that has an offset while preserving world position
+            // Simply change the zone of the selected objects to be that of the destination zone, and press this ONCE
+            // NOTE: To switch from Zone to Zone (while both zones are not the Main Galaxy),
+            //       you have to first move the objects into the main galaxy, then you can move them into the destination zone.
+            
+            if (!isGalaxyMode) {
+                setStatusToWarning("You cannot Subtract Zone Position while editing a zone solo.");
+                return;
+            }
+            if (selectedObjs.isEmpty()) {
+                setStatusToWarning("You need objects selected to Subtract Zone Position!");
+                return;
+            }
+            startUndoMulti();
+            for(AbstractObj selectedObj : selectedObjs.values())
+                addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
+
+            Vec3f delta = new Vec3f();
+            String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
+
+            if (zonePlacements.containsKey(stageKey)) {
+                delta.subtract(zonePlacements.get(stageKey).position);
+            }
+
+            offsetSelectionBy(delta, false);
+            endUndoMulti();
+        }
     }
-    
-    
-    
-    // Keyboard Shortcut Functions
-    // The reason for these is so that "return" can be used
-    // as the use of "return" previously was causing some inconsistent behaviours
-    
     
     
     
@@ -5093,6 +5159,40 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 addRerenderTask("object:"+Integer.toString(obj.uniqueID));
             }
         }
+    }
+    
+    private void updateScenarioList() {
+        if (listScenarios.getSelectedValue() == null) {
+            curScenarioIndex = 0;
+        } else {
+            curScenarioIndex = listScenarios.getSelectedIndex();
+        }
+        
+        curScenario = galaxyArchive.scenarioData.get(curScenarioIndex);
+
+        DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
+        zonelist.removeAllElements();
+        
+        for(String zone : galaxyArchive.zoneList) {
+            int layermask = curScenario.getInt(zone);
+            String layers = "Common+";
+            
+            for (int i = 0 ; i < 16 ; i++) {
+                if ((layermask & (1 << i)) != 0) {
+                    layers += (char)('A' + i);
+                }
+            }
+            
+            if (layers.equals("Common+")) {
+                layers = "Common";
+            }
+            
+            if (!StageUtil.getActiveZoneNames(curScenarioIndex, galaxyArchive, zoneArchives.get(galaxyArchive.galaxyName)).contains(zone))
+                layers = "None";
+            zonelist.addElement(zone + " [" + layers + "]");
+        }
+        
+        listZones.setSelectedIndex(0);
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -5778,40 +5878,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             unsavedChanges = true;
         }
     }//GEN-LAST:event_itmScalePasteActionPerformed
-
-    private void updateScenarioList() {
-        if (listScenarios.getSelectedValue() == null) {
-            curScenarioIndex = 0;
-        } else {
-            curScenarioIndex = listScenarios.getSelectedIndex();
-        }
-        
-        curScenario = galaxyArchive.scenarioData.get(curScenarioIndex);
-
-        DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
-        zonelist.removeAllElements();
-        
-        for(String zone : galaxyArchive.zoneList) {
-            int layermask = curScenario.getInt(zone);
-            String layers = "Common+";
-            
-            for (int i = 0 ; i < 16 ; i++) {
-                if ((layermask & (1 << i)) != 0) {
-                    layers += (char)('A' + i);
-                }
-            }
-            
-            if (layers.equals("Common+")) {
-                layers = "Common";
-            }
-            
-            if (!StageUtil.getActiveZoneNames(curScenarioIndex, galaxyArchive, zoneArchives.get(galaxyArchive.galaxyName)).contains(zone))
-                layers = "None";
-            zonelist.addElement(zone + " [" + layers + "]");
-        }
-        
-        listZones.setSelectedIndex(0);
-    }
     
     private void listScenariosValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listScenariosValueChanged
         if (!evt.getValueIsAdjusting())
