@@ -4655,7 +4655,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             else if (keyCode == Settings.getKeyScale())
                 keyMask |= (1 << 8);
 
-            if ((keyMask & 0x1FF) == 0)
+            if ((keyMask & 0x3F) == 0)
             {
                 // ============== Keyboard Shortcuts ==============
                 // TODO: Hook this up to a custom keybinds system
