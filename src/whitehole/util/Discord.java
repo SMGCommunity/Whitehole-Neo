@@ -31,8 +31,8 @@ public final class Discord {
     private final IPCClient client;
     private final Builder builder;
     public Discord() {
-        // Currently uses Spagettihole RPC ID, change this at some point.
-        client = new IPCClient(859430435552231454L);
+        // Currently uses Lord-G's Neo ID, please inform if any assets need change
+        client = new IPCClient(1418260169854423142L);
         builder = new Builder();
         builder.setLargeImage("icon");
         builder.setStartTimestamp(OffsetDateTime.now());
