@@ -5712,6 +5712,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowOpened
     
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        Whitehole.RPC.setDesc("Doing nothing, yet.");
+        Whitehole.RPC.setStatus("");
         closeEditor();
     }//GEN-LAST:event_formWindowClosing
 

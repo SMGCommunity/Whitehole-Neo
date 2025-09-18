@@ -123,6 +123,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     
     @Override
     public void setVisible(boolean state) {
+        Whitehole.RPC.setDesc("In the BCSV editor");
         super.setVisible(state);
         toggleShortcutVisibility();
     }
@@ -1158,10 +1159,15 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        Whitehole.RPC.setDesc("Doing nothing, yet.");
+        Whitehole.RPC.setStatus("");
         closeIO();
     }//GEN-LAST:event_formWindowClosing
 
     private void btnOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenActionPerformed
+        var file_name = tbFileName.getText().split("/");
+        Whitehole.RPC.setDesc("Editing");
+        Whitehole.RPC.setStatus(file_name[file_name.length - 1]);
         populateBcsvData();
     }//GEN-LAST:event_btnOpenActionPerformed
 

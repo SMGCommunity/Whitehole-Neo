@@ -31,11 +31,13 @@ import javax.swing.*;
 import whitehole.db.*;
 import whitehole.io.FilesystemBase;
 import whitehole.smg.GameArchive;
+import whitehole.util.Discord;
 
 public class Whitehole {
     public static final String NAME = "Whitehole Neo";
     public static final String WEB_URL = "https://discord.gg/k7ZKzSDsVq";
     public static Image ICON;
+    public static Discord RPC;
     
     private static MainFrame MAIN_FRAME;
     private static FlatDarkLaf DARK_THEME;
@@ -85,6 +87,10 @@ public class Whitehole {
         ObjectDB.init(true);
         ModelSubstitutions.init();
         SpecialRenderers.initBaseGame(); //Must come after the Object Database and ModelSubstitutions
+        
+        RPC = new Discord();
+        RPC.init();
+        RPC.setDesc("Doing nothing, yet.");
         
         MAIN_FRAME = new MainFrame(args);
         MAIN_FRAME.setVisible(true);

@@ -262,6 +262,8 @@ public final class MainFrame extends javax.swing.JFrame {
         RendererCache.init();
         
         currentGalaxy = galaxy.identifier;
+        Whitehole.RPC.setDesc("Editing");
+        Whitehole.RPC.setStatus(currentGalaxy);
         galaxyEditor = new GalaxyEditorForm(currentGalaxy);
         galaxyEditor.setVisible(true);
     }
@@ -690,6 +692,7 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_listGalaxyKeyReleased
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        Whitehole.RPC.close();
         forceCloseEditors();
     }//GEN-LAST:event_formWindowClosing
 
