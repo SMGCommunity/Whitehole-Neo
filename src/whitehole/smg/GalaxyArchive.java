@@ -28,13 +28,16 @@ public class GalaxyArchive {
         zoneList = new ArrayList();
         RarcFile scenario = new RarcFile(filesystem.openFile("/StageData/"+galaxyName+"/"+galaxyName+"Scenario.arc"));
 
-        Bcsv zonesbcsv = new Bcsv(scenario.openFile(String.format("/%1$sScenario/ZoneList.bcsv", galaxyName)));
+        Bcsv zonesbcsv = new Bcsv(scenario.openFile(String.format("/%1$sScenario/ZoneList.bcsv", galaxyName)), scenario.isBigEndian());
         for (Bcsv.Entry entry : zonesbcsv.entries) {
             zoneList.add((String)entry.get("ZoneName"));
+            if (filesystem.fileExists(String.format("/StageData/%s/%sAssist.arc", (String)entry.get("ZoneName"), (String)entry.get("ZoneName")))) 
+                zoneList.add((String)entry.get("ZoneName") + "Assist");
+                
         }
         zonesbcsv.close();
         
-        Bcsv scenariobcsv = new Bcsv(scenario.openFile(String.format("/%1$sScenario/ScenarioData.bcsv", galaxyName)));
+        Bcsv scenariobcsv = new Bcsv(scenario.openFile(String.format("/%1$sScenario/ScenarioData.bcsv", galaxyName)), scenario.isBigEndian());
         scenarioData = scenariobcsv.entries;
         
         scenariobcsv.close();

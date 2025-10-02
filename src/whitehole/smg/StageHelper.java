@@ -427,7 +427,7 @@ public class StageHelper {
             archive.createFile(layerPath, file);
         }
         
-        Bcsv bcsv = new Bcsv(archive.openFile(filePath));
+        Bcsv bcsv = new Bcsv(archive.openFile(filePath), archive.isBigEndian());
         populateJMapFields(bcsv, file.toLowerCase(), game);
         return bcsv;
     }
@@ -1016,11 +1016,11 @@ public class StageHelper {
         if (!archive.fileExists(filePath)) {
             archive.createFile(basePath, file + ".bcsv");
         } else {
-            Bcsv bcsv = new Bcsv(archive.openFile(filePath));
+            Bcsv bcsv = new Bcsv(archive.openFile(filePath), archive.isBigEndian());
             return bcsv;
         }
         
-        Bcsv bcsv = new Bcsv(archive.openFile(filePath));
+        Bcsv bcsv = new Bcsv(archive.openFile(filePath), archive.isBigEndian());
         populateScenarioFields(bcsv, file.toLowerCase(), game, zones);
         return bcsv;
     }

@@ -158,11 +158,15 @@ public class BmdRenderer extends GLRenderer {
         {
             if (archive.fileExists("/" + modelName + "/" + modelName + ".bdl"))
             {
-                return new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bdl"));
+                FileBase file = archive.openFile("/" + modelName + "/" + modelName + ".bdl");
+                file.setBigEndian(archive.isBigEndian());
+                return new Bmd(file);
             }
             else if (archive.fileExists("/" + modelName + "/" + modelName + ".bmd"))
             {
-                return new Bmd(archive.openFile("/" + modelName + "/" + modelName + ".bmd"));
+                FileBase file = archive.openFile("/" + modelName + "/" + modelName + ".bmd");
+                file.setBigEndian(archive.isBigEndian());
+                return new Bmd(file);
             }
             return null;
         }
@@ -685,14 +689,14 @@ public class BmdRenderer extends GLRenderer {
 
         frag.append("    vec4 texcolor, rascolor, konst, lightmatsrc;\n");
 
-        if (mat.lightChannels[0] != null && mat.lightChannels[0].color.materialColorSource == 0) // Defaulting to color channel 0...
+        if (mat.lightChannels[0] != null && mat.lightChannels[0].color.materialColorSource == 0) {// Defaulting to color channel 0...
             frag.append("    lightmatsrc.rgb = vec3(").append(String.format(usa, "%1$f, %2$f, %3$f", mat.matColors[0].r/255f, mat.matColors[0].g/255f, mat.matColors[0].b/255f)).append(");\n");
-        else
+        } else
             frag.append("    lightmatsrc.rgb = gl_Color.rgb;\n");
         
-        if (mat.lightChannels[0] != null && mat.lightChannels[0].alpha.materialColorSource == 0) // Defaulting to color channel 0...
+        if (mat.lightChannels[0] != null && mat.lightChannels[0].alpha.materialColorSource == 0) {// Defaulting to color channel 0...
             frag.append("    lightmatsrc.a = ").append(String.format(usa, "%1$f", mat.matColors[0].a/255f)).append(";\n");
-        else
+        } else
             frag.append("    lightmatsrc.a = gl_Color.a;\n");
         
         
@@ -711,7 +715,7 @@ public class BmdRenderer extends GLRenderer {
             // if they're selected into a, b or c
             String rout, a, b, c, d, operation;
 
-            if(tv.constantColor != (byte)0xFF)
+            if(tv.constantColor != (byte)0xFF) 
                 frag.append("    konst.rgb = ").append(c_konstsel[tv.constantColor]).append(";\n");
             if(tv.constantAlpha != (byte)0xFF)
                 frag.append("    konst.a = ").append(a_konstsel[tv.constantAlpha]).append(";\n");
@@ -916,6 +920,7 @@ public class BmdRenderer extends GLRenderer {
         sig.putInt(mat.cullingMode);
         sig.put((byte)(mat.dither ? 1 : 0));
         
+        // !!!
         sig.putInt(mat.matColors[0].r);
         sig.putInt(mat.matColors[0].g);
         sig.putInt(mat.matColors[0].b);
@@ -986,6 +991,7 @@ public class BmdRenderer extends GLRenderer {
             sig.putShort(mat.textureIndicies[x]);
 
         for(int i = 0; i < 4; i++) {
+            // !!!
             sig.put((byte)mat.constColors[i].r);
             sig.put((byte)mat.constColors[i].g);
             sig.put((byte)mat.constColors[i].b);

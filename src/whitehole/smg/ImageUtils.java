@@ -73,7 +73,7 @@ public class ImageUtils {
         }
     }
     
-    public static byte[][] decodeTextureData(FileBase file, long offset, int mipmaps, int format, int width, int height) throws IOException {
+    public static byte[][] decodeTextureData(FileBase file, long offset, int mipmaps, int format, int width, int height, boolean isBigEndian) throws IOException {
         byte[][] ret = new byte[mipmaps][];
         file.position(offset);
         
@@ -173,7 +173,14 @@ public class ImageUtils {
                             for (int bx = 0; bx < width; bx += 4) {
                                 for (int y = 0; y < 4; y++) {
                                     for (int x = 0; x < 4; x++) {
-                                        int col = file.readShort() & 0xFFFF;
+                                        int col;
+                                        if (isBigEndian) {
+                                            col = file.readShort();
+                                        } else {
+                                            byte lower = file.readByte();
+                                            byte higher = file.readByte();
+                                            col = (int) ((higher & 0xFF) << 8 | (lower & 0xFF));
+                                        }
 
                                         int outp = (((by + y) * width) + (bx + x)) * 4;
                                         image[outp++] = (byte)(((col & 0x001F) << 3) | ((col & 0x001F) >>> 2));
@@ -195,7 +202,14 @@ public class ImageUtils {
                             for (int bx = 0; bx < width; bx += 4) {
                                 for (int y = 0; y < 4; y++) {
                                     for (int x = 0; x < 4; x++) {
-                                        int col = file.readShort() & 0xFFFF;
+                                        int col;
+                                        if (isBigEndian) {
+                                            col = file.readShort();
+                                        } else {
+                                            byte lower = file.readByte();
+                                            byte higher = file.readByte();
+                                            col = ((higher & 0xFF) << 8 | (lower & 0xFF));
+                                        }
 
                                         int outp = (((by + y) * width) + (bx + x)) * 4;
                                         if ((col & 0x8000) != 0) {
@@ -256,8 +270,18 @@ public class ImageUtils {
                             for (int bx = 0; bx < width; bx += 8) {
                                 for (int sby = 0; sby < 8; sby += 4) {
                                     for (int sbx = 0; sbx < 8; sbx += 4) {
-                                        int c1 = file.readShort() & 0xFFFF;
-                                        int c2 = file.readShort() & 0xFFFF;
+                                        int c1, c2;
+                                        if (isBigEndian) {
+                                            c1 = file.readShort() & 0xFFFF;
+                                            c2 = file.readShort() & 0xFFFF;
+                                        } else {
+                                            byte lower = file.readByte();
+                                            byte higher = file.readByte();
+                                            c1 = (int) ((lower & 0xFF) << 8 | (higher & 0xFF));
+                                            lower = file.readByte();
+                                            higher = file.readByte();
+                                            c2 = (int) ((lower & 0xFF) << 8 | (higher & 0xFF));
+                                        }
                                         int block = file.readInt();
 
                                         int r1 = (c1 & 0xF800) >>> 8;

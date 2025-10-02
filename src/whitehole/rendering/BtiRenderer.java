@@ -67,7 +67,7 @@ public class BtiRenderer extends GLRenderer {
             archive = new RarcFile(fi);
             
             if (archive.fileExists(btiPath)) {
-                btiData = new Bti(archive.openFile(btiPath));
+                btiData = new Bti(archive.openFile(btiPath), archive.isBigEndian());
             }
         }
         catch (IOException ex) {

@@ -19,9 +19,9 @@ import java.io.IOException;
 import whitehole.io.FileBase;
 
 public class Bti {
-    public Bti(FileBase f) throws IOException {
+    public Bti(FileBase f, boolean isBigEndian) throws IOException {
         file = f;
-        file.setBigEndian(true);
+        file.setBigEndian(isBigEndian); 
         
         format = file.readByte();
         file.skip(0x1);
@@ -44,7 +44,7 @@ public class Bti {
         lodBias = file.readShort() * 0.01F;
         imageOffset = file.readInt();
         
-        image = ImageUtils.decodeTextureData(file, imageOffset, mipmapCount, format, width, height);
+        image = ImageUtils.decodeTextureData(file, imageOffset, mipmapCount, format, width, height, isBigEndian);
     }
     
     public void save() throws IOException {

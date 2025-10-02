@@ -30,6 +30,10 @@ public class Btp {
     {
         this.file = file;
         this.file.setBigEndian(true);
+        file.position(0);
+        int tag = file.readInt();
+        if (tag == 0x3144334A) 
+            this.file.setBigEndian(false);
         
         file.position(0x2C);
         short batchCount = file.readShort();

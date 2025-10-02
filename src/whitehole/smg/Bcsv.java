@@ -77,10 +77,12 @@ public class Bcsv {
     public LinkedHashMap<Integer, Field> fields;
     public List<Entry> entries;
     private int entrySize = -1;
+    private boolean isBigEndian;
     
-    public Bcsv(FileBase f) throws IOException {
+    public Bcsv(FileBase f, boolean bigEndian) throws IOException {
         file = f;
-        file.setBigEndian(true);
+        isBigEndian = bigEndian;
+        file.setBigEndian(isBigEndian);
         
         if (file.getLength() == 0) {
             fields = new LinkedHashMap();
@@ -142,8 +144,7 @@ public class Bcsv {
                             
                             stringBuffer[length] = b;
                         }
-                        
-                        val = new String(stringBuffer, 0, length, "SJIS");
+                        val = new String(stringBuffer, 0, length, (isBigEndian ? "SJIS" : "UTF8"));
                         break;
                     // FLOAT
                     case 2:
@@ -161,7 +162,7 @@ public class Bcsv {
                     case 6:
                         int offString = file.readInt() + offStrings;
                         file.position(offString);
-                        val = file.readString("SJIS", 0);
+                        val = file.readString((isBigEndian ? "SJIS" : "UTF8"), 0);
                         break;
                     // Invalid type
                     default:
@@ -177,7 +178,7 @@ public class Bcsv {
     
     public void save() throws IOException {
         // Prepare writing
-        file.setBigEndian(true);
+        file.setBigEndian(isBigEndian);
         int numEntries = entries.size();
         int numFields = fields.size();
         int offData = 0x10 + numFields * 0xC;
@@ -259,7 +260,7 @@ public class Bcsv {
                             file.writeInt(curString);
                             
                             file.position(offStrings + curString);
-                            curString += file.writeString("SJIS", val, 0);
+                            curString += file.writeString((isBigEndian ? "SJIS" : "UTF8"), val, 0);
                         }
                         break;
                 }

@@ -20,22 +20,28 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import whitehole.Settings;
+import whitehole.Whitehole;
 
 public class RarcFile implements FilesystemBase {
     private FileBase file;
     private int unk38;
     private LinkedHashMap<String, FileEntry> fileEntries;
     private LinkedHashMap<String, DirEntry> dirEntries;
+    private boolean isBigEndian;
     
     public RarcFile(FileBase _file) throws IOException {
         file = new Yaz0File(_file);
         file.setBigEndian(true);
-
+        isBigEndian = true;
+        
         file.position(0);
         int tag = file.readInt();
-        if (tag != 0x52415243) 
+        if (tag == 0x43524152) {
+            file.setBigEndian(false);
+            isBigEndian = false;
+        }
+        else if (tag != 0x52415243) 
             throw new IOException(String.format("File isn't a RARC (tag 0x%1$08X, expected 0x52415243)", tag));
-        
 
         file.position(0xC);
         int fileDataOffset = file.readInt() + 0x20;
@@ -54,8 +60,8 @@ public class RarcFile implements FilesystemBase {
         DirEntry root = new DirEntry();
         root.parentDir = null;
 
-        file.position(dirNodesOffset + 0x6);
-        int rnoffset = file.readShort();
+        file.position(dirNodesOffset + 0x4);
+        int rnoffset = file.readInt();
         file.position(stringTableOffset + rnoffset);
         root.name = file.readString("ASCII", 0);
         root.fullName = "/" + root.name;
@@ -70,7 +76,7 @@ public class RarcFile implements FilesystemBase {
                     break;
                 }
             }
-
+            
             file.position(dirNodesOffset + (i * 0x10) + 10);
 
             short numentries = file.readShort();
@@ -78,10 +84,16 @@ public class RarcFile implements FilesystemBase {
             for (int j = 0; j < numentries; j++) {
                 int entryoffset = fileEntriesOffset + ((j + firstentry) * 0x14);
                 file.position(entryoffset);
-
                 file.skip(4);
-                int entrytype = file.readShort() & 0xFFFF;
-                int nameoffset = file.readShort() & 0xFFFF;
+                int entrytype, nameoffset;
+                if (isBigEndian) {
+                    entrytype = file.readShort() & 0xFFFF;
+                    nameoffset = file.readShort() & 0xFFFF;
+                } else {
+                    nameoffset = file.readShort() & 0xFFFF;
+                    entrytype = file.readShort() & 0xFFFF;
+                }
+                
                 int dataoffset = file.readInt();
                 int datasize = file.readInt();
 
@@ -118,7 +130,18 @@ public class RarcFile implements FilesystemBase {
     
     public RarcFile(FileBase f, String name) throws IOException {
         file = new Yaz0File(f);
-        file.setBigEndian(true);
+
+        FileBase endianCheck = new Yaz0File(Whitehole.getCurrentGameFileSystem().openFile("/ParticleData/Effect.arc"));
+        endianCheck.setBigEndian(true);
+        endianCheck.position(0);
+        int magic = endianCheck.readInt();
+        if (magic == 0x43524152) 
+            isBigEndian = false;
+        else if (magic == 0x52415243) 
+            isBigEndian = true;
+        /*else 
+            throw WhatTheHellIsThisException();*/
+        endianCheck.close();
         
         dirEntries = new LinkedHashMap();
         fileEntries = new LinkedHashMap();
@@ -134,13 +157,14 @@ public class RarcFile implements FilesystemBase {
     }
     
     @Override
-    public void save() throws IOException {
+    /*public void save() throws IOException {
         for (FileEntry fe : fileEntries.values()) {
             if (fe.data != null) continue;
             file.position(fe.dataOffset);
             fe.data = file.readBytes(fe.dataSize);
         }
-        
+        file.setBigEndian(isBigEndian);
+
         int dirOffset = 0x40;
         int fileOffset = dirOffset + align32(dirEntries.size() * 0x10);
         int stringOffset = fileOffset + align32((fileEntries.size() + (dirEntries.size() * 3) - 1) * 0x14);
@@ -230,8 +254,13 @@ public class RarcFile implements FilesystemBase {
                 file.position(fileOffset + fileSubOffset);
                 file.writeShort(fileid);
                 file.writeShort(nameHash(cfe.name));
-                file.writeShort((short)0x1100);
-                file.writeShort((short)stringSubOffset);
+                if (isBigEndian) {
+                    file.writeShort((short)0x1100);
+                    file.writeShort((short)stringSubOffset);
+                } else {
+                    file.writeShort((short)stringSubOffset);
+                    file.writeShort((short)0x0011);
+                }
                 file.writeInt(dataSubOffset);
                 file.writeInt(cfe.dataSize);
                 file.writeInt(0x00000000);
@@ -272,7 +301,7 @@ public class RarcFile implements FilesystemBase {
              * otherwise, look if we have remaining siblings
              * and if none, go back to our parent and look for siblings again
              * until we have done them all
-            **/
+            *
             if (!curdir.childrenDirs.isEmpty())
             {
                 dirstack.push(curdir.childrenDirs.iterator());
@@ -296,11 +325,216 @@ public class RarcFile implements FilesystemBase {
         }
         
         file.save();
+    }*/
+
+    public void save() throws IOException {
+        for (FileEntry fe : fileEntries.values()) {
+            if (fe.data != null) continue;
+            file.position(fe.dataOffset);
+            fe.data = file.readBytes(fe.dataSize);
+        }
+        file.setBigEndian(isBigEndian);
+
+        int dirOffset = 0x40;
+        int fileOffset = dirOffset + align32(dirEntries.size() * 0x10);
+        int stringOffset = fileOffset + align32((fileEntries.size() + (dirEntries.size() * 3) - 1) * 0x14);
+
+        int dataOffset = stringOffset;
+        int dataLength = 0;
+        for (DirEntry de : dirEntries.values())
+            dataOffset += de.name.length() + 1;
+        for (FileEntry fe : fileEntries.values()) {
+            dataOffset += fe.name.length() + 1;
+            dataLength += align32(fe.dataSize);
+        }
+        dataOffset += 5;
+        dataOffset = align32(dataOffset);
+
+        int dirSubOffset = 0;
+        int fileSubOffset = 0;
+        int stringSubOffset = 0;
+        int dataSubOffset = 0;
+
+        file.setLength(dataOffset + dataLength);
+
+        // RARC Header
+        // certain parts of this will have to be written later on
+        file.position(0);
+        file.writeInt(0x52415243);
+        file.writeInt(dataOffset + dataLength);
+        file.writeInt(0x00000020);
+        file.writeInt(dataOffset - 0x20);
+        file.writeInt(dataLength);
+        file.writeInt(dataLength);
+        file.writeInt(0x00000000);
+        file.writeInt(0x00000000);
+        file.writeInt(dirEntries.size());
+        file.writeInt(dirOffset - 0x20);
+        file.writeInt(fileEntries.size() + (dirEntries.size() * 3) - 1);
+        file.writeInt(fileOffset - 0x20);
+        file.writeInt(dataOffset - stringOffset);
+        file.writeInt(stringOffset - 0x20);
+        file.writeInt(unk38);
+        file.writeInt(0x00000000);
+
+        file.position(stringOffset);
+        file.writeString("ASCII", ".", 0);
+        file.writeString("ASCII", "..", 0);
+        stringSubOffset += 5;
+
+        Stack<Iterator<DirEntry>> dirstack = new Stack<>();
+        Object[] entriesarray = dirEntries.values().toArray();
+        DirEntry curdir = (DirEntry)entriesarray[0];
+        int c = 1;
+        while (curdir.parentDir != null) curdir = (DirEntry)entriesarray[c++];
+        short fileid = 0;
+        for (;;) {
+            // write directory node
+            curdir.tempID = dirSubOffset / 0x10;
+            file.position(dirOffset + dirSubOffset);
+            file.writeInt((curdir.tempID == 0) ? 0x524F4F54 : dirMagic(curdir.name));
+            file.writeInt(stringSubOffset);
+            file.writeShort(nameHash(curdir.name));
+            file.writeShort((short)(2 + curdir.childrenDirs.size() + curdir.childrenFiles.size()));
+            file.writeInt(fileSubOffset / 0x14);
+            dirSubOffset += 0x10;
+
+            if (curdir.tempID > 0) {
+                file.position(curdir.tempNameOffset);
+                if (isBigEndian) {
+                    // BE parent's reserved area was: entrytype (already written), nameoffset, nodeIndex
+                    // We only need to write nameoffset, then nodeIndex
+                    file.writeShort((short)stringSubOffset);
+                    file.writeInt(curdir.tempID);
+                } else {
+                    // LE parent's reserved area was: nameoffset, entrytype, nodeIndex
+                    file.writeShort((short)stringSubOffset);
+                    file.writeShort((short)0x0200);
+                    file.writeInt(curdir.tempID);
+                }
+            }
+            file.position(stringOffset + stringSubOffset);
+            stringSubOffset += file.writeString("ASCII", curdir.name, 0);
+
+            // write the child dir entries
+            file.position(fileOffset + fileSubOffset);
+            for (DirEntry cde : curdir.childrenDirs) {
+                file.writeShort((short)0xFFFF);
+                file.writeShort(nameHash(cde.name));
+                if (isBigEndian) {
+                    // BE ordering: we write entrytype now, then reserve 6 bytes for nameoffset + nodeIndex
+                    file.writeShort((short)0x0200);
+                    cde.tempNameOffset = (int)file.position();
+                    file.skip(6);
+                } else {
+                    // LE ordering: we must reserve space for nameoffset + entrytype + nodeIndex
+                    cde.tempNameOffset = (int)file.position();
+                    file.skip(8); // reserve 2 + 2 + 4
+                }
+                file.writeInt(0x00000010);
+                file.writeInt(0x00000000);
+                fileSubOffset += 0x14;
+            }
+
+            // write the child file entries
+            for (FileEntry cfe : curdir.childrenFiles) {
+                file.position(fileOffset + fileSubOffset);
+                file.writeShort(fileid);
+                file.writeShort(nameHash(cfe.name));
+                if (isBigEndian) {
+                    // BE: entrytype then nameoffset
+                    file.writeShort((short)0x1100);
+                    file.writeShort((short)stringSubOffset);
+                } else {
+                    // LE: nameoffset then entrytype
+                    file.writeShort((short)stringSubOffset);
+                    file.writeShort((short)0x1100);
+                }
+                file.writeInt(dataSubOffset);
+                file.writeInt(cfe.dataSize);
+                file.writeInt(0x00000000);
+                fileSubOffset += 0x14;
+                fileid++;
+
+                file.position(stringOffset + stringSubOffset);
+                stringSubOffset += file.writeString("ASCII", cfe.name, 0);
+
+                file.position(dataOffset + dataSubOffset);
+                cfe.dataOffset = (int)file.position();
+                byte[] thedata = Arrays.copyOf(cfe.data, cfe.dataSize);
+                file.writeBytes(thedata);
+                dataSubOffset += align32(cfe.dataSize);
+                cfe.data = null;
+            }
+
+            file.position(fileOffset + fileSubOffset);
+
+            file.writeShort((short)0xFFFF);
+            file.writeShort((short)0x002E);
+            if (isBigEndian) {
+                file.writeShort((short)0x0200);
+                file.writeShort((short)0x0000);
+            } else {
+                file.writeShort((short)0x0000);
+                file.writeShort((short)0x0200);
+            }
+            file.writeInt(curdir.tempID);
+            file.writeInt(0x00000010);
+            file.writeInt(0x00000000);
+            file.writeShort((short)0xFFFF);
+            file.writeShort((short)0x00B8);
+            if (isBigEndian) {
+                file.writeShort((short)0x0200);
+                file.writeShort((short)0x0002);
+            } else {
+                file.writeShort((short)0x0002);
+                file.writeShort((short)0x0200);
+            }
+            file.writeInt((curdir.parentDir != null) ? curdir.parentDir.tempID : 0xFFFFFFFF);
+            file.writeInt(0x00000010);
+            file.writeInt(0x00000000);
+
+            fileSubOffset += 0x28;
+
+            /**
+             * determine who's next on the list 
+             * if we have a child directory, process it 
+             * otherwise, look if we have remaining siblings 
+             * and if none, go back to our parent and look for siblings again
+             * until we have done them all 
+             **/
+            if (!curdir.childrenDirs.isEmpty()) {
+                dirstack.push(curdir.childrenDirs.iterator());
+                curdir = dirstack.peek().next();
+            } else {
+                curdir = null;
+                while (curdir == null) {
+                    if (dirstack.empty())
+                        break;
+
+                    Iterator<DirEntry> it = dirstack.peek();
+                    if (it.hasNext())
+                        curdir = it.next();
+                    else
+                        dirstack.pop();
+                }
+
+                if (curdir == null)
+                    break;
+            }
+        }
+
+        file.save();
     }
 
     @Override
     public void close() throws IOException {
         file.close();
+    }
+
+    @Override
+    public boolean isBigEndian () {
+        return isBigEndian;
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -478,7 +712,7 @@ public class RarcFile implements FilesystemBase {
     
     @Override
     public FileBase openFile(String filePath) throws IOException {
-        
+
         if (!fileEntries.containsKey(pathToKey(filePath))) {
             boolean pathExistsNoRoot = false;
             for (String fileEntry : fileEntries.keySet()) {

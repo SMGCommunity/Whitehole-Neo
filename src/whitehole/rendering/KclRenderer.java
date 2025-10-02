@@ -263,7 +263,7 @@ public class KclRenderer extends GLRenderer {
         try
         {
             if (archive.fileExists("/" + modelName + "/" + modelName + ".kcl"))
-                return new Kcl(archive.openFile("/" + modelName + "/" + modelName + ".kcl"));
+                return new Kcl(archive.openFile("/" + modelName + "/" + modelName + ".kcl"), archive.isBigEndian());
         }
         catch(IOException up)
         {
@@ -276,7 +276,7 @@ public class KclRenderer extends GLRenderer {
         try
         {
             if (archive.fileExists("/" + modelName + "/" + modelName + ".pa"))
-                return new Bcsv(archive.openFile("/" + modelName + "/" + modelName + ".pa"));
+                return new Bcsv(archive.openFile("/" + modelName + "/" + modelName + ".pa"), archive.isBigEndian());
         }
         catch(IOException up)
         {

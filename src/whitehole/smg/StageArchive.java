@@ -18,7 +18,6 @@ package whitehole.smg;
 
 import java.io.*;
 import java.util.*;
-
 import whitehole.Whitehole;
 import whitehole.io.FilesystemBase;
 import whitehole.io.RarcFile;
@@ -43,8 +42,8 @@ public class StageArchive {
     public final GalaxyArchive galaxy;
     public final String stageName;
     private final FilesystemBase filesystem;
-    private final String mapPath, soundPath, designPath;
-    public RarcFile mapArc, soundArc, designArc;
+    private final String mapPath, soundPath, designPath, assistPath;
+    public RarcFile mapArc, soundArc, designArc, assistArc;
     
     // Object and path storages
     public HashMap<String, List<AbstractObj>> objects;
@@ -66,6 +65,10 @@ public class StageArchive {
             soundPath = String.format("/StageData/%s/%sSound.arc", stageName, stageName);
             designPath = String.format("/StageData/%s/%sDesign.arc", stageName, stageName);
         }
+        if (filesystem.fileExists(String.format("/StageData/%s/%sAssist.arc", stageName, stageName))) 
+            assistPath = String.format("/StageData/%s/%sAssist.arc", stageName, stageName);
+        else 
+            assistPath = null;
         
         objects = new LinkedHashMap(17);
         zones = new LinkedHashMap(17);
@@ -110,6 +113,8 @@ public class StageArchive {
     private void loadZone() {
         try {
             mapArc = new RarcFile(filesystem.openFile(mapPath));
+            if (assistPath != null) 
+                assistArc = new RarcFile(filesystem.openFile(assistPath));
             
             /*if (Whitehole.getCurrentGameType() == 2) {
                 if (filesystem.fileExists(soundPath)) {
@@ -132,10 +137,26 @@ public class StageArchive {
             loadLayeredObjects(mapArc, "Start", "StartInfo");
             loadLayeredObjects(mapArc, "GeneralPos", "GeneralPosInfo");
             loadLayeredObjects(mapArc, "Debug", "DebugMoveInfo");
+
+            if (assistPath != null) {
+                loadLayeredObjects(assistArc, "Placement", "ObjInfo");
+                loadLayeredObjects(assistArc, "MapParts", "MapPartsInfo");
+                loadLayeredObjects(assistArc, "Placement", "AreaObjInfo");
+                loadLayeredObjects(assistArc, "Placement", "CameraCubeInfo");
+                loadLayeredObjects(assistArc, "Placement", "PlanetObjInfo");
+                loadLayeredObjects(assistArc, "Placement", "DemoObjInfo");
+                loadLayeredObjects(assistArc, "Start", "StartInfo");
+                loadLayeredObjects(assistArc, "GeneralPos", "GeneralPosInfo");
+                loadLayeredObjects(assistArc, "Debug", "DebugMoveInfo");
+            }
             
             if (Whitehole.getCurrentGameType() == 1) {
                 loadLayeredObjects(mapArc, "ChildObj", "ChildObjInfo");
                 loadLayeredObjects(mapArc, "Placement", "SoundInfo");
+                if (assistPath != null) {
+                    loadLayeredObjects(assistArc, "ChildObj", "ChildObjInfo");
+                    loadLayeredObjects(assistArc, "Placement", "SoundInfo");
+                }
             }
             else {
                 if (soundArc != null) {
@@ -147,6 +168,8 @@ public class StageArchive {
                 }
             }
             mapArc.close();
+            if (assistPath != null) 
+                assistArc.close();
         }
         catch (IOException ex) {
             System.out.println(ex);
@@ -182,6 +205,12 @@ public class StageArchive {
     
     private void loadLayeredZones() {
         List<String> layers = mapArc.getDirectories("/Stage/jmp/Placement");
+        if (assistPath != null) {
+            List<String> assistLayers = assistArc.getDirectories("/Stage/jmp/Placement");
+            Set<String> merged = new LinkedHashSet<>(layers);
+            merged.addAll(assistLayers);
+            layers = new ArrayList<>(merged);
+        }
         
         for (String layer : layers) {
             String key = layer.toLowerCase();
@@ -195,7 +224,7 @@ public class StageArchive {
     
     private void loadObjects(RarcFile archive, String path, String type, String layerKey, List list) {
         try {
-            Bcsv bcsv = new Bcsv(archive.openFile(path));
+            Bcsv bcsv = new Bcsv(archive.openFile(path), archive.isBigEndian());
             
             switch(type) {
                 case "stageobjinfo": for (Bcsv.Entry e : bcsv.entries) { list.add(new StageObj(this, layerKey, e)); } break;
@@ -221,13 +250,21 @@ public class StageArchive {
     
     private void loadPaths() {
         try {
-            Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/jmp/Path/CommonPathInfo"));
+            Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/jmp/Path/CommonPathInfo"), mapArc.isBigEndian());
             
             for (Bcsv.Entry e : bcsv.entries) {
                 paths.add(new PathObj(this, e));
             }
             
             bcsv.close();
+
+            if (assistPath != null) {
+                bcsv = new Bcsv(assistArc.openFile("/Stage/jmp/Path/CommonPathInfo"), assistArc.isBigEndian());
+                for (Bcsv.Entry e : bcsv.entries) {
+                    paths.add(new PathObj(this, e));
+                }
+                bcsv.close();
+            }
         }
         catch (IOException ex) {
             System.out.println(stageName + ": Failed to load paths: " + ex.getMessage());
@@ -304,7 +341,7 @@ public class StageArchive {
     }
     
     private void savePaths() throws IOException {
-        Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/jmp/Path/CommonPathInfo"));
+        Bcsv bcsv = new Bcsv(mapArc.openFile("/Stage/jmp/Path/CommonPathInfo"), mapArc.isBigEndian());
         bcsv.entries.clear();
         
         int fileIndex = 0;

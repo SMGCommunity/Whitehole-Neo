@@ -94,7 +94,7 @@ public class PathObj {
         int index = (short) data.get("no");
         
         try {
-            Bcsv bcsv = new Bcsv(stage.mapArc.openFile("/Stage/Jmp/Path/CommonPathPointInfo." + index));
+            Bcsv bcsv = new Bcsv(stage.mapArc.openFile("/Stage/Jmp/Path/CommonPathPointInfo." + index), stage.mapArc.isBigEndian());
             bcsv.entries.sort(POINT_SORTER);
             
             for (Bcsv.Entry pointEntry : bcsv.entries) {
@@ -198,14 +198,14 @@ public class PathObj {
     public Bcsv createStorage(String filePath) {
         try {
             if (stage.mapArc.fileExists(filePath)) {
-                return new Bcsv(stage.mapArc.openFile(filePath));
+                return new Bcsv(stage.mapArc.openFile(filePath), stage.mapArc.isBigEndian());
             }
             else {
                 String folder = filePath.substring(0, filePath.lastIndexOf("/"));
                 String file = filePath.substring(filePath.lastIndexOf("/") + 1);
                 stage.mapArc.createFile(folder, file);
                 
-                Bcsv bcsv = new Bcsv(stage.mapArc.openFile(filePath));
+                Bcsv bcsv = new Bcsv(stage.mapArc.openFile(filePath), stage.mapArc.isBigEndian());
                 bcsv.addField("point_arg0", 0, -1, 0, 0);
                 bcsv.addField("point_arg1", 0, -1, 0, 0);
                 bcsv.addField("point_arg2", 0, -1, 0, 0);

@@ -56,7 +56,7 @@ public class GameArchive {
         if (filesystem.fileExists("/StageData/ObjNameTable.arc")) {
             gameType = 1;
         }
-        else if (filesystem.fileExists("/SystemData/ObjNameTable.arc")) {
+        else if (filesystem.fileExists("/AudioRes/Info/ActionSound.arc")) {
             gameType = 2;
         }
         else {
@@ -101,7 +101,7 @@ public class GameArchive {
         {
             try {
                 RarcFile arc = new RarcFile(filesystem.openFile(PATH_PLANET_MAP_DATA_TABLE_ARCHIVE));
-                Bcsv bcsv = new Bcsv(arc.openFile(PATH_PLANET_MAP_DATA_TABLE_BCSV));
+                Bcsv bcsv = new Bcsv(arc.openFile(PATH_PLANET_MAP_DATA_TABLE_BCSV), arc.isBigEndian());
 
                 for (Bcsv.Entry entry : bcsv.entries) {
                     if ((int)entry.get("WaterFlag") > 0) {

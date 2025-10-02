@@ -901,6 +901,15 @@
     {
       "ClassName": "WoodLogBridge",
       "RendererType": "WoodLogBridge"
+    },
+    {
+      "ObjectName": "AssistTreatSafeAreaCube",
+      "RendererType": "AssistArea",
+      "RendererParams": [
+        {
+          "Shape": 1
+        }
+      ]
     }
   ]
 }

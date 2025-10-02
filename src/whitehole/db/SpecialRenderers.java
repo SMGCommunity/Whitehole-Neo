@@ -137,6 +137,15 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                 case "WoodLogBridge":
                     result = new WoodLogBridgeRenderer(info, objModelName, obj, specialInfo.rendererParams);
                     break;
+                case "AssistArea":
+                    x = (Integer)specialInfo.getRenderParamByName("Shape");
+                    if (x == null)
+                        break;
+                    shp = AreaShapeRenderer.shapeFromInteger(x);
+                    if (shp == null)
+                        break;
+                    result = new AssistAreaShapeRenderer(info, obj, shp);
+                    break;
             }
         
         if (result instanceof BmdRenderer)

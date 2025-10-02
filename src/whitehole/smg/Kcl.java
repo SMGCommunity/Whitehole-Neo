@@ -26,10 +26,10 @@ import whitehole.util.MathUtil;
  * @author Hackio
  */
 public class Kcl {
-    public Kcl(FileBase _file) throws IOException
+    public Kcl(FileBase _file, boolean isBigEndian) throws IOException
     {
         file = _file;
-        file.setBigEndian(true);
+        file.setBigEndian(isBigEndian);
         
         int PositionsOffset = file.readInt();
         int NormalsOffset = file.readInt();

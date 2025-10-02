@@ -1,5 +1,5 @@
 /*
-    © 2012 - 2019 - Whitehole Team
+    © 2012 - 2025 - Whitehole Team
 
     Whitehole is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -18,18 +18,27 @@ package whitehole.smg;
 import java.io.*;
 import java.util.*;
 import whitehole.io.FileBase;
-import whitehole.util.Color4;
 import whitehole.math.Matrix4;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
+import whitehole.util.Color4;
 import whitehole.util.MathUtil;
 
 public class Bmd 
 {
+    private boolean isBigEndian;
+
     public Bmd(FileBase _file) throws IOException
     {
         file = _file;
         file.setBigEndian(true);
+        isBigEndian = true;
+        file.position(0);
+        int tag = file.readInt();
+        if (tag == 0x3244334A) {
+            file.setBigEndian(false);
+            isBigEndian = false;
+        }
 
         file.position(0xC);
         int numsections = file.readInt();
@@ -111,7 +120,14 @@ public class Bmd
     
     private float readArrayValue_s16(int fixedpoint) throws IOException
     {
-        short val = file.readShort();
+        short val;
+        if (isBigEndian) 
+            val = file.readShort();
+        else {
+            byte lower = file.readByte();
+            byte higher = file.readByte();
+            val = (short) ((higher & 0xFF) << 8 | (lower & 0xFF));
+        }
         return (float)(val / (float)(1 << fixedpoint));
     }
 
@@ -146,7 +162,7 @@ public class Bmd
         int r = file.readByte() & 0xFF;
         int g = file.readByte() & 0xFF;
         int b = file.readByte() & 0xFF;
-        file.readByte();
+        file.skip(1);
         return new Color4(r / 255f, g / 255f, b / 255f, 1f);
     }
     
@@ -215,7 +231,13 @@ public class Bmd
         matstack.push(0xFFFF);
         nodestack.push(-1);
 
-        MiscFlags = file.readShort();
+        if (isBigEndian) 
+            MiscFlags = file.readShort();    
+        else {
+            byte lower = file.readByte();
+            byte higher = file.readByte();
+            MiscFlags = (short) ((higher & 0xFF) << 8 | (lower & 0xFF));
+        }
         file.skip(6);
         numVertices = file.readInt();
 
@@ -226,7 +248,6 @@ public class Bmd
         while ((curtype = file.readShort()) != 0)
         {
             int arg = file.readShort();
-
             switch (curtype)
             {
                 case 0x01:
@@ -259,7 +280,6 @@ public class Bmd
                     break;
             }
         }
-
         file.position(sectionstart + sectionsize);
     }
 
@@ -414,7 +434,14 @@ public class Bmd
         long sectionstart = file.position() - 4;
         int sectionsize = file.readInt();
 
-        short count = file.readShort();
+        short count;
+        if (isBigEndian) {
+            count = file.readShort();
+        } else {
+            byte lower = file.readByte();
+            byte higher = file.readByte();
+            count = (short) ((higher & 0xFF) << 8 | (lower & 0xFF));
+        }
         file.skip(2);
 
         multiMatrix = new MultiMatrix[count];
@@ -467,7 +494,14 @@ public class Bmd
         long sectionstart = file.position() - 4;
         int sectionsize = file.readInt();
 
-        short count = file.readShort();
+        short count;
+        if (isBigEndian) {
+            count = file.readShort();
+        } else {
+            byte lower = file.readByte();
+            byte higher = file.readByte();
+            count = (short) ((higher & 0xFF) << 8 | (lower & 0xFF));
+        }
         file.skip(2);
 
         matrixTypes = new MatrixType[count];
@@ -620,7 +654,14 @@ public class Bmd
 
                     int primtype = file.readByte() & 0xFF;
                     if (primtype == 0) break;
-                    char numvertices = (char) file.readShort();
+                    char numvertices;
+                    if (isBigEndian) 
+                        numvertices = (char) file.readShort();
+                    else {
+                        byte lower = file.readByte();
+                        byte higher = file.readByte();
+                        numvertices = (char) ((lower & 0xFF) << 8 | (higher & 0xFF));
+                    }
 
                     Batch.Packet.Primitive prim = packet.new Primitive();
                     packet.primitives.add(prim);
@@ -661,7 +702,13 @@ public class Bmd
 
                                 case 0x0200:
                                 case 0x0300:
-                                    val = file.readShort() & 0xFFFF;
+                                    if (isBigEndian) 
+                                        val = file.readShort() & 0xFFFF;
+                                    else {
+                                        byte lower = file.readByte();
+                                        byte higher = file.readByte();
+                                        val = ((lower & 0xFF) << 8) | (higher & 0xFF);
+                                    }
                                     break;
 
                                 default: throw new IOException(String.format("Bmd: unsupported index attrib %1$04X", attrib));
@@ -699,7 +746,14 @@ public class Bmd
         long ChunkStart = file.position() - 4;
         int ChunkSize = file.readInt();
 
-        short Count = file.readShort();
+        short Count;
+        if (isBigEndian) {
+            Count = file.readShort();
+        } else {
+            byte lower = file.readByte();
+            byte higher = file.readByte();
+            Count = (short) ((higher & 0xFF) << 8 | (lower & 0xFF));
+        }
         file.skip(2);
 
         materials = new Material[Count];
@@ -824,7 +878,7 @@ public class Bmd
             mat.ambColors = new Material.ColorInfo[2];
             mat.ambColors[0] = _mat3_readColor8FromShortTable(ChunkStart + AmbientColorTableOffset, mat);
             mat.ambColors[1] = _mat3_readColor8FromShortTable(ChunkStart + AmbientColorTableOffset, mat);
-            
+
             // Whitehole can't do anything with the lighting engine atm so I will skip it in the interest of time
             file.skip(8*2); // eight shorts
             
@@ -900,11 +954,11 @@ public class Bmd
             file.skip(20 * 2);
             
             mat.textureIndicies = new short[8];
-            for (int x = 0; x < 8; x++)
+            for (int x = 0; x < 8; x++) 
                 mat.textureIndicies[x] = _mat3_readShortFromShortTable(ChunkStart + TextureIndexTableOffset);
             
             mat.constColors = new Material.ColorInfo[4];
-            for (int x = 0; x < 4; x++)
+            for (int x = 0; x < 4; x++) 
                 mat.constColors[x] = _mat3_readColor8FromShortTable(ChunkStart + TevKColorTableOffset, mat);
             
             mat.tevStages = new Material.TevStage[16];
@@ -954,7 +1008,7 @@ public class Bmd
             }
 
             mat.tevRegisterColors = new Material.ColorInfo[4];
-            for (int x = 0; x < 4; x++)
+            for (int x = 0; x < 4; x++) 
                 mat.tevRegisterColors[x] = _mat3_readColor16FromShortTable(ChunkStart + TevColorTableOffset, mat);
             
             for (int x = 0; x < 16; x++)
@@ -1174,7 +1228,14 @@ public class Bmd
         long sectionstart = file.position() - 4;
         int sectionsize = file.readInt();
 
-        short numtextures = file.readShort();
+        short numtextures;
+        if (isBigEndian) {
+            numtextures = file.readShort();
+        } else {
+            byte lower = file.readByte();
+            byte higher = file.readByte();
+            numtextures = (short) ((higher & 0xFF) << 8 | (lower & 0xFF));
+        }
         file.skip(2);
 
         textures = new Texture[numtextures];
@@ -1222,7 +1283,7 @@ public class Bmd
             
             if (!MathUtil.isPowerOfTwo(tex.width) || !MathUtil.isPowerOfTwo(tex.height))
                 System.out.println("WARNING: Bad texture size: "+tex.width+"x"+tex.height);
-            tex.image = ImageUtils.decodeTextureData(file, sectionstart + dataoffset + 0x20 + (0x20 * i), tex.mipmapCount, tex.format, tex.width, tex.height);
+            tex.image = ImageUtils.decodeTextureData(file, sectionstart + dataoffset + 0x20 + (0x20 * i), tex.mipmapCount, tex.format, tex.width, tex.height, isBigEndian);
             
             /*try 
             {

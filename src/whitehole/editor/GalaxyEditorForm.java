@@ -484,7 +484,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         // Load zone archive
         StageArchive arc;
         
-        if(isGalaxyMode) {
+        if (isGalaxyMode) {
             arc = galaxyArchive.openZone(zone);
             zoneArchives.put(zone, arc);
         }

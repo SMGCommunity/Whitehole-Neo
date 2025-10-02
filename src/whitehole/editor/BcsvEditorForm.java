@@ -45,6 +45,7 @@ import whitehole.smg.Bcsv;
 import whitehole.util.SuperFastHash;
 import whitehole.util.TableColumnAdjuster;
 import whitehole.util.UIUtil;
+import whitehole.io.FileBase;
 
 public class BcsvEditorForm extends javax.swing.JFrame {
     private final DefaultTableModel tableModel;
@@ -518,7 +519,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         
         try {
             archive = new RarcFile(Whitehole.getCurrentGameFileSystem().openFile(tbArchiveName.getText()));
-            bcsv = new Bcsv(archive.openFile(tbFileName.getText()));
+            bcsv = new Bcsv(archive.openFile(tbFileName.getText()), archive.isBigEndian());
             
             // Add columns
             for (Bcsv.Field field : bcsv.fields.values()) {
