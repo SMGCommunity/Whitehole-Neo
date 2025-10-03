@@ -231,10 +231,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void initGUI() {
         if (isGalaxyMode) {
-            setTitle(Whitehole.GalaxyNames.getSimplifiedStageName(galaxyName) + " -- " + Whitehole.NAME);
+            var status = Whitehole.GalaxyNames.getSimplifiedStageName(galaxyName);
+            setTitle(status + " -- " + Whitehole.NAME);
+            Whitehole.RPC.addFrame(this, "GalaxyEditor", status);
         }
         else {
-            setTitle(Whitehole.ZoneNames.getSimplifiedZoneName(galaxyName) + " -- " + Whitehole.NAME);
+            var status = Whitehole.ZoneNames.getSimplifiedZoneName(galaxyName);
+            setTitle(status + " -- " + Whitehole.NAME);
+            Whitehole.RPC.addFrame(this, "ZoneEditor", status);
         }
         
         initAddObjectPopup();
@@ -635,7 +639,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     private void closeEditor() {
-        
+        Whitehole.RPC.removeFrame(this);
         if (isForceClose) //Yes this bypasses EVERYTHING
         {
             setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
