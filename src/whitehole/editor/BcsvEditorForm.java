@@ -509,14 +509,6 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     // Reading & writing
     
     private void populateBcsvData() {
-        var file_name = tbFileName.getText().split("/");
-        var name = file_name[file_name.length - 1];
-        if (!Whitehole.RPC.frameExists(this)) {
-            Whitehole.RPC.addFrame(this, "BCSVEdit", name);
-        } else {
-            Whitehole.RPC.setFrame(this, "BCSVEdit", name);
-        }
-        
         // disable buttons
         toggleButtonsEnabled(false);
         selectionUpdated();
@@ -603,6 +595,11 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             refreshRecentlyOpened();
             archive.close();
             
+            // Update status
+            var file_name = tbFileName.getText().split("/");
+            var name = file_name[file_name.length - 1];
+            Whitehole.RPC.addOrSetFrame(this, "Editing a BCSV", name);
+            
             // Enable buttons
             toggleButtonsEnabled(true);
             selectionUpdated();
@@ -611,6 +608,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
             String errmsg = String.format("Can't open BCSV file: %s", ex.getMessage());
             JOptionPane.showMessageDialog(this, errmsg, Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
             closeIO();
+            Whitehole.RPC.addOrSetFrame(this, "Trying to edit a BCSV", "...that can't be opened");
         }
         
         adjuster.adjustColumns();

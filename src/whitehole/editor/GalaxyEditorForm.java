@@ -233,12 +233,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if (isGalaxyMode) {
             var status = Whitehole.GalaxyNames.getSimplifiedStageName(galaxyName);
             setTitle(status + " -- " + Whitehole.NAME);
-            Whitehole.RPC.addFrame(this, "GalaxyEditor", status);
+            Whitehole.RPC.addFrame(this, "Editing a Galaxy", status);
         }
         else {
             var status = Whitehole.ZoneNames.getSimplifiedZoneName(galaxyName);
             setTitle(status + " -- " + Whitehole.NAME);
-            Whitehole.RPC.addFrame(this, "ZoneEditor", status);
+            Whitehole.RPC.addFrame(this, "Editing a Zone", status);
         }
         
         initAddObjectPopup();

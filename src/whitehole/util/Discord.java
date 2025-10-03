@@ -83,6 +83,11 @@ public final class Discord {
         builder.setState(status);
         client.sendRichPresence(builder.build());
     }
+    public void setDescAndStatus(String desc, String status) {
+        builder.setDetails(desc);
+        builder.setState(status);
+        client.sendRichPresence(builder.build());
+    }
     public void close() {
         client.close();
     }
@@ -92,8 +97,7 @@ public final class Discord {
     public void addFrame(JFrame frame, String desc, String status) {
         FrameRef ref = new FrameRef(frame, desc, status);
         Frames.add(ref);
-        setDesc(desc);
-        setStatus(status);
+        setDescAndStatus(desc, status);
     }
     public void removeFrame(JFrame frame) {
         for (int i = 0; i < Frames.size(); i++) {
@@ -101,8 +105,7 @@ public final class Discord {
             if (f.getFrame() == frame) {
                 Frames.remove(i);
                 FrameRef last = Last();
-                setDesc(last.getDesc());
-                setStatus(last.getStatus());
+                setDescAndStatus(last.getDesc(), last.getStatus());
             }
         }
     }
@@ -126,10 +129,16 @@ public final class Discord {
                 frameRef.setDesc(desc);
                 frameRef.setStatus(status);
                 if (Last() == frameRef) {
-                    setDesc(desc);
-                    setStatus(status);
+                    setDescAndStatus(desc, status);
                 }
             }
+        }
+    }
+    public void addOrSetFrame(JFrame frame, String desc, String status) {
+        if (!frameExists(frame)) {
+            addFrame(frame, desc, status);
+        } else {
+            setFrame(frame, desc, status);
         }
     }
 }
