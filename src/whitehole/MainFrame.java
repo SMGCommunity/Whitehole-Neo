@@ -262,8 +262,6 @@ public final class MainFrame extends javax.swing.JFrame {
         RendererCache.init();
         
         currentGalaxy = galaxy.identifier;
-        Whitehole.RPC.setDesc("Editing");
-        Whitehole.RPC.setStatus(currentGalaxy);
         galaxyEditor = new GalaxyEditorForm(currentGalaxy);
         galaxyEditor.setVisible(true);
     }

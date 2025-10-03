@@ -22,6 +22,10 @@ import com.jagrosh.discordipc.entities.RichPresence.Builder;
 import java.time.OffsetDateTime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JFrame;
 
 /**
  *
@@ -30,6 +34,33 @@ import java.util.logging.Logger;
 public final class Discord {
     private final IPCClient client;
     private final Builder builder;
+    private final ArrayList<FrameRef> Frames = new ArrayList<>();
+    private final class FrameRef {
+        private final JFrame frame;
+        private String desc;
+        private String status;
+        public FrameRef(JFrame f, String d, String s) {
+            frame = f;
+            desc = d;
+            status = s;
+        }
+        public String getDesc() {
+            return desc;
+        }
+        public String getStatus() {
+            return status;
+        }
+        public JFrame getFrame() {
+            return frame;
+        }
+        public void setDesc(String new_desc) {
+            desc = new_desc;
+        }
+        public void setStatus(String new_status) {
+            status = new_status;
+        }
+    }
+
     public Discord() {
         // Currently uses Lord-G's Neo ID, please inform if any assets need change
         client = new IPCClient(1418260169854423142L);
@@ -54,5 +85,51 @@ public final class Discord {
     }
     public void close() {
         client.close();
+    }
+    private FrameRef Last() {
+        return Frames.get(Frames.size() - 1);
+    }
+    public void addFrame(JFrame frame, String desc, String status) {
+        FrameRef ref = new FrameRef(frame, desc, status);
+        Frames.add(ref);
+        setDesc(desc);
+        setStatus(status);
+    }
+    public void removeFrame(JFrame frame) {
+        for (int i = 0; i < Frames.size(); i++) {
+            FrameRef f = Frames.get(i);
+            if (f.getFrame() == frame) {
+                Frames.remove(i);
+                FrameRef last = Last();
+                setDesc(last.getDesc());
+                setStatus(last.getStatus());
+            }
+        }
+    }
+    public Boolean frameExists(JFrame frame) {
+        for (FrameRef frameRef : Frames) {
+            if (frameRef.getFrame() == frame)
+                return true;
+        }
+        return false;
+    }
+    public FrameRef findFrame(JFrame frame) {
+        for (var ref : Frames) {
+            if (ref.getFrame() == frame)
+                return ref;
+        }
+        return null;
+    }
+    public void setFrame(JFrame frame, String desc, String status) {
+        for (FrameRef frameRef : Frames) {
+            if (frameRef.getFrame() == frame) {
+                frameRef.setDesc(desc);
+                frameRef.setStatus(status);
+                if (Last() == frameRef) {
+                    setDesc(desc);
+                    setStatus(status);
+                }
+            }
+        }
     }
 }

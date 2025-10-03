@@ -90,7 +90,7 @@ public class Whitehole {
         
         RPC = new Discord();
         RPC.init();
-        RPC.setDesc("Doing nothing, yet.");
+        RPC.addFrame(null, "Doing nothing, yet.", null);
         
         MAIN_FRAME = new MainFrame(args);
         MAIN_FRAME.setVisible(true);
