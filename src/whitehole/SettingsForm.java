@@ -60,6 +60,7 @@ public class SettingsForm extends javax.swing.JDialog {
         chkUseBetterQuality = new javax.swing.JCheckBox();
         chkDebugFakeColor = new javax.swing.JCheckBox();
         chkDebugFastDrag = new javax.swing.JCheckBox();
+        chkDiscordRichPresenceEnabled = new javax.swing.JCheckBox();
         pnlAreaColors = new javax.swing.JPanel();
         lblAreaColors = new javax.swing.JLabel();
         lblNormalAreaColor = new javax.swing.JLabel();
@@ -197,6 +198,21 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkDebugFastDrag, gridBagConstraints);
+
+        chkDiscordRichPresenceEnabled.setSelected(Settings.getDiscordRichPresenceEnabled());
+        chkDiscordRichPresenceEnabled.setText("<html>Discord Rich Presence<br>(Requires closing whitehole)</html>");
+        chkDiscordRichPresenceEnabled.setToolTipText("");
+        chkDiscordRichPresenceEnabled.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                chkDiscordRichPresenceEnabledItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        pnlAppearance.add(chkDiscordRichPresenceEnabled, gridBagConstraints);
 
         pnlAreaColors.setMaximumSize(new java.awt.Dimension(525, 2147483647));
         pnlAreaColors.setPreferredSize(new java.awt.Dimension(525, 80));
@@ -781,6 +797,10 @@ public class SettingsForm extends javax.swing.JDialog {
     private void chkShowCollisionModelsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkShowCollisionModelsItemStateChanged
         Settings.setUseCollisionModels(evt.getStateChange() == ItemEvent.SELECTED);
     }//GEN-LAST:event_chkShowCollisionModelsItemStateChanged
+
+    private void chkDiscordRichPresenceEnabledItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkDiscordRichPresenceEnabledItemStateChanged
+        Settings.setDiscordRichPresenceEnabled(evt.getStateChange() == ItemEvent.SELECTED);
+    }//GEN-LAST:event_chkDiscordRichPresenceEnabledItemStateChanged
     
     private void setBaseGamePath(String pth)
     {     
@@ -920,6 +940,7 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JCheckBox chkDebugAdditionalLogs;
     private javax.swing.JCheckBox chkDebugFakeColor;
     private javax.swing.JCheckBox chkDebugFastDrag;
+    private javax.swing.JCheckBox chkDiscordRichPresenceEnabled;
     private javax.swing.JCheckBox chkOpenGalaxyEditorMaximized;
     private javax.swing.JCheckBox chkShowCollisionModels;
     private javax.swing.JCheckBox chkShowLowPolyModels;

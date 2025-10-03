@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JFrame;
+import whitehole.Settings;
 
 /**
  *
@@ -35,6 +36,7 @@ public final class Discord {
     private final IPCClient client;
     private final Builder builder;
     private final ArrayList<FrameRef> Frames = new ArrayList<>();
+    private boolean enabled = true;
     private final class FrameRef {
         private final JFrame frame;
         private String desc;
@@ -62,6 +64,10 @@ public final class Discord {
     }
 
     public Discord() {
+        if (!Settings.getDiscordRichPresenceEnabled())
+        {
+            enabled = false;
+        }
         // Currently uses Lord-G's Neo ID, please inform if any assets need change
         client = new IPCClient(1418260169854423142L);
         builder = new Builder();
@@ -69,6 +75,7 @@ public final class Discord {
         builder.setStartTimestamp(OffsetDateTime.now());
     }
     public void init() {
+        if (!enabled) return;
         try {
             client.connect();
         } catch (NoDiscordClientException ex) {
@@ -76,30 +83,36 @@ public final class Discord {
         }
     }
     public void setDesc(String desc) {
+        if (!enabled) return;
         builder.setDetails(desc);
         client.sendRichPresence(builder.build());
     }
     public void setStatus(String status) {
+        if (!enabled) return;
         builder.setState(status);
         client.sendRichPresence(builder.build());
     }
     public void setDescAndStatus(String desc, String status) {
+        if (!enabled) return;
         builder.setDetails(desc);
         builder.setState(status);
         client.sendRichPresence(builder.build());
     }
     public void close() {
+        if (!enabled) return;
         client.close();
     }
     private FrameRef Last() {
         return Frames.get(Frames.size() - 1);
     }
     public void addFrame(JFrame frame, String desc, String status) {
+        if (!enabled) return;
         FrameRef ref = new FrameRef(frame, desc, status);
         Frames.add(ref);
         setDescAndStatus(desc, status);
     }
     public void removeFrame(JFrame frame) {
+        if (!enabled) return;
         for (int i = 0; i < Frames.size(); i++) {
             FrameRef f = Frames.get(i);
             if (f.getFrame() == frame) {
@@ -110,6 +123,7 @@ public final class Discord {
         }
     }
     public Boolean frameExists(JFrame frame) {
+        if (!enabled) return false;
         for (FrameRef frameRef : Frames) {
             if (frameRef.getFrame() == frame)
                 return true;
@@ -117,6 +131,7 @@ public final class Discord {
         return false;
     }
     public FrameRef findFrame(JFrame frame) {
+        if (!enabled) return null;
         for (var ref : Frames) {
             if (ref.getFrame() == frame)
                 return ref;
@@ -124,6 +139,7 @@ public final class Discord {
         return null;
     }
     public void setFrame(JFrame frame, String desc, String status) {
+        if (!enabled) return;
         for (FrameRef frameRef : Frames) {
             if (frameRef.getFrame() == frame) {
                 frameRef.setDesc(desc);
@@ -135,6 +151,7 @@ public final class Discord {
         }
     }
     public void addOrSetFrame(JFrame frame, String desc, String status) {
+        if (!enabled) return;
         if (!frameExists(frame)) {
             addFrame(frame, desc, status);
         } else {
