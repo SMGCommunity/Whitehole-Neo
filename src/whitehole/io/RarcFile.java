@@ -707,7 +707,18 @@ public class RarcFile implements FilesystemBase {
     
     @Override
     public boolean fileExists(String filePath) {
-        return fileEntries.containsKey(pathToKey(filePath));
+        if (fileEntries.containsKey(pathToKey(filePath)))
+        {
+            return true;
+        }
+        else {
+            for (String fileEntry : fileEntries.keySet()) {
+                if (removeRootFromPath(filePath).equalsIgnoreCase(removeRootFromPath(fileEntry))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     
     @Override

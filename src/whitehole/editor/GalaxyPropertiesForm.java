@@ -134,8 +134,9 @@ public class GalaxyPropertiesForm extends javax.swing.JFrame {
             }
             
             JOptionPane.showMessageDialog(rootPane, msgSuccess, Whitehole.NAME, JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(rootPane, "Failed to save map file.\n" + ex.toString(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(rootPane, "Failed to save map file.\nSee output for full log.\n" + ex.toString(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
     
@@ -151,7 +152,6 @@ public class GalaxyPropertiesForm extends javax.swing.JFrame {
         java.awt.GridBagConstraints gridBagConstraints;
 
         lblGalaxyName = new javax.swing.JLabel();
-        txtGalaxyName = new javax.swing.JTextField();
         lblLayers = new javax.swing.JLabel();
         pnlLayers = new javax.swing.JPanel();
         chkLayerA = new javax.swing.JCheckBox();
@@ -171,15 +171,13 @@ public class GalaxyPropertiesForm extends javax.swing.JFrame {
         chkLayerO = new javax.swing.JCheckBox();
         chkLayerP = new javax.swing.JCheckBox();
         btnSaveGalaxy = new javax.swing.JButton();
+        lblFullGalaxyName = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(Whitehole.NAME + (isGalaxyMode ? " -- Galaxy Properties" : " -- Zone Properties"));
         setIconImage(Whitehole.ICON);
 
         lblGalaxyName.setText(isGalaxyMode ? "Galaxy Name" : "Zone Name");
-
-        txtGalaxyName.setText(name);
-        txtGalaxyName.setEnabled(false);
 
         lblLayers.setText("Delete Existing Layers or Create New Layers");
 
@@ -336,6 +334,9 @@ public class GalaxyPropertiesForm extends javax.swing.JFrame {
             }
         });
 
+        lblFullGalaxyName.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        lblFullGalaxyName.setText(name);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -354,7 +355,7 @@ public class GalaxyPropertiesForm extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(txtGalaxyName, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblFullGalaxyName, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(pnlLayers, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE))
                         .addContainerGap(39, Short.MAX_VALUE))))
         );
@@ -364,12 +365,12 @@ public class GalaxyPropertiesForm extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(lblGalaxyName)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtGalaxyName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 31, Short.MAX_VALUE)
+                .addComponent(lblFullGalaxyName)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32, Short.MAX_VALUE)
                 .addComponent(lblLayers)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnlLayers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
                 .addComponent(btnSaveGalaxy)
                 .addGap(12, 12, 12))
         );
@@ -401,9 +402,9 @@ public class GalaxyPropertiesForm extends javax.swing.JFrame {
     private javax.swing.JCheckBox chkLayerN;
     private javax.swing.JCheckBox chkLayerO;
     private javax.swing.JCheckBox chkLayerP;
+    private javax.swing.JLabel lblFullGalaxyName;
     private javax.swing.JLabel lblGalaxyName;
     private javax.swing.JLabel lblLayers;
     private javax.swing.JPanel pnlLayers;
-    private javax.swing.JTextField txtGalaxyName;
     // End of variables declaration//GEN-END:variables
 }
