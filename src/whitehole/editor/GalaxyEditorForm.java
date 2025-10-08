@@ -172,9 +172,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private int undoIndex = 0;
     private UndoMultiEntry currentUndoMulti = null;
     
-    // If true, all closing events like Object validation and unsaved changes are skipped
-    public boolean isForceClose = false;
-    
     // -------------------------------------------------------------------------------------------------------------------------
     // Constructors and GUI Setup
     
@@ -640,16 +637,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void closeEditor() {
         Whitehole.RPC.removeFrame(this);
-        if (isForceClose) //Yes this bypasses EVERYTHING
-        {
-            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            for (GalaxyEditorForm form : zoneEditors.values())
-            {
-                form.isForceClose = this.isForceClose;
-                form.dispose();
-            }
-            return;
-        }
         
         if (levelLoader.CurrentThread != null && levelLoader.CurrentThread.isAlive())
         {

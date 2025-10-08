@@ -18,6 +18,7 @@ package whitehole;
 
 import com.github.jacksonbrienen.jwfd.JWindowsFileDialog;
 import java.awt.Component;
+import java.awt.Window;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
@@ -308,13 +309,6 @@ public final class MainFrame extends javax.swing.JFrame {
             return true;
         }
         return false;
-    }
-       
-    public void forceCloseEditors() {
-        if (galaxyEditor != null)
-            galaxyEditor.isForceClose = true;
-        if (zoneEditor != null)
-            zoneEditor.isForceClose = true;
     }
     
     public void requestUpdateLAF() {
@@ -691,7 +685,10 @@ public final class MainFrame extends javax.swing.JFrame {
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         Whitehole.RPC.close();
-        forceCloseEditors();
+        for (Window w : Window.getWindows()) {
+            w.dispose();
+        }
+        System.exit(0);
     }//GEN-LAST:event_formWindowClosing
 
     private void listGalaxyKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listGalaxyKeyPressed
