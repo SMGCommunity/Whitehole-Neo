@@ -175,6 +175,11 @@ public class Bcsv {
             entries.add(entry);
         }
     }
+
+    public void setBigEndian (boolean bigEndian) {
+        file.setBigEndian(bigEndian);
+        isBigEndian = bigEndian;
+    }
     
     public void save() throws IOException {
         // Prepare writing

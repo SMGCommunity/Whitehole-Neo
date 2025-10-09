@@ -155,178 +155,34 @@ public class RarcFile implements FilesystemBase {
 
         dirEntries.put(pathToKey(root.fullName), root);
     }
-    
-    @Override
-    /*public void save() throws IOException {
-        for (FileEntry fe : fileEntries.values()) {
-            if (fe.data != null) continue;
-            file.position(fe.dataOffset);
-            fe.data = file.readBytes(fe.dataSize);
-        }
+
+    public RarcFile(FileBase f, String name, boolean isBigEndian) throws IOException {
+        file = new Yaz0File(f);
         file.setBigEndian(isBigEndian);
+        
+        dirEntries = new LinkedHashMap();
+        fileEntries = new LinkedHashMap();
 
-        int dirOffset = 0x40;
-        int fileOffset = dirOffset + align32(dirEntries.size() * 0x10);
-        int stringOffset = fileOffset + align32((fileEntries.size() + (dirEntries.size() * 3) - 1) * 0x14);
-        
-        int dataOffset = stringOffset;
-        int dataLength = 0;
-        for (DirEntry de : dirEntries.values())
-            dataOffset += de.name.length() + 1;
-        for (FileEntry fe : fileEntries.values()) {
-            dataOffset += fe.name.length() + 1;
-            dataLength += align32(fe.dataSize);
-        }
-        dataOffset += 5;
-        dataOffset = align32(dataOffset);
-        
-        int dirSubOffset = 0;
-        int fileSubOffset = 0;
-        int stringSubOffset = 0;
-        int dataSubOffset = 0;
-        
-        file.setLength(dataOffset + dataLength);
-        
-        // RARC header
-        // certain parts of this will have to be written later on
-        file.position(0);
-        file.writeInt(0x52415243);
-        file.writeInt(dataOffset + dataLength);
-        file.writeInt(0x00000020);
-        file.writeInt(dataOffset - 0x20);
-        file.writeInt(dataLength);
-        file.writeInt(dataLength);
-        file.writeInt(0x00000000);
-        file.writeInt(0x00000000);
-        file.writeInt(dirEntries.size());
-        file.writeInt(dirOffset - 0x20);
-        file.writeInt(fileEntries.size() + (dirEntries.size() * 3) - 1);
-        file.writeInt(fileOffset - 0x20);
-        file.writeInt(dataOffset - stringOffset);
-        file.writeInt(stringOffset - 0x20);
-        file.writeInt(unk38);
-        file.writeInt(0x00000000);
-        
-        file.position(stringOffset);
-        file.writeString("ASCII", ".", 0);
-        file.writeString("ASCII", "..", 0);
-        stringSubOffset += 5;
-        
-        Stack<Iterator<DirEntry>> dirstack = new Stack<>();
-        Object[] entriesarray = dirEntries.values().toArray();
-        DirEntry curdir = (DirEntry)entriesarray[0];
-        int c = 1;
-        while (curdir.parentDir != null) curdir = (DirEntry)entriesarray[c++];
-        short fileid = 0;
-        for (;;) {
-            // write the directory node
-            curdir.tempID = dirSubOffset / 0x10;
-            file.position(dirOffset + dirSubOffset);
-            file.writeInt((curdir.tempID == 0) ? 0x524F4F54 : dirMagic(curdir.name));
-            file.writeInt(stringSubOffset);
-            file.writeShort(nameHash(curdir.name));
-            file.writeShort((short)(2 + curdir.childrenDirs.size() + curdir.childrenFiles.size()));
-            file.writeInt(fileSubOffset / 0x14);
-            dirSubOffset += 0x10;
-            
-            if (curdir.tempID > 0) {
-                file.position(curdir.tempNameOffset);
-                file.writeShort((short)stringSubOffset);
-                file.writeInt(curdir.tempID);
-            }
-            file.position(stringOffset + stringSubOffset);
-            stringSubOffset += file.writeString("ASCII", curdir.name, 0);
-            
-            // write the child file/dir entries
-            file.position(fileOffset + fileSubOffset);
-            for (DirEntry cde : curdir.childrenDirs) {
-                file.writeShort((short)0xFFFF);
-                file.writeShort(nameHash(cde.name));
-                file.writeShort((short)0x0200);
-                cde.tempNameOffset = (int)file.position();
-                file.skip(6);
-                file.writeInt(0x00000010);
-                file.writeInt(0x00000000);
-                fileSubOffset += 0x14;
-            }
-            
-            for (FileEntry cfe : curdir.childrenFiles) {
-                file.position(fileOffset + fileSubOffset);
-                file.writeShort(fileid);
-                file.writeShort(nameHash(cfe.name));
-                if (isBigEndian) {
-                    file.writeShort((short)0x1100);
-                    file.writeShort((short)stringSubOffset);
-                } else {
-                    file.writeShort((short)stringSubOffset);
-                    file.writeShort((short)0x0011);
-                }
-                file.writeInt(dataSubOffset);
-                file.writeInt(cfe.dataSize);
-                file.writeInt(0x00000000);
-                fileSubOffset += 0x14;
-                fileid++;
+        DirEntry root = new DirEntry();
+        root.parentDir = null;
 
-                file.position(stringOffset + stringSubOffset);
-                stringSubOffset += file.writeString("ASCII", cfe.name, 0);
-                
-                file.position(dataOffset + dataSubOffset);
-                cfe.dataOffset = (int)file.position();
-                byte[] thedata = Arrays.copyOf(cfe.data, cfe.dataSize);
-                file.writeBytes(thedata);
-                dataSubOffset += align32(cfe.dataSize);
-                cfe.data = null;
-            }
-            
-            file.position(fileOffset + fileSubOffset);
-            file.writeShort((short)0xFFFF);
-            file.writeShort((short)0x002E);
-            file.writeShort((short)0x0200);
-            file.writeShort((short)0x0000);
-            file.writeInt(curdir.tempID);
-            file.writeInt(0x00000010);
-            file.writeInt(0x00000000);
-            file.writeShort((short)0xFFFF);
-            file.writeShort((short)0x00B8);
-            file.writeShort((short)0x0200);
-            file.writeShort((short)0x0002);
-            file.writeInt((curdir.parentDir != null) ? curdir.parentDir.tempID : 0xFFFFFFFF);
-            file.writeInt(0x00000010);
-            file.writeInt(0x00000000);
-            fileSubOffset += 0x28;
-            
-            /**
-             * determine who's next on the list
-             * if we have a child directory, process it
-             * otherwise, look if we have remaining siblings
-             * and if none, go back to our parent and look for siblings again
-             * until we have done them all
-            *
-            if (!curdir.childrenDirs.isEmpty())
-            {
-                dirstack.push(curdir.childrenDirs.iterator());
-                curdir = dirstack.peek().next();
-            } else {
-                curdir = null;
-                while (curdir == null) {
-                    if (dirstack.empty())
-                        break;
-                    
-                    Iterator<DirEntry> it = dirstack.peek();
-                    if (it.hasNext())
-                        curdir = it.next();
-                    else
-                        dirstack.pop();
-                }
-                
-                if (curdir == null)
-                    break;
-            }
-        }
-        
-        file.save();
-    }*/
+        root.name = name;
+        root.fullName = "/" + root.name;
+        root.tempID = 0;
 
+        dirEntries.put(pathToKey(root.fullName), root);
+    }
+
+    public void setBigEndian (boolean bigEndian) {
+        file.setBigEndian(bigEndian);
+        isBigEndian = bigEndian;
+    }
+    
+    public boolean isBigEndian() {
+        return isBigEndian;
+    }
+
+    @Override
     public void save() throws IOException {
         for (FileEntry fe : fileEntries.values()) {
             if (fe.data != null) continue;
@@ -334,6 +190,7 @@ public class RarcFile implements FilesystemBase {
             fe.data = file.readBytes(fe.dataSize);
         }
         file.setBigEndian(isBigEndian);
+        System.out.println(String.format("isBigEndian: %b", isBigEndian));
 
         int dirOffset = 0x40;
         int fileOffset = dirOffset + align32(dirEntries.size() * 0x10);
@@ -530,11 +387,6 @@ public class RarcFile implements FilesystemBase {
     @Override
     public void close() throws IOException {
         file.close();
-    }
-
-    @Override
-    public boolean isBigEndian () {
-        return isBigEndian;
     }
     
     // -------------------------------------------------------------------------------------------------------------------------

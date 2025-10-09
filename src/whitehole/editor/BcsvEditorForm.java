@@ -50,7 +50,7 @@ import whitehole.io.FileBase;
 public class BcsvEditorForm extends javax.swing.JFrame {
     private final DefaultTableModel tableModel;
     private final TableColumnAdjuster adjuster;
-    private FilesystemBase archive = null;
+    private RarcFile archive = null;
     private Bcsv bcsv = null;
     
     public BcsvEditorForm() {

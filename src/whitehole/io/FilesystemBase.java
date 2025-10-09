@@ -35,5 +35,4 @@ public interface FilesystemBase {
     public void createFile(String parent, String newfile) throws IOException;
     public void renameFile(String file, String newname) throws FileNotFoundException;
     public void deleteFile(String file);
-    public boolean isBigEndian();
 }
