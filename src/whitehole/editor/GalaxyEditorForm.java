@@ -172,9 +172,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private int undoIndex = 0;
     private UndoMultiEntry currentUndoMulti = null;
     
-    // If true, all closing events like Object validation and unsaved changes are skipped
-    public boolean isForceClose = false;
-    
     // -------------------------------------------------------------------------------------------------------------------------
     // Constructors and GUI Setup
     
@@ -231,10 +228,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     
     private void initGUI() {
         if (isGalaxyMode) {
-            setTitle(Whitehole.GalaxyNames.getSimplifiedStageName(galaxyName) + " -- " + Whitehole.NAME);
+            var status = Whitehole.GalaxyNames.getSimplifiedStageName(galaxyName);
+            setTitle(status + " -- " + Whitehole.NAME);
+            Whitehole.RPC.addFrame(this, "Editing a Galaxy", status);
         }
         else {
-            setTitle(Whitehole.ZoneNames.getSimplifiedZoneName(galaxyName) + " -- " + Whitehole.NAME);
+            var status = Whitehole.ZoneNames.getSimplifiedZoneName(galaxyName);
+            setTitle(status + " -- " + Whitehole.NAME);
+            Whitehole.RPC.addFrame(this, "Editing a Zone", status);
         }
         
         initAddObjectPopup();
@@ -635,17 +636,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     private void closeEditor() {
-        
-        if (isForceClose) //Yes this bypasses EVERYTHING
-        {
-            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            for (GalaxyEditorForm form : zoneEditors.values())
-            {
-                form.isForceClose = this.isForceClose;
-                form.dispose();
-            }
-            return;
-        }
+        Whitehole.RPC.removeFrame(this);
         
         if (levelLoader.CurrentThread != null && levelLoader.CurrentThread.isAlive())
         {

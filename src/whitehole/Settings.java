@@ -70,6 +70,9 @@ public final class Settings {
     public static boolean getOpenGalaxyEditorMaximized() { return PREFERENCES.getBoolean("whitehole_openGalaxyEditorMaximized", false); }
     public static void setOpenGalaxyEditorMaximized(boolean val) { PREFERENCES.putBoolean("whitehole_openGalaxyEditorMaximized", val); }
     
+    public static boolean getDiscordRichPresenceEnabled() { return PREFERENCES.getBoolean("whitehole_discordRichPresenceEnabled", true); }
+    public static void setDiscordRichPresenceEnabled(boolean val) { PREFERENCES.putBoolean("whitehole_discordRichPresenceEnabled", val); }
+    
     
     // ==== DEBUGGING ====
     public static boolean getDebugFakeColor() { return PREFERENCES.getBoolean("whitehole_debugFakeColor", false); }
