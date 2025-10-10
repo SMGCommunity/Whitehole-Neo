@@ -338,7 +338,7 @@ public class Bcsv {
     }
 
     public void removeField(String name) {
-        removeField(Bcsv.calcJGadgetHash(name));
+        removeField(getNameHash(name));
     }
     
     public void renameField(String name, String newName)

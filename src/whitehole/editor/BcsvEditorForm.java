@@ -83,19 +83,16 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         btnClear.setEnabled(val);
         btnAddColumn.setEnabled(val);
         btnDeleteColumn.setEnabled(val);
+        btnEditColumn.setEnabled(val);
     }
     
     private void selectionUpdated()
     {
         lblColAndRow.setText(getSelectedColRowFormatted());
-        if (tblBcsv.getSelectedColumnCount() == 1)
-        {
-            btnEditColumn.setEnabled(true);
-        }
-        else
-        {
-            btnEditColumn.setEnabled(false);
-        }
+        btnDeleteColumn.setEnabled(tblBcsv.getSelectedColumnCount() >= 1);
+        btnEditColumn.setEnabled(tblBcsv.getSelectedColumnCount() == 1);
+        btnDuplicateRow.setEnabled(tblBcsv.getSelectedRowCount() >= 1);
+        btnDeleteRow.setEnabled(tblBcsv.getSelectedRowCount() >= 1);
     }
     
     private void toggleShortcutVisibility() {
@@ -511,6 +508,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     private void populateBcsvData() {
         // disable buttons
         toggleButtonsEnabled(false);
+        tblBcsv.clearSelection();
         selectionUpdated();
         
         tableModel.setRowCount(0);
@@ -1215,6 +1213,8 @@ public class BcsvEditorForm extends javax.swing.JFrame {
                 tableModel.removeRow(modelRowIndex);
             }
         }
+        tblBcsv.clearSelection();
+        selectionUpdated();
     }//GEN-LAST:event_btnDeleteRowActionPerformed
 
     private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
@@ -1282,6 +1282,8 @@ public class BcsvEditorForm extends javax.swing.JFrame {
                 tblBcsv.removeColumn(tblBcsv.getColumnModel().getColumn(selectedColumns[selectedColumn]));
             }
         }
+        tblBcsv.clearSelection();
+        selectionUpdated();
     }
     
     private void tblBcsvKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tblBcsvKeyReleased
@@ -1382,7 +1384,7 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     {
         if (fieldName.isEmpty())
             return;
-        if (bcsv.fields.containsKey(Bcsv.calcJGadgetHash(fieldName)))
+        if (bcsv.fields.containsKey(Bcsv.getNameHash(fieldName)))
         {
             System.out.println("Column with name " + fieldName + " already exists!");
             return;
@@ -1390,11 +1392,10 @@ public class BcsvEditorForm extends javax.swing.JFrame {
         bcsv.addField(fieldName, fieldType, -1, 0, Bcsv.getFieldDefault((byte)fieldType));
         tableModel.addColumn(fieldName);
         
-        DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
-        for (int i = 0; i < table.getRowCount(); i++)
+        for (int i = 0; i < tableModel.getRowCount(); i++)
         {
-            int c = table.findColumn(fieldName);
-            table.setValueAt(Bcsv.getFieldDefault((byte)fieldType), i, c);
+            int c = tableModel.findColumn(fieldName);
+            tableModel.setValueAt(Bcsv.getFieldDefault((byte)fieldType), i, c);
         }
         
         SuperFastHash.addToLookup(fieldName);
