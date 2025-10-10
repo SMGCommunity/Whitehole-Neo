@@ -860,20 +860,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             setStatusToInfo("Initializing Object Tree...");
             initObjectNodeTree();
-            setStatusToInfo("Initializing GUI...");
-            initGUI();
-
-            // Load scenario information
-            DefaultListModel scenlist = (DefaultListModel)listScenarios.getModel();
-
-            for(Bcsv.Entry scen : galaxyArchive.scenarioData) {
-                scenlist.addElement(String.format("[%1$d] %2$s", scen.getInt("ScenarioNo"), scen.getString("ScenarioName")));
-            }
+            SwingUtilities.invokeLater(() -> {
+                setStatusToInfo("Initializing GUI...");
+                initGUI();
             
-            if (isGalaxyMode) {
-                listScenarios.setSelectedIndex(0);
-            }
-            ToggleUI(true);
+                // Load scenario information
+                DefaultListModel scenlist = (DefaultListModel)listScenarios.getModel();
+
+                for(Bcsv.Entry scen : galaxyArchive.scenarioData) {
+                    scenlist.addElement(String.format("[%1$d] %2$s", scen.getInt("ScenarioNo"), scen.getString("ScenarioName")));
+                }
+
+                if (isGalaxyMode) {
+                    listScenarios.setSelectedIndex(0);
+                }
+                ToggleUI(true);
+            });
         }
     }
     
