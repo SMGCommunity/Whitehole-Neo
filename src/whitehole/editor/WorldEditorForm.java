@@ -182,6 +182,8 @@ public class WorldEditorForm extends javax.swing.JFrame {
         Thread t = new Thread(levelLoader);
         levelLoader.CurrentThread = t;
         t.start();
+        
+        
     }
     
     public WorldEditorForm(WorldEditorForm parent, StageArchive zoneArc) {
@@ -246,14 +248,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         tgbShowPaths.setSelected(Settings.getShowPaths());
         tgbShowAxis.setSelected(Settings.getShowAxis());
         
-        // For now, hide these until their proper functions are added
-        btnAddScenario.setVisible(false);
-        btnEditScenario.setVisible(false);
-        btnDeleteScenario.setVisible(false);
-        btnAddZone.setVisible(false);
-        btnDeleteZone.setVisible(false);
-        
-        
         // Setup the actual preview canvas
         boolean UseBetterQuality = Settings.getUseBetterQuality();
         GLProfile prof = UseBetterQuality ? GLProfile.getMaxFixedFunc(true) : GLProfile.getDefault();
@@ -294,36 +288,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         glCanvas.requestFocusInWindow();
         
-        // Zone-only GUI stuff
-        if (!isGalaxyMode) {
-            tabData.remove(0);
-
-            listLayerCheckboxes = new CheckBoxList();
-            listLayerCheckboxes.setEventListener((index, status) -> layerSelectChange(index, status));
-            scrLayers.setViewportView(listLayerCheckboxes);
-
-            // Collect valid layer checkboxes
-            zoneModeLayerBitmask = 0;
-            JCheckBox[] layerCheckBoxes = new JCheckBox[curZoneArc.objects.keySet().size() - 1];
-            int index = 0;
-
-            for (int layerID = 0 ; layerID < 16 ; layerID++) {
-                String layerName = "Layer" + (char)('A' + layerID);
-
-                if (curZoneArc.objects.containsKey(layerName.toLowerCase())) {
-                    layerCheckBoxes[index] = new JCheckBox(layerName);
-
-                    if (index == 0) {
-                        layerCheckBoxes[index].setSelected(true);
-                        zoneModeLayerBitmask |= (1 << layerID);
-                    }
-
-                    index++;
-                }
-            }
-
-            listLayerCheckboxes.setListData(layerCheckBoxes);
-        }
     }
     
     private void initAddObjectPopup() {
@@ -394,10 +358,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             glCanvas.setEnabled(toggle);
 
         tabData.setEnabled(toggle);
-        listScenarios.setEnabled(toggle);
-        listZones.setEnabled(toggle);
-        scrLayers.setEnabled(toggle);
-        btnEditZone.setEnabled(toggle);
 
         mniSave.setEnabled(toggle);
         mniClose.setEnabled(toggle);
@@ -423,15 +383,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
     // Status Bar
     
     private void setDefaultStatus() {
-        if (levelLoader.CurrentThread != null && levelLoader.CurrentThread.isAlive())
-            return; //No default status during loading >:(
-        
-        if (isGalaxyMode) {
-            setStatusToInfo("Editing scenario " + listScenarios.getSelectedValue() + ", zone " + curZone + ".");
-        }
-        else {
-            setStatusToInfo("Editing zone " + curZone + ".");
-        }
+        setStatusToInfo("Editing zone " + curZone + ".");
     }
     
     public void setStatusToInfo(String msg)
@@ -777,7 +729,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         private void loadFullGalaxy()
         {
-            tabData.remove(1);
             ToggleUI(false);
             try {
                 // Preload all zones
@@ -864,18 +815,15 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 setStatusToInfo("Initializing GUI...");
                 initGUI();
             
-                // Load scenario information
-                DefaultListModel scenlist = (DefaultListModel)listScenarios.getModel();
-
-                for(Bcsv.Entry scen : galaxyArchive.scenarioData) {
-                    scenlist.addElement(String.format("[%1$d] %2$s", scen.getInt("ScenarioNo"), scen.getString("ScenarioName")));
-                }
-
-                if (isGalaxyMode) {
-                    listScenarios.setSelectedIndex(0);
-                }
                 ToggleUI(true);
             });
+            
+            curZone = galaxyArchive.zoneList.get(0);
+            curZoneArc = zoneArchives.get(curZone);
+
+            populateObjectNodeTree(0);
+
+            setDefaultStatus();
         }
     }
     
@@ -2203,7 +2151,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                         {
                             if(!galaxyArchive.zoneList.get(z).equals(newzone))
                                 continue;
-                            listZones.setSelectedIndex(z);
                             break;
                         } 
                         TreePath[] paths = new TreePath[selectionSave.size()];
@@ -4479,25 +4426,16 @@ public class WorldEditorForm extends javax.swing.JFrame {
                                 wasselected = true;
                             }
                         }
-                        int z;
-                        for(z = 0; z < listZones.getModel().getSize(); z++) {
-                            if(!listZones.getModel().getElementAt(z).toString().contains(theobject.stage.stageName))
-                                continue;
-                            listZones.setSelectedIndex(z);
-                            break;
-                        }
                         addRerenderTask("zone:"+theobject.stage.stageName);
 
                         if(wasselected) {
                             if(selectedObjs.size() == 1) {
                                 if(isGalaxyMode) {
                                     String zone = selectedObjs.values().iterator().next().stage.stageName;
-                                    listZones.setSelectedValue(zone, true);
                                 }
 
                                 selectionArg = arg;
                             }
-                            tabData.setSelectedIndex(1);
 
                             // if the object is in the TreeView, all we have to do is tell the TreeView to select it
                             // and the rest will be handled there
@@ -5155,37 +5093,9 @@ public class WorldEditorForm extends javax.swing.JFrame {
     }
     
     private void updateScenarioList() {
-        if (listScenarios.getSelectedValue() == null) {
-            curScenarioIndex = 0;
-        } else {
-            curScenarioIndex = listScenarios.getSelectedIndex();
-        }
+        curScenarioIndex = 0;
         
         curScenario = galaxyArchive.scenarioData.get(curScenarioIndex);
-
-        DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
-        zonelist.removeAllElements();
-        
-        for(String zone : galaxyArchive.zoneList) {
-            int layermask = curScenario.getInt(zone);
-            String layers = "Common+";
-            
-            for (int i = 0 ; i < 16 ; i++) {
-                if ((layermask & (1 << i)) != 0) {
-                    layers += (char)('A' + i);
-                }
-            }
-            
-            if (layers.equals("Common+")) {
-                layers = "Common";
-            }
-            
-            if (!StageUtil.getActiveZoneNames(curScenarioIndex, galaxyArchive, zoneArchives.get(galaxyArchive.galaxyName)).contains(zone))
-                layers = "None";
-            zonelist.addElement(zone + " [" + layers + "]");
-        }
-        
-        listZones.setSelectedIndex(0);
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -5214,28 +5124,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         tgbShowGravity = new javax.swing.JToggleButton();
         lblStatus = new javax.swing.JLabel();
         tabData = new javax.swing.JTabbedPane();
-        pnlScenarioZone = new javax.swing.JSplitPane();
-        pnlScenarios = new javax.swing.JPanel();
-        tlbScenarios = new javax.swing.JToolBar();
-        lblScenarios = new javax.swing.JLabel();
-        btnAddScenario = new javax.swing.JButton();
-        btnEditScenario = new javax.swing.JButton();
-        btnDeleteScenario = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        listScenarios = new javax.swing.JList();
-        pnlZones = new javax.swing.JPanel();
-        tlbZones = new javax.swing.JToolBar();
-        lblZones = new javax.swing.JLabel();
-        btnAddZone = new javax.swing.JButton();
-        btnDeleteZone = new javax.swing.JButton();
-        sepZones = new javax.swing.JToolBar.Separator();
-        btnEditZone = new javax.swing.JButton();
-        scrZones = new javax.swing.JScrollPane();
-        listZones = new javax.swing.JList();
-        pnlLayers = new javax.swing.JPanel();
-        tlbLayers = new javax.swing.JToolBar();
-        jLabel1 = new javax.swing.JLabel();
-        scrLayers = new javax.swing.JScrollPane();
         scrObjects = new javax.swing.JSplitPane();
         pnlObjects = new javax.swing.JPanel();
         tlbObjects = new javax.swing.JToolBar();
@@ -5375,142 +5263,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
 
         tabData.setMinimumSize(new java.awt.Dimension(100, 5));
         tabData.setName(""); // NOI18N
-
-        pnlScenarioZone.setDividerLocation(200);
-        pnlScenarioZone.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        pnlScenarioZone.setLastDividerLocation(200);
-
-        pnlScenarios.setPreferredSize(new java.awt.Dimension(201, 200));
-        pnlScenarios.setLayout(new java.awt.BorderLayout());
-
-        tlbScenarios.setRollover(true);
-
-        lblScenarios.setText("Scenarios:");
-        tlbScenarios.add(lblScenarios);
-
-        btnAddScenario.setText("Add");
-        btnAddScenario.setFocusable(false);
-        btnAddScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnAddScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnAddScenario.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddScenarioActionPerformed(evt);
-            }
-        });
-        tlbScenarios.add(btnAddScenario);
-
-        btnEditScenario.setText("Edit");
-        btnEditScenario.setFocusable(false);
-        btnEditScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnEditScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnEditScenario.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEditScenarioActionPerformed(evt);
-            }
-        });
-        tlbScenarios.add(btnEditScenario);
-
-        btnDeleteScenario.setText("Delete");
-        btnDeleteScenario.setFocusable(false);
-        btnDeleteScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnDeleteScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnDeleteScenario.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDeleteScenarioActionPerformed(evt);
-            }
-        });
-        tlbScenarios.add(btnDeleteScenario);
-
-        pnlScenarios.add(tlbScenarios, java.awt.BorderLayout.PAGE_START);
-
-        listScenarios.setModel(new DefaultListModel());
-        listScenarios.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        listScenarios.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                listScenariosValueChanged(evt);
-            }
-        });
-        jScrollPane1.setViewportView(listScenarios);
-
-        pnlScenarios.add(jScrollPane1, java.awt.BorderLayout.CENTER);
-
-        pnlScenarioZone.setTopComponent(pnlScenarios);
-
-        pnlZones.setLayout(new java.awt.BorderLayout());
-
-        tlbZones.setBorder(null);
-        tlbZones.setRollover(true);
-
-        lblZones.setText(" Zones: ");
-        tlbZones.add(lblZones);
-
-        btnAddZone.setText("Add");
-        btnAddZone.setFocusable(false);
-        btnAddZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnAddZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnAddZone.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddZoneActionPerformed(evt);
-            }
-        });
-        tlbZones.add(btnAddZone);
-
-        btnDeleteZone.setText("Delete");
-        btnDeleteZone.setFocusable(false);
-        btnDeleteZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnDeleteZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnDeleteZone.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDeleteZoneActionPerformed(evt);
-            }
-        });
-        tlbZones.add(btnDeleteZone);
-        tlbZones.add(sepZones);
-
-        btnEditZone.setText("Edit individually");
-        btnEditZone.setFocusable(false);
-        btnEditZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnEditZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnEditZone.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEditZoneActionPerformed(evt);
-            }
-        });
-        tlbZones.add(btnEditZone);
-
-        pnlZones.add(tlbZones, java.awt.BorderLayout.PAGE_START);
-
-        listZones.setModel(new DefaultListModel());
-        listZones.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        listZones.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                listZonesMouseClicked(evt);
-            }
-        });
-        listZones.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                listZonesValueChanged(evt);
-            }
-        });
-        scrZones.setViewportView(listZones);
-
-        pnlZones.add(scrZones, java.awt.BorderLayout.CENTER);
-
-        pnlScenarioZone.setRightComponent(pnlZones);
-
-        tabData.addTab("Scenario/Zone", pnlScenarioZone);
-
-        pnlLayers.setLayout(new java.awt.BorderLayout());
-
-        tlbLayers.setRollover(true);
-
-        jLabel1.setText("Layers:");
-        tlbLayers.add(jLabel1);
-
-        pnlLayers.add(tlbLayers, java.awt.BorderLayout.PAGE_START);
-        pnlLayers.add(scrLayers, java.awt.BorderLayout.CENTER);
-
-        tabData.addTab("Layers", pnlLayers);
 
         scrObjects.setDividerLocation(300);
         scrObjects.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
@@ -5699,9 +5451,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        if (isGalaxyMode) {
-            listScenarios.setSelectedIndex(0);
-        }
+        
     }//GEN-LAST:event_formWindowOpened
     
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
@@ -5872,51 +5622,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_itmScalePasteActionPerformed
     
-    private void listScenariosValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listScenariosValueChanged
-        if (!evt.getValueIsAdjusting())
-            updateScenarioList();
-    }//GEN-LAST:event_listScenariosValueChanged
-
-    private void btnAddScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddScenarioActionPerformed
-        // TODO: Likely will never be implemented
-    }//GEN-LAST:event_btnAddScenarioActionPerformed
-
-    private void btnDeleteScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteScenarioActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnDeleteScenarioActionPerformed
-
-    private void btnEditScenarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditScenarioActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnEditScenarioActionPerformed
-
-    private void listZonesValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listZonesValueChanged
-        if (evt.getValueIsAdjusting() || listZones.getSelectedValue() == null) {
-            return;
-        }
-        
-        btnEditZone.setEnabled(true);
-        
-        curZone = galaxyArchive.zoneList.get(listZones.getSelectedIndex());
-        curZoneArc = zoneArchives.get(curZone);
-        
-        populateObjectNodeTree(curScenario.getInt(curZone));
-        
-        setDefaultStatus();
-        glCanvas.repaint();
-    }//GEN-LAST:event_listZonesValueChanged
-
-    private void btnAddZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddZoneActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnAddZoneActionPerformed
-
-    private void btnDeleteZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteZoneActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnDeleteZoneActionPerformed
-
-    private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditZoneActionPerformed
-        openSelectedZone();
-    }//GEN-LAST:event_btnEditZoneActionPerformed
-
     private void tgbDeselectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeselectActionPerformed
         for (AbstractObj obj : selectedObjs.values()) {
             addRerenderTask("zone:" + obj.stage.stageName);
@@ -6024,34 +5729,17 @@ public class WorldEditorForm extends javax.swing.JFrame {
         pasteClipboardIntoObjects(false); //This is never literal paste
     }//GEN-LAST:event_tgbPasteObjActionPerformed
 
-    private void listZonesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listZonesMouseClicked
-        if (evt.getClickCount() > 1 && btnEditZone.isEnabled())
-            openSelectedZone();
-    }//GEN-LAST:event_listZonesMouseClicked
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAddScenario;
-    private javax.swing.JButton btnAddZone;
-    private javax.swing.JButton btnDeleteScenario;
-    private javax.swing.JButton btnDeleteZone;
-    private javax.swing.JButton btnEditScenario;
-    private javax.swing.JButton btnEditZone;
     private javax.swing.JMenuItem itmPositionCopy;
     private javax.swing.JMenuItem itmPositionPaste;
     private javax.swing.JMenuItem itmRotationCopy;
     private javax.swing.JMenuItem itmRotationPaste;
     private javax.swing.JMenuItem itmScaleCopy;
     private javax.swing.JMenuItem itmScalePaste;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToolBar.Separator jSeparator10;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
-    private javax.swing.JLabel lblScenarios;
     private javax.swing.JLabel lblStatus;
-    private javax.swing.JLabel lblZones;
-    private javax.swing.JList listScenarios;
-    private javax.swing.JList listZones;
     private javax.swing.JMenuBar menu;
     private javax.swing.JMenuItem mniClose;
     private javax.swing.JMenuItem mniSave;
@@ -6060,22 +5748,15 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private javax.swing.JMenu mnuFile;
     private javax.swing.JMenu mnuPaste;
     private javax.swing.JPanel pnlGLPanel;
-    private javax.swing.JPanel pnlLayers;
     private javax.swing.JPanel pnlObjects;
-    private javax.swing.JSplitPane pnlScenarioZone;
-    private javax.swing.JPanel pnlScenarios;
-    private javax.swing.JPanel pnlZones;
-    private javax.swing.JScrollPane scrLayers;
     private javax.swing.JScrollPane scrObjSettings;
     private javax.swing.JScrollPane scrObjectTree;
     private javax.swing.JSplitPane scrObjects;
-    private javax.swing.JScrollPane scrZones;
     private javax.swing.JToolBar.Separator sep1;
     private javax.swing.JToolBar.Separator sep2;
     private javax.swing.JToolBar.Separator sep3;
     private javax.swing.JToolBar.Separator sep4;
     private javax.swing.JToolBar.Separator sep5;
-    private javax.swing.JToolBar.Separator sepZones;
     private javax.swing.JSplitPane split;
     private javax.swing.JTabbedPane tabData;
     private javax.swing.JToggleButton tgbAddObject;
@@ -6088,11 +5769,8 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private javax.swing.JToggleButton tgbShowCameras;
     private javax.swing.JToggleButton tgbShowGravity;
     private javax.swing.JToggleButton tgbShowPaths;
-    private javax.swing.JToolBar tlbLayers;
     private javax.swing.JToolBar tlbObjects;
     private javax.swing.JToolBar tlbOptions;
-    private javax.swing.JToolBar tlbScenarios;
-    private javax.swing.JToolBar tlbZones;
     private javax.swing.JTree treeObjects;
     // End of variables declaration//GEN-END:variables
 }
