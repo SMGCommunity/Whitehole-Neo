@@ -30,6 +30,7 @@ import whitehole.editor.CreateGalaxyForm;
 import whitehole.editor.GalaxyEditorForm;
 import whitehole.editor.GalaxyPropertiesForm;
 import whitehole.editor.ObjectSelectForm;
+import whitehole.editor.WorldEditorForm;
 import whitehole.io.ExternalFilesystem;
 import whitehole.rendering.RendererCache;
 import whitehole.rendering.ShaderCache;
@@ -91,6 +92,7 @@ public final class MainFrame extends javax.swing.JFrame {
     private String currentWorld = null;
     private GalaxyEditorForm galaxyEditor = null;
     private GalaxyEditorForm zoneEditor = null;
+    private WorldEditorForm worldEditor = null;
     private final BcsvEditorForm bcsvEditor;
     private final AboutForm aboutDialog;
     private final SettingsForm settingsDialog;
@@ -323,8 +325,8 @@ public final class MainFrame extends javax.swing.JFrame {
         RendererCache.init();
         
         currentWorld = galaxy.identifier;
-        galaxyEditor = new GalaxyEditorForm(currentWorld);
-        galaxyEditor.setVisible(true);
+        worldEditor = new WorldEditorForm(currentWorld);
+        worldEditor.setVisible(true);
     }
     
     public boolean checkZoneEditorOpen() {
