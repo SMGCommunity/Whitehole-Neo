@@ -631,14 +631,22 @@ public class Bmd
 
                 file.position(sectionstart + mtxdataoffset + ((firstmtxindex + j) * 0x8));
 
-                file.skip(2);
-                short mtxtablesize = file.readShort();
-                int mtxtablefirstindex = file.readInt();
+                short SingleMtx_DRW1MatrixID = file.readShort();
+                short MultiMtx_MatrixIDCount = file.readShort();
+                int MultiMtx_StartingMatrixID = file.readInt();
 
-                packet.matrixTable = new short[mtxtablesize];
-                file.position(sectionstart + mtxtableoffset + (mtxtablefirstindex * 0x2));
-                for (int k = 0; k < mtxtablesize; k++)
-                    packet.matrixTable[k] = file.readShort();
+                if (batch.matrixType == 3)
+                {
+                    packet.matrixTable = new short[MultiMtx_MatrixIDCount];
+                    file.position(sectionstart + mtxtableoffset + (MultiMtx_StartingMatrixID * 0x2));
+                    for (int k = 0; k < MultiMtx_MatrixIDCount; k++)
+                        packet.matrixTable[k] = file.readShort();
+                }
+                else
+                {
+                    packet.matrixTable = new short[1];
+                    packet.matrixTable[0] = SingleMtx_DRW1MatrixID;
+                }
 
                 file.position(sectionstart + pktlocationsoffset + ((firstpktindex + j) * 0x8));
 
