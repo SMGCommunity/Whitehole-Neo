@@ -1625,8 +1625,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             pnlObjectSettings.doLayout();
             pnlObjectSettings.validate();
             pnlObjectSettings.repaint();
-
-            glCanvas.requestFocusInWindow();
             return;
         }
         
@@ -1762,8 +1760,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         pnlObjectSettings.doLayout();
         pnlObjectSettings.validate();
         pnlObjectSettings.repaint();
-        
-        glCanvas.requestFocusInWindow();
     }
     
     /**
