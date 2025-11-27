@@ -29,6 +29,7 @@ import whitehole.smg.StageArchive;
 import whitehole.smg.StageHelper;
 import whitehole.util.PropertyGrid;
 import whitehole.math.Vec3f;
+import whitehole.util.UIUtil;
 
 public abstract class AbstractObj {
     public String name, layerKey, oldName;
@@ -100,6 +101,14 @@ public abstract class AbstractObj {
     
     private static final List<String> CHOICES_GRAVITY_POWERS =  new ArrayList() {{ add("Normal"); add("Light"); add("Heavy"); }};
     private static final List<String> CHOICES_GRAVITY_TYPES = new ArrayList() {{ add("Normal"); add("Shadow"); add("Magnet"); }};
+    private static final List<String> WORLD_GALAXY_TYPES = new ArrayList() {{
+        add("Galaxy: Always Visible");
+        add(UIUtil.textToHTML("MiniGalaxy: Hungry Luma Galaxy\nInvisible until unlocked"));
+        add(UIUtil.textToHTML("HideGalaxy: Hidden Luma Galaxy\nInvisible until unlocked"));
+        add(UIUtil.textToHTML("BossGalaxyLv1: Bowser Jr. Galaxy\nAdds a Bowser Jr. Flag to the model"));
+        add(UIUtil.textToHTML("BossGalaxyLv2: Bowser Galaxy\nAdds a Bowser Flag to the model"));
+        add(UIUtil.textToHTML("BossGalaxyLv3: Final Bowser Galaxy\nModel doesn't rotate"));
+    }};
     
     private static final String UNUSED_FIELD_START = "<html><em>";
     private static final String UNUSED_FIELD_END = "</em></html>";    
@@ -318,10 +327,119 @@ public abstract class AbstractObj {
             case "Camera_id":
                 panel.addField(field, "Camera ID", "int", null, data.getInt(field, -1), tooltip);
                 break;
+                
+            // PointPos
+            case "PointPosX":
+                panel.addField("PointPosX", "X position", "float", null, position.x, tooltip);
+                break;
+            case "PointPosY":
+                panel.addField("PointPosY", "Y position", "float", null, position.y, tooltip);
+                break;
+            case "PointPosZ":
+                panel.addField("PointPosZ", "Z position", "float", null, position.z, tooltip);
+                break;
+            case "Valid":
+                panel.addField("Valid", "Enabled", "text", null, data.getString("Valid", "o"), tooltip);
+                break;
+            case "SubPoint":
+                panel.addField("SubPoint", "Is subpoint? (Always false)", "text", null, data.getString("SubPoint", "x"), tooltip);
+                break;
+            case "ColorChange":
+                panel.addField("ColorChange", "Make point Pink?", "text", null, data.getString("ColorChange", "x"), tooltip);
+                break;
+            case "LayerNo":
+                panel.addField(field, "Camera Setting ID", "int", null, data.getInt(field, 0), tooltip);
+                break;
+            case "Index":
+                panel.addField(field, "Index", "int", null, data.getInt(field, 0), tooltip);
+                break;
+                
+            // PointLink
+            case "PointIndexA":
+                panel.addField(field, "First Point Index", "int", null, data.getInt(field, 0), tooltip);
+                break;
+            case "PointIndexB":
+                panel.addField(field, "Second Point Index", "int", null, data.getInt(field, 0), tooltip);
+                break;
+            case "CloseStageName":
+                panel.addField(field, "Required Galaxy", "text", null, data.getString(field, ""), tooltip);
+                break;
+            case "CloseStageScenarioNo":
+                panel.addField(field, "Required Scenario", "int", null, data.getInt(field, -1), tooltip);
+                break;
+            case "CloseGameFlag":
+                panel.addField(field, "Required Flag", "text", null, data.getString(field, ""), tooltip);
+                break;
+            case "IsSubRoute":
+                panel.addField(field, "Is subroute?", "text", null, data.getString(field, "x"), tooltip);
+                break;
+            case "IsColorChange":
+                panel.addField(field, "Make link pink?", "text", null, data.getString(field, "x"), tooltip);
+                break;
+            
+            // Galaxy
+            case "StageName":
+                panel.addField(field, "Galaxy Name", "textlist", Whitehole.getGalaxyList(), data.getString(field, ""), tooltip);
+                break;
+            case "MiniatureName":
+                panel.addField(field, "World Map Icon", "text", null, data.getString(field, ""), tooltip);
+                break;
+            case "StageType":
+                panel.addField(field, "Behavior", "textlist", WORLD_GALAXY_TYPES, data.getString(field, "Galaxy"), tooltip);
+                break;
+            case "ScaleMin":
+                panel.addField(field, "Scale Min", "float", null, data.getFloat(field, 1.0f), tooltip);
+                break;
+            case "ScaleMax":
+                panel.addField(field, "Scale Max", "float", null, data.getFloat(field, 1.0f), tooltip);
+                break;
+            case "PosOffsetX":
+                panel.addField(field, "Icon Offset X", "float", null, data.getFloat(field, 0.0f), tooltip);
+                break;
+            case "PosOffsetY":
+                panel.addField(field, "Icon Offset Y", "float", null, data.getFloat(field, 2500.0f), tooltip);
+                break;
+            case "PosOffsetZ":
+                panel.addField(field, "Icon Offset Z", "float", null, data.getFloat(field, 0.0f), tooltip);
+                break;
+            case "NamePlatePosX":
+                panel.addField(field, "Name Label X Position", "float", null, data.getFloat(field, 0.0f), tooltip);
+                break;
+            case "NamePlatePosY":
+                panel.addField(field, "Name Label Y Position", "float", null, data.getFloat(field, 500.0f), tooltip);
+                break;
+            case "NamePlatePosZ":
+                panel.addField(field, "Name Label Z Position", "float", null, data.getFloat(field, 0.0f), tooltip);
+                break;
+            case "IconOffsetX":
+                panel.addField(field, "Grand World Map X Offset", "float", null, data.getFloat(field, 0.0f), tooltip);
+                break;
+            case "IconOffsetY":
+                panel.addField(field, "Grand World Map Y Offset", "float", null, data.getFloat(field, 0.0f), tooltip);
+                break;
             
             default:
                 throw new IllegalArgumentException("No preset defined for field " + field);
         }
+    }
+    
+    public void propertyChanged(String propname, Object value) {
+        Object oldval = data.get(propname);
+        if(oldval==null)
+        {
+            oldval=0.0f; //the movement inputs have no value before
+        }
+        if(oldval.getClass() == String.class)
+            data.put(propname, value);
+        else if(oldval.getClass() == Integer.class)
+            data.put(propname,(int)value);
+        else if(oldval.getClass() == Short.class)
+            data.put(propname,(short)(int)value);
+        else if(oldval.getClass() == Byte.class)
+            data.put(propname,(byte)(int)value);
+        else if(oldval.getClass() == Float.class)
+            data.put(propname,(float)value);
+        else throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: " +oldval.getClass().getName());
     }
     
     // -------------------------------------------------------------------------------------------------------------------------

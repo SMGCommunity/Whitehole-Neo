@@ -660,16 +660,24 @@ public class PropertyGrid extends JTable {
                             }
                         }
                         else {
-                            field.value = val;
-                            eventListener.propertyChanged(field.name, val);
+                            String strVal = UIUtil.HTMLToText(String.valueOf(val));
+                            int commentIndex = strVal.indexOf(':');
+                            if (commentIndex > -1) {
+                                strVal = strVal.substring(0, commentIndex);
+                            }
+                            combo.setSelectedItem(strVal);
+                            field.value = strVal;
+                            eventListener.propertyChanged(field.name, strVal);
                         }
                     }
+                    fireEditingStopped();
                 }
             });
         }
 
         @Override
         public Object getCellEditorValue() {
+            System.out.println(combo.getSelectedItem());
             return combo.getSelectedItem();
         }
 
