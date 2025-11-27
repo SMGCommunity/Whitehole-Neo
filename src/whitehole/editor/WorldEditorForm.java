@@ -1281,48 +1281,45 @@ public class WorldEditorForm extends javax.swing.JFrame {
         return ObjIdUtil.generateUniqueLinkID(curZoneArc, activeLayers, objTypes);
     }
     
-    private void deleteObject(int uniqueID) {
+    private void deleteObjectWithUndo(AbstractObj obj)
+    {
+        boolean multiNotStarted = (currentUndoMulti == null);
+        if (multiNotStarted)
+            startUndoMulti();
+        addUndoEntry(IUndo.Action.DELETE, obj);
+        deleteObject(obj.uniqueID, true);
+        if (multiNotStarted)
+            endUndoMulti();
+    }
+    
+    private void deleteObject(int uniqueID, boolean recursiveRemoval) {
         if(globalObjList.containsKey(uniqueID)) {
             AbstractObj obj = globalObjList.get(uniqueID);
+            if (obj instanceof WorldPointPosObj)
+            {
+                ArrayList<AbstractObj> removeLinks = worldArchive.removePoint(obj);
+                if (recursiveRemoval) {
+                    for (AbstractObj link : removeLinks)
+                    {
+                        deleteObjectWithUndo(link);
+                    }
+                }
+            }
+            else if (obj instanceof WorldPointLinkObj)
+            {
+                worldArchive.removeLink(obj);
+            }
+            else
+            {
+                return;
+            }
             
-            obj.stage.objects.get(obj.layerKey).remove(obj);
             addRerenderTask(String.format("delobj:%1$d", uniqueID));
             renderAllObjects();
 
             if(treeNodeList.containsKey(uniqueID)) {
                 removeAbstractObjFromAllForms(uniqueID);
             }
-        }
-        
-        if(globalPathPointList.containsKey(uniqueID)) {
-            PathPointObj obj = globalPathPointList.get(uniqueID);
-            obj.path.getPoints().remove(obj.getIndex());
-            for (WorldEditorForm form : getAllCurrentZoneForms()) {
-                if (form != null && form.globalPathPointList.containsKey(uniqueID))
-                    form.globalPathPointList.remove(uniqueID);
-            }
-            if(obj.path.getPoints().isEmpty()) {
-                obj.path.stage.paths.remove(obj.path);
-                for (WorldEditorForm form : getAllCurrentZoneForms()) {
-                    if (form != null && form.globalPathList.containsKey(obj.path.uniqueID))
-                        form.globalPathList.remove(obj.path.uniqueID);
-                }
-                
-                renderAllObjects();
-
-                if(treeNodeList.containsKey(obj.path.uniqueID)) {
-                    removeAbstractObjFromAllForms(obj.path.uniqueID);
-                }
-            }
-            else {
-                addRerenderTask(String.format("path:%1$d", obj.path.uniqueID));
-                renderAllObjects();
-
-                if(treeNodeList.containsKey(uniqueID)) {
-                    removeAbstractObjFromAllForms(uniqueID);
-                }
-            }
-            rerenderPathOwners(obj.path);
         }
         
         glCanvas.repaint();
@@ -2668,7 +2665,7 @@ private float getPickingDepthForY0(Point pt) {
         @Override
         public void performUndo()
         {
-            deleteObject(id); //Is this really it...?
+            deleteObject(id, false); //Is this really it...?
         }
     }
     public class UndoObjectDeleteEntry implements IUndo
@@ -2677,7 +2674,6 @@ private float getPickingDepthForY0(Point pt) {
         public String name;
         public String layer;
         public int scenarioIndex;
-        public String zoneName;
         public Vec3f position;
         public Vec3f rotation;
         public Vec3f scale;
@@ -2693,14 +2689,13 @@ private float getPickingDepthForY0(Point pt) {
             layer = obj.layerKey;
             name = obj.name;
             objectType = obj.getFileType();
-            zoneName = obj.stage.stageName;
             scenarioIndex = curScenarioIndex;
         }
         
         @Override
         public void performUndo()
         {
-            addObject(position, objectType + "|" + name, layer, zoneName, true);
+            addObject(position, objectType + "|" + name, layer, null, true);
             renderAllObjects();
 
             newobj.data = (Bcsv.Entry)data.clone();
@@ -4140,8 +4135,7 @@ private float getPickingDepthForY0(Point pt) {
                     }
                     else if(deletingObjects)
                     {
-                        addUndoEntry(IUndo.Action.DELETE, theobject);
-                        deleteObject(objid);
+                        deleteObjectWithUndo(theobject);
             
                         if(!shiftpressed)
                         {
@@ -5503,8 +5497,7 @@ private float getPickingDepthForY0(Point pt) {
                 startUndoMulti();
                 for(AbstractObj selectedObj : templist) {
                     selectedObjs.remove(selectedObj.uniqueID);
-                    addUndoEntry(IUndo.Action.DELETE, selectedObj);
-                    deleteObject(selectedObj.uniqueID);
+                    deleteObjectWithUndo(selectedObj);
                 }
                 endUndoMulti();
                 

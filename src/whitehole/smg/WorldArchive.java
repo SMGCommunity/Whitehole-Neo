@@ -173,9 +173,27 @@ public class WorldArchive {
         points.put(pid, (WorldPointPosObj)obj);
     }
     
-    public void removePoint(AbstractObj obj)
+    public ArrayList<AbstractObj> removePoint(AbstractObj obj)
     {
-        // TODO
+        int index = (int)obj.data.get("Index");
+        points.remove(index);
+        
+        // return associated links so the caller can remove them
+        ArrayList<AbstractObj> removeLinks = new ArrayList<>();
+        for (AbstractObj link : links)
+        {
+            if ((int)link.data.get("PointIndexA") == index 
+             || (int)link.data.get("PointIndexB") == index)
+            {
+                removeLinks.add(link);
+            }
+        }
+        return removeLinks;
+    }
+    
+    public void removeLink(AbstractObj obj)
+    {
+        links.remove(obj);
     }
     
     private int generatePointId() {
