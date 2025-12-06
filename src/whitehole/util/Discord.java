@@ -76,7 +76,8 @@ public final class Discord {
             builder.setStartTimestamp(OffsetDateTime.now());
         } catch (Exception ex) {
             System.err.println("Unexpected error while constructing Discord RPC. Disabling.");
-            ex.printStackTrace();
+            if (Settings.getDebugAdditionalLogs())
+                ex.printStackTrace();
             enabled = false;
             Settings.setDiscordRichPresenceEnabled(false);
         }

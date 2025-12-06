@@ -1221,12 +1221,7 @@ public class Bmd
         long sectionstart = file.position() - 4;
         int sectionsize = file.readInt();
 
-        // TODO: figure out what the peck this section is about
-        // bmdview2 has no code about it
-        // the section doesn't seem important for rendering the model, but it
-        // may have relations with animations or something else
-        // and more importantly, can we generate a .bdl file without that
-        // section and expect SMG to render it correctly?
+        // For Whitehole's purposes, this chunk can be completely ignored.
 
         file.position(sectionstart + sectionsize);
     }
