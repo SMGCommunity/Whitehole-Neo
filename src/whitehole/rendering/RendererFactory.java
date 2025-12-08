@@ -99,8 +99,10 @@ public final class RendererFactory {
                 
                 for (int i = 0; i < AREA_SHAPE_NAMES_SUFFIXES.length; i++)
                 {
-                    if (lowerObjName.endsWith(AREA_SHAPE_NAMES_SUFFIXES[i]))
+                    if (lowerObjName.endsWith(AREA_SHAPE_NAMES_SUFFIXES[i])) {
                         areaShapeNo = i;
+                        break;
+                    }
                 }
             }
             
