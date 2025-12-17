@@ -16,6 +16,8 @@
  */
 package whitehole.smg.object;
 
+import com.jogamp.opengl.GL2;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.SwingUtilities;
@@ -23,6 +25,9 @@ import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.PropertyGrid;
 import whitehole.math.Vec3f;
+import whitehole.rendering.BmdRenderer;
+import whitehole.rendering.GLRenderer;
+import whitehole.rendering.RendererCache;
 
 public class WorldPointPosObj extends AbstractObj {
     private AbstractObj connectedObject;
@@ -33,7 +38,7 @@ public class WorldPointPosObj extends AbstractObj {
     }
     
     public WorldPointPosObj(Bcsv.Entry entry) {
-        super(null, "common", entry, "");
+        super(null, "common", entry, "MiniRoutePoint");
         
         float x = (float)data.getOrDefault("PointPosX", 0.0f);
         float y = (float)data.getOrDefault("PointPosY", 0.0f);
@@ -44,7 +49,7 @@ public class WorldPointPosObj extends AbstractObj {
     }
     
     public WorldPointPosObj(Vec3f pos) {
-        super(null, "common", new Bcsv.Entry(), "");
+        super(null, "common", new Bcsv.Entry(), "MiniRoutePoint");
         
         position = pos;
         rotation = new Vec3f(0f, 0f, 0f);
@@ -111,6 +116,13 @@ public class WorldPointPosObj extends AbstractObj {
     
     @Override
     public void propertyChanged(String propname, Object value) {
+        // World 8 does not contain ColorChange
+        if (propname.equals("ColorChange"))
+        {
+            data.put(propname, (String)value);
+            return;
+        }
+        
         if (!data.containsKey(Bcsv.calcJGadgetHash(propname)))
         {
             if (connectedObject != null)
@@ -119,7 +131,7 @@ public class WorldPointPosObj extends AbstractObj {
             }
             else
             {
-                throw new NullPointerException("Data doesn't contain key  " +value+" and linkedObject is null");
+                throw new NullPointerException("Data doesn't contain key "+value+" and linkedObject is null");
             }
         }
         else {
@@ -139,6 +151,20 @@ public class WorldPointPosObj extends AbstractObj {
                 setConnected(new WorldPointPartsObj(type));
                 break;
         }
+    }
+    
+    public String getType() {
+        if (connectedObject == null)
+            return "Normal";
+        if (connectedObject instanceof WorldGalaxyObj)
+        {
+            return "Galaxy";
+        }
+        else if (connectedObject instanceof WorldPointPartsObj)
+        {
+            return connectedObject.data.getString("PartsTypeName");
+        }
+        return null;
     }
     
     public void setConnected(AbstractObj obj) {

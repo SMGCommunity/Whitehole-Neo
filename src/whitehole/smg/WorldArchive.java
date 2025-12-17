@@ -162,6 +162,8 @@ public class WorldArchive {
     private void saveWorldObjects(RarcFile archive, String bcsvName, List<Bcsv.Entry> entries) throws IOException {
         Bcsv bcsv = openWorldBcsv(archive, bcsvName);
         bcsv.entries = entries;
+        if (bcsvName.equals("PointPos") && !bcsv.containsField("ColorChange"))
+            bcsv.addField("ColorChange", 6, 0, 0, "x");
         bcsv.save();
         bcsv.close();
     }

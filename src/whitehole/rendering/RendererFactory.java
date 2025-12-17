@@ -183,6 +183,10 @@ public final class RendererFactory {
             return "soundobj";
         else if (obj instanceof StageObj)
             return "stageobj";
+        else if (obj instanceof WorldPointPosObj)
+            return "worldpoint" + WorldMapPointRenderer.getAdditiveCacheKey(obj);
+        else if (obj instanceof WorldPointLinkObj)
+            return "worldlink" + WorldMapLinkRenderer.getAdditiveCacheKey(obj);
         
         String cacheKey = String.format("object_%s", objModelName);
         
@@ -616,6 +620,12 @@ public final class RendererFactory {
             if (objModelName.startsWith("areaobj_") || objModelName.startsWith("cameraobj_"))
                 return new CubeRenderer(100f, SecondaryColor, PrimaryColor, true);
         }
+        
+        if (obj instanceof WorldPointPosObj)
+            return new WorldMapPointRenderer(info, obj);
+        
+        if (obj instanceof WorldPointLinkObj)
+            return new WorldMapLinkRenderer(info, obj);
         
         return null;
     }

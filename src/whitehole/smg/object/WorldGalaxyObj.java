@@ -84,22 +84,6 @@ public class WorldGalaxyObj extends AbstractObj {
     }
     
     @Override
-    public void propertyChanged(String propname, Object value) {
-        if (propname.equals("StageName"))
-        {
-            String miniName = (String)data.getOrDefault("MiniatureName", "");
-            String oldName = (String)data.getOrDefault("StageName", "");
-            if (miniName.isBlank() || ("Mini"+oldName).equals(miniName))
-            {
-                System.out.println(miniName + "." + oldName);
-                super.propertyChanged("MiniatureName", "Mini" + (String)value);
-            }
-        }
-        super.propertyChanged(propname, value);
-        
-    }
-    
-    @Override
     public String toString() {
         String stageName = data.getString("StageName", "");
         if (stageName.isBlank())

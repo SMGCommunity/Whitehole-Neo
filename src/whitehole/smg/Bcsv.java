@@ -322,7 +322,8 @@ public class Bcsv {
         fields.put(newfield.hash, newfield);
 
         for (Entry entry : entries) {
-            entry.put(name, defaultval);
+            if (!entry.containsKey(Bcsv.getNameHash(name)))
+                entry.put(name, defaultval);
         }
 
         return newfield;

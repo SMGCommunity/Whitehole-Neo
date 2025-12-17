@@ -173,6 +173,10 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private int undoIndex = 0;
     private UndoMultiEntry currentUndoMulti = null;
     
+    String[] BOUND_PROPERTIES = {"IsColorChange", "ColorChange", "PointIndexA", "Param00",
+        "PointIndexB", "MiniatureName", "ScaleMin", "PosOffsetX", "PosOffsetY", "PosOffsetZ", "Valid",
+        "NamePlatePosX", "NamePlatePosY", "NamePlatePosZ"};
+    
     // -------------------------------------------------------------------------------------------------------------------------
     // Constructors and GUI Setup
     
@@ -736,14 +740,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 setStatusToInfo("Loading Scenario...");
                 galaxyArchive = Whitehole.GAME.openGalaxy(galaxyName);
                 worldArchive = new WorldArchive(Whitehole.GAME, galaxyName);
-                for (AbstractObj obj : worldArchive.points.values())
-                {
-                    System.out.println(obj);
-                }
-                for (AbstractObj obj : worldArchive.links)
-                {
-                    System.out.println(obj);
-                }
                 zoneArchives = new HashMap(galaxyArchive.zoneList.size());
 
                 int Progress = 0;
@@ -889,7 +885,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         objListTreeNodes.put("point", new ObjListTreeNode("Points"));
         objListTreeNodes.put("link", new ObjListTreeNode("Links"));
-        objListTreeNodes.put("entrypoint", new ObjListTreeNode("EntryPoints"));
     }
     
     private void populateObjectNodeTree(int layerMask) {
@@ -902,7 +897,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         for (Map.Entry<String, ObjListTreeNode> entry : objListTreeNodes.entrySet()) {
             String key = entry.getKey();
             ObjListTreeNode node = entry.getValue();
-            System.out.println("key " + key);
             node.removeAllChildren();
             objListRootNode.add(node);
             
@@ -929,23 +923,16 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 if (!obj.getFileType().equals(key)) {
                     continue;
                 }
-                System.out.println("" + obj +" "+ obj.uniqueID);
                 ObjTreeNode objnode = node.addObject(obj);
                 treeNodeList.put(obj.uniqueID, objnode);
             }
             for (AbstractObj obj : worldArchive.links)
             {
                 if (!obj.getFileType().equals(key)) {
-                    System.out.println(key + " not on this");
                     continue;
                 }
-                System.out.println("" + obj +" "+ obj.uniqueID);
                 ObjTreeNode objnode = node.addObject(obj);
                 treeNodeList.put(obj.uniqueID, objnode);
-            }
-            for (Object obj : treeNodeList.keySet())
-            {
-                System.out.println(obj);
             }
         }
         
@@ -1072,7 +1059,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         int linkedCount = 0;
         for (int index : indexes) {
-            System.out.println("Adding Link (" + prevIndex + ","+index+")");
             WorldPointLinkObj link = new WorldPointLinkObj(prevIndex, index);
             worldArchive.links.add(link);
             newobj = link;
@@ -1087,12 +1073,10 @@ public class WorldEditorForm extends javax.swing.JFrame {
             if(uniqueID > maxUniqueID) {
                 maxUniqueID = uniqueID;
             }
-            System.out.println(maxUniqueID);
             newobj.uniqueID = uniqueID;
             addAbstractObjToForm(this, uniqueID, "link", newobj);
             // Update rendering
             String keyyy = String.format("addobj:%1$d", uniqueID);
-            //System.out.println(keyyy);
             addRerenderTask(keyyy);
             renderAllObjects();
 
@@ -1230,7 +1214,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             newNode = addAbstractObjToAllForms(uniqueID, objtype.equals("link") ? "link" : "point", newobj);
             // Update rendering
             String keyyy = String.format("addobj:%1$d", uniqueID);
-            //System.out.println(keyyy);
             addRerenderTask(keyyy);
             renderAllObjects();
         }
@@ -1482,34 +1465,29 @@ public class WorldEditorForm extends javax.swing.JFrame {
 
     
     /**
- * Calculates the depth value needed for a screen point to intersect y = 0.
- * Uses the same math as get3DCoords().
- * @param pt The screen position
- * @return The depth (in world units) required to reach y = 0
- */
-private float getPickingDepthForY0(Point pt) {
-    float CamRotSinY = (float)Math.sin(camRotation.y);
-    float CamRotCosY = (float)Math.cos(camRotation.y);
+     * Calculates the depth value needed for a screen point to intersect y = 0.
+     * @param pt The screen position
+     * @return The depth (in world units) required to reach y = 0
+     */
+    private float getPickingDepthForY0(Point pt) {
+        float CamRotSinY = (float)Math.sin(camRotation.y);
+        float CamRotCosY = (float)Math.cos(camRotation.y);
 
-    float camPositionYScaled = camPosition.y * SCALE_DOWN;
+        float camPositionYScaled = camPosition.y * SCALE_DOWN;
 
-    int GLHeight = (int)(glCanvas.getHeight() * DPIScaleY);
-    float y = -(pt.y - (GLHeight * 0.5f)) * pixelFactorY;
+        int GLHeight = (int)(glCanvas.getHeight() * DPIScaleY);
+        float y = -(pt.y - (GLHeight * 0.5f)) * pixelFactorY;
 
-    float dirY = -(CamRotSinY) + (y * CamRotCosY);
+        float dirY = -(CamRotSinY) + (y * CamRotCosY);
 
-    // prevent divide by 0 error
-    if (Math.abs(dirY) < 1e-6f) {
-        return -1000000f;
+        // prevent divide by 0 error
+        if (Math.abs(dirY) < 1e-6f) {
+            return -1000000f;
+        }
+
+        float depthScaled = -camPositionYScaled / dirY;
+        return depthScaled / SCALE_DOWN;
     }
-
-    float depthScaled = -camPositionYScaled / dirY;
-    System.out.println("depth " + depthScaled);
-    return depthScaled / SCALE_DOWN;
-}
-
-
-
     
     /**
      * Moves the selection by {@code delta}.
@@ -1958,7 +1936,10 @@ private float getPickingDepthForY0(Point pt) {
 //                DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
 //                objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
                 selectionChanged();
+                addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                addRerenderTask("zone:"+curZone);
                 renderAllObjects();
+                glCanvas.repaint();
                 scrObjSettings.repaint();
             }
             else if(propname.equals("layer")) {
@@ -2057,13 +2038,6 @@ private float getPickingDepthForY0(Point pt) {
                     renderAllObjects();
                     glCanvas.repaint();
                 }
-                else if(propname.equals("Range")) {
-                    if(selectedObj.renderer.boundToProperty()) {
-                        addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                        addRerenderTask("zone:"+curZone);
-                        glCanvas.repaint();
-                    }
-                }
                 else if(propname.equals("Distant")) {
                     if(selectedObj.renderer.boundToProperty()) {
                         addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
@@ -2087,7 +2061,20 @@ private float getPickingDepthForY0(Point pt) {
                         glCanvas.repaint();
                     }
                 }
-                else if (propname.equals("StageName") || propname.equals("Param00") || propname.equals("Param01") || propname.equals("PartsIndex")) {
+                else if (propname.equals("StageName"))
+                {
+                    String miniName = (String)selectedObj.data.getOrDefault("MiniatureName", "");
+                    String oldName = (String)selectedObj.data.getOrDefault("StageName", "");
+                    if (miniName.isBlank() || ("Mini"+oldName).equals(miniName))
+                    {
+                        pnlObjectSettings.setFieldValue("MiniatureName", "Mini" + (String)value);
+                        propertyPanelPropertyChanged("MiniatureName", "Mini" + (String)value);
+                    }
+                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
+                    objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
+                    renderAllObjects();
+                }
+                else if (propname.equals("Param01") || propname.equals("PartsIndex")) {
                     // TODO: Make this undoable
                     
                     DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
@@ -2098,6 +2085,25 @@ private float getPickingDepthForY0(Point pt) {
                 else if(propname.equals("MarioNo") || propname.equals("PosName") || propname.equals("DemoName") || propname.equals("TimeSheetName")) {
                     DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                     objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
+                }
+                else
+                {
+                    for (String boundProp : BOUND_PROPERTIES)
+                    {
+                        if (boundProp.equals(propname))
+                        {
+                            pnlObjectSettings.repaint();
+                            DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
+                            objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
+                            addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                            addRerenderTask("zone:"+curZone);
+                            glCanvas.repaint();
+                            scrObjSettings.repaint();
+                            
+                            renderAllObjects();
+                            break;
+                        }
+                    }
                 }
             }
             
@@ -3332,8 +3338,20 @@ private float getPickingDepthForY0(Point pt) {
             RenderMode oldmode = doHighLightSettings(gl);
             
             for(AbstractObj obj : selectedObjs.values()) {
-                if((obj instanceof WorldPointPosObj))
+                if (obj instanceof WorldPointLinkObj) {
+                    WorldPointLinkObj link = (WorldPointLinkObj)obj;
+
+                    int indexA = link.data.getInt("PointIndexA");
+                    int indexB = link.data.getInt("PointIndexB");
+
+                    AbstractObj pointA = worldArchive.points.get(indexA);
+                    AbstractObj pointB = worldArchive.points.get(indexB);
+                    if (pointA != null && pointB != null) {
+                        link.render(renderInfo, pointA.position, pointB.position);
+                    }
+                } else {
                     obj.render(renderInfo);
+                }
             }
             
             gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);
@@ -3424,13 +3442,7 @@ private float getPickingDepthForY0(Point pt) {
                 
                 for(AbstractObj obj : zonearc.objects.get(layer)) {
                     if(mode == 0) {
-                        int uniqueid = obj.uniqueID << 3;
-                        // set color to the object's uniqueID(RGB)
-                        gl.glColor4ub(
-                               (byte)(uniqueid >>> 16), 
-                               (byte)(uniqueid >>> 8), 
-                               (byte)uniqueid, 
-                               (byte)0xFF);
+                        continue; // prevent picking for non world map objects
                     }
                     
                     final String c = obj.getClass().getSimpleName();
@@ -3472,38 +3484,25 @@ private float getPickingDepthForY0(Point pt) {
                         }
                         obj.render(renderInfo);
                     }
-                    for(PathObj pobj : zonearc.paths)
+                    for (AbstractObj obj : worldArchive.links)
                     {
-                        boolean isRenderCurrentPath = tgbShowPaths.isSelected();
-
-                        if (!isRenderCurrentPath)
-                            for (PathPointObj display : displayedPaths.values()) {
-                                if (display == null)
-                                    continue;
-                                if (pobj == display.path)
-                                {
-                                    isRenderCurrentPath = true;
-                                    break;
-                                }
-                            }
+                        int indexA = obj.data.getInt("PointIndexA");
+                        int indexB = obj.data.getInt("PointIndexB");
+                        AbstractObj pointA = worldArchive.points.get(indexA);
+                        AbstractObj pointB = worldArchive.points.get(indexB);
                         
-                        if (!isRenderCurrentPath)
-                            continue;
-                        
-                        pobj.render(renderInfo);                        
-
-                        if(mode == 1)
-                        {
-                            for(AbstractObj aObj : selectedObjs.values())
-                            {
-                                if (!(aObj instanceof PathPointObj))
-                                    continue;
-                                PathPointObj aPthPt = (PathPointObj)aObj;
-                                if (aPthPt.path != pobj)
-                                    continue;
-                                aPthPt.render(renderInfo, selectionArg, true);
-                            }
+                        if(mode == 0) {
+                            int uniqueid = obj.uniqueID << 3;
+                            // set color to the object's uniqueID(RGB)
+                            gl.glColor4ub(
+                                   (byte)(uniqueid >>> 16), 
+                                   (byte)(uniqueid >>> 8), 
+                                   (byte)uniqueid, 
+                                   (byte)0xFF);
                         }
+                        WorldPointLinkObj link = (WorldPointLinkObj)obj;
+                        if (pointA != null && pointB != null)
+                            link.render(renderInfo, pointA.position, pointB.position);
                     }
                 }
                 
@@ -4075,10 +4074,8 @@ private float getPickingDepthForY0(Point pt) {
                 val &= 0xFFFFFF;
                 int objid = val >>> 3;
                 int arg = val & 0x7;
-                if(objid != 0xFFFFFF && !globalObjList.containsKey(objid))
-                    return;
-
-
+                // NOTE: theobject is nullable (when you select the blue void).
+                // Make sure to account for that if you add any new code below!
                 AbstractObj theobject = globalObjList.get(objid);
                 int oldarg = selectionArg;
                 selectionArg = 0;
@@ -4105,9 +4102,9 @@ private float getPickingDepthForY0(Point pt) {
                 }
                 else // Left Click: Places/Deletes/Pastes objects or selects objects
                 {
+                    // Place object
                     if(!addingObject.isEmpty())
                     {
-                        System.out.println("Linked object part: " + theobject.toString());
                         // Apply zone placement
                         pickingDepth = 1;
                         System.out.println("aaa " + mousePos + " " + pickingDepth);
@@ -4133,8 +4130,11 @@ private float getPickingDepthForY0(Point pt) {
                             setDefaultStatus();
                         }
                     }
+                    // Delete Object
                     else if(deletingObjects)
                     {
+                        if (theobject == null)
+                            return;
                         deleteObjectWithUndo(theobject);
             
                         if(!shiftpressed)
@@ -4144,6 +4144,7 @@ private float getPickingDepthForY0(Point pt) {
                             setDefaultStatus();
                         }                    
                     }
+                    // Paste Object
                     else if(isPasteMode)
                     {
                         // Apply zone placement
@@ -4166,6 +4167,7 @@ private float getPickingDepthForY0(Point pt) {
                             setDefaultStatus();
                         }
                     }
+                    // Select Object
                     else {
                         // multiselect behavior
                         // Ctrl not pressed:
@@ -4175,33 +4177,20 @@ private float getPickingDepthForY0(Point pt) {
                         // * clicking an object adds it to the selection
                         // * or removes it if it's already selected
                         
-                        if (!(theobject instanceof WorldPointPosObj))
-                        {
-                            if(!(ctrlpressed || shiftpressed)) {
-                                clearMouse();
-                                selectedObjs.clear();
-                                selectionArg = 0;
-                                selectionChanged();
-                                addRerenderTask("zone:"+theobject.stage.stageName);
-                                e.getComponent().repaint();
-                            }
-                            return;
-                        }
-                        
                         boolean wasselected = false;
 
                         if(ctrlpressed || shiftpressed) {
                             if(selectedObjs.containsKey(objid))
                                 selectedObjs.remove(objid);
-                            else {
+                            else if (theobject != null) {
                                 selectedObjs.put(objid, theobject);
                                 wasselected = true;
                             }
                         }
                         else {
                             LinkedHashMap<Integer, AbstractObj> oldsel = null;
-
-                            if(!selectedObjs.isEmpty() && arg == oldarg) {
+                            // Deselect previous object
+                            if((!selectedObjs.isEmpty() && arg == oldarg) || theobject == null) {
                                 oldsel =(LinkedHashMap<Integer, AbstractObj>)selectedObjs.clone();
 
                                 treeObjects.clearSelection();
@@ -4210,7 +4199,8 @@ private float getPickingDepthForY0(Point pt) {
                                 selectedObjs.clear();
                             }
                             
-                            if(oldsel == null || !oldsel.containsKey(theobject.uniqueID) || arg != oldarg) {
+                            // Select new object
+                            if(theobject != null && (oldsel == null || !oldsel.containsKey(theobject.uniqueID) || arg != oldarg)) {
                                 selectedObjs.put(theobject.uniqueID, theobject);
                                 wasselected = true;
                             }
@@ -4219,10 +4209,6 @@ private float getPickingDepthForY0(Point pt) {
 
                         if(wasselected) {
                             if(selectedObjs.size() == 1) {
-//                                if(isGalaxyMode) {
-//                                    String zone = selectedObjs.values().iterator().next().stage.stageName;
-//                                }
-
                                 selectionArg = arg;
                             }
 
@@ -4744,7 +4730,7 @@ private float getPickingDepthForY0(Point pt) {
             
             camTarget.set(TargetPos);
             camTarget.scale(1.0f / SCALE_DOWN);
-            camDistance = 0.25f;
+            camDistance = 1.0f;
 
             if (isGalaxyMode) {
                 if (zonePlacements.containsKey(stageKey)) {

@@ -16,10 +16,13 @@
  */
 package whitehole.smg.object;
 
+import com.jogamp.opengl.GL2;
 import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.PropertyGrid;
 import whitehole.math.Vec3f;
+import whitehole.rendering.BmdRenderer;
+import whitehole.rendering.GLRenderer.RenderInfo;
 
 public class WorldPointLinkObj extends AbstractObj {
     @Override
@@ -28,7 +31,7 @@ public class WorldPointLinkObj extends AbstractObj {
     }
     
     public WorldPointLinkObj(Bcsv.Entry entry) {
-        super(null, "common", entry, "");
+        super(null, "common", entry, "MiniRouteLine");
         
         position = new Vec3f(0f, 0f, 0f);
         rotation = new Vec3f(0f, 0f, 0f);
@@ -36,7 +39,7 @@ public class WorldPointLinkObj extends AbstractObj {
     }
     
     public WorldPointLinkObj(int pointA, int pointB) {
-        super(null, "common", new Bcsv.Entry(), "");
+        super(null, "common", new Bcsv.Entry(), "MiniRouteLine");
         
         position = new Vec3f(0f, 0f, 0f);
         rotation = new Vec3f(0f, 0f, 0f);
@@ -67,6 +70,29 @@ public class WorldPointLinkObj extends AbstractObj {
         addField(panel, "CloseGameFlag");
         addField(panel, "IsSubRoute");
         addField(panel, "IsColorChange");
+    }
+    
+    public void render(RenderInfo info, Vec3f linkPos1, Vec3f linkPos2)
+    {
+        if (renderer == null)
+            return;
+        GL2 gl = info.drawable.getGL().getGL2();
+        
+        double length = Math.sqrt(Math.pow(linkPos2.x - linkPos1.x, 2) + Math.pow(linkPos2.y - linkPos1.y, 2) + Math.pow(linkPos2.z - linkPos1.z, 2));
+        float stepX = (float) ((linkPos2.x-linkPos1.x)/length) * 1000;
+        float stepY = (float) ((linkPos2.y-linkPos1.y)/length) * 1000;
+        float stepZ = (float) ((linkPos2.z-linkPos1.z)/length) * 1000;
+        gl.glPushMatrix();
+        gl.glTranslatef(linkPos1.x, linkPos1.y, linkPos1.z);
+        double planeDistance = Math.sqrt(Math.pow(stepX,2) + Math.pow(stepZ,2));
+        gl.glRotatef((float)(Math.atan2(stepY,planeDistance) / Math.PI * 180), 0, 0, 1);
+        
+        gl.glRotatef((float)(Math.atan2(-stepZ,stepX) / Math.PI * 180), 0, 1, 0);
+        
+        gl.glScaled(length / 1000, 1, 1);
+        gl.glCallList(renderer.getDisplayList(info.renderMode));
+        renderer.render(info);
+        gl.glPopMatrix();
     }
     
     @Override

@@ -104,7 +104,7 @@ public abstract class AbstractObj {
     private static final List<String> WORLD_GALAXY_TYPES = new ArrayList() {{
         add("Galaxy: Always Visible");
         add(UIUtil.textToHTML("MiniGalaxy: Hungry Luma Galaxy\nInvisible until unlocked"));
-        add(UIUtil.textToHTML("HideGalaxy: Hidden Luma Galaxy\nInvisible until unlocked"));
+        add(UIUtil.textToHTML("HideGalaxy: Hidden Galaxy\nInvisible until unlocked"));
         add(UIUtil.textToHTML("BossGalaxyLv1: Bowser Jr. Galaxy\nAdds a Bowser Jr. Flag to the model"));
         add(UIUtil.textToHTML("BossGalaxyLv2: Bowser Galaxy\nAdds a Bowser Flag to the model"));
         add(UIUtil.textToHTML("BossGalaxyLv3: Final Bowser Galaxy\nModel doesn't rotate"));
