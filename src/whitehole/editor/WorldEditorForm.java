@@ -89,10 +89,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
     // Object holders
     private int maxUniqueID = 0;
     private HashMap<Integer, AbstractObj> globalObjList = new HashMap();
-    private HashMap<Integer, PathObj> globalPathList = new HashMap();
-    private HashMap<Integer, PathPointObj> globalPathPointList = new HashMap();
     private final HashMap<Integer, AbstractObj> selectedObjs = new LinkedHashMap();
-    private final HashMap<Integer, PathPointObj> displayedPaths = new LinkedHashMap();
     private final HashMap<String, StageObj> zonePlacements = new HashMap();
     private final HashMap<Integer, TreeNode> treeNodeList = new HashMap();
     
@@ -212,7 +209,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         initGUI();
         
         populateObjectNodeTree(zoneModeLayerBitmask);
-        addRerenderTask("allpaths:"); //????
     }
     
     /**
@@ -240,10 +236,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         initAddObjectPopup();
         
-        tgbShowAreas.setSelected(Settings.getShowAreas());
-        tgbShowCameras.setSelected(Settings.getShowCameras());
-        tgbShowGravity.setSelected(Settings.getShowGravity());
-        tgbShowPaths.setSelected(Settings.getShowPaths());
         tgbShowAxis.setSelected(Settings.getShowAxis());
         
         // Setup the actual preview canvas
@@ -450,41 +442,17 @@ public class WorldEditorForm extends javax.swing.JFrame {
             globalObjList.put(maxUniqueID++, obj);
         }
         
-//        globalObjList.putAll(worldArchive.points);
+        // Add only normal objects from the galaxy
         for (List<AbstractObj> layers : arc.objects.values()) {
-            if (isGalaxyMode || isSeparateZoneMode) {
-                for (AbstractObj obj : layers) {
-                    obj.uniqueID = maxUniqueID;
-                    globalObjList.put(maxUniqueID++, obj);
+            for (AbstractObj obj : layers) {
+                String name = obj.getClass().getSimpleName();
+                switch (name) {
+                    case "LevelObj":
+                    case "MapPartObj":
+                        obj.uniqueID = maxUniqueID;
+                        globalObjList.put(maxUniqueID++, obj);
                 }
-            }
-            else {
-                for (AbstractObj obj : layers) {
-                    globalObjList.put(obj.uniqueID, obj);
-                }
-            }
-        }
-        
-        // Populate paths and assign their maxUniqueIDs
-        for (PathObj pathObj : arc.paths) {
-            if (isGalaxyMode || isSeparateZoneMode) {
-                pathObj.uniqueID = maxUniqueID;
-                globalPathList.put(maxUniqueID++, pathObj);
                 
-                for (PathPointObj pointObj : pathObj.getPoints()) {
-                    globalObjList.put(maxUniqueID, pointObj);
-                    globalPathPointList.put(maxUniqueID, pointObj);
-                    pointObj.uniqueID = maxUniqueID;
-                    maxUniqueID++;
-                }
-            }
-            else {
-                globalPathList.put(pathObj.uniqueID, pathObj);
-                
-                for (PathPointObj pointObj : pathObj.getPoints()) {
-                    globalObjList.put(pointObj.uniqueID, pointObj);
-                    globalPathPointList.put(pointObj.uniqueID, pointObj);
-                }
             }
         }
     }
@@ -616,10 +584,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             }
             
             // Save renderer preferences
-            Settings.setShowAreas(tgbShowAreas.isSelected());
-            Settings.setShowCameras(tgbShowCameras.isSelected());
-            Settings.setShowGravity(tgbShowGravity.isSelected());
-            Settings.setShowPaths(tgbShowPaths.isSelected());
             Settings.setShowAxis(tgbShowAxis.isSelected());
             
             checkForMissingRequiredValuesInGalaxy();
@@ -940,23 +904,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         treeObjects.expandRow(0);
     }
     
-    private void layerSelectChange(int index, boolean status) {
-        String layerName = ((JCheckBox)listLayerCheckboxes.getModel().getElementAt(index)).getText();
-        int layerMask = (1 << (layerName.charAt(5) - ((char)'A')));
-        
-        if (status) {
-            zoneModeLayerBitmask |= layerMask;
-        }
-        else {
-            zoneModeLayerBitmask &= ~layerMask;
-        }
-        
-        populateObjectNodeTree(zoneModeLayerBitmask);
-        addRerenderTask("allobjects:");
-        addRerenderTask("allpaths:");
-        glCanvas.repaint();
-    }
-    
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Object adding and deleting
@@ -990,43 +937,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             case "link":
                 linkSelectedObjs();
                 return;
-            case "startinfo":
-                addingObject = "startinfo|Mario";
-                addingObjectOnLayer = "common";
-                break;
-            case "soundinfo":
-                addingObject = "soundinfo|SoundEmitter";
-                addingObjectOnLayer = "common";
-                break;
-            case "generalposinfo":
-                addingObject = "generalposinfo|GeneralPos";
-                addingObjectOnLayer = "common";
-                break;
-            case "debugmoveinfo":
-                addingObject = "debugmoveinfo|DebugMovePos";
-                addingObjectOnLayer = "common";
-                break;
-            case "path":
-                addingObject = "path|null";
-                break;
-            case "pathpoint":
-                addingObject = "pathpoint|null";
-                break;
-            case "cameracubeinfo":
-                if (Whitehole.getCurrentGameType() == 2) {
-                    addingObject = "cameracubeinfo|CameraArea";
-                    addingObjectOnLayer = "common";
-                    break;
-                }
-            default:
-                if (ObjectSelectForm.openNewObjectDialog(key, curZoneArc.getLayerNames())) {
-                    addingObject = key + "|" + ObjectSelectForm.getResultName();
-                    addingObjectOnLayer = ObjectSelectForm.getResultLayer();
-                }
-                else {
-                    tgbAddObject.setSelected(false);
-                }
-                break;
         }
         
         setStatusToInfo("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
@@ -1065,7 +975,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
             // Calculate UID
             int uniqueID = maxUniqueID + 1;
 
-            while(globalObjList.containsKey(uniqueID) || globalPathList.containsKey(uniqueID) || globalPathPointList.containsKey(uniqueID))
+            while(globalObjList.containsKey(uniqueID))
             {
                 uniqueID++;
             }
@@ -1107,116 +1017,56 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         TreeNode newNode;
         newobj = null;
-        
-        // Add new path?
-        if (objtype.equals("path")) 
+        switch(objtype)
         {
-            int newPathLinkID = 0;
-
-            for (PathObj path : destZoneArc.paths)
-            {
-                if (path.pathID >= newPathLinkID)
-                {
-                    newPathLinkID = path.pathID + 1;
-                }
-            }
-
-            PathObj thepath = new PathObj(destZoneArc, newPathLinkID);
-            thepath.uniqueID = maxUniqueID++;
-            destZoneArc.paths.add(thepath);
-
-            PathPointObj thepoint = new PathPointObj(thepath, position);
-            newobj = thepoint;
-            thepoint.uniqueID = maxUniqueID;
-            maxUniqueID += 3;
-            
-            thepath.getPoints().add(thepoint);
-
-            newNode = addPathPointToAllForms(thepath, thepoint);
-
-            addRerenderTask("path:" + thepath.uniqueID);
-            renderAllObjects();
+            case "point":
+                newobj = new WorldPointPosObj(position);
+                break;
+            case "galaxyobj":
+                WorldPointPosObj galaxyConnected = new WorldPointPosObj(position);
+                galaxyConnected.setConnected(new WorldGalaxyObj());
+                newobj = galaxyConnected;
+                break;
+            case "partsobj":
+                WorldPointPosObj partsConnected = new WorldPointPosObj(position);
+                partsConnected.setConnected(new WorldPointPartsObj(objname));
+                newobj = partsConnected;
+                break;
         }
-        // Add new path point?
-        else if (objtype.equals("pathpoint"))
+
+        // Calculate UID
+        int uniqueID = 0;
+
+        while(globalObjList.containsKey(uniqueID))
         {
-            if(selectedObjs.size() > 1)
-            {
-                setStatusToWarning("Select a path before adding Path Points!");
-                return;
-            }
-
-            PathObj thepath = null;
-            for(AbstractObj obj : selectedObjs.values())
-                thepath =((PathPointObj) obj).path;
-
-            if(thepath == null)
-                return;
-
-
-            PathPointObj thepoint = new PathPointObj(thepath, position);
-            newobj = thepoint;
-            thepoint.uniqueID = maxUniqueID;
-            maxUniqueID += 3;
-            thepath.getPoints().add(thepoint);
-            newNode = addPathPointToAllForms(thepath, thepoint);
-            
-            addRerenderTask("path:" + thepath.uniqueID);
-            renderAllObjects();
-            rerenderPathOwners(thepath);
+            uniqueID++;
         }
-        else
-        {
-            switch(objtype)
-            {
-                case "point":
-                    newobj = new WorldPointPosObj(position);
-                    break;
-                case "galaxyobj":
-                    WorldPointPosObj galaxyConnected = new WorldPointPosObj(position);
-                    galaxyConnected.setConnected(new WorldGalaxyObj());
-                    newobj = galaxyConnected;
-                    break;
-                case "partsobj":
-                    WorldPointPosObj partsConnected = new WorldPointPosObj(position);
-                    partsConnected.setConnected(new WorldPointPartsObj(objname));
-                    newobj = partsConnected;
-                    break;
-            }
-            
-            // Calculate UID
-            int uniqueID = 0;
-            
-            while(globalObjList.containsKey(uniqueID) || globalPathList.containsKey(uniqueID) || globalPathPointList.containsKey(uniqueID))
-            {
-                uniqueID++;
-            }
-            
-            if(uniqueID > maxUniqueID) {
-                maxUniqueID = uniqueID;
-            }
 
-            // Set object ID automatically
+        if(uniqueID > maxUniqueID) {
+            maxUniqueID = uniqueID;
+        }
+
+        // Set object ID automatically
 //            if (objtype.equals("startinfo")) {
 //                newobj.data.put("MarioNo", generateID(objtype));
 //            } else if (!objtype.equals("commonpathpointinfo")) {
 //                newobj.data.put("l_id", generateID(objtype));
 //            }
-            
-            
-            
-            // Add entry and node
-            newobj.uniqueID = uniqueID;
-            worldArchive.addPoint(newobj);
-            
+
+
+
+        // Add entry and node
+        newobj.uniqueID = uniqueID;
+        worldArchive.addPoint(newobj);
+
 //            destZoneArc.objects.get(destLayer).add(newobj);
-            
-            newNode = addAbstractObjToAllForms(uniqueID, objtype.equals("link") ? "link" : "point", newobj);
-            // Update rendering
-            String keyyy = String.format("addobj:%1$d", uniqueID);
-            addRerenderTask(keyyy);
-            renderAllObjects();
-        }
+
+        newNode = addAbstractObjToAllForms(uniqueID, objtype.equals("link") ? "link" : "point", newobj);
+        // Update rendering
+        String keyyy = String.format("addobj:%1$d", uniqueID);
+        addRerenderTask(keyyy);
+        renderAllObjects();
+
         
         // Update tree node model and scroll to new node
         for (WorldEditorForm form : getAllCurrentZoneForms()) {
@@ -1357,28 +1207,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         return node;
     }
     
-    private TreeNode addPathPointToAllForms(PathObj thepath, PathPointObj thepoint) {
-        TreeNode newNode = null;
-        for (WorldEditorForm form : getAllCurrentZoneForms()) {
-            TreeNode node = addPathPointToForm(form, thepath, thepoint);
-            if (newNode == null)
-                newNode = node;
-        }
-        return newNode;
-    }
-    
-    private TreeNode addPathPointToForm(WorldEditorForm form, PathObj thepath, PathPointObj thepoint) {
-        if (form == null)
-            return null;
-        form.globalObjList.put(thepoint.uniqueID, thepoint);
-        form.globalPathPointList.put(thepoint.uniqueID, thepoint);
-        
-        // add path if path doesnt exist
-        form.globalPathList.put(thepath.uniqueID, thepath);
-        
-        return null;
-    }
-    
     // -------------------------------------------------------------------------------------------------------------------------
     // Object positioning
     
@@ -1496,75 +1324,16 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private void offsetSelectionBy(Vec3f delta, boolean isShiftKey) {
         unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
-            if(selectedObj instanceof PathPointObj) {
-                PathPointObj selectedPathPoint =(PathPointObj)selectedObj;
-                
-                switch(selectionArg) {
-                    case 0:
-                        selectedPathPoint.position.x += delta.x;
-                        selectedPathPoint.position.y += delta.y;
-                        selectedPathPoint.position.z += delta.z;
-                        selectedPathPoint.point1.x += delta.x;
-                        selectedPathPoint.point1.y += delta.y;
-                        selectedPathPoint.point1.z += delta.z;
-                        selectedPathPoint.point2.x += delta.x;
-                        selectedPathPoint.point2.y += delta.y;
-                        selectedPathPoint.point2.z += delta.z;
-                        break;
-                    case 1:
-                        selectedPathPoint.point1.x += delta.x;
-                        selectedPathPoint.point1.y += delta.y;
-                        selectedPathPoint.point1.z += delta.z;
-                        
-                        if (isShiftKey)
-                        {
-                            selectedPathPoint.point2.x -= delta.x;
-                            selectedPathPoint.point2.y -= delta.y;
-                            selectedPathPoint.point2.z -= delta.z;
-                        }
-                        break;
-                    case 2:
-                        selectedPathPoint.point2.x += delta.x;
-                        selectedPathPoint.point2.y += delta.y;
-                        selectedPathPoint.point2.z += delta.z;
-                        
-                        if (isShiftKey)
-                        {
-                            selectedPathPoint.point1.x -= delta.x;
-                            selectedPathPoint.point1.y -= delta.y;
-                            selectedPathPoint.point1.z -= delta.z;
-                        }
-                        break;
-                }
-
-                pnlObjectSettings.setFieldValue("pnt0_x", selectedPathPoint.position.x);
-                pnlObjectSettings.setFieldValue("pnt0_y", selectedPathPoint.position.y);
-                pnlObjectSettings.setFieldValue("pnt0_z", selectedPathPoint.position.z);
-                pnlObjectSettings.setFieldValue("pnt1_x", selectedPathPoint.point1.x);
-                pnlObjectSettings.setFieldValue("pnt1_y", selectedPathPoint.point1.y);
-                pnlObjectSettings.setFieldValue("pnt1_z", selectedPathPoint.point1.z);
-                pnlObjectSettings.setFieldValue("pnt2_x", selectedPathPoint.point2.x);
-                pnlObjectSettings.setFieldValue("pnt2_y", selectedPathPoint.point2.y);
-                pnlObjectSettings.setFieldValue("pnt2_z", selectedPathPoint.point2.z);
-                scrObjSettings.repaint();
-                addRerenderTask(String.format("path:%1$d", selectedPathPoint.path.uniqueID));
-                addRerenderTask("zone:"+selectedPathPoint.path.stage.stageName);
-                rerenderPathOwners(selectedPathPoint.path);
-            } else {
-                //if(selectedObj instanceof StageObj)
-                //    return;
-                
-                selectedObj.position.x += delta.x;
-                selectedObj.position.y += delta.y;
-                selectedObj.position.z += delta.z;
-                pnlObjectSettings.setFieldValue("PointPosX", selectedObj.position.x);
-                pnlObjectSettings.setFieldValue("PointPosY", selectedObj.position.y);
-                pnlObjectSettings.setFieldValue("PointPosZ", selectedObj.position.z);
-                scrObjSettings.repaint();
-                renderAllObjects();
-                if (selectedObj.renderer.hasSpecialPosition())
-                    addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-            }
+            selectedObj.position.x += delta.x;
+            selectedObj.position.y += delta.y;
+            selectedObj.position.z += delta.z;
+            pnlObjectSettings.setFieldValue("PointPosX", selectedObj.position.x);
+            pnlObjectSettings.setFieldValue("PointPosY", selectedObj.position.y);
+            pnlObjectSettings.setFieldValue("PointPosZ", selectedObj.position.z);
+            scrObjSettings.repaint();
+            renderAllObjects();
+            if (selectedObj.renderer.hasSpecialPosition())
+                addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
             glCanvas.repaint();
         }
     }
@@ -1576,9 +1345,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private void rotateSelectionBy(Vec3f delta) {
         unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
-            if(selectedObj instanceof StageObj || selectedObj instanceof PathPointObj)
-                return;
-            
             selectedObj.rotation.x += delta.x;
             selectedObj.rotation.y += delta.y;
             selectedObj.rotation.z += delta.z;
@@ -1600,9 +1366,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private void scaleSelectionBy(Vec3f delta, float snap) {
         unsavedChanges = true;
         for(AbstractObj selectedObj : selectedObjs.values()) {
-            if(selectedObj instanceof StageObj || selectedObj instanceof PositionObj || selectedObj instanceof PathPointObj)
-                return;
-            
             selectedObj.scale.x += delta.x;
             selectedObj.scale.y += delta.y;
             selectedObj.scale.z += delta.z;
@@ -1645,7 +1408,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             SwingUtilities.invokeLater(() -> {selectionChanged(); });
             return;
         }
-        displayedPaths.clear();
         pnlObjectSettings.clear();
         
         if(selectedObjs.isEmpty()) {
@@ -1655,32 +1417,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             pnlObjectSettings.validate();
             scrObjSettings.repaint();
             return;
-        }
-        
-        // Check if any are paths/path points linked to selected objs
-        for(AbstractObj obj : selectedObjs.values()) {
-            PathObj pathobj = AbstractObj.getObjectPathData(obj);
-            if (pathobj == null)
-                continue;
-            int pathid = pathobj.pathID;
-            
-            if(pathid == -1)
-                continue;
-            
-            // Display path if it is linked to object
-            if(displayedPaths.get(pathid) == null && obj instanceof PathPointObj)
-                displayedPaths.put(pathid, (PathPointObj) obj);
-            else if (displayedPaths.get(pathid) == null)
-            {
-                for(var Cur : globalPathPointList.values())
-                {
-                    if (Cur.path == pathobj)
-                    {
-                        displayedPaths.put(pathid, (PathPointObj)Cur);
-                        break;
-                    }
-                }
-            }
         }
         
         // Check if the selected objects' classes are the same
@@ -1699,29 +1435,19 @@ public class WorldEditorForm extends javax.swing.JFrame {
         // If all selected objects are the same type, add all properties
         if(allthesame) {
             for(AbstractObj selectedObj : selectedObjs.values()) {
-                if(selectedObj instanceof PathPointObj) {
-                    PathPointObj selectedPathPoint =(PathPointObj)selectedObj;
-                    PathObj path = selectedPathPoint.path;
-                    setStatusToInfo(String.format("Selected [%3$d] %1$s(%2$s), point %4$d",
-                                path.data.get("name"), path.stage.stageName, path.pathID, selectedPathPoint.getIndex()) + ".");
-                    tgbDeselect.setEnabled(true);
-                    selectedPathPoint.getProperties(pnlObjectSettings);
-                }
-                else {
-                    String layer = selectedObj.layerKey.equals("common") ? "Common" : selectedObj.getLayerName();
-                    setStatusToInfo("Selected " + selectedObj.toString() + ".");
-                    tgbDeselect.setEnabled(true);
-                    
-                    LinkedList layerlist = new LinkedList();
-                    layerlist.add("Common");
-                    for(int l = 0; l < 26; l++) {
-                        String layerstring = String.format("Layer%1$c", (char) ('A' + l));
-                        if(curZoneArc.objects.containsKey(layerstring.toLowerCase()))
-                            layerlist.add(layerstring);
-                    }
+                String layer = selectedObj.layerKey.equals("common") ? "Common" : selectedObj.getLayerName();
+                setStatusToInfo("Selected " + selectedObj.toString() + ".");
+                tgbDeselect.setEnabled(true);
 
-                    selectedObj.getProperties(pnlObjectSettings);
+                LinkedList layerlist = new LinkedList();
+                layerlist.add("Common");
+                for(int l = 0; l < 26; l++) {
+                    String layerstring = String.format("Layer%1$c", (char) ('A' + l));
+                    if(curZoneArc.objects.containsKey(layerstring.toLowerCase()))
+                        layerlist.add(layerstring);
                 }
+
+                selectedObj.getProperties(pnlObjectSettings);
             }
 
             if(selectedObjs.size() > 1) {
@@ -2030,14 +1756,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     renderAllObjects();
                     glCanvas.repaint();
                 }
-                else if(selectedObj.renderer.boundToPathId() && propname.startsWith("CommonPath_ID")) {
-                    addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                    PathObj y = AbstractObj.getObjectPathData(selectedObj);
-                    if (y != null)
-                        addRerenderTask("path:" +  y.uniqueID);
-                    renderAllObjects();
-                    glCanvas.repaint();
-                }
                 else if(propname.equals("Distant")) {
                     if(selectedObj.renderer.boundToProperty()) {
                         addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
@@ -2134,23 +1852,10 @@ public class WorldEditorForm extends javax.swing.JFrame {
         }
         
         
-        LinkedHashMap<PathObj, ArrayList<PathPointObj>> pathData = new LinkedHashMap();
         StringBuilder CopyString = new StringBuilder("WHN\n");
         int x = 0;
         for(var obj : selectedObjs.values())
         {
-            if (obj instanceof PathPointObj)
-            {
-                PathPointObj pobj = (PathPointObj)obj;
-                if (!pathData.containsKey(pobj.path))
-                {
-                    pathData.put(pobj.path, new ArrayList(pobj.path.size()));
-                }
-                
-                pathData.get(pobj.path).add((PathPointObj)obj);
-                continue; //Skip paths for now...
-            }
-            
             String text = copyObject(obj);
             CopyString.append(text);
             if (x < selectedObjs.size()-1)
@@ -2158,48 +1863,11 @@ public class WorldEditorForm extends javax.swing.JFrame {
             x++;
         }
         
-        if (!pathData.isEmpty() && x > 0)
-            CopyString.append('\n');
-        
-        for(var path : pathData.entrySet())
-        {
-            PathObj key = path.getKey();
-            ArrayList<PathPointObj> value = path.getValue();
-            
-            if (key.size() == value.size()) //If this is true, we selected the entire path
-            {
-                // Copy the entire path. Users can paste this without having to have a path selected
-                CopyString.append(key.toClipboard());
-                x++;
-            }
-            else
-            {
-//                for(int i = 0; i < value.size(); i++)
-//                {
-//                    String pointText = value.get(i).toClipboard();
-//                    PathPointObj NextPoint = value.get(i).getNextPoint(),
-//                            PrevPoint = value.get(i).getPreviousPoint();
-//                    
-//                    CopyString.append("commonpathpointinfo|");
-//                    CopyString.append(NextPoint == null ? "-" : value.indexOf(NextPoint));
-//                    CopyString.append(",");
-//                    CopyString.append(PrevPoint == null ? "-" : value.indexOf(PrevPoint));
-//                    CopyString.append('|');
-//                    CopyString.append(pointText);
-//                    if (i < value.size()-1);
-//                        CopyString.append('\n');    
-//                }
-            }
-        }
-        
         tgbCopyObj.setSelected(false);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         StringSelection stringSelection = new StringSelection(CopyString.toString());
         clipboard.setContents(stringSelection, null);
-        if (x == 0)
-            setStatusToWarning("Individual path points cannot be copied. Copy the entire path.");
-        else
-            setStatusToInfo("Copied "+x+" objects.");
+        setStatusToInfo("Copied "+x+" objects.");
     }
     
     public String copyObject(AbstractObj obj)
@@ -2221,8 +1889,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         ArrayList<Vec3f> ObjectPositions = new ArrayList();
         for(var x : pasteObjectList)
             ObjectPositions.add(x.getVector("pos"));
-        for(var y : pastePathList)
-            ObjectPositions.addAll(y.getAllPointPositions());
         
         Vec3f[] stockArr = new Vec3f[ObjectPositions.size()];
         stockArr = ObjectPositions.toArray(stockArr);
@@ -2250,73 +1916,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             pasteObject(x, objPos);
         }
         
-        // Pasting paths weary
-        StageArchive destZoneArc = zoneArchives.get(curZone);
-        for(var path : pastePathList)
-        {
-            // Create the path
-            int newPathLinkID = 0;
-
-            for (PathObj t : destZoneArc.paths)
-                if (t.pathID >= newPathLinkID)
-                    newPathLinkID = t.pathID + 1;
-            
-            PathObj thepath = new PathObj(destZoneArc, newPathLinkID);
-            thepath.uniqueID = maxUniqueID++;
-            path.applyToInstance(thepath);
-            thepath.pathID = newPathLinkID;
-            //thepath.setName(pathName);
-            //thepath.data = (Bcsv.Entry)pathData.clone();
-            
-            destZoneArc.paths.add(thepath);
-            for (WorldEditorForm form : getAllCurrentZoneForms()) {
-                form.globalPathList.put(thepath.uniqueID, thepath);
-            }
-            
-            //Path created, lets create the points now
-            for(var point : path.pointData)
-            {
-                Vec3f objPos = null, p1 = null, p2 = null;
-            
-                if (pastePosition != null)
-                {
-                    // Calculate new position for object
-                    objPos = point.getVector("pnt0");
-                    p1 = point.getVector("pnt1");
-                    p2 = point.getVector("pnt2");
-                    
-                    Vec3f objOffset = new Vec3f(
-                            objPos.x - pasteOrigin.x,
-                            objPos.y - pasteOrigin.y,
-                            objPos.z - pasteOrigin.z );
-                    objPos.x = pastePosition.x + objOffset.x;
-                    objPos.y = pastePosition.y + objOffset.y;
-                    objPos.z = pastePosition.z + objOffset.z;
-                    
-                    objOffset = new Vec3f(
-                            p1.x - pasteOrigin.x,
-                            p1.y - pasteOrigin.y,
-                            p1.z - pasteOrigin.z );
-                    p1.x = pastePosition.x + objOffset.x;
-                    p1.y = pastePosition.y + objOffset.y;
-                    p1.z = pastePosition.z + objOffset.z;
-                    
-                    objOffset = new Vec3f(
-                            p2.x - pasteOrigin.x,
-                            p2.y - pasteOrigin.y,
-                            p2.z - pasteOrigin.z );
-                    p2.x = pastePosition.x + objOffset.x;
-                    p2.y = pastePosition.y + objOffset.y;
-                    p2.z = pastePosition.z + objOffset.z;
-                }
-            
-                pastePathPoint(point, thepath, objPos, p1, p2);
-            }
-            
-            addRerenderTask("path:" + thepath.uniqueID);
-            addRerenderTask("zone:" + thepath.stage.stageName);
-            rerenderPathOwners(thepath);
-        }
         endUndoMulti();
         for (WorldEditorForm form : getAllCurrentZoneForms()) {
             form.objListModel.reload();
@@ -2340,35 +1939,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         addUndoEntry(IUndo.Action.ADD, newobj);
     }
-    private void pastePathPoint(PastePathData.PastePathPointData obj, PathObj owner, Vec3f objPosition, Vec3f point1, Vec3f point2)
-    {
-        if (objPosition == null)
-            objPosition = obj.getVector("pnt0");
-        if (point1 == null)
-            point1 = obj.getVector("pnt1");
-        if (point2 == null)
-            point2 = obj.getVector("pnt2");
-        
-        //We need to create the point manually again
-        PathPointObj thepoint = new PathPointObj(owner, objPosition);
-        obj.applyToInstance(thepoint);
-        thepoint.point1 = point1;
-        thepoint.point2 = point2;
-        
-        thepoint.uniqueID = maxUniqueID;
-        maxUniqueID += 3;
-        for (WorldEditorForm form : getAllCurrentZoneForms()) {
-            form.globalObjList.put(thepoint.uniqueID, thepoint);
-            form.globalPathPointList.put(thepoint.uniqueID, thepoint);
-        }
-        int pointIdx = owner.size();
-        owner.getPoints().add(pointIdx, thepoint);
-
-        //selectedObjs.put(thepoint.uniqueID, thepoint);
-        
-        newobj = thepoint; //is this really needed...?
-        addUndoEntry(IUndo.Action.ADD, thepoint);
-    }
      
     public void pasteClipboardIntoObjects(boolean isLiteralPaste)
     {
@@ -2382,7 +1952,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         deletingObjects = false;
         
         pasteObjectList.clear();
-        pastePathList.clear();
         // There's two paste modes:
         // Additive: Ask the user to place the objects down. The point of the click will be the center of all of the object origins using bounding box
         // Literal: Pastes one set each time the function is ran. Everything is pasted at the position in the paste data.
@@ -2413,23 +1982,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
             if (Line.isBlank())
                 continue;
             
-            if (Line.startsWith("WHNFP|"))
-            {
-                // New path
-                PastePathData pd = new PastePathData(Line);
-                for(int j = 0; j < pd.count; j++)
-                {
-                    Line = Lines[++i];
-                    pd.add(Line);
-                }
-                pastePathList.add(pd);
-            }
-            else if (Line.startsWith("commonpathpointinfo|"))
-            {
-                // New path points. Requires a path to be selected
-                System.out.println("Cannot paste path points individually");
-            }
-            else if (!Line.startsWith("WHN"))
+            if (!Line.startsWith("WHN"))
             {
                 PasteObjectData d = new PasteObjectData(Line);
                 pasteObjectList.add(d);
@@ -2452,7 +2005,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
     
     
     static final ArrayList<PasteObjectData> pasteObjectList = new ArrayList();
-    static final ArrayList<PastePathData> pastePathList = new ArrayList();
     
     class PasteObjectData
     {
@@ -2486,72 +2038,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             return new Vec3f(x, y, z);
         }
     }
-    class PastePathData
-    {
-        public final int count;
-        public final Bcsv.Entry data;
-        public final ArrayList<PastePathPointData> pointData;
-        
-        public PastePathData(String source)
-        {
-            String[] Parts = source.split("\\|");
-            String DataString = source.substring(Parts[0].length()+1 + Parts[1].length()+1);
-            data = new Bcsv.Entry();
-            data.fromClipboard(DataString, "WHNP");
-            count = Integer.parseInt(Parts[1]);
-            pointData = new ArrayList(count);
-        }
-        
-        public void applyToInstance(PathObj obj)
-        {
-            obj.data = (Bcsv.Entry)data.clone();
-            obj.name = (String)data.get("name");
-        }
-        
-        public ArrayList<Vec3f> getAllPointPositions()
-        {
-            ArrayList<Vec3f> positions = new ArrayList();
-            for(var x : pointData)
-                positions.add(x.getVector("pnt0"));
-            return positions;
-        }
-    
-        public void add(String s)
-        {
-            PastePathPointData d = new PastePathPointData(s);
-            pointData.add(d);
-        }
-        
-        public class PastePathPointData
-        {
-            public final String type = "commonpathpointinfo";
-            public final Bcsv.Entry data;
-
-            public PastePathPointData(String source)
-            {
-                assert(source.startsWith("WHNPP|"));
-                data = new Bcsv.Entry();
-                data.fromClipboard(source, "WHNPP");
-            }
-
-            public void applyToInstance(PathPointObj obj)
-            {
-                // We can copy over everything since the position will just be overridden next save/copy
-                obj.data = (Bcsv.Entry)data.clone();
-                obj.point1 = getVector("pnt1");
-                obj.point2 = getVector("pnt2");
-            }
-
-            public final Vec3f getVector(String prefix)
-            {
-                float x = (float)data.getOrDefault(prefix + "_x", 0.0f);
-                float y = (float)data.getOrDefault(prefix + "_y", 0.0f);
-                float z = (float)data.getOrDefault(prefix + "_z", 0.0f);
-                return new Vec3f(x, y, z);
-            }
-        }
-    }
-    
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Undo + Redo
@@ -2559,7 +2045,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
     public interface IUndo
     {
         static String ERR_OBJNOEXIST = "The object tied to this Undo Entry does not exist";
-        static String ERR_PATHNOEXIST = "The path tied to this Undo Entry does not exist";
         
         public void performUndo();
         
@@ -2834,193 +2319,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         }
     }
     
-    public class UndoPathPointTranslateEntry implements IUndo
-    {
-        public int id;
-        public Vec3f position;
-        public Vec3f positionCtrl1;
-        public Vec3f positionCtrl2;
-        
-        public UndoPathPointTranslateEntry(PathPointObj obj)
-        {
-            id = obj.uniqueID;
-            position = (Vec3f)obj.position.clone();
-            positionCtrl1 = (Vec3f)obj.point1.clone();
-            positionCtrl2 = (Vec3f)obj.point2.clone();
-        }
-
-        @Override
-        public void performUndo() {
-            PathPointObj obj = globalPathPointList.get(id);
-            if (obj == null)
-                throw new NullPointerException(ERR_PATHNOEXIST);
-            
-            obj.position = (Vec3f)position.clone();
-            pnlObjectSettings.setFieldValue("pnt0_x", obj.position.x);
-            pnlObjectSettings.setFieldValue("pnt0_y", obj.position.y);
-            pnlObjectSettings.setFieldValue("pnt0_z", obj.position.z);
-            
-            obj.point1 = (Vec3f)positionCtrl1.clone();
-            pnlObjectSettings.setFieldValue("pnt1_x", obj.point1.x);
-            pnlObjectSettings.setFieldValue("pnt1_y", obj.point1.y);
-            pnlObjectSettings.setFieldValue("pnt1_z", obj.point1.z);
-            
-            obj.point2 = (Vec3f)positionCtrl2.clone();
-            pnlObjectSettings.setFieldValue("pnt2_x", obj.point2.x);
-            pnlObjectSettings.setFieldValue("pnt2_y", obj.point2.y);
-            pnlObjectSettings.setFieldValue("pnt2_z", obj.point2.z);
-            scrObjSettings.repaint();
-            
-            addRerenderTask("allpaths");
-            addRerenderTask("allobjects");
-        }
-    }
-    
-    public class UndoPathPointDeleteEntry implements IUndo
-    {
-        public final int pathUID;
-        public final int pathLinkID;
-        public final String pathName;
-        public final Bcsv.Entry pathData;
-        public final int prevUID;
-        public final String layer;
-        public final int scenarioIndex;
-        public final String zoneName;
-        
-        public final int pointIdx;
-        public final Vec3f position;
-        public final Vec3f positionCtrl1;
-        public final Vec3f positionCtrl2;
-        public final Bcsv.Entry pointData;
-        
-        public UndoPathPointDeleteEntry(PathPointObj obj)
-        {
-            pathUID = obj.path.uniqueID;
-            pathLinkID = obj.path.pathID;
-            pathName = obj.path.name;
-            pathData = (Bcsv.Entry)obj.path.data.clone();
-            pointData = (Bcsv.Entry)obj.data.clone();
-            prevUID = obj.uniqueID;
-            pointIdx = obj.path.indexOf(obj);
-            position = (Vec3f)obj.position.clone();
-            positionCtrl1 = (Vec3f)obj.point1.clone();
-            positionCtrl2 = (Vec3f)obj.point2.clone();
-            
-            layer = obj.layerKey;
-            scenarioIndex = curScenarioIndex;
-            zoneName = obj.stage.stageName;
-        }
-        
-        @Override
-        public void performUndo()
-        {
-            Vec3f newpos = position;
-
-            
-            PathObj thepath;
-            // If we deleted the last point in a path, we'll need to re-make the path...
-            if (!globalPathList.containsKey(pathUID))
-            {
-                //Seems we need to create a new path...
-                int newPathLinkID = pathLinkID;
-                StageArchive destZoneArc = zoneArchives.get(zoneName);
-                thepath = new PathObj(destZoneArc, newPathLinkID);
-                thepath.uniqueID = pathUID;
-                thepath.setName(pathName);
-                thepath.data = (Bcsv.Entry)pathData.clone();
-                
-                destZoneArc.paths.add(thepath);
-            }
-            else
-            {
-                thepath = globalPathList.get(pathUID);
-            }
-            
-            PathPointObj thepoint = new PathPointObj(thepath, newpos);
-            thepoint.point1 = positionCtrl1;
-            thepoint.point2 = positionCtrl2;
-            thepoint.data.put("id", (short)pointIdx);
-            thepoint.data = (Bcsv.Entry)pointData.clone();
-            newobj = thepoint;
-            thepoint.uniqueID = prevUID;
-            for (WorldEditorForm form : getAllCurrentZoneForms()) {
-                form.globalObjList.put(thepoint.uniqueID, thepoint);
-                form.globalPathPointList.put(thepoint.uniqueID, thepoint);
-            }
-            thepath.getPoints().add(pointIdx, thepoint);
-            
-                
-            addRerenderTask("path:" + thepath.uniqueID);
-            addRerenderTask("zone:" + thepath.stage.stageName);
-            rerenderPathOwners(thepath);
-        }
-    }
-    
-    public class UndoPathPointEditEntry implements IUndo
-    {
-        public final int id;
-        public final int pathUID;
-        public final String pathName;
-        public final int pathLinkID;
-        
-        public final Bcsv.Entry dataPath;
-        public final Bcsv.Entry dataPoint;
-        
-        public UndoPathPointEditEntry(PathPointObj obj)
-        {
-            id = obj.uniqueID;
-            pathUID = obj.path.uniqueID;
-            pathName = obj.path.name;
-            pathLinkID = obj.path.pathID;
-            
-            dataPath = (Bcsv.Entry)obj.path.data.clone();
-            dataPoint = (Bcsv.Entry)obj.data.clone();
-        }
-        
-        @Override
-        public void performUndo()
-        {
-            PathPointObj obj = globalPathPointList.get(id);
-            if (obj == null)
-                throw new NullPointerException(ERR_PATHNOEXIST);
-            
-            obj.path.setName(pathName);
-            obj.path.pathID = pathLinkID;
-            obj.path.data = (Bcsv.Entry)dataPath.clone();
-            obj.data = (Bcsv.Entry)dataPoint.clone();
-            
-            DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-            objlist.nodeChanged(treeNodeList.get(obj.path.uniqueID));
-            
-            addRerenderTask("path:" + obj.path.uniqueID);
-            renderAllObjects();
-            rerenderPathOwners(obj.path);
-            
-            pnlObjectSettings.setFieldValue("[P]name", obj.path.name);
-            pnlObjectSettings.setFieldValue("[P]l_id", obj.path.pathID);
-            pnlObjectSettings.setFieldValue("[P]closed", obj.path.isClosed());
-            pnlObjectSettings.setFieldValue("[P]usage", obj.path.data.get("usage"));
-            pnlObjectSettings.setFieldValue("[P]Path_ID", obj.path.data.get("Path_ID"));
-            pnlObjectSettings.setFieldValue("[P]path_arg0", obj.path.data.get("path_arg0"));
-            pnlObjectSettings.setFieldValue("[P]path_arg1", obj.path.data.get("path_arg1"));
-            pnlObjectSettings.setFieldValue("[P]path_arg2", obj.path.data.get("path_arg2"));
-            pnlObjectSettings.setFieldValue("[P]path_arg3", obj.path.data.get("path_arg3"));
-            pnlObjectSettings.setFieldValue("[P]path_arg4", obj.path.data.get("path_arg4"));
-            pnlObjectSettings.setFieldValue("[P]path_arg5", obj.path.data.get("path_arg5"));
-            pnlObjectSettings.setFieldValue("[P]path_arg6", obj.path.data.get("path_arg6"));
-            pnlObjectSettings.setFieldValue("[P]path_arg7", obj.path.data.get("path_arg7"));
-            pnlObjectSettings.setFieldValue("point_arg0", obj.data.get("point_arg0"));
-            pnlObjectSettings.setFieldValue("point_arg1", obj.data.get("point_arg1"));
-            pnlObjectSettings.setFieldValue("point_arg2", obj.data.get("point_arg2"));
-            pnlObjectSettings.setFieldValue("point_arg3", obj.data.get("point_arg3"));
-            pnlObjectSettings.setFieldValue("point_arg4", obj.data.get("point_arg4"));
-            pnlObjectSettings.setFieldValue("point_arg5", obj.data.get("point_arg5"));
-            pnlObjectSettings.setFieldValue("point_arg6", obj.data.get("point_arg6"));
-            pnlObjectSettings.setFieldValue("point_arg7", obj.data.get("point_arg7"));
-            scrObjSettings.repaint();
-        }
-    }
-    
     /**
      * This class represents several undo moves that can be undone all at once.
      */
@@ -3099,51 +2397,30 @@ public class WorldEditorForm extends javax.swing.JFrame {
         }
         
         IUndo newEntry = null;
-        
-        if (obj instanceof PathPointObj)
+
+        switch (type)
         {
-            switch (type)
-            {
-                case TRANSLATE:
-                    newEntry = new UndoPathPointTranslateEntry((PathPointObj)obj);
-                    break;
-                case ADD:
-                    newEntry = new UndoObjectAddEntry(obj);
-                    break;
-                case DELETE:
-                    newEntry = new UndoPathPointDeleteEntry((PathPointObj)obj);
-                    break;
-                case PARAMETER:
-                    newEntry = new UndoPathPointEditEntry((PathPointObj)obj);
-                    break;
-            }
-        }
-        else
-        {
-            switch (type)
-            {
-                case TRANSLATE:
-                    newEntry = new UndoObjectTranslateEntry(obj);
-                    break;
-                case ROTATE:
-                    newEntry = new UndoObjectRotateEntry(obj);
-                    break;
-                case SCALE:
-                    newEntry = new UndoObjectScaleEntry(obj);
-                    break;
-                case ADD:
-                    newEntry = new UndoObjectAddEntry(obj);
-                    break;
-                case DELETE:
-                    newEntry = new UndoObjectDeleteEntry(obj);
-                    break;
-                case PARAMETER:
-                    newEntry = new UndoObjectEditEntry(obj);
-                    break;
-                case NAME_ZONE_LAYER:
-                    newEntry = new UndoObjectNameZoneLayerEntry(obj);
-                    break;
-            }
+            case TRANSLATE:
+                newEntry = new UndoObjectTranslateEntry(obj);
+                break;
+            case ROTATE:
+                newEntry = new UndoObjectRotateEntry(obj);
+                break;
+            case SCALE:
+                newEntry = new UndoObjectScaleEntry(obj);
+                break;
+            case ADD:
+                newEntry = new UndoObjectAddEntry(obj);
+                break;
+            case DELETE:
+                newEntry = new UndoObjectDeleteEntry(obj);
+                break;
+            case PARAMETER:
+                newEntry = new UndoObjectEditEntry(obj);
+                break;
+            case NAME_ZONE_LAYER:
+                newEntry = new UndoObjectNameZoneLayerEntry(obj);
+                break;
         }
 
         
@@ -3251,10 +2528,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                         for (AbstractObj obj : globalObjList.values()) {
                             obj.initRenderer(renderInfo);
                             obj.oldName = obj.name;
-                        }
-                        
-                        for (PathObj obj : globalPathList.values()) {
-                            obj.prerender(renderInfo);
                         }
                     }
                     
@@ -3445,21 +2718,9 @@ public class WorldEditorForm extends javax.swing.JFrame {
                         continue; // prevent picking for non world map objects
                     }
                     
+                    // conditional rendering
                     final String c = obj.getClass().getSimpleName();
                     switch(c) {
-                        case "AreaObj":
-                            if(tgbShowAreas.isSelected())
-                                obj.render(renderInfo);
-                            break;
-                        case "GravityObj":
-                            if (tgbShowGravity.isSelected()) {
-                                obj.render(renderInfo);
-                            }
-                            break;
-                        case "CameraObj":
-                            if(tgbShowCameras.isSelected())
-                                obj.render(renderInfo);
-                            break;
                         default:
                             obj.render(renderInfo);
                     }
@@ -3468,7 +2729,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 if(mode == 2 && !selectedObjs.isEmpty())
                     renderSelectHighlight(gl, zone);
                 
-                // path rendering -- be lazy and hijack the display lists used for the Common objects
                 if(layer.equalsIgnoreCase("common"))
                 {
                     for (AbstractObj obj : worldArchive.points.values())
@@ -3658,23 +2918,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                             
                             renderInfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;
                             renderAllObjects(gl);
-                            break;
-                            
-                        case "path":
-                            int pathid = Integer.parseInt(task[1]);
-                            PathObj pobj = globalPathList.get(pathid);
-                            if (pobj != null)
-                                pobj.prerender(renderInfo);
-                            break;
-                            
-                        case "allpaths":
-                            for(var p : globalPathList.values())
-                            {
-                                p.render(renderInfo);
-                                p.prerender(renderInfo);
-                                
-                                rerenderPathOwners(p);
-                            }
                             break;
                     }
                 }
@@ -4378,10 +3621,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     shortcutUndo();
                 else if (isShortcutPressed(e, false, true, false, KeyEvent.VK_A))             // Pull Up Add menu -- SHIFT+A
                     shortcutQuickAdd();
-                else if (isShortcutPressed(e, true, true, true, KeyEvent.VK_C))               // Reset Path control points -- CTRL+SHIFT+ALT+C
-                    shortcutResetPathControlPoints();
-                else if (isShortcutPressed(e, true, true, false, KeyEvent.VK_R))              // Reverse Selected Path Points -- CTRL+SHIFT+R
-                    shortcutReversePathPoints();
                 else if (isShortcutPressed(e, true, false, false, KeyEvent.VK_C))             // Copy -- CTRL+C
                     shortcutCopy();
                 else if (isShortcutPressed(e, true, false, false, KeyEvent.VK_V))             // Paste (at mouse) -- CTRL+V
@@ -4539,19 +3778,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 obj.position.x = (int)obj.position.x;
                 obj.position.y = (int)obj.position.y;
                 obj.position.z = (int)obj.position.z;
-                if (obj instanceof PathPointObj)
-                {
-                    PathPointObj x = (PathPointObj)obj;
-                    x.point1.x = (int)x.point1.x;
-                    x.point1.y = (int)x.point1.y;
-                    x.point1.z = (int)x.point1.z;
-                    x.point2.x = (int)x.point2.x;
-                    x.point2.y = (int)x.point2.y;
-                    x.point2.z = (int)x.point2.z;
-                    addRerenderTask("path:"+x.path.uniqueID);
-                }
-                else
-                    addRerenderTask("object:" + obj.uniqueID);
+                addRerenderTask("object:" + obj.uniqueID);
                 addRerenderTask("zone:" + obj.stage.stageName);
             }
             endUndoMulti();
@@ -4567,129 +3794,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             popupAddItems.setLightWeightPopupEnabled(false);
             popupAddItems.show(pnlGLPanel, mousePos.x, mousePos.y);
             popupAddItems.setVisible(true);
-        }
-        private void shortcutResetPathControlPoints() {
-            int ResetNum = 0;
-            if (!selectedObjs.isEmpty()) {
-                startUndoMulti();
-                for(AbstractObj selectedObj : selectedObjs.values())
-                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
-
-                ArrayList<PathObj> Paths = new ArrayList();
-                for (AbstractObj obj : selectedObjs.values())
-                {
-                    if (obj instanceof PathPointObj)
-                    {
-                        PathPointObj x = (PathPointObj)obj;
-                        x.point1.x = obj.position.x;
-                        x.point1.y = obj.position.y;
-                        x.point1.z = obj.position.z;
-                        x.point2.x = obj.position.x;
-                        x.point2.y = obj.position.y;
-                        x.point2.z = obj.position.z;
-
-                        Paths.add(x.path);
-                        ResetNum++;
-                    }
-                }
-                for (PathObj p : Paths)
-                {
-                    addRerenderTask("path:" + p.uniqueID);
-                    addRerenderTask("zone:" + p.stage.stageName);
-                    rerenderPathOwners(p);
-                }
-
-                endUndoMulti();
-            }
-            
-            if (ResetNum == 0)
-                setStatusToWarning("No path points were reset.");
-            else
-                setStatusToInfo("Reset " + ResetNum + " path points.");
-            
-            glCanvas.repaint();
-            unsavedChanges = true;
-        }
-        private void shortcutReversePathPoints() {
-            if (selectedObjs.isEmpty()) {
-                setStatusToWarning("Nothing selected to reverse");
-                return;
-            }
-
-            HashMap<PathObj, ArrayList<Integer>> SelectedPathPointsPerPath = new HashMap();
-
-            // First, we're just going to collect all path points that are selected and separate them by their owning path
-            for(AbstractObj selectedObj : selectedObjs.values()){
-                if (!(selectedObj instanceof PathPointObj))
-                    continue;
-
-                PathPointObj curPathPoint = (PathPointObj)selectedObj;
-                PathObj curPath = curPathPoint.path;
-                if (!SelectedPathPointsPerPath.containsKey(curPath))
-                    SelectedPathPointsPerPath.put(curPath, new ArrayList());
-                SelectedPathPointsPerPath.get(curPath).add(curPath.indexOf(curPathPoint));
-            }
-
-            // Second, we need to fix the selection order, and then create groups based on holes
-            // Example: User selects points 1,2,3,7,6,8. This results with 1,2,3 | 6,7,8
-            startUndoMulti();
-            int SuccessfulSwapCount = 0;
-            for (HashMap.Entry<PathObj, ArrayList<Integer>> entry : SelectedPathPointsPerPath.entrySet()) {
-                List<List<Integer>> result = new ArrayList<>();
-                PathObj key = entry.getKey();
-                ArrayList<Integer> value = entry.getValue();
-
-                if (value.size() == 1) // Nothing can be reversed with only one path point selected...
-                    continue;
-
-                value.sort(Comparator.naturalOrder()); // Fix selection order inaccuracies.
-
-                List<Integer> currentSequence = new ArrayList<>();
-                currentSequence.add(value.get(0));
-
-                for (int i = 1; i < value.size(); i++) {
-                    int currentNumber = value.get(i);
-                    int previousNumber = value.get(i - 1);
-
-                    if (currentNumber == previousNumber + 1) {
-                        currentSequence.add(currentNumber);
-                    } else {
-                        result.add(currentSequence);
-                        currentSequence = new ArrayList<>();
-                        currentSequence.add(currentNumber);
-                    }
-                }
-
-                result.add(currentSequence);
-
-                // Now we can call for reversing
-                for(List<Integer> list : result)
-                {
-                    List<PathPointObj> p = key.getPoints();
-                    for(Integer v : list)
-                        addUndoEntry(IUndo.Action.TRANSLATE, p.get(v));
-
-                    if (RailUtil.reversePath(key, list.get(0), list.get(list.size()-1)));
-                    {
-                        SuccessfulSwapCount++;
-                        addRerenderTask("path:" + key.uniqueID);
-                        addRerenderTask("zone:" + key.stage.stageName);
-                        rerenderPathOwners(key);
-                    }
-                }
-            }
-            endUndoMulti();
-
-
-            if (SelectedPathPointsPerPath.isEmpty() || SuccessfulSwapCount <= 0)
-            {
-                setStatusToWarning("None of the selected objects can be reversed.");
-                return;
-            }
-
-            setStatusToInfo("Made " + SuccessfulSwapCount + " path point(s) reversals.");
-            glCanvas.repaint();
-            unsavedChanges = true;
         }
         private void shortcutCopy() {
             copySelectedObjects();
@@ -4852,22 +3956,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         return curZoneArc.getUniqueSwitchesInZone();
     }
     
-    public void rerenderPathOwners(PathObj path) {
-        for (AbstractObj obj : globalObjList.values())
-        {
-            if (obj.renderer == null)
-                continue;
-            
-            if (!obj.renderer.hasPathConnection())
-                continue;
-            
-            if (AbstractObj.isUsingPath(obj, path))
-            {
-                addRerenderTask("object:"+Integer.toString(obj.uniqueID));
-            }
-        }
-    }
-    
     private void updateScenarioList() {
         curScenarioIndex = 0;
         
@@ -4890,14 +3978,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         tgbDeselect = new javax.swing.JButton();
         sep1 = new javax.swing.JToolBar.Separator();
         tgbShowAxis = new javax.swing.JToggleButton();
-        sep2 = new javax.swing.JToolBar.Separator();
-        tgbShowPaths = new javax.swing.JToggleButton();
-        sep3 = new javax.swing.JToolBar.Separator();
-        tgbShowAreas = new javax.swing.JToggleButton();
-        sep5 = new javax.swing.JToolBar.Separator();
-        tgbShowCameras = new javax.swing.JToggleButton();
-        sep4 = new javax.swing.JToolBar.Separator();
-        tgbShowGravity = new javax.swing.JToggleButton();
         lblStatus = new javax.swing.JLabel();
         tabData = new javax.swing.JTabbedPane();
         scrObjects = new javax.swing.JSplitPane();
@@ -4976,58 +4056,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             }
         });
         tlbOptions.add(tgbShowAxis);
-        tlbOptions.add(sep2);
-
-        tgbShowPaths.setSelected(true);
-        tgbShowPaths.setText("Show paths");
-        tgbShowPaths.setFocusable(false);
-        tgbShowPaths.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowPaths.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowPaths.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowPathsActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowPaths);
-        tlbOptions.add(sep3);
-
-        tgbShowAreas.setSelected(true);
-        tgbShowAreas.setText("Show areas");
-        tgbShowAreas.setFocusable(false);
-        tgbShowAreas.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowAreas.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowAreas.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowAreasActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowAreas);
-        tlbOptions.add(sep5);
-
-        tgbShowCameras.setSelected(true);
-        tgbShowCameras.setText("Show cameras");
-        tgbShowCameras.setFocusable(false);
-        tgbShowCameras.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowCameras.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowCameras.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowCamerasActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowCameras);
-        tlbOptions.add(sep4);
-
-        tgbShowGravity.setSelected(true);
-        tgbShowGravity.setText("Show gravity");
-        tgbShowGravity.setFocusable(false);
-        tgbShowGravity.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbShowGravity.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbShowGravity.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbShowGravityActionPerformed(evt);
-            }
-        });
-        tlbOptions.add(tgbShowGravity);
 
         pnlGLPanel.add(tlbOptions, java.awt.BorderLayout.NORTH);
 
@@ -5303,39 +4331,14 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         for (AbstractObj obj : selectedObjs.values()) {
             addUndoEntry(IUndo.Action.TRANSLATE, obj);
-            if (obj instanceof PathPointObj) {
-                PathPointObj pointObj = (PathPointObj)obj;
-                Vec3f offset = new Vec3f(COPY_POSITION);
-                offset.subtract(pointObj.position);
-                
-                pointObj.position.set(COPY_POSITION);
-                pointObj.point1.add(offset);
-                pointObj.point2.add(offset);
-                
-                pnlObjectSettings.setFieldValue("pnt0_x", pointObj.position.x);
-                pnlObjectSettings.setFieldValue("pnt0_y", pointObj.position.y);
-                pnlObjectSettings.setFieldValue("pnt0_z", pointObj.position.z);
-                pnlObjectSettings.setFieldValue("pnt1_x", pointObj.point1.x);
-                pnlObjectSettings.setFieldValue("pnt1_y", pointObj.point1.y);
-                pnlObjectSettings.setFieldValue("pnt1_z", pointObj.point1.z);
-                pnlObjectSettings.setFieldValue("pnt2_x", pointObj.point2.x);
-                pnlObjectSettings.setFieldValue("pnt2_y", pointObj.point2.y);
-                pnlObjectSettings.setFieldValue("pnt2_z", pointObj.point2.z);
-                scrObjSettings.repaint();
-                
-                addRerenderTask("path:" + pointObj.path.uniqueID);
-                addRerenderTask("zone:" + pointObj.stage.stageName);
-            }
-            else {
-                obj.position.set(COPY_POSITION);
-                pnlObjectSettings.setFieldValue("PointPosX", obj.position.x);
-                pnlObjectSettings.setFieldValue("PointPosY", obj.position.y);
-                pnlObjectSettings.setFieldValue("PointPosZ", obj.position.z);
-                scrObjSettings.repaint();
-                
-                addRerenderTask("object:" + obj.uniqueID);
-                renderAllObjects();
-            }
+            obj.position.set(COPY_POSITION);
+            pnlObjectSettings.setFieldValue("PointPosX", obj.position.x);
+            pnlObjectSettings.setFieldValue("PointPosY", obj.position.y);
+            pnlObjectSettings.setFieldValue("PointPosZ", obj.position.z);
+            scrObjSettings.repaint();
+
+            addRerenderTask("object:" + obj.uniqueID);
+            renderAllObjects();
             
             setStatusToInfo(String.format("Pasted position %s.", COPY_POSITION.toString()));
             
@@ -5349,10 +4352,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             return;
                 
         for (AbstractObj obj : selectedObjs.values()) {
-            if (obj instanceof PathPointObj) {
-                return;
-            }
-            
             addUndoEntry(IUndo.Action.ROTATE, obj);
             
             obj.rotation.set(COPY_ROTATION);
@@ -5376,10 +4375,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             return;
         
         for (AbstractObj obj : selectedObjs.values()) {
-            if (obj instanceof PathPointObj || obj instanceof PositionObj || obj instanceof StageObj) {
-                return;
-            }
-            
             addUndoEntry(IUndo.Action.SCALE, obj);
             
             obj.scale.set(COPY_SCALE);
@@ -5400,7 +4395,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
     
     private void tgbDeselectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeselectActionPerformed
         for (AbstractObj obj : selectedObjs.values()) {
-            addRerenderTask("zone:" + obj.stage.stageName);
+            addRerenderTask("zone:" + curZone);
         }
         
         selectedObjs.clear();
@@ -5408,22 +4403,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         selectionChanged();
         glCanvas.repaint();
     }//GEN-LAST:event_tgbDeselectActionPerformed
-
-    private void tgbShowPathsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowPathsActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowPathsActionPerformed
-
-    private void tgbShowAreasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAreasActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowAreasActionPerformed
-
-    private void tgbShowCamerasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowCamerasActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowCamerasActionPerformed
-
-    private void tgbShowGravityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowGravityActionPerformed
-        renderAllObjects();
-    }//GEN-LAST:event_tgbShowGravityActionPerformed
 
     private void tgbShowAxisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbShowAxisActionPerformed
         glCanvas.repaint();
@@ -5528,10 +4507,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private javax.swing.JScrollPane scrObjectTree;
     private javax.swing.JSplitPane scrObjects;
     private javax.swing.JToolBar.Separator sep1;
-    private javax.swing.JToolBar.Separator sep2;
-    private javax.swing.JToolBar.Separator sep3;
-    private javax.swing.JToolBar.Separator sep4;
-    private javax.swing.JToolBar.Separator sep5;
     private javax.swing.JSplitPane split;
     private javax.swing.JTabbedPane tabData;
     private javax.swing.JToggleButton tgbAddObject;
@@ -5539,11 +4514,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private javax.swing.JToggleButton tgbDeleteObject;
     private javax.swing.JButton tgbDeselect;
     private javax.swing.JToggleButton tgbPasteObj;
-    private javax.swing.JToggleButton tgbShowAreas;
     private javax.swing.JToggleButton tgbShowAxis;
-    private javax.swing.JToggleButton tgbShowCameras;
-    private javax.swing.JToggleButton tgbShowGravity;
-    private javax.swing.JToggleButton tgbShowPaths;
     private javax.swing.JToolBar tlbObjects;
     private javax.swing.JToolBar tlbOptions;
     private javax.swing.JTree treeObjects;

@@ -229,62 +229,6 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowAxisActionPerformed"/>
                   </Events>
                 </Component>
-                <Component class="javax.swing.JToolBar$Separator" name="sep2">
-                </Component>
-                <Component class="javax.swing.JToggleButton" name="tgbShowPaths">
-                  <Properties>
-                    <Property name="selected" type="boolean" value="true"/>
-                    <Property name="text" type="java.lang.String" value="Show paths"/>
-                    <Property name="focusable" type="boolean" value="false"/>
-                    <Property name="horizontalTextPosition" type="int" value="0"/>
-                    <Property name="verticalTextPosition" type="int" value="3"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowPathsActionPerformed"/>
-                  </Events>
-                </Component>
-                <Component class="javax.swing.JToolBar$Separator" name="sep3">
-                </Component>
-                <Component class="javax.swing.JToggleButton" name="tgbShowAreas">
-                  <Properties>
-                    <Property name="selected" type="boolean" value="true"/>
-                    <Property name="text" type="java.lang.String" value="Show areas"/>
-                    <Property name="focusable" type="boolean" value="false"/>
-                    <Property name="horizontalTextPosition" type="int" value="0"/>
-                    <Property name="verticalTextPosition" type="int" value="3"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowAreasActionPerformed"/>
-                  </Events>
-                </Component>
-                <Component class="javax.swing.JToolBar$Separator" name="sep5">
-                </Component>
-                <Component class="javax.swing.JToggleButton" name="tgbShowCameras">
-                  <Properties>
-                    <Property name="selected" type="boolean" value="true"/>
-                    <Property name="text" type="java.lang.String" value="Show cameras"/>
-                    <Property name="focusable" type="boolean" value="false"/>
-                    <Property name="horizontalTextPosition" type="int" value="0"/>
-                    <Property name="verticalTextPosition" type="int" value="3"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowCamerasActionPerformed"/>
-                  </Events>
-                </Component>
-                <Component class="javax.swing.JToolBar$Separator" name="sep4">
-                </Component>
-                <Component class="javax.swing.JToggleButton" name="tgbShowGravity">
-                  <Properties>
-                    <Property name="selected" type="boolean" value="true"/>
-                    <Property name="text" type="java.lang.String" value="Show gravity"/>
-                    <Property name="focusable" type="boolean" value="false"/>
-                    <Property name="horizontalTextPosition" type="int" value="0"/>
-                    <Property name="verticalTextPosition" type="int" value="3"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbShowGravityActionPerformed"/>
-                  </Events>
-                </Component>
               </SubComponents>
             </Container>
             <Component class="javax.swing.JLabel" name="lblStatus">
