@@ -195,6 +195,8 @@ public class PropertyGrid extends JTable {
         Field f = fields.get(field);
         if (f.value == null) return;
         f.value = value;
+        AbstractTableModel model = (AbstractTableModel) this.getModel();
+        model.fireTableCellUpdated(f.row, 1);
     }
     
     public void removeField(String field) {

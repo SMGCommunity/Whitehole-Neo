@@ -1322,19 +1322,29 @@ public class WorldEditorForm extends javax.swing.JFrame {
      * @param delta the distance to move the selection by
      */
     private void offsetSelectionBy(Vec3f delta, boolean isShiftKey) {
+        if (selectedObjs.isEmpty()) return;
+
         unsavedChanges = true;
-        for(AbstractObj selectedObj : selectedObjs.values()) {
+        AbstractObj primaryObj = null;
+
+        for (AbstractObj selectedObj : selectedObjs.values()) {
             selectedObj.position.x += delta.x;
             selectedObj.position.y += delta.y;
             selectedObj.position.z += delta.z;
-            pnlObjectSettings.setFieldValue("PointPosX", selectedObj.position.x);
-            pnlObjectSettings.setFieldValue("PointPosY", selectedObj.position.y);
-            pnlObjectSettings.setFieldValue("PointPosZ", selectedObj.position.z);
-            scrObjSettings.repaint();
-            renderAllObjects();
-            if (selectedObj.renderer.hasSpecialPosition())
-                addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-            glCanvas.repaint();
+
+            if (selectedObj.renderer.hasSpecialPosition()) {
+                addRerenderTask("object:" + selectedObj.uniqueID);
+            }
+
+            primaryObj = selectedObj;
+        }
+
+        renderAllObjects(); 
+        glCanvas.repaint();
+        if (primaryObj != null) {
+            pnlObjectSettings.setFieldValue("PointPosX", primaryObj.position.x);
+            pnlObjectSettings.setFieldValue("PointPosY", primaryObj.position.y);
+            pnlObjectSettings.setFieldValue("PointPosZ", primaryObj.position.z);
         }
     }
     

@@ -135,6 +135,7 @@ public class WorldMapPointRenderer extends BmdRenderer {
         // Render label when selected
         if (info.renderMode == HIGHLIGHT && connectedModelType.equals("Galaxy"))
         {
+            gl.glPushAttrib(GL2.GL_CURRENT_BIT); // store previous color so we can restore it afterwards
             gl.glColor4f(1f, 1f, 1f, 1f);
             gl.glPushMatrix();
             // start off the label at the position of the point's icon
@@ -165,6 +166,7 @@ public class WorldMapPointRenderer extends BmdRenderer {
             gl.glVertex3f(-3000f, 1000f, 0f);
             gl.glEnd();
             gl.glPopMatrix();
+            gl.glPopAttrib();
         }
     }
     

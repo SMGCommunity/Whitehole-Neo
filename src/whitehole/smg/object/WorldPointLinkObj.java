@@ -72,26 +72,34 @@ public class WorldPointLinkObj extends AbstractObj {
         addField(panel, "IsColorChange");
     }
     
-    public void render(RenderInfo info, Vec3f linkPos1, Vec3f linkPos2)
-    {
-        if (renderer == null)
+    public void render(RenderInfo info, Vec3f linkPos1, Vec3f linkPos2) {
+        if (renderer == null) 
             return;
+        
         GL2 gl = info.drawable.getGL().getGL2();
+        double dx = linkPos2.x - linkPos1.x;
+        double dy = linkPos2.y - linkPos1.y;
+        double dz = linkPos2.z - linkPos1.z;
         
-        double length = Math.sqrt(Math.pow(linkPos2.x - linkPos1.x, 2) + Math.pow(linkPos2.y - linkPos1.y, 2) + Math.pow(linkPos2.z - linkPos1.z, 2));
-        float stepX = (float) ((linkPos2.x-linkPos1.x)/length) * 1000;
-        float stepY = (float) ((linkPos2.y-linkPos1.y)/length) * 1000;
-        float stepZ = (float) ((linkPos2.z-linkPos1.z)/length) * 1000;
         gl.glPushMatrix();
+        // put the starting point at linkPos1
         gl.glTranslatef(linkPos1.x, linkPos1.y, linkPos1.z);
-        double planeDistance = Math.sqrt(Math.pow(stepX,2) + Math.pow(stepZ,2));
-        gl.glRotatef((float)(Math.atan2(stepY,planeDistance) / Math.PI * 180), 0, 0, 1);
         
-        gl.glRotatef((float)(Math.atan2(-stepZ,stepX) / Math.PI * 180), 0, 1, 0);
+        // rotate on y axis to face linkPos2
+        float yaw = (float) Math.toDegrees(Math.atan2(-dz, dx));
+        gl.glRotatef(yaw, 0, 1, 0);
         
-        gl.glScaled(length / 1000, 1, 1);
-        gl.glCallList(renderer.getDisplayList(info.renderMode));
-        renderer.render(info);
+        // rotate on z axis to face linkPos2
+        double xzLength = Math.sqrt(dx * dx + dz * dz);
+        float pitch = (float) Math.toDegrees(Math.atan2(dy, xzLength));
+        gl.glRotatef(pitch, 0, 0, 1);
+        
+        // Scale according to length
+        double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        gl.glScaled(length / 1000.0, 1, 1);
+        
+        // Actually render
+        super.render(info);
         gl.glPopMatrix();
     }
     
