@@ -944,63 +944,65 @@ public class WorldEditorForm extends javax.swing.JFrame {
     
     private void linkSelectedObjs() {
         if (selectedObjs.size() < 2) {
-            setStatusToInfo("You must select at least 2 points, then press 'l', or click 'link selected points'.");
+            setStatusToInfo("You must select at least 2 points, then press 'L', or click 'Link selected objects'.");
             return;
         }
         
-        // Preprocess selected objs for their indexes
+        // Preprocess objs for their indexes
         // This prevents a ConcurrentModificationException
         // Also checks if all selected objs are points, not links
-        int prevIndex = -1000;
         ArrayList<Integer> indexes = new ArrayList<>();
         for (AbstractObj obj : selectedObjs.values()) {
             if (!(obj instanceof WorldPointPosObj)) {
                 setStatusToWarning("You must select only points, not links.");
                 return;
             }
-            
-            // the first index will be the prevIndex and will NOT be in the list.
-            int index = (int)obj.data.get("Index");
-            if (prevIndex == -1000)
-                prevIndex = index;
-            else
-                indexes.add(index);
+            indexes.add((int)obj.data.get("Index"));
         }
+        linkObjs(indexes);
+    }
+    
+    private void linkObjs(ArrayList<Integer> indexes) {
         
-        int linkedCount = 0;
+        int prevIndex = indexes.remove(0); // previous index starts with the first index
+        
         for (int index : indexes) {
-            WorldPointLinkObj link = new WorldPointLinkObj(prevIndex, index);
-            worldArchive.links.add(link);
-            newobj = link;
-            // Calculate UID
-            int uniqueID = maxUniqueID + 1;
-
-            while(globalObjList.containsKey(uniqueID))
-            {
-                uniqueID++;
-            }
-
-            if(uniqueID > maxUniqueID) {
-                maxUniqueID = uniqueID;
-            }
-            newobj.uniqueID = uniqueID;
-            addAbstractObjToForm(this, uniqueID, "link", newobj);
-            // Update rendering
-            String keyyy = String.format("addobj:%1$d", uniqueID);
-            addRerenderTask(keyyy);
-            renderAllObjects();
-
-            // Update tree node model
-            for (WorldEditorForm form : getAllCurrentZoneForms()) {
-                if (form != null)
-                    form.objListModel.reload();
-            }
-            glCanvas.repaint();
-            unsavedChanges = true;
-            linkedCount++;
+            addLink(prevIndex, index);
             prevIndex = index;
         }
-        setStatusToInfo("Added "+linkedCount+" link(s).");
+        setStatusToInfo("Added "+indexes.size()+" link(s).");
+    }
+    
+    private void addLink(int indexA, int indexB)
+    {
+        WorldPointLinkObj link = new WorldPointLinkObj(indexA, indexB);
+        worldArchive.links.add(link);
+        newobj = link;
+        // Calculate UID
+        int uniqueID = maxUniqueID + 1;
+
+        while(globalObjList.containsKey(uniqueID))
+        {
+            uniqueID++;
+        }
+
+        if(uniqueID > maxUniqueID) {
+            maxUniqueID = uniqueID;
+        }
+        newobj.uniqueID = uniqueID;
+        addAbstractObjToForm(this, uniqueID, "link", newobj);
+        // Update rendering
+        String keyyy = String.format("addobj:%1$d", uniqueID);
+        addRerenderTask(keyyy);
+        renderAllObjects();
+
+        // Update tree node model
+        for (WorldEditorForm form : getAllCurrentZoneForms()) {
+            if (form != null)
+                form.objListModel.reload();
+        }
+        glCanvas.repaint();
+        unsavedChanges = true;
     }
     
     private void addObject(Vec3f position, String objectAddString, String destLayer, String destZone, boolean isSelectAfterCreate)
@@ -1032,6 +1034,9 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 partsConnected.setConnected(new WorldPointPartsObj(objname));
                 newobj = partsConnected;
                 break;
+            default:
+                System.err.println("Adding type not implemented: " + objtype);
+                return;
         }
 
         // Calculate UID
@@ -1862,7 +1867,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
         }
         
         
-        StringBuilder CopyString = new StringBuilder("WHN\n");
+        StringBuilder CopyString = new StringBuilder("WME-WHN\n");
         int x = 0;
         for(var obj : selectedObjs.values())
         {
@@ -1898,7 +1903,8 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         ArrayList<Vec3f> ObjectPositions = new ArrayList();
         for(var x : pasteObjectList)
-            ObjectPositions.add(x.getVector("pos"));
+            if (!x.type.equals("link")) // don't include links. their position doesn't matter
+                ObjectPositions.add(x.getVector("pos"));
         
         Vec3f[] stockArr = new Vec3f[ObjectPositions.size()];
         stockArr = ObjectPositions.toArray(stockArr);
@@ -1906,8 +1912,15 @@ public class WorldEditorForm extends javax.swing.JFrame {
         Vec3f pasteOrigin = Vec3f.centroid(stockArr);
         
         startUndoMulti();
+        HashMap<Integer, Integer> indexMap = new HashMap<>();
+        List<PasteObjectData> linkList = new ArrayList<>();
         for(var x : pasteObjectList)
         {
+            // we'll do links later so we can figure out the index mapping
+            if (x.type.equals("link")) {
+                linkList.add(x);
+                continue;
+            }
             Vec3f objPos = null;
             
             if (pastePosition != null)
@@ -1923,13 +1936,31 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 objPos.z = pastePosition.z + objOffset.z;
             }
             
+            
+            int oldIndex = x.data.getInt("Index");
             pasteObject(x, objPos);
+            int newIndex = newobj.data.getInt("Index");
+            indexMap.put(oldIndex, newIndex);
         }
-        
+        for (var x : linkList)
+        {
+            for (String name : List.of("PointIndexA", "PointIndexB"))
+            {
+                int index = x.data.getInt(name);
+                if (!indexMap.containsKey(index)) {
+                    setStatusToWarning("Link is missing point with index: " + index);
+                    endUndoMulti();
+                    return;
+                }
+                int newIndex = indexMap.get(index);
+                x.data.put(name, newIndex);
+            }
+            addLink(-1, -1); // index doesn't matter because it will be overwritten by next line
+            newobj.data = (Bcsv.Entry)x.data.clone();
+        }
         endUndoMulti();
-        for (WorldEditorForm form : getAllCurrentZoneForms()) {
+        for (WorldEditorForm form : getAllCurrentZoneForms())
             form.objListModel.reload();
-        }
     }
     
     /**
@@ -1977,26 +2008,22 @@ public class WorldEditorForm extends javax.swing.JFrame {
         }
         data = data.replace("\r\n", "\n");
         
-        if (!data.startsWith("WHN"))
+        if (!data.startsWith("WME-WHN\n"))
         {
             setStatusToError("Paste failed:", new Exception("Data in Clipboard is not a Whitehole string."));
             return;
         }
         
         String[] Lines = data.split("\n");
-        // The first one should be the indicator
-        // For each row...
-        for(int i = 0; i < Lines.length; i++)
-        {
-            String Line = Lines[i];
-            if (Line.isBlank())
+        // Each line represents one object to paste
+        for (String Line : Lines) {
+            // The first line will be the indicator. We need to skip that
+            // Blank check for safety
+            if (Line.isBlank() || Line.startsWith("WME-WHN"))
                 continue;
             
-            if (!Line.startsWith("WHN"))
-            {
-                PasteObjectData d = new PasteObjectData(Line);
-                pasteObjectList.add(d);
-            }
+            PasteObjectData d = new PasteObjectData(Line);
+            pasteObjectList.add(d);
         }
         
         // once all the paste data is prepared, decide which paste mode to use
@@ -2020,12 +2047,25 @@ public class WorldEditorForm extends javax.swing.JFrame {
     {
         public final String type;
         public final Bcsv.Entry data;
+        public final String connectedType;
+        public final Bcsv.Entry connectedData;
         
         public PasteObjectData(String source)
         {
-            String[] Parts = source.split("\\|");
-            String DataString = source.substring(Parts[0].length()+1);
-            
+            String[] MainParts = source.split("\\|\\|\\|");
+            connectedData = new Bcsv.Entry();
+            if (MainParts.length > 1) {
+                String[] ConnectedParts = MainParts[1].split("\\|");
+                String ConnectedDataString = MainParts[1].substring(ConnectedParts[0].length()+1);
+                connectedType = ConnectedParts[0];
+                connectedData.fromClipboard(ConnectedDataString, "WHNO");
+            }
+            else
+            {
+                connectedType = "none";
+            }
+            String[] Parts = MainParts[0].split("\\|");
+            String DataString = MainParts[0].substring(Parts[0].length()+1);
             type = Parts[0];
             assert(Parts[1].equals("WHNO"));
             data = new Bcsv.Entry();
@@ -2035,9 +2075,23 @@ public class WorldEditorForm extends javax.swing.JFrame {
         public void applyToInstance(AbstractObj obj)
         {
             // We can copy over everything since the position will just be overridden next save/copy
+            int index = obj.data.getInt("Index", -1);
             obj.data = (Bcsv.Entry)data.clone();
+            if (obj.data.containsKey("Index"))
+                obj.data.put("Index", index);
             obj.rotation = getVector("dir");
             obj.scale = getVector("scale");
+            if (!connectedType.equals("none") && obj instanceof WorldPointPosObj)
+            {
+                WorldPointPosObj posObj = (WorldPointPosObj)obj;
+                AbstractObj connectedObj;
+                if (connectedType.equals("galaxyobj"))
+                    connectedObj = new WorldGalaxyObj();
+                else
+                    connectedObj = new WorldPointPartsObj("");
+                connectedObj.data = (Bcsv.Entry)connectedData.clone();
+                posObj.setConnected(connectedObj);
+            }
         }
         
         public final Vec3f getVector(String prefix)

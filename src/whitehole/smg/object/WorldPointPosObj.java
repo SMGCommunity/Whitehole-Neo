@@ -176,6 +176,15 @@ public class WorldPointPosObj extends AbstractObj {
     }
     
     @Override
+    public String toClipboard()
+    {
+        String baseClipboard = super.toClipboard();
+        if (connectedObject != null)
+            baseClipboard += ("|||" + connectedObject.toClipboard());
+        return baseClipboard;
+    }
+    
+    @Override
     public String toString() {
         if (connectedObject == null) {
             return String.format("[%d] Point", data.getInt("Index", 0));
