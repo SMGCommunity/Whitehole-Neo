@@ -73,7 +73,7 @@ public class WorldPointLinkObj extends AbstractObj {
     }
     
     public void render(RenderInfo info, Vec3f linkPos1, Vec3f linkPos2) {
-        if (renderer == null) 
+        if (renderer == null || isHidden) 
             return;
         
         GL2 gl = info.drawable.getGL().getGL2();
@@ -99,7 +99,12 @@ public class WorldPointLinkObj extends AbstractObj {
         gl.glScaled(length / 1000.0, 1, 1);
         
         // Actually render
-        super.render(info);
+        try {
+            gl.glCallList(renderer.getDisplayList(info.renderMode));
+        }
+        catch(NullPointerException ex) {
+            // This line gives an error when exiting out of fullscreen, catching it to prevent that
+        }
         gl.glPopMatrix();
     }
     

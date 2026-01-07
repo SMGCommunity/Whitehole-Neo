@@ -976,69 +976,14 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private void addLink(int indexA, int indexB)
     {
         WorldPointLinkObj link = new WorldPointLinkObj(indexA, indexB);
-        worldArchive.links.add(link);
-        newobj = link;
-        // Calculate UID
-        int uniqueID = maxUniqueID + 1;
-
-        while(globalObjList.containsKey(uniqueID))
-        {
-            uniqueID++;
-        }
-
-        if(uniqueID > maxUniqueID) {
-            maxUniqueID = uniqueID;
-        }
-        newobj.uniqueID = uniqueID;
-        addAbstractObjToForm(this, uniqueID, "link", newobj);
-        // Update rendering
-        String keyyy = String.format("addobj:%1$d", uniqueID);
-        addRerenderTask(keyyy);
-        renderAllObjects();
-
-        // Update tree node model
-        for (WorldEditorForm form : getAllCurrentZoneForms()) {
-            if (form != null)
-                form.objListModel.reload();
-        }
-        glCanvas.repaint();
-        unsavedChanges = true;
+        addObject(link, false);
+        addUndoEntry(IUndo.Action.ADD, newobj);
     }
     
-    private void addObject(Vec3f position, String objectAddString, String destLayer, String destZone, boolean isSelectAfterCreate)
+    private void addObject(AbstractObj obj, boolean isSelectAfterCreate)
     {
-        // Set designated information        
-        if (destZone == null)
-            destZone = curZone;
-        
-        String objtype = objectAddString.substring(0, objectAddString.indexOf('|'));
-        String objname = objectAddString.substring(objectAddString.indexOf('|') + 1);
-        destLayer = destLayer.toLowerCase();
-        
-        StageArchive destZoneArc = zoneArchives.get(destZone);
-        
-        TreeNode newNode;
-        newobj = null;
-        switch(objtype)
-        {
-            case "point":
-                newobj = new WorldPointPosObj(position);
-                break;
-            case "galaxyobj":
-                WorldPointPosObj galaxyConnected = new WorldPointPosObj(position);
-                galaxyConnected.setConnected(new WorldGalaxyObj());
-                newobj = galaxyConnected;
-                break;
-            case "partsobj":
-                WorldPointPosObj partsConnected = new WorldPointPosObj(position);
-                partsConnected.setConnected(new WorldPointPartsObj(objname));
-                newobj = partsConnected;
-                break;
-            default:
-                System.err.println("Adding type not implemented: " + objtype);
-                return;
-        }
-
+        newobj = obj;
+        boolean isPoint = !newobj.getFileType().equals("link");
         // Calculate UID
         int uniqueID = 0;
 
@@ -1051,22 +996,16 @@ public class WorldEditorForm extends javax.swing.JFrame {
             maxUniqueID = uniqueID;
         }
 
-        // Set object ID automatically
-//            if (objtype.equals("startinfo")) {
-//                newobj.data.put("MarioNo", generateID(objtype));
-//            } else if (!objtype.equals("commonpathpointinfo")) {
-//                newobj.data.put("l_id", generateID(objtype));
-//            }
-
-
+        // TODO set id automatically for star gate
 
         // Add entry and node
         newobj.uniqueID = uniqueID;
-        worldArchive.addPoint(newobj);
+        if (isPoint)
+            worldArchive.addPoint(newobj);
+        else
+            worldArchive.links.add(newobj);
 
-//            destZoneArc.objects.get(destLayer).add(newobj);
-
-        newNode = addAbstractObjToAllForms(uniqueID, objtype.equals("link") ? "link" : "point", newobj);
+        TreeNode newNode = addAbstractObjToAllForms(uniqueID, isPoint ? "point" : "link", newobj);
         // Update rendering
         String keyyy = String.format("addobj:%1$d", uniqueID);
         addRerenderTask(keyyy);
@@ -1086,6 +1025,36 @@ public class WorldEditorForm extends javax.swing.JFrame {
         }
         glCanvas.repaint();
         unsavedChanges = true;
+    }
+    
+    private void addPoint(Vec3f position, String objectAddString, boolean isSelectAfterCreate)
+    {
+        // Set designated information
+        String objtype = objectAddString.substring(0, objectAddString.indexOf('|'));
+        String objname = objectAddString.substring(objectAddString.indexOf('|') + 1);
+        
+        AbstractObj obj = null;
+        switch(objtype)
+        {
+            case "point":
+                obj = new WorldPointPosObj(position);
+                break;
+            case "galaxyobj":
+                WorldPointPosObj galaxyConnected = new WorldPointPosObj(position);
+                galaxyConnected.setConnected(new WorldGalaxyObj());
+                obj = galaxyConnected;
+                break;
+            case "partsobj":
+                WorldPointPosObj partsConnected = new WorldPointPosObj(position);
+                partsConnected.setConnected(new WorldPointPartsObj(objname));
+                obj = partsConnected;
+                break;
+            default:
+                System.err.println("Adding type not implemented: " + objtype);
+                return;
+        }
+
+        addObject(obj, isSelectAfterCreate);
     }
 
     private int generateID(String objType) {
@@ -1158,6 +1127,9 @@ public class WorldEditorForm extends javax.swing.JFrame {
             if(treeNodeList.containsKey(uniqueID)) {
                 removeAbstractObjFromAllForms(uniqueID);
             }
+        }
+        else {
+            System.err.println("Could not find an object with ID " + uniqueID);
         }
         
         glCanvas.repaint();
@@ -1601,7 +1573,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
         int selectedObjMax = values.size();
         for(AbstractObj selectedObj : values) {
             if(propname.equals("name")) {
-                addUndoEntry(IUndo.Action.NAME_ZONE_LAYER, selectedObj);
+                // TODO REMOVE
                 selectedObj.name =(String)value;
                 selectedObj.loadDBInfo();
 
@@ -1614,7 +1586,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
             }
             else if(propname.equals("zone"))
             {
-                addUndoEntry(IUndo.Action.NAME_ZONE_LAYER, selectedObj);
+                // TODO REMOVE
 
                 String oldzone = curZone;
                 String newzone =(String)value;
@@ -1670,7 +1642,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 }
             }
             else if (propname.equals("Type")) {
-                // TODO: Make this undoable
+                addUndoEntry(IUndo.Action.TYPE, selectedObj);
                 WorldPointPosObj obj = (WorldPointPosObj)selectedObj;
                 obj.changeType((String)value);
                 
@@ -1684,7 +1656,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 scrObjSettings.repaint();
             }
             else if(propname.equals("layer")) {
-                addUndoEntry(IUndo.Action.NAME_ZONE_LAYER, selectedObj);
+                // TODO REMOVE
                 String oldlayer = selectedObj.layerKey;
                 String newlayer =((String)value).toLowerCase();
 
@@ -1710,13 +1682,13 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 {
                     if (selectedObj.renderer.hasSpecialRotation())
                         addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                    addUndoEntry(IUndo.Action.ROTATE, selectedObj);
+                    // TODO REMOVE
                 }
                 else if(propname.startsWith("scale_"))
                 {
                     if (selectedObj.renderer.hasSpecialScaling())
                         addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                    addUndoEntry(IUndo.Action.SCALE, selectedObj);
+                    // TODO REMOVE
                 }
 
                 switch(propname) {
@@ -1975,7 +1947,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
         if (objPosition == null)
             objPosition = obj.getVector("pos");
 
-        addObject(objPosition, newObjKey, "common", curZone, true);
+        addPoint(objPosition, newObjKey, true);
         obj.applyToInstance(newobj);
         
         addUndoEntry(IUndo.Action.ADD, newobj);
@@ -2115,14 +2087,12 @@ public class WorldEditorForm extends javax.swing.JFrame {
         public enum Action
         {
             TRANSLATE,
-            ROTATE,
-            SCALE,
             
             ADD,
             DELETE,
             
             PARAMETER,
-            NAME_ZONE_LAYER
+            TYPE
         }
     }
     
@@ -2155,58 +2125,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             addRerenderTask("allobjects");
         }
     }
-    public class UndoObjectRotateEntry implements IUndo
-    {
-        public int id;
-        public Vec3f rotation;
-        
-        public UndoObjectRotateEntry(AbstractObj obj)
-        {
-            id = obj.uniqueID;
-            rotation = (Vec3f)obj.rotation.clone();
-        }
-        
-        @Override
-        public void performUndo()
-        {
-            AbstractObj obj = globalObjList.get(id);
-            if (obj == null)
-                throw new NullPointerException(ERR_OBJNOEXIST);
-            obj.rotation = (Vec3f)rotation.clone();
-            pnlObjectSettings.setFieldValue("dir_x", obj.rotation.x);
-            pnlObjectSettings.setFieldValue("dir_y", obj.rotation.y);
-            pnlObjectSettings.setFieldValue("dir_z", obj.rotation.z);
-            scrObjSettings.repaint();
-            
-            addRerenderTask("allobjects");
-        }
-    }
-    public class UndoObjectScaleEntry implements IUndo
-    {
-        public int id;
-        public Vec3f scale;
-        
-        public UndoObjectScaleEntry(AbstractObj obj)
-        {
-            id = obj.uniqueID;
-            scale = (Vec3f)obj.scale.clone();
-        }
-        
-        @Override
-        public void performUndo()
-        {
-            AbstractObj obj = globalObjList.get(id);
-            if (obj == null)
-                throw new NullPointerException(ERR_OBJNOEXIST);
-            obj.scale = (Vec3f)scale.clone();
-            pnlObjectSettings.setFieldValue("scale_x", obj.scale.x);
-            pnlObjectSettings.setFieldValue("scale_y", obj.scale.y);
-            pnlObjectSettings.setFieldValue("scale_z", obj.scale.z);
-            scrObjSettings.repaint();
-            
-            addRerenderTask("allobjects");
-        }
-    }
     
     public class UndoObjectAddEntry implements IUndo
     {
@@ -2225,38 +2143,18 @@ public class WorldEditorForm extends javax.swing.JFrame {
     }
     public class UndoObjectDeleteEntry implements IUndo
     {
-        public String objectType;
-        public String name;
-        public String layer;
-        public int scenarioIndex;
-        public Vec3f position;
-        public Vec3f rotation;
-        public Vec3f scale;
-        public Bcsv.Entry data;
+        AbstractObj mObj;
         
         public UndoObjectDeleteEntry(AbstractObj obj)
         {
-            position = (Vec3f)obj.position.clone();
-            rotation = (Vec3f)obj.rotation.clone();
-            scale = (Vec3f)obj.scale.clone();
-            data = (Bcsv.Entry)obj.data.clone();
-            
-            layer = obj.layerKey;
-            name = obj.name;
-            objectType = obj.getFileType();
-            scenarioIndex = curScenarioIndex;
+            mObj = obj;
         }
         
         @Override
         public void performUndo()
         {
-            addObject(position, objectType + "|" + name, layer, null, true);
+            addObject(mObj, true);
             renderAllObjects();
-
-            newobj.data = (Bcsv.Entry)data.clone();
-            newobj.position = (Vec3f)position.clone();
-            newobj.rotation = (Vec3f)rotation.clone();
-            newobj.scale = (Vec3f)scale.clone();
         }
     }
     
@@ -2264,122 +2162,72 @@ public class WorldEditorForm extends javax.swing.JFrame {
     {
         public int id;
         public Bcsv.Entry data;
+        public Bcsv.Entry connectedData;
         
         public UndoObjectEditEntry(AbstractObj obj)
         {
             id = obj.uniqueID;
             data = (Bcsv.Entry)obj.data.clone();
+            connectedData = null;
+            if (obj instanceof WorldPointPosObj) {
+                WorldPointPosObj posObj = (WorldPointPosObj)obj;
+                AbstractObj connectedObj = posObj.getConnected();
+                if (connectedObj != null)
+                {
+                    connectedData = (Bcsv.Entry)connectedObj.data.clone();
+                }
+            }
         }
         
         @Override
         public void performUndo()
         {
+            
             AbstractObj obj = globalObjList.get(id);
             if (obj == null)
                 throw new NullPointerException(ERR_OBJNOEXIST);
+            
             obj.data = (Bcsv.Entry)data.clone();
+            if (obj instanceof WorldPointPosObj) {
+                WorldPointPosObj posObj = (WorldPointPosObj)obj;
+                AbstractObj connectedObj = posObj.getConnected();
+                if (connectedObj != null)
+                {
+                    connectedObj.data = (Bcsv.Entry)connectedData.clone();
+                }
+            }
             selectionChanged();
             renderAllObjects();
             addRerenderTask("object:"+Integer.toString(obj.uniqueID));
             
         }
     }
-    public class UndoObjectNameZoneLayerEntry implements IUndo
+    
+    public class UndoObjectTypeEntry implements IUndo
     {
         public int id;
-        public String name;
-        public String zone;
-        public String layer;
-
-        public UndoObjectNameZoneLayerEntry(AbstractObj obj)
+        public AbstractObj connectedObj;
+        
+        public UndoObjectTypeEntry(AbstractObj obj)
         {
             id = obj.uniqueID;
-            name = obj.name;
-            zone = obj.stage.stageName;
-            layer = obj.layerKey;
+            WorldPointPosObj posObj = (WorldPointPosObj)obj;
+            connectedObj = posObj.getConnected();
         }
-
+        
         @Override
-        public void performUndo()
-        {            
-            AbstractObj obj = globalObjList.get(id);
+        public void performUndo() {
+            WorldPointPosObj obj = (WorldPointPosObj)globalObjList.get(id);
             if (obj == null)
                 throw new NullPointerException(ERR_OBJNOEXIST);
             
-            // Undo name change
-            obj.name = name;
-            obj.loadDBInfo();
-
-            // Undo zone change
-            String oldzone = obj.stage.stageName;
-            String newzone = zone;
-            
-            if (!oldzone.equals(newzone))
-            {
-                int uid = obj.uniqueID;
-
-                obj.stage = zoneArchives.get(newzone);
-                zoneArchives.get(oldzone).objects.get(obj.layerKey).remove(obj);
-                if(zoneArchives.get(newzone).objects.containsKey(obj.layerKey))
-                    zoneArchives.get(newzone).objects.get(obj.layerKey).add(obj);
-                else {
-                    obj.layerKey = "common";
-                    zoneArchives.get(newzone).objects.get(obj.layerKey).add(obj);
-                }
-                
-                if(treeNodeList.containsKey(uid)) {
-                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                    
-                    
-                    TreeNode tn = treeNodeList.get(uid);
-                    TreePath tp = new TreePath(objlist.getPathToRoot(tn));
-                    var pth = tp.getPath();
-                    if (pth[0] instanceof DefaultMutableTreeNode)
-                    {
-                        var x = (DefaultMutableTreeNode)pth[0];
-                        String d = (String)x.getUserObject();
-                        
-                        if (d.equals(oldzone))
-                        {
-                            ObjTreeNode thenode = (ObjTreeNode)treeNodeList.get(uid);
-                            objlist.removeNodeFromParent(thenode);
-                            treeNodeList.remove(uid);
-                            treeObjects.clearSelection();
-                        }
-                        else
-                        {
-                            treeObjects.setSelectionPath(tp);
-                            treeObjects.scrollPathToVisible(tp);
-                        }
-                    }
-                    
-                }
-
-                selectedObjs.clear();
-            }
-            
-            String oldlayer = obj.layerKey;
-            String newlayer = layer.toLowerCase();
-
-            if (!oldlayer.equals(newlayer))
-            {
-                obj.layerKey = newlayer;
-                zoneArchives.get(oldzone).objects.get(oldlayer).remove(obj);
-                obj.stage.objects.get(newlayer).add(obj);
-            }
-            
-            
-            DefaultTreeModel objlist = (DefaultTreeModel)treeObjects.getModel();
-            var tx = treeNodeList.get(obj.uniqueID);
-            if (tx != null)
-                objlist.nodeChanged(tx);
-
+            obj.setConnected(connectedObj);
             selectionChanged();
-            
-            addRerenderTask("zone:"+oldzone);
-            addRerenderTask("zone:"+newzone);
-            addRerenderTask("object:"+Integer.toString(obj.uniqueID));
+            addRerenderTask("object:"+Integer.toString(id));
+            addRerenderTask("zone:"+curZone);
+            renderAllObjects();
             glCanvas.repaint();
+            scrObjSettings.repaint();
         }
     }
     
@@ -2454,24 +2302,12 @@ public class WorldEditorForm extends javax.swing.JFrame {
     public void addUndoEntry(IUndo.Action type, AbstractObj obj) {
         if (obj == null)
             return;
-        if (!isGalaxyMode && !isSeparateZoneMode)
-        {
-            parentForm.addUndoEntry(type, obj);
-            return;
-        }
-        
         IUndo newEntry = null;
 
         switch (type)
         {
             case TRANSLATE:
                 newEntry = new UndoObjectTranslateEntry(obj);
-                break;
-            case ROTATE:
-                newEntry = new UndoObjectRotateEntry(obj);
-                break;
-            case SCALE:
-                newEntry = new UndoObjectScaleEntry(obj);
                 break;
             case ADD:
                 newEntry = new UndoObjectAddEntry(obj);
@@ -2482,8 +2318,8 @@ public class WorldEditorForm extends javax.swing.JFrame {
             case PARAMETER:
                 newEntry = new UndoObjectEditEntry(obj);
                 break;
-            case NAME_ZONE_LAYER:
-                newEntry = new UndoObjectNameZoneLayerEntry(obj);
+            case TYPE:
+                newEntry = new UndoObjectTypeEntry(obj);
                 break;
         }
 
@@ -3426,7 +3262,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                                 applySubzoneRotation(position);
                             }
                         }
-                        addObject(position, addingObject, addingObjectOnLayer, curZone, true);
+                        addPoint(position, addingObject, true);
 
                         addUndoEntry(IUndo.Action.ADD, newobj); //This is the only one that happens after the event occurs?
         
@@ -3747,15 +3583,13 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     }
                     else if((keyMask & (1 << 7)) != 0)
                     {
-                        for(AbstractObj selectedObj : selectedObjs.values())
-                            addUndoEntry(IUndo.Action.ROTATE, selectedObj);
+                        // TODO REMOVE
                         delta.scale(5);
                         rotateSelectionBy(delta);
                     }
                     else if((keyMask & (1 << 8)) != 0)
                     {
-                        for(AbstractObj selectedObj : selectedObjs.values())
-                            addUndoEntry(IUndo.Action.SCALE, selectedObj);
+                        // TODO REMOVE
                         scaleSelectionBy(delta);
                     }
                     endUndoMulti();
@@ -4416,7 +4250,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
             return;
                 
         for (AbstractObj obj : selectedObjs.values()) {
-            addUndoEntry(IUndo.Action.ROTATE, obj);
+            // TODO REMOVE
             
             obj.rotation.set(COPY_ROTATION);
             pnlObjectSettings.setFieldValue("dir_x", obj.rotation.x);
@@ -4435,11 +4269,11 @@ public class WorldEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_itmRotationPasteActionPerformed
 
     private void itmScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScalePasteActionPerformed
+        // TODO REMOVE
         if (!isAllowPasteAction())
             return;
         
         for (AbstractObj obj : selectedObjs.values()) {
-            addUndoEntry(IUndo.Action.SCALE, obj);
             
             obj.scale.set(COPY_SCALE);
             pnlObjectSettings.setFieldValue("scale_x", obj.scale.x);
