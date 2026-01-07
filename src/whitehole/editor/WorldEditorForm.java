@@ -47,15 +47,12 @@ import whitehole.smg.object.*;
 import whitehole.util.CheckBoxList;
 import whitehole.math.Matrix4;
 import whitehole.util.PropertyGrid;
-import whitehole.math.RotationMatrix;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
 import whitehole.smg.WorldArchive;
 import whitehole.util.Color4;
 import whitehole.util.MathUtil;
-import whitehole.util.StageUtil;
 import whitehole.util.ObjIdUtil;
-import whitehole.util.RailUtil;
 
 public class WorldEditorForm extends javax.swing.JFrame {
     private static final float SCALE_DOWN = 10000f;
@@ -64,8 +61,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
     // Variables
     
     // General
-    private boolean isGalaxyMode = true;
-    private boolean isSeparateZoneMode = false;
     private final String galaxyName;
     private GalaxyArchive galaxyArchive = null;
     private WorldArchive worldArchive = null;
@@ -75,8 +70,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private String curZone;
     private StageArchive curZoneArc;
     
-    private final HashMap<String, WorldEditorForm> zoneEditors = new HashMap();
-    private WorldEditorForm parentForm = null;
     private volatile boolean unsavedChanges = false;
     private int zoneModeLayerBitmask;
     
@@ -98,14 +91,11 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private final DefaultMutableTreeNode objListRootNode = new DefaultMutableTreeNode("dummy");
     private final HashMap<String, ObjListTreeNode> objListTreeNodes = new LinkedHashMap(11);
     private String addingObject = "";
-    private String addingObjectOnLayer = "";
     
     private static final Vec3f COPY_POSITION = new Vec3f(0f, 0f, 0f);
-    private static final Vec3f COPY_ROTATION = new Vec3f(0f, 0f, 0f);
-    private static final Vec3f COPY_SCALE = new Vec3f(1f, 1f, 1f);
     
-    private AsyncLevelLoader levelLoader = new AsyncLevelLoader();
-    private AsyncLevelSaver levelSaver = new AsyncLevelSaver();
+    private final AsyncLevelLoader levelLoader = new AsyncLevelLoader();
+    private final AsyncLevelSaver levelSaver = new AsyncLevelSaver();
     
     // Rendering
     private GalaxyRenderer renderer;
@@ -184,31 +174,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         Thread t = new Thread(levelLoader);
         levelLoader.CurrentThread = t;
         t.start();
-        
-        
-    }
-    
-    public WorldEditorForm(WorldEditorForm parent, StageArchive zoneArc) {
-        initComponents();
-        
-        isGalaxyMode = false;
-        if (parent != null)
-            parentForm = parent;
-        else
-            isSeparateZoneMode = true;
-        galaxyName = zoneArc.stageName;
-        
-        zoneArchives = new HashMap(1);
-        zoneArchives.put(galaxyName, zoneArc);
-        loadZone(galaxyName);
-        
-        curZone = galaxyName;
-        curZoneArc = zoneArchives.get(curZone);
-        
-        initObjectNodeTree();
-        initGUI();
-        
-        populateObjectNodeTree(zoneModeLayerBitmask);
     }
     
     /**
@@ -222,10 +187,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         // Does not affect the actual checkboxes yet... Investigate this.
         if (listLayerCheckboxes != null) {
             SwingUtilities.updateComponentTreeUI(listLayerCheckboxes);
-        }
-        
-        for (WorldEditorForm subEditor : zoneEditors.values()) {
-            subEditor.requestUpdateLAF();
         }
     }
     
@@ -349,11 +310,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
             pnlObjectSettings.setEnabled(toggle);
 
         itmPositionCopy.setEnabled(toggle);
-        itmRotationCopy.setEnabled(toggle);
-        itmScaleCopy.setEnabled(toggle);
         itmPositionPaste.setEnabled(toggle);
-        itmRotationPaste.setEnabled(toggle);
-        itmScalePaste.setEnabled(toggle);
 
         tgbAddObject.setEnabled(toggle);
         tgbDeleteObject.setEnabled(toggle);
@@ -365,7 +322,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
     // Status Bar
     
     private void setDefaultStatus() {
-        setStatusToInfo("Editing zone " + curZone + ".");
+        setStatusToInfo("Editing world " + curZone + ".");
     }
     
     public void setStatusToInfo(String msg)
@@ -402,34 +359,13 @@ public class WorldEditorForm extends javax.swing.JFrame {
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Zone loading and saving
-    
-    private void openSelectedZone() {
-        if (zoneEditors.containsKey(curZone)) {
-            if (!zoneEditors.get(curZone).isVisible()) {
-                zoneEditors.remove(curZone);
-            }
-            else {
-                zoneEditors.get(curZone).toFront();
-                return;
-            }
-        }
-        
-        WorldEditorForm form = new WorldEditorForm(this, curZoneArc);
-        form.setVisible(true);
-        zoneEditors.put(curZone, form);
-    }
-    
+
     private void loadZone(String zone) {
         // Load zone archive
         StageArchive arc;
         
-        if (isGalaxyMode) {
-            arc = galaxyArchive.openZone(zone);
-            zoneArchives.put(zone, arc);
-        }
-        else {
-            arc = zoneArchives.get(zone);
-        }
+        arc = galaxyArchive.openZone(zone);
+        zoneArchives.put(zone, arc);
         
         // Populate objects and assign their maxUniqueIDs
         for (AbstractObj obj : worldArchive.points.values()) {
@@ -457,101 +393,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         }
     }
     
-    private void repairInvalidSwitchesInGalaxy() {
-        Map<String, Set<Integer>> invalidSwitchZoneMap = new HashMap<>();
-        Set<Integer> invalidSwitchList = new HashSet<>();
-        String[] switchFieldList = {"SW_APPEAR", "SW_DEAD", "SW_A", "SW_B", "SW_AWAKE", "SW_PARAM", "SW_SLEEP"};
-        
-        // Generate a list and map of invalid switch IDs
-        for (StageArchive arc : zoneArchives.values()) {
-            // Add zone to map
-            invalidSwitchZoneMap.put(arc.stageName, new HashSet<>());
-            
-            // Go through each object's switch fields
-            for (List<AbstractObj> layers : arc.objects.values()) {
-                for (AbstractObj obj : layers) {
-                    for (String field : switchFieldList) {
-                        int switchId = obj.data.getInt(field, -1);
-                        
-                        // Only valid Switch IDs: -1 (No Switch); 0-127 (Zone Exclusive); 1000-1127 (Galaxy Exclusive)
-                        if (switchId !=-1 && !(switchId >= 0 && switchId <=127) && !(switchId >=1000 && switchId <= 1127)) {
-                            invalidSwitchZoneMap.get(arc.stageName).add(switchId);
-                            invalidSwitchList.add(switchId);
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Go through each invalid switch and replace it
-        for (int invalidSwitch : invalidSwitchList) {
-            ArrayList<String> switchZoneAppearances = new ArrayList<>();
-            String additionalInfo = "";
-
-            // Generate a list of zones the switch appears in
-            for (String zone : invalidSwitchZoneMap.keySet()) {
-                if (invalidSwitchZoneMap.get(zone).contains(invalidSwitch))
-                    switchZoneAppearances.add(zone);
-            }
-
-            // If the switch ID is used across multiple zones, inform the user
-            if (switchZoneAppearances.size() >= 2)
-                additionalInfo = "\n(!) This switch ID is used across multiple zones.";
-            
-            // Generate the UI
-            String[] choices = {"Zone", "Galaxy", "Don't replace"};
-            int choice = JOptionPane.showOptionDialog(null, "An invalid switch ID was found: "+invalidSwitch+additionalInfo+
-                "\nGenerate new switch for:", "Invalid Switch ID found!",
-                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
-                null, choices, null);
-            
-            if (choice==-1)
-                choice = 2;
-            
-            // Generate and replace the switch based on their choice
-            int replSwitchID;
-            switch (choices[choice]) {
-            case "Zone":
-                for (String zoneString : switchZoneAppearances) {
-                    replSwitchID = zoneArchives.get(zoneString).getValidSwitchInZone(); // Generate
-                    
-                    if (replSwitchID !=-1)
-                        zoneArchives = ObjIdUtil.replaceSwitchIDInZone(invalidSwitch, replSwitchID, zoneArchives, zoneString); // Replace
-                }
-                unsavedChanges = true;
-                break;
-
-            case "Galaxy":
-                replSwitchID = ObjIdUtil.getValidSwitchInGalaxy(zoneArchives); // Generate
-                
-                if (replSwitchID !=-1)
-                    zoneArchives = ObjIdUtil.replaceSwitchID(invalidSwitch, replSwitchID, zoneArchives); // Replace
-                unsavedChanges = true;
-                break;
-            }
-        }
-    }
-    
-    /**
-     * Validates object properties for all zones
-     */
-    private void checkForMissingRequiredValuesInGalaxy() {
-        if (zoneArchives == null)
-            return;
-        
-        setStatusToInfo("Performing object validation...");
-        ArrayList<String> messages = new ArrayList<>();
-        for (StageArchive arc : zoneArchives.values())
-        {
-            messages.addAll(StageUtil.validateZone(arc));
-        }
-        if (isGalaxyMode)
-            messages.addAll(StageUtil.checkAreaLimitsReached(zoneArchives, galaxyArchive));
-        
-        String title = Whitehole.NAME+": Object Warning";
-        messages.forEach((msg) -> JOptionPane.showMessageDialog(this, msg, title, JOptionPane.WARNING_MESSAGE, null));
-    }
-    
     private void saveChanges() {
         setStatusToInfo("Saving changes...");
         
@@ -577,57 +418,41 @@ public class WorldEditorForm extends javax.swing.JFrame {
         }
         else
             setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        
-        if (isGalaxyMode || isSeparateZoneMode) {
-            for (WorldEditorForm form : zoneEditors.values()) {
-                form.dispose();
-            }
-            
-            // Save renderer preferences
-            Settings.setShowAxis(tgbShowAxis.isSelected());
-            
-            checkForMissingRequiredValuesInGalaxy();
-            
-            
-            if(!unsavedChanges)
-                return;
-            
-            setStatusToInfo("Confirming close operation...");
-            
-            // Should we really scrap our changes?
-            int res = JOptionPane.showConfirmDialog(
-                    this, "Save your changes?", Whitehole.NAME,
-                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE
-            );
 
-            switch (res) {
-                case JOptionPane.CANCEL_OPTION:
-                    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-                    setStatusToWarning("Close cancelled by user.");
-                    return;
-                case JOptionPane.YES_OPTION:
-                    if (res == JOptionPane.YES_OPTION) {
-                        saveChanges();
-                        while (unsavedChanges)
-                        {
-                        }
+        // Save renderer preferences
+        Settings.setShowAxis(tgbShowAxis.isSelected());
+
+
+        if(!unsavedChanges)
+            return;
+
+        setStatusToInfo("Confirming close operation...");
+
+        // Should we really scrap our changes?
+        int res = JOptionPane.showConfirmDialog(
+                this, "Save your changes?", Whitehole.NAME,
+                JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE
+        );
+
+        switch (res) {
+            case JOptionPane.CANCEL_OPTION:
+                setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+                setStatusToWarning("Close cancelled by user.");
+                return;
+            case JOptionPane.YES_OPTION:
+                if (res == JOptionPane.YES_OPTION) {
+                    saveChanges();
+                    while (unsavedChanges)
+                    {
                     }
-                default:
-                    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                    break;
-            }
-        }
-        else {
-            if (unsavedChanges) {
-                parentForm.unsavedChanges = true;
-            }
+                }
+            default:
+                setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                break;
         }
     }
     
     private AbstractObj getScenarioStart() {
-        if (!isGalaxyMode) {
-            return null;
-        }
         updateScenarioList();
         StageArchive z = zoneArchives.get(galaxyName);
         AbstractObj ret = getScenarioStartInLayer(z.objects.get("common"));
@@ -714,9 +539,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     loadZone(zone);
                     Progress++;
                 }
-
-                setStatusToInfo("Validating Switches...");
-                repairInvalidSwitchesInGalaxy();
 
                 // Collect zone placements
                 StageArchive galaxyZone = zoneArchives.get(galaxyName);
@@ -813,20 +635,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
             try {
                 setStatusToInfo("Saving changes...");
                 worldArchive.save();
-
-                // Update main editor from subzone
-                if(!isGalaxyMode) {
-                    if (isSeparateZoneMode)
-                        updateZonePaint(curZone);
-                    else
-                        parentForm.updateZonePaint(galaxyName);
-                }
-                // Update subzone editors from main editor
-                else {
-                    for (WorldEditorForm form : zoneEditors.values()) {
-                        form.updateZonePaint(form.galaxyName);
-                    }
-                }
+                updateZonePaint(curZone);
 
                 unsavedChanges = false;
                 setStatusToInfo("Saved changes!");
@@ -1013,10 +822,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
 
         
         // Update tree node model and scroll to new node
-        for (WorldEditorForm form : getAllCurrentZoneForms()) {
-            if (form != null)
-                form.objListModel.reload();
-        }
+        objListModel.reload();
         if (isSelectAfterCreate)
         {
             TreePath path = new TreePath(objListModel.getPathToRoot(newNode));
@@ -1135,22 +941,9 @@ public class WorldEditorForm extends javax.swing.JFrame {
         glCanvas.repaint();
         unsavedChanges = true;
     }
-      
-    private ArrayList<WorldEditorForm> getAllCurrentZoneForms() {
-        ArrayList<WorldEditorForm> forms = new ArrayList<>();
-        forms.add(this);
-        if (parentForm != null) {
-            forms.add(parentForm);
-        } else if (zoneEditors.get(curZone) != null) {
-            forms.add(zoneEditors.get(curZone));
-        }
-        return forms;
-    }
     
     private void removeAbstractObjFromAllForms(int uniqueID) {
-        for (WorldEditorForm form : getAllCurrentZoneForms()) {
-            removeAbstractObjFromForm(form, uniqueID);
-        }
+        removeAbstractObjFromForm(this, uniqueID);
     }
     
     private void removeAbstractObjFromForm(WorldEditorForm form, int uniqueID) {
@@ -1166,13 +959,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
     }
     
     private TreeNode addAbstractObjToAllForms(int uniqueID, String objtype, AbstractObj obj) {
-        TreeNode newNode = null;
-        for (WorldEditorForm form : getAllCurrentZoneForms()) {
-            TreeNode node = addAbstractObjToForm(form, uniqueID, objtype, obj);
-            if (newNode == null)
-                newNode = node;
-        }
-        return newNode;
+        return addAbstractObjToForm(this, uniqueID, objtype, obj);
     }
     
     private TreeNode addAbstractObjToForm(WorldEditorForm form, int uniqueID, String objtype, AbstractObj obj) {
@@ -1193,9 +980,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
     * @return subzone rotation
     */
     public Vec3f applySubzoneRotation(Vec3f delta) {
-        if(!isGalaxyMode)
-            return new Vec3f();
-
         String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
         if(zonePlacements.containsKey(stageKey)) {
             StageObj szdata = zonePlacements.get(stageKey);
@@ -1324,61 +1108,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             pnlObjectSettings.setFieldValue("PointPosZ", primaryObj.position.z);
         }
     }
-    
-    /**
-     * Rotate the selection by {@code delta}.
-     * @param delta the amount to rotate by
-     */
-    private void rotateSelectionBy(Vec3f delta) {
-        unsavedChanges = true;
-        for(AbstractObj selectedObj : selectedObjs.values()) {
-            selectedObj.rotation.x += delta.x;
-            selectedObj.rotation.y += delta.y;
-            selectedObj.rotation.z += delta.z;
-            pnlObjectSettings.setFieldValue("dir_x", selectedObj.rotation.x);
-            pnlObjectSettings.setFieldValue("dir_y", selectedObj.rotation.y);
-            pnlObjectSettings.setFieldValue("dir_z", selectedObj.rotation.z);
-            scrObjSettings.repaint();
-            
-            renderAllObjects();
-            addRerenderTask("object:"+selectedObj.uniqueID);
-            glCanvas.repaint();
-        }
-    }
-    
-    /**
-     * Scale the selection by {@code delta}.
-     * @param delta the amount to scale by
-     */
-    private void scaleSelectionBy(Vec3f delta, float snap) {
-        unsavedChanges = true;
-        for(AbstractObj selectedObj : selectedObjs.values()) {
-            selectedObj.scale.x += delta.x;
-            selectedObj.scale.y += delta.y;
-            selectedObj.scale.z += delta.z;
-            
-            if(snap != 0.0f)
-            {
-                selectedObj.scale.x -= selectedObj.scale.x % snap;
-                selectedObj.scale.y -= selectedObj.scale.y % snap;
-                selectedObj.scale.z -= selectedObj.scale.z % snap;
-            }
-            
-            pnlObjectSettings.setFieldValue("scale_x", selectedObj.scale.x);
-            pnlObjectSettings.setFieldValue("scale_y", selectedObj.scale.y);
-            pnlObjectSettings.setFieldValue("scale_z", selectedObj.scale.z);
-            scrObjSettings.repaint();
-
-            renderAllObjects();
-            addRerenderTask("object:"+selectedObj.uniqueID);
-            glCanvas.repaint();
-        }
-    }
-    
-    private void scaleSelectionBy(Vec3f delta) {
-        scaleSelectionBy(delta, 0.0f);
-    }
-    
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Property Management
@@ -1572,76 +1301,8 @@ public class WorldEditorForm extends javax.swing.JFrame {
         int selectedObjIdx = -1;
         int selectedObjMax = values.size();
         for(AbstractObj selectedObj : values) {
-            if(propname.equals("name")) {
-                // TODO REMOVE
-                selectedObj.name =(String)value;
-                selectedObj.loadDBInfo();
-
-                DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
-
-                addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                renderAllObjects();
-                glCanvas.repaint();
-            }
-            else if(propname.equals("zone"))
-            {
-                // TODO REMOVE
-
-                String oldzone = curZone;
-                String newzone =(String)value;
-                int uid = selectedObj.uniqueID;
-
-                StageArchive newZoneArc = zoneArchives.get(newzone);
-                StageArchive oldZoneArc = zoneArchives.get(oldzone);
-                String newLayer = "common";
-                String oldLayer = selectedObj.layerKey;
-                if (newZoneArc.objects.containsKey(oldLayer))
-                    newLayer = oldLayer;
-
-                selectedObj.stage = newZoneArc;
-                selectedObj.layerKey = newLayer;
-
-                var oldLayerData = oldZoneArc.objects.get(oldLayer);
-                var newLayerData = newZoneArc.objects.get(newLayer);
-                oldLayerData.remove(selectedObj);
-                newLayerData.add(selectedObj);
-
-                if (selectedObjIdx == selectedObjMax-1)
-                {
-                    ArrayList<AbstractObj> selectionSave = new ArrayList(selectedObjMax);
-                    for(var o : values)
-                        selectionSave.add(o);
-
-                    for(int z = 0; z < galaxyArchive.zoneList.size(); z++)
-                    {
-                        if(!galaxyArchive.zoneList.get(z).equals(newzone))
-                            continue;
-                        break;
-                    } 
-                    TreePath[] paths = new TreePath[selectionSave.size()];
-                    int i = 0;
-                    for(var o : selectionSave)
-                    {
-                        selectedObjs.put(o.uniqueID, o);
-                        if(treeNodeList.containsKey(o.uniqueID))
-                        {
-                            TreeNode tn = treeNodeList.get(o.uniqueID);
-                            TreePath tp = new TreePath(((DefaultTreeModel)treeObjects.getModel()).getPathToRoot(tn));
-                            paths[i] = tp;
-                        }
-                        i++;
-                    }
-                    treeObjects.scrollPathToVisible(paths[0]);
-                    treeObjects.setSelectionPaths(paths);
-                    selectionChanged();
-
-                    addRerenderTask("zone:"+oldzone);
-                    addRerenderTask("zone:"+newzone);
-                    glCanvas.repaint();
-                }
-            }
-            else if (propname.equals("Type")) {
+            // Properties with custom undos
+            if (propname.equals("Type")) {
                 addUndoEntry(IUndo.Action.TYPE, selectedObj);
                 WorldPointPosObj obj = (WorldPointPosObj)selectedObj;
                 obj.changeType((String)value);
@@ -1655,118 +1316,32 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 glCanvas.repaint();
                 scrObjSettings.repaint();
             }
-            else if(propname.equals("layer")) {
-                // TODO REMOVE
-                String oldlayer = selectedObj.layerKey;
-                String newlayer =((String)value).toLowerCase();
+            else if(propname.startsWith("PointPos")) {
 
-                selectedObj.layerKey = newlayer;
-                curZoneArc.objects.get(oldlayer).remove(selectedObj);
-                curZoneArc.objects.get(newlayer).add(selectedObj);
-
-                DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
-
-                addRerenderTask("zone:"+curZone);
-                glCanvas.repaint();
-            }
-            else if(propname.startsWith("PointPos") || propname.startsWith("dir_") || propname.startsWith("scale_")) {
-
-                if(propname.startsWith("PointPos"))
-                {
-                    if (selectedObj.renderer.hasSpecialPosition())
-                        addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                    addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
-                }
-                else if(propname.startsWith("dir_"))
-                {
-                    if (selectedObj.renderer.hasSpecialRotation())
-                        addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                    // TODO REMOVE
-                }
-                else if(propname.startsWith("scale_"))
-                {
-                    if (selectedObj.renderer.hasSpecialScaling())
-                        addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                    // TODO REMOVE
-                }
+                if (selectedObj.renderer.hasSpecialPosition())
+                    addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
+                addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
 
                 switch(propname) {
                     case "PointPosX":
-                    case "pos_x":
                     selectedObj.position.x = (float)value;
                     break;
                     case "PointPosY":
-                    case "pos_y":
                     selectedObj.position.y = (float)value;
                     break;
                     case "PointPosZ":
-                    case "pos_z":
                     selectedObj.position.z = (float)value;
-                    break;
-                    case "dir_x":
-                    selectedObj.rotation.x = (float)value;
-                    break;
-                    case "dir_y":
-                    selectedObj.rotation.y = (float)value;
-                    break;
-                    case "dir_z":
-                    selectedObj.rotation.z = (float)value;
-                    break;
-                    case "scale_x":
-                    selectedObj.scale.x = (float)value;
-                    break;
-                    case "scale_y":
-                    selectedObj.scale.y = (float)value;
-                    break;
-                    case "scale_z":
-                    selectedObj.scale.z = (float)value;
                     break;
                 }
 
                 renderAllObjects();
                 glCanvas.repaint();
             }
+            // Properties that just use the parameter undo
             else {
                 addUndoEntry(IUndo.Action.PARAMETER, selectedObj);
                 selectedObj.propertyChanged(propname, value);
-                if(propname.startsWith("Obj_arg")) {
-                    int argnum = Integer.parseInt(propname.substring(7));
-                    if(selectedObj.renderer.boundToObjArg(argnum)) {
-                        addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                        renderAllObjects();
-                        glCanvas.repaint();
-                    }
-                }
-                else if (propname.equals("ShapeModelNo")) {
-                    addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                    renderAllObjects();
-                    glCanvas.repaint();
-                }
-                else if(propname.equals("Distant")) {
-                    if(selectedObj.renderer.boundToProperty()) {
-                        addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                        addRerenderTask("zone:"+curZone);
-                        glCanvas.repaint();
-                    }
-                }
-                else if(propname.equals("Inverse")) {
-                    if(selectedObj.renderer.boundToProperty()) {
-                        addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                        addRerenderTask("zone:"+curZone);
-                        glCanvas.repaint();
-                    }
-                }
-                else if(propname.equals("AreaShapeNo")) {
-                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                    objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
-                    if(selectedObj.getClass() == AreaObj.class || selectedObj.getClass() == CameraObj.class) {
-                        addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
-                        addRerenderTask("zone:"+curZone);
-                        glCanvas.repaint();
-                    }
-                }
-                else if (propname.equals("StageName"))
+                if (propname.equals("StageName"))
                 {
                     String miniName = (String)selectedObj.data.getOrDefault("MiniatureName", "");
                     String oldName = (String)selectedObj.data.getOrDefault("StageName", "");
@@ -1780,16 +1355,9 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     renderAllObjects();
                 }
                 else if (propname.equals("Param01") || propname.equals("PartsIndex")) {
-                    // TODO: Make this undoable
-                    
                     DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
                     objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
-//                    selectionChanged();
                     renderAllObjects();
-                }
-                else if(propname.equals("MarioNo") || propname.equals("PosName") || propname.equals("DemoName") || propname.equals("TimeSheetName")) {
-                    DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-                    objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
                 }
                 else
                 {
@@ -1931,8 +1499,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
             newobj.data = (Bcsv.Entry)x.data.clone();
         }
         endUndoMulti();
-        for (WorldEditorForm form : getAllCurrentZoneForms())
-            form.objListModel.reload();
+        objListModel.reload();
     }
     
     /**
@@ -2051,8 +1618,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             obj.data = (Bcsv.Entry)data.clone();
             if (obj.data.containsKey("Index"))
                 obj.data.put("Index", index);
-            obj.rotation = getVector("dir");
-            obj.scale = getVector("scale");
             if (!connectedType.equals("none") && obj instanceof WorldPointPosObj)
             {
                 WorldPointPosObj posObj = (WorldPointPosObj)obj;
@@ -2257,13 +1822,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
      */
     public void doUndo()
     {
-        if (!isGalaxyMode && !isSeparateZoneMode)
-        {
-            parentForm.doUndo();
-            updateZonePaint(this.curZone);
-            selectionChanged();
-            return;
-        }
         // Decrease undo index
         String yesUndo;
         if(undoIndex >= 1)
@@ -2424,11 +1982,9 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 try {
                     gl.getContext().makeCurrent();
                     
-                    if (isGalaxyMode || isSeparateZoneMode) {
-                        for (AbstractObj obj : globalObjList.values()) {
-                            obj.initRenderer(renderInfo);
-                            obj.oldName = obj.name;
-                        }
+                    for (AbstractObj obj : globalObjList.values()) {
+                        obj.initRenderer(renderInfo);
+                        obj.oldName = obj.name;
                     }
                     
                     renderInfo.renderMode = GLRenderer.RenderMode.PICKING;
@@ -2483,31 +2039,21 @@ public class WorldEditorForm extends javax.swing.JFrame {
             
             updateCamera();
             
-            for(int s = 0; s <(isGalaxyMode ? galaxyArchive.scenarioData.size() : 1); s++)
+            for(int s = 0; s < galaxyArchive.scenarioData.size(); s++)
                 zoneDisplayLists.put(s, new int[] {0,0,0});
             
             gl.glFrontFace(GL2.GL_CW);
             
             gl.glClearColor(0.118f, 0.118f, 0.784f, 1f);
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
-            setStatusToInfo("Prerendering "+(isGalaxyMode?"galaxy":"zone")+", please wait...");
+            setStatusToInfo("Prerendering world, please wait...");
             
             SwingUtilities.invokeLater(new GalaxyRenderer.AsyncPrerenderer(gl));
             
             initializedRenderer = true;
         }
         
-        private void renderSelectHighlight(GL2 gl, String zone)  {
-//            boolean gotany = false;
-//            for(AbstractObj obj : selectedObjs.values()) {
-//                if(obj.stage.stageName.equals(zone)) {
-//                    gotany = true;
-//                    break;
-//                }
-//            }
-//            if(!gotany)
-//                return;
-            
+        private void renderSelectHighlight(GL2 gl)  {
             RenderMode oldmode = doHighLightSettings(gl);
             
             for(AbstractObj obj : selectedObjs.values()) {
@@ -2539,52 +2085,34 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 case TRANSLUCENT: mode = 2; break;
             }
             
-            if(isGalaxyMode) {
-                for(String zone : galaxyArchive.zoneList)
-                    prerenderZone(gl, zone);
-                
-                for(int s = 0; s < galaxyArchive.scenarioData.size(); s++) {
+            for(String zone : galaxyArchive.zoneList)
+                prerenderZone(gl, zone);
 
-                    int dl = zoneDisplayLists.get(s)[mode];
-                    if(dl == 0) {
-                        dl = gl.glGenLists(1);
-                        zoneDisplayLists.get(s)[mode] = dl;
-                    }
-                    gl.glNewList(dl, GL2.GL_COMPILE);
-                    
-                    Bcsv.Entry scenario = galaxyArchive.scenarioData.get(s);
-                    var sc = scenario.get(galaxyName);
-                    int scc;
-                    try
-                    {
-                        if (sc == null)
-                            throw new java.lang.NullPointerException("Could not find "+galaxyName+" in ScenarioData.bcsv");
-                        scc = (int)sc;
-                    }
-                    catch (NullPointerException npex)
-                    {
-                        setStatusToError("Failed to render level!", npex);
-                        gl.glEndList();
-                        return;
-                    }
-                    renderZone(gl, scenario, galaxyName, scc, 0);
+            for(int s = 0; s < galaxyArchive.scenarioData.size(); s++) {
 
-                    gl.glEndList();
-                }
-            } else {
-                prerenderZone(gl, curZone);
-                
-                if(!zoneDisplayLists.containsKey(0))
-                     zoneDisplayLists.put(0, new int[] {0,0,0});
-
-                int dl = zoneDisplayLists.get(0)[mode];
+                int dl = zoneDisplayLists.get(s)[mode];
                 if(dl == 0) {
                     dl = gl.glGenLists(1);
-                    zoneDisplayLists.get(0)[mode] = dl;
+                    zoneDisplayLists.get(s)[mode] = dl;
                 }
                 gl.glNewList(dl, GL2.GL_COMPILE);
 
-                renderZone(gl, null, galaxyName, zoneModeLayerBitmask, 99);
+                Bcsv.Entry scenario = galaxyArchive.scenarioData.get(s);
+                var sc = scenario.get(galaxyName);
+                int scc;
+                try
+                {
+                    if (sc == null)
+                        throw new java.lang.NullPointerException("Could not find "+galaxyName+" in ScenarioData.bcsv");
+                    scc = (int)sc;
+                }
+                catch (NullPointerException npex)
+                {
+                    setStatusToError("Failed to render level!", npex);
+                    gl.glEndList();
+                    return;
+                }
+                renderZone(gl, scenario, galaxyName, scc, 0);
 
                 gl.glEndList();
             }
@@ -2627,7 +2155,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 }
                 
                 if(mode == 2 && !selectedObjs.isEmpty())
-                    renderSelectHighlight(gl, zone);
+                    renderSelectHighlight(gl);
                 
                 if(layer.equalsIgnoreCase("common"))
                 {
@@ -2755,10 +2283,8 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 gl.glDeleteLists(dls[2], 1);
             }
             
-            if(parentForm == null) {
-                for(AbstractObj obj : globalObjList.values())
-                    obj.closeRenderer(renderInfo);
-            }
+            for(AbstractObj obj : globalObjList.values())
+                obj.closeRenderer(renderInfo);
             
             RendererCache.clearRefContext();
         }
@@ -3252,15 +2778,12 @@ public class WorldEditorForm extends javax.swing.JFrame {
                         pickingDepth = 1;
                         System.out.println("aaa " + mousePos + " " + pickingDepth);
                         Vec3f position = get3DCoords(mousePos);
-                        if(isGalaxyMode)
+                        String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
+                        if (zonePlacements.containsKey(stageKey))
                         {
-                            String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-                            if (zonePlacements.containsKey(stageKey))
-                            {
-                                StageObj zonePlacement = zonePlacements.get(stageKey);
-                                position.subtract(zonePlacement.position);
-                                applySubzoneRotation(position);
-                            }
+                            StageObj zonePlacement = zonePlacements.get(stageKey);
+                            position.subtract(zonePlacement.position);
+                            applySubzoneRotation(position);
                         }
                         addPoint(position, addingObject, true);
 
@@ -3292,15 +2815,12 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     {
                         // Apply zone placement
                         Vec3f position = get3DCoords(mousePos, Math.min(pickingDepth, 1f));
-                        if(isGalaxyMode)
+                        String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
+                        if (zonePlacements.containsKey(stageKey))
                         {
-                            String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-                            if (zonePlacements.containsKey(stageKey))
-                            {
-                                StageObj zonePlacement = zonePlacements.get(stageKey);
-                                position.subtract(zonePlacement.position);
-                                applySubzoneRotation(position);
-                            }
+                            StageObj zonePlacement = zonePlacements.get(stageKey);
+                            position.subtract(zonePlacement.position);
+                            applySubzoneRotation(position);
                         }
                         performObjectPaste(position);
                         
@@ -3469,10 +2989,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 keyMask &= ~(1 << 5);
             else if (keyCode == Settings.getKeyPosition())
                 keyMask &= ~(1 << 6);
-            else if (keyCode == Settings.getKeyRotation())
-                keyMask &= ~(1 << 7);
-            else if (keyCode == Settings.getKeyScale())
-                keyMask &= ~(1 << 8);
         }
 
         @Override
@@ -3498,10 +3014,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 keyMask |= (1 << 5);
             else if (keyCode == Settings.getKeyPosition())
                 keyMask |= (1 << 6);
-            else if (keyCode == Settings.getKeyRotation())
-                keyMask |= (1 << 7);
-            else if (keyCode == Settings.getKeyScale())
-                keyMask |= (1 << 8);
 
             if ((keyMask & 0x3F) == 0)
             {
@@ -3529,12 +3041,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     shortcutPasteLiteral();
                 else if (isShortcutPressed(e, false, false, false, KeyEvent.VK_SPACE))        // Jump to Selection -- SPACE
                     shortcutJumpToSelection();
-                else if (isShortcutPressed(e, false, true, false, KeyEvent.VK_SPACE))         // Jump to Zone -- SHIFT+SPACE
-                    shortcutJumpToZone();
-                else if (isShortcutPressed(e, false, true, false, KeyEvent.VK_OPEN_BRACKET))  // Add Zone Position -- SHIFT+[
-                    shortcutAddZonePosition();            
-                else if (isShortcutPressed(e, false, true, false, KeyEvent.VK_CLOSE_BRACKET)) // Subtract Zone Position -- SHIFT+]
-                    shortcutSubZonePosition();
                 else if (isShortcutPressed(e, false, false, false, KeyEvent.VK_L))
                     linkSelectedObjs();
                 
@@ -3580,17 +3086,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                             addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
                         delta.scale(100);
                         offsetSelectionBy(delta, e.isShiftDown());
-                    }
-                    else if((keyMask & (1 << 7)) != 0)
-                    {
-                        // TODO REMOVE
-                        delta.scale(5);
-                        rotateSelectionBy(delta);
-                    }
-                    else if((keyMask & (1 << 8)) != 0)
-                    {
-                        // TODO REMOVE
-                        scaleSelectionBy(delta);
                     }
                     endUndoMulti();
                 } else {
@@ -3734,93 +3229,16 @@ public class WorldEditorForm extends javax.swing.JFrame {
             camTarget.scale(1.0f / SCALE_DOWN);
             camDistance = 1.0f;
 
-            if (isGalaxyMode) {
-                if (zonePlacements.containsKey(stageKey)) {
-                    Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
-                    scratch.scale(1.0f / SCALE_DOWN);
-                    camTarget.add(scratch);
-                }
+            if (zonePlacements.containsKey(stageKey)) {
+                Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
+                scratch.scale(1.0f / SCALE_DOWN);
+                camTarget.add(scratch);
             }
             
             setStatusToInfo("Jumped to selection ("+TargetPos.toString()+")");
             
             updateCamera();
             glCanvas.repaint();
-        }
-        private void shortcutJumpToZone() {
-            camTarget.set(new Vec3f());
-            camDistance = 0.35f;
-            if (isGalaxyMode) {
-                String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-
-                if (zonePlacements.containsKey(stageKey)) {
-                    Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
-                    scratch.scale(1.0f / SCALE_DOWN);
-                    camTarget.set(scratch);
-                }
-                setStatusToInfo("Jumped to Zone ("+curZone+")");
-            }
-            else
-                setStatusToWarning("Cannot Jump To Zone while editing individually!");
-            
-            updateCamera();
-            glCanvas.repaint();
-        }
-        private void shortcutAddZonePosition() {
-            // HOW TO USE:
-            // This function is intended to be used when moving things from a zone with an offset to the main galaxy while preserving world position
-            // Simply press this ONCE, and then change the Zone of the selected objects to the main galaxy
-        
-            if (!isGalaxyMode) {
-                setStatusToWarning("You cannot Add Zone Position while editing a zone solo.");
-                return;
-            }
-            if (selectedObjs.isEmpty()) {
-                setStatusToWarning("You need objects selected to Add Zone Position!");
-                return;
-            }
-            startUndoMulti();
-            for(AbstractObj selectedObj : selectedObjs.values())
-                addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
-
-            Vec3f delta = new Vec3f();
-            String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-
-            if (zonePlacements.containsKey(stageKey)) {
-                delta.add(zonePlacements.get(stageKey).position);
-            }
-
-            offsetSelectionBy(delta, false);
-            endUndoMulti();
-        }
-        private void shortcutSubZonePosition() {
-            // HOW TO USE:
-            // This function is intended to be used when moving things from the main galaxy into a zone that has an offset while preserving world position
-            // Simply change the zone of the selected objects to be that of the destination zone, and press this ONCE
-            // NOTE: To switch from Zone to Zone (while both zones are not the Main Galaxy),
-            //       you have to first move the objects into the main galaxy, then you can move them into the destination zone.
-            
-            if (!isGalaxyMode) {
-                setStatusToWarning("You cannot Subtract Zone Position while editing a zone solo.");
-                return;
-            }
-            if (selectedObjs.isEmpty()) {
-                setStatusToWarning("You need objects selected to Subtract Zone Position!");
-                return;
-            }
-            startUndoMulti();
-            for(AbstractObj selectedObj : selectedObjs.values())
-                addUndoEntry(IUndo.Action.TRANSLATE, selectedObj);
-
-            Vec3f delta = new Vec3f();
-            String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-
-            if (zonePlacements.containsKey(stageKey)) {
-                delta.subtract(zonePlacements.get(stageKey).position);
-            }
-
-            offsetSelectionBy(delta, false);
-            endUndoMulti();
         }
     }
     
@@ -3837,21 +3255,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         String objType = objects.get(0).getFileType();
 
         return generateID(objType);
-    }
-    
-    // Gets an unused switch id for the current zone.
-    public int getValidSwitchInZone() {
-        return curZoneArc.getValidSwitchInZone();
-    }
-    
-    // Gets an unused switch id for the current galaxy.
-    public int getValidSwitchInGalaxy() {
-        return ObjIdUtil.getValidSwitchInGalaxy(zoneArchives);
-    }
-    
-    // Returns a set hash set of all switch IDs used in the current zone.
-    public Set<Integer> getUniqueSwitchesInZone() {
-        return curZoneArc.getUniqueSwitchesInZone();
     }
     
     private void updateScenarioList() {
@@ -3898,12 +3301,8 @@ public class WorldEditorForm extends javax.swing.JFrame {
         mnuEdit = new javax.swing.JMenu();
         mnuCopy = new javax.swing.JMenu();
         itmPositionCopy = new javax.swing.JMenuItem();
-        itmRotationCopy = new javax.swing.JMenuItem();
-        itmScaleCopy = new javax.swing.JMenuItem();
         mnuPaste = new javax.swing.JMenu();
         itmPositionPaste = new javax.swing.JMenuItem();
-        itmRotationPaste = new javax.swing.JMenuItem();
-        itmScalePaste = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(Whitehole.NAME);
@@ -4092,24 +3491,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
         });
         mnuCopy.add(itmPositionCopy);
 
-        itmRotationCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyRotation(), ActionEvent.ALT_MASK));
-        itmRotationCopy.setText("Rotation");
-        itmRotationCopy.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmRotationCopyActionPerformed(evt);
-            }
-        });
-        mnuCopy.add(itmRotationCopy);
-
-        itmScaleCopy.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyScale(), ActionEvent.ALT_MASK));
-        itmScaleCopy.setText("Scale");
-        itmScaleCopy.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmScaleCopyActionPerformed(evt);
-            }
-        });
-        mnuCopy.add(itmScaleCopy);
-
         mnuEdit.add(mnuCopy);
 
         mnuPaste.setText("Paste");
@@ -4122,25 +3503,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             }
         });
         mnuPaste.add(itmPositionPaste);
-
-        itmRotationPaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyRotation(), ActionEvent.SHIFT_MASK));
-        itmRotationPaste.setText("Rotation (0.0, 0.0, 0.0)");
-        itmRotationPaste.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmRotationPasteActionPerformed(evt);
-            }
-        });
-        mnuPaste.add(itmRotationPaste);
-
-        itmScalePaste.setAccelerator(KeyStroke.getKeyStroke(Settings.getKeyScale(), ActionEvent.SHIFT_MASK));
-        itmScalePaste.setText("Scale (1.0, 1.0, 1.0)");
-        itmScalePaste.setToolTipText("");
-        itmScalePaste.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itmScalePasteActionPerformed(evt);
-            }
-        });
-        mnuPaste.add(itmScalePaste);
 
         mnuEdit.add(mnuPaste);
 
@@ -4186,43 +3548,8 @@ public class WorldEditorForm extends javax.swing.JFrame {
 
     private void mnuEditMenuSelected(javax.swing.event.MenuEvent evt) {//GEN-FIRST:event_mnuEditMenuSelected
         itmPositionPaste.setText(String.format("Position (%s)", COPY_POSITION.toString()));
-        itmRotationPaste.setText(String.format("Rotation (%s)", COPY_ROTATION.toString()));
-        itmScalePaste.setText(String.format("Scale (%s)", COPY_SCALE.toString()));
     }//GEN-LAST:event_mnuEditMenuSelected
-
-    private void itmPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionCopyActionPerformed
-        if (selectedObjs.size() == 1) {
-            AbstractObj obj = selectedObjs.values().iterator().next();
-            COPY_POSITION.set(obj.position);
-            
-            String posString = COPY_POSITION.toString();
-            itmPositionPaste.setText(String.format("Position (%s)", posString));
-            setStatusToInfo(String.format("Copied position %s.", posString));
-        }
-    }//GEN-LAST:event_itmPositionCopyActionPerformed
     
-    private void itmRotationCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationCopyActionPerformed
-        if (selectedObjs.size() == 1) {
-            AbstractObj obj = selectedObjs.values().iterator().next();
-            COPY_ROTATION.set(obj.rotation);
-            
-            String rotString = COPY_ROTATION.toString();
-            itmRotationPaste.setText(String.format("Rotation (%s)", rotString));
-            setStatusToInfo(String.format("Copied rotation %s.", rotString));
-        }
-    }//GEN-LAST:event_itmRotationCopyActionPerformed
-
-    private void itmScaleCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScaleCopyActionPerformed
-        if (selectedObjs.size() == 1) {
-            AbstractObj obj = selectedObjs.values().iterator().next();
-            COPY_SCALE.set(obj.scale);
-            
-            String scaleString = COPY_SCALE.toString();
-            itmScalePaste.setText(String.format("Scale (%s)", scaleString));
-            setStatusToInfo(String.format("Copied scale %s.", scaleString));
-        }
-    }//GEN-LAST:event_itmScaleCopyActionPerformed
-
     private void itmPositionPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionPasteActionPerformed
         if (!isAllowPasteAction())
             return;
@@ -4244,57 +3571,9 @@ public class WorldEditorForm extends javax.swing.JFrame {
             unsavedChanges = true;
         }
     }//GEN-LAST:event_itmPositionPasteActionPerformed
-
-    private void itmRotationPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmRotationPasteActionPerformed
-        if (!isAllowPasteAction())
-            return;
-                
-        for (AbstractObj obj : selectedObjs.values()) {
-            // TODO REMOVE
-            
-            obj.rotation.set(COPY_ROTATION);
-            pnlObjectSettings.setFieldValue("dir_x", obj.rotation.x);
-            pnlObjectSettings.setFieldValue("dir_y", obj.rotation.y);
-            pnlObjectSettings.setFieldValue("dir_z", obj.rotation.z);
-            scrObjSettings.repaint();
-            
-            addRerenderTask("object:" + obj.uniqueID);
-            addRerenderTask("zone:" + obj.stage.stageName);
-            
-            setStatusToInfo(String.format("Pasted rotation %s.", COPY_ROTATION.toString()));
-            
-            glCanvas.repaint();
-            unsavedChanges = true;
-        }
-    }//GEN-LAST:event_itmRotationPasteActionPerformed
-
-    private void itmScalePasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmScalePasteActionPerformed
-        // TODO REMOVE
-        if (!isAllowPasteAction())
-            return;
-        
-        for (AbstractObj obj : selectedObjs.values()) {
-            
-            obj.scale.set(COPY_SCALE);
-            pnlObjectSettings.setFieldValue("scale_x", obj.scale.x);
-            pnlObjectSettings.setFieldValue("scale_y", obj.scale.y);
-            pnlObjectSettings.setFieldValue("scale_z", obj.scale.z);
-            scrObjSettings.repaint();
-            
-            addRerenderTask("object:" + obj.uniqueID);
-            addRerenderTask("zone:" + obj.stage.stageName);
-            
-            setStatusToInfo(String.format("Pasted scale %s.", COPY_SCALE.toString()));
-            
-            glCanvas.repaint();
-            unsavedChanges = true;
-        }
-    }//GEN-LAST:event_itmScalePasteActionPerformed
     
     private void tgbDeselectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbDeselectActionPerformed
-        for (AbstractObj obj : selectedObjs.values()) {
-            addRerenderTask("zone:" + curZone);
-        }
+        addRerenderTask("zone:" + curZone);
         
         selectedObjs.clear();
         treeObjects.clearSelection();
@@ -4380,14 +3659,21 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private void tgbPasteObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tgbPasteObjActionPerformed
         pasteClipboardIntoObjects(false); //This is never literal paste
     }//GEN-LAST:event_tgbPasteObjActionPerformed
+
+    private void itmPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionCopyActionPerformed
+        if (selectedObjs.size() == 1) {
+            AbstractObj obj = selectedObjs.values().iterator().next();
+            COPY_POSITION.set(obj.position);
+
+            String posString = COPY_POSITION.toString();
+            itmPositionPaste.setText(String.format("Position (%s)", posString));
+            setStatusToInfo(String.format("Copied position %s.", posString));
+        }
+    }//GEN-LAST:event_itmPositionCopyActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem itmPositionCopy;
     private javax.swing.JMenuItem itmPositionPaste;
-    private javax.swing.JMenuItem itmRotationCopy;
-    private javax.swing.JMenuItem itmRotationPaste;
-    private javax.swing.JMenuItem itmScaleCopy;
-    private javax.swing.JMenuItem itmScalePaste;
     private javax.swing.JToolBar.Separator jSeparator10;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
