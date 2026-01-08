@@ -1115,13 +1115,13 @@ public class WorldEditorForm extends javax.swing.JFrame {
     /**
      * Update rendering according to current selection. Called when the selection is changed.
      */
-    public void selectionChanged() {
+    public void updateSelectedObjProperties() {
         if (pnlObjectSettings == null)
         {
             return;
         }
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {selectionChanged(); });
+            SwingUtilities.invokeLater(() -> {updateSelectedObjProperties(); });
             return;
         }
         pnlObjectSettings.clear();
@@ -1309,7 +1309,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 
 //                DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
 //                objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
-                selectionChanged();
+                updateSelectedObjProperties();
                 addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
                 addRerenderTask("zone:"+curZone);
                 renderAllObjects();
@@ -1761,7 +1761,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     connectedObj.data = (Bcsv.Entry)connectedData.clone();
                 }
             }
-            selectionChanged();
+            updateSelectedObjProperties();
             renderAllObjects();
             addRerenderTask("object:"+Integer.toString(obj.uniqueID));
             
@@ -1787,7 +1787,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 throw new NullPointerException(ERR_OBJNOEXIST);
             
             obj.setConnected(connectedObj);
-            selectionChanged();
+            updateSelectedObjProperties();
             addRerenderTask("object:"+Integer.toString(id));
             addRerenderTask("zone:"+curZone);
             renderAllObjects();
@@ -2858,7 +2858,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
 
                                 treeObjects.clearSelection();
 
-                                selectionChanged();
+                                updateSelectedObjProperties();
                                 selectedObjs.clear();
                             }
                             
@@ -2888,7 +2888,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                             }
                             else {
                                 addRerenderTask("zone:"+curZone);
-                                selectionChanged();
+                                updateSelectedObjProperties();
                             }
                         } else {
                             if(treeNodeList.containsKey(objid)) {
@@ -2897,7 +2897,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                                 treeObjects.removeSelectionPath(tp);
                             } else {
                                 addRerenderTask("zone:"+curZone);
-                                selectionChanged();
+                                updateSelectedObjProperties();
                             }
                         }
                     }
@@ -3041,8 +3041,10 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     shortcutPasteLiteral();
                 else if (isShortcutPressed(e, false, false, false, KeyEvent.VK_SPACE))        // Jump to Selection -- SPACE
                     shortcutJumpToSelection();
-                else if (isShortcutPressed(e, false, false, false, KeyEvent.VK_L))
+                else if (isShortcutPressed(e, false, false, false, KeyEvent.VK_L))            // Link selected points in the order selected -- L
                     linkSelectedObjs();
+                else if (isShortcutPressed(e, false, false, false, KeyEvent.VK_P))            // Toggle color of selected points/links -- P
+                    toggleColor();
                 
             } else {
                 // ==========================================
@@ -3175,7 +3177,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 addRerenderTask("zone:" + obj.stage.stageName);
             }
             endUndoMulti();
-            selectionChanged();
+            updateSelectedObjProperties();
             setStatusToInfo("Truncated the positions of "+selectedObjs.size()+" object(s).");
             glCanvas.repaint();
             unsavedChanges = true;
@@ -3261,6 +3263,41 @@ public class WorldEditorForm extends javax.swing.JFrame {
         curScenarioIndex = 0;
         
         curScenario = galaxyArchive.scenarioData.get(curScenarioIndex);
+    }
+    
+    private void toggleColor()
+    {
+        if (selectedObjs.isEmpty()) {
+            setStatusToWarning("Nothing selected to toggle the color of.");
+            return;
+        }
+        startUndoMulti();
+        for (AbstractObj obj : selectedObjs.values())
+        {
+            String colorChangeName = "IsColorChange";
+            if (obj instanceof WorldPointPosObj)
+            {
+                colorChangeName = "ColorChange";
+            }
+            String colorChange = obj.data.getString(colorChangeName, "x");
+            addUndoEntry(IUndo.Action.PARAMETER, obj);
+            if (colorChange.equals("x"))
+                obj.propertyChanged(colorChangeName, "o");
+            else
+                obj.propertyChanged(colorChangeName, "x");
+
+            pnlObjectSettings.repaint();
+            DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
+            objlist.nodeChanged(treeNodeList.get(obj.uniqueID));
+            addRerenderTask("object:"+Integer.toString(obj.uniqueID));
+        }
+        endUndoMulti();
+        addRerenderTask("zone:"+curZone);
+        renderAllObjects();
+        glCanvas.repaint(); 
+        scrObjSettings.repaint();
+        updateSelectedObjProperties();
+        setStatusToInfo("Toggled the color of " + selectedObjs.size() + " object(s).");
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -3531,7 +3568,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
             isActivate = true;
         if (isActivate)
         {
-            selectionChanged();
+            updateSelectedObjProperties();
             renderAllObjects();
         }
     }//GEN-LAST:event_formWindowActivated
@@ -3577,7 +3614,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         selectedObjs.clear();
         treeObjects.clearSelection();
-        selectionChanged();
+        updateSelectedObjProperties();
         glCanvas.repaint();
     }//GEN-LAST:event_tgbDeselectActionPerformed
 
@@ -3607,7 +3644,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
         }
 
         selectionArg = 0;
-        selectionChanged();
+        updateSelectedObjProperties();
         glCanvas.repaint();
     }//GEN-LAST:event_treeObjectsValueChanged
 
@@ -3644,7 +3681,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 endUndoMulti();
                 
                 templist.clear();
-                selectionChanged();
+                updateSelectedObjProperties();
             }
             
             treeObjects.setSelectionRow(0);
