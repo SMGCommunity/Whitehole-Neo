@@ -207,5 +207,18 @@ public class WorldArchive {
         return i;
     }
     
+    public int generateStarGateId() {
+        int i = 0;
+        List<Integer> indexes = new ArrayList<>();
+        for (AbstractObj point : points.values())
+        {
+            WorldPointPosObj posObj = (WorldPointPosObj)point;
+            if (posObj.getType().equals("StarCheckPoint"))
+                indexes.add(posObj.getConnected().data.getInt("PartsIndex"));
+        }
+        while (indexes.contains(i))
+            i++;
+        return i;
+    }
     
 }

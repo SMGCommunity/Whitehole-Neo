@@ -805,8 +805,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
             maxUniqueID = uniqueID;
         }
 
-        // TODO set id automatically for star gate
-
         // Add entry and node
         newobj.uniqueID = uniqueID;
         if (isPoint)
@@ -854,6 +852,10 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 WorldPointPosObj partsConnected = new WorldPointPosObj(position);
                 partsConnected.setConnected(new WorldPointPartsObj(objname));
                 obj = partsConnected;
+                if (objname.equals("StarCheckPoint")) {
+                    int starGateID = worldArchive.generateStarGateId();
+                    partsConnected.getConnected().data.put("PartsIndex", starGateID);
+                }
                 break;
             default:
                 System.err.println("Adding type not implemented: " + objtype);
@@ -1306,9 +1308,10 @@ public class WorldEditorForm extends javax.swing.JFrame {
                 addUndoEntry(IUndo.Action.TYPE, selectedObj);
                 WorldPointPosObj obj = (WorldPointPosObj)selectedObj;
                 obj.changeType((String)value);
-                
-//                DefaultTreeModel objlist =(DefaultTreeModel)treeObjects.getModel();
-//                objlist.nodeChanged(treeNodeList.get(selectedObj.uniqueID));
+                if (obj.getType().equals("StarCheckPoint")) {
+                    int starGateID = worldArchive.generateStarGateId();
+                    obj.getConnected().data.put("PartsIndex", starGateID);
+                }
                 updateSelectedObjProperties();
                 addRerenderTask("object:"+Integer.toString(selectedObj.uniqueID));
                 addRerenderTask("zone:"+curZone);
@@ -2776,7 +2779,6 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     {
                         // Apply zone placement
                         pickingDepth = 1;
-                        System.out.println("aaa " + mousePos + " " + pickingDepth);
                         Vec3f position = get3DCoords(mousePos);
                         String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
                         if (zonePlacements.containsKey(stageKey))

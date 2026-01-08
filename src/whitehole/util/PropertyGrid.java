@@ -679,7 +679,6 @@ public class PropertyGrid extends JTable {
 
         @Override
         public Object getCellEditorValue() {
-            System.out.println(combo.getSelectedItem());
             return combo.getSelectedItem();
         }
 
