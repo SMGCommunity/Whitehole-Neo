@@ -640,7 +640,7 @@ public class PropertyGrid extends JTable {
                 public void actionPerformed(ActionEvent evt) {
                     Object val = combo.getSelectedItem();
                     
-                    if (!field.value.equals(val)) {
+                    if (field.value == null || !field.value.equals(val)) {
                         if (field.type.equals("intlist")) {
                             String strVal = UIUtil.HTMLToText(String.valueOf(val));
                             int commentIndex = strVal.indexOf(':');

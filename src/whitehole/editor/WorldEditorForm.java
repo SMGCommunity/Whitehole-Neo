@@ -1139,86 +1139,61 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         // Check if the selected objects' classes are the same
         Class cls = null;
+        String type = null;
         boolean allthesame = true;
+        boolean sametype = true;
         if(selectedObjs.size() > 1) {
             for(AbstractObj selectedObj : selectedObjs.values()) {
+                // check if all the same class
                 if(cls != null && cls != selectedObj.getClass()) {
                     allthesame = false;
-                    break;
                 } else if(cls == null)
                     cls = selectedObj.getClass();
+                
+                // check if all the same type
+                if (selectedObj.getClass() == WorldPointPosObj.class) {
+                    WorldPointPosObj posObj = (WorldPointPosObj)selectedObj;
+                    if (type == null)
+                        type = posObj.getType();
+                    else if (!type.equals(posObj.getType()))
+                        sametype = false;
+                }
+                
+                if (!allthesame && !sametype)
+                    break;
             }
         }
         
         // If all selected objects are the same type, add all properties
         if(allthesame) {
             for(AbstractObj selectedObj : selectedObjs.values()) {
-                String layer = selectedObj.layerKey.equals("common") ? "Common" : selectedObj.getLayerName();
-                setStatusToInfo("Selected " + selectedObj.toString() + ".");
                 tgbDeselect.setEnabled(true);
-
-                LinkedList layerlist = new LinkedList();
-                layerlist.add("Common");
-                for(int l = 0; l < 26; l++) {
-                    String layerstring = String.format("Layer%1$c", (char) ('A' + l));
-                    if(curZoneArc.objects.containsKey(layerstring.toLowerCase()))
-                        layerlist.add(layerstring);
-                }
-
                 selectedObj.getProperties(pnlObjectSettings);
             }
 
             if(selectedObjs.size() > 1) {
-                pnlObjectSettings.removeField("pos_x"); pnlObjectSettings.removeField("pos_y"); pnlObjectSettings.removeField("pos_z");
-                pnlObjectSettings.removeField("pnt0_x"); pnlObjectSettings.removeField("pnt0_y"); pnlObjectSettings.removeField("pnt0_z");
-                pnlObjectSettings.removeField("pnt1_x"); pnlObjectSettings.removeField("pnt1_y"); pnlObjectSettings.removeField("pnt1_z");
-                pnlObjectSettings.removeField("pnt2_x"); pnlObjectSettings.removeField("pnt2_y"); pnlObjectSettings.removeField("pnt2_z");
-                
-                
-                
-                pnlObjectSettings.addCategory("Group_Move", "Group_Move");
-                pnlObjectSettings.addField("group_move_x", "Step X Pos", "float", null,0.0f, "");//adding movement input fields
-                pnlObjectSettings.addField("group_move_y", "Step Y Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_move_z", "Step Z Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_x", "Move X", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_y", "Move Y", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_z", "Move Z", "float", null,0.0f, "");
-                pnlObjectSettings.addField("groupmove_a", "Move all", "float", null,0.0f, "");
-                
-                pnlObjectSettings.addCategory("Group_Rotate", "Group_Rotate");
-                pnlObjectSettings.addField("group_rotate_center_x", "Center X Pos", "float", null,0.0f, "");//adding rotations input fields
-                pnlObjectSettings.addField("group_rotate_center_y", "Center Y Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_center_z", "Center Z Pos", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_angle_x", "Rotate X", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_angle_y", "Rotate Y", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_rotate_angle_z", "Rotate Z", "float", null,0.0f, "");
-                
-                pnlObjectSettings.addCategory("Group_Copy", "Group_Copy");
-                pnlObjectSettings.addField("group_copy_offset_x", "offest X", "float", null,0.0f, "");//adding copy input fields
-                pnlObjectSettings.addField("group_copy_offset_y", "offest Y", "float", null,0.0f, "");
-                pnlObjectSettings.addField("group_copy_offset_z", "offest Z", "float", null,0.0f, "");
+                pnlObjectSettings.removeField("PointPosX"); pnlObjectSettings.removeField("PointPosY"); pnlObjectSettings.removeField("PointPosZ");
             }
-            	this.g_center_x = 0;//reset values if selected objects changed
-            	this.g_center_y =0;
-            	this.g_center_z =0;
-            	this.g_angle_x =0;
-            	this.g_angle_y =0;
-            	this.g_angle_z =0;
-            	this.g_move_step_a =0;
-            	this.g_move_step_x =0;
-            	this.g_move_step_y =0;
-            	this.g_move_step_z =0;
-            	this.g_move_x =0;
-            	this.g_move_y =0;
-            	this.g_move_z =0;
-            	this.g_offset_x=0;
-            	this.g_offset_y=0;
-            	this.g_offset_z=0;
-            	
+            if (!sametype)
+            {
+                // remove parts fields/categories
+                pnlObjectSettings.removeField("Param00"); pnlObjectSettings.removeField("Param01"); pnlObjectSettings.removeField("Param02");
+                pnlObjectSettings.removeField("PartsIndex"); pnlObjectSettings.removeField("obj_parts");
+                // remove galaxy fields/categories
+                pnlObjectSettings.removeField("obj_galaxy"); pnlObjectSettings.removeField("StageName"); pnlObjectSettings.removeField("MiniatureName");
+                pnlObjectSettings.removeField("StageType"); pnlObjectSettings.removeField("ScaleMin"); pnlObjectSettings.removeField("ScaleMax");
+                pnlObjectSettings.removeField("PosOffsetX"); pnlObjectSettings.removeField("PosOffsetY"); pnlObjectSettings.removeField("PosOffsetZ");
+                pnlObjectSettings.removeField("NamePlatePosX"); pnlObjectSettings.removeField("NamePlatePosY"); pnlObjectSettings.removeField("NamePlatePosZ");
+                pnlObjectSettings.removeField("IconOffsetX"); pnlObjectSettings.removeField("IconOffsetY");
+            }
         }
         
         if(selectedObjs.size() > 1) {
-            setStatusToInfo("Multiple objects selected.(" + selectedObjs.size() + ").");
+            setStatusToInfo("Multiple objects selected (" + selectedObjs.size() + ").");
+        }
+        // prior checks guarantee that this will only apply when the size is 1
+        else {
+            setStatusToInfo("Selected " + selectedObjs.values().iterator().next().toString() + ".");
         }
         
         

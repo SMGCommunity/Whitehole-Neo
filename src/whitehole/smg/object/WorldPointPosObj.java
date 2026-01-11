@@ -131,7 +131,7 @@ public class WorldPointPosObj extends AbstractObj {
             }
             else
             {
-                throw new NullPointerException("Data doesn't contain key "+value+" and linkedObject is null");
+                throw new NullPointerException("Data doesn't contain key "+propname+" and connectedObject is null");
             }
         }
         else {
