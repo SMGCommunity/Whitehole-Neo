@@ -82,7 +82,7 @@ public class WorldPointPartsObj extends AbstractObj {
                 param00Name = "Point ID Destination";
                 break;
         }
-        panel.addCategory("obj_parts", "PartsObj Settings");
+        panel.addCategory("obj_parts", "Point Parts Settings");
         panel.addField("PartsIndex", partsIndexName, "int", null, data.getInt("PartsIndex", 0), "");
         panel.addField("Param00", param00Name, "int", null, data.getInt("Param00", 0), "");
         panel.addField("Param01", param01Name, "int", null, data.getInt("Param01", 0), "");

@@ -753,7 +753,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
     
     private void linkSelectedObjs() {
         if (selectedObjs.size() < 2) {
-            setStatusToInfo("You must select at least 2 points, then press 'L', or click 'Link selected objects'.");
+            setStatusToWarning("You must select at least 2 points, then press 'L', or click 'Link selected objects'.");
             return;
         }
         

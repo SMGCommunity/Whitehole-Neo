@@ -66,7 +66,7 @@ public class WorldGalaxyObj extends AbstractObj {
 
     @Override
     public void getProperties(PropertyGrid panel) {
-        panel.addCategory("obj_galaxy", "GalaxyObj Settings");
+        panel.addCategory("obj_galaxy", "Galaxy Point Settings");
         addField(panel, "StageName");
         addField(panel, "MiniatureName");
         addField(panel, "StageType");

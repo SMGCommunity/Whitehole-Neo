@@ -62,7 +62,7 @@ public class WorldPointLinkObj extends AbstractObj {
     @Override
     public void getProperties(PropertyGrid panel) {
         
-        panel.addCategory("obj_link", "PointLink Settings");
+        panel.addCategory("obj_link", "Link Settings");
         addField(panel, "PointIndexA");
         addField(panel, "PointIndexB");
         addField(panel, "CloseStageName");

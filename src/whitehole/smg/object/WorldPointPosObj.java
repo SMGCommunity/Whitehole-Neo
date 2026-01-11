@@ -90,7 +90,7 @@ public class WorldPointPosObj extends AbstractObj {
     
     @Override
     public void getProperties(PropertyGrid panel) {
-        panel.addCategory("obj_point", "PointPos Settings");
+        panel.addCategory("obj_point", "Point Settings");
         String type = "Normal";
         if (connectedObject != null)
         {
@@ -186,10 +186,17 @@ public class WorldPointPosObj extends AbstractObj {
     
     @Override
     public String toString() {
+        String retStr = "[" + data.getInt("Index", 0) + "] ";
+        
+        boolean isValid = data.getString("Valid", "o").equals("o");
+        if (!isValid)
+            retStr += "Disabled ";
+        
         if (connectedObject == null) {
-            return String.format("[%d] Point", data.getInt("Index", 0));
+            retStr += "Point";
         } else {
-            return String.format("[%d] %s", data.getInt("Index", 0), connectedObject.toString());
+            retStr += connectedObject.toString();
         }
+        return retStr;
     }
 }
