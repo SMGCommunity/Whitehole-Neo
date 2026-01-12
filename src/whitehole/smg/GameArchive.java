@@ -56,7 +56,7 @@ public class GameArchive {
         if (filesystem.fileExists("/StageData/ObjNameTable.arc")) {
             gameType = 1;
         }
-        else if (filesystem.fileExists("/AudioRes/Info/ActionSound.arc")) {
+        else if (filesystem.fileExists("/AudioRes/Info/ActionSound.arc") || filesystem.fileExists("/SystemData/ObjNameTable.arc")) {
             gameType = 2;
         }
         else {
