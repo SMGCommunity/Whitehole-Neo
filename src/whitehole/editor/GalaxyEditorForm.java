@@ -1617,14 +1617,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      */
     public void selectionChanged() {
         displayedPaths.clear();
-        pnlObjectSettings.clear();
+        if (pnlObjectSettings != null)
+            pnlObjectSettings.clear();
         
         if(selectedObjs.isEmpty()) {
             setStatusToInfo("Object deselected.");
             tgbDeselect.setEnabled(false);
-            pnlObjectSettings.doLayout();
-            pnlObjectSettings.validate();
-            pnlObjectSettings.repaint();
+            if (pnlObjectSettings != null){
+                pnlObjectSettings.doLayout();
+                pnlObjectSettings.validate();
+                pnlObjectSettings.repaint();
+            }
             return;
         }
         
@@ -3495,7 +3498,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         for(String zone : zoneArchives.keySet())
             addRerenderTask("zone:" + zone);
         
-        glCanvas.repaint();
+        if (glCanvas != null)
+            glCanvas.repaint();
     }
     
     /**
