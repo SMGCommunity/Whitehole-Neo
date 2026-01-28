@@ -3820,42 +3820,41 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 }
             }
             
-            if (level < 5) {
+            if (level < 2) {
                 for(StageObj subzone : zoneArchives.get(zone).zones.get("common")) {
-                    gl.glPushMatrix();
-                    gl.glTranslatef(subzone.position.x, subzone.position.y, subzone.position.z);
-                    gl.glRotatef(subzone.rotation.z, 0f, 0f, 1f);
-                    gl.glRotatef(subzone.rotation.y, 0f, 1f, 0f);
-                    gl.glRotatef(subzone.rotation.x, 1f, 0f, 0f);
-
-                    String zonename = subzone.name;
-                    if (!scenario.containsKey(zonename))
-                    {
-                        String err = "LOAD ERROR: \""+zonename+"\" is used but has no Layer information in the Scenario data";
-                        setStatusToError(err, new Exception("WHITEHOLE "+err));
-                    }
-                    renderZone(gl, scenario, zonename,(int)scenario.get(zonename), level + 1);
-
-                    gl.glPopMatrix();
+                    tryRenderSubZone(gl, subzone, scenario, level);
                 }
                 
                 for(int l = 0; l < 16; l++) {
                     if((layermask &(1 << l)) != 0) {
                         for(StageObj subzone : zoneArchives.get(zone).zones.get("layer" + alphabet.charAt(l))) {
-                            gl.glPushMatrix();
-                            gl.glTranslatef(subzone.position.x, subzone.position.y, subzone.position.z);
-                            gl.glRotatef(subzone.rotation.z, 0f, 0f, 1f);
-                            gl.glRotatef(subzone.rotation.y, 0f, 1f, 0f);
-                            gl.glRotatef(subzone.rotation.x, 1f, 0f, 0f);
-
-                            String zonename = subzone.name;
-                            renderZone(gl, scenario, zonename,(int)scenario.get(zonename), level + 1);
-
-                            gl.glPopMatrix();
+                            tryRenderSubZone(gl, subzone, scenario, level);
                         }
                     }
                 }
             }
+            else
+            {
+                // Illegal zone setup, should throw an error...
+            }
+        }
+        
+        private void tryRenderSubZone(GL2 gl, StageObj subzone, Bcsv.Entry scenario, int level){
+            gl.glPushMatrix();
+            gl.glTranslatef(subzone.position.x, subzone.position.y, subzone.position.z);
+            gl.glRotatef(subzone.rotation.z, 0f, 0f, 1f);
+            gl.glRotatef(subzone.rotation.y, 0f, 1f, 0f);
+            gl.glRotatef(subzone.rotation.x, 1f, 0f, 0f);
+
+            String zonename = subzone.name;
+            if (!scenario.containsKey(zonename))
+            {
+                String err = "LOAD ERROR: \""+zonename+"\" is used but has no Layer information in the Scenario data";
+                setStatusToError(err, new Exception("WHITEHOLE "+err));
+            }
+            renderZone(gl, scenario, zonename,(int)scenario.get(zonename), level + 1);
+
+            gl.glPopMatrix();
         }
         
         @Override
