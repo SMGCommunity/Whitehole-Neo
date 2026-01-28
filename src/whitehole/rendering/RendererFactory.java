@@ -307,8 +307,13 @@ public final class RendererFactory {
         
         if (objName.startsWith("oceanbowl_"))
             return new OceanShapeRenderer(OceanShapeRenderer.Shape.BOWL, obj.scale, (int)oa0, (int)oa1);
-        if (objName.startsWith("oceanring_"))
-            return new OceanShapeRenderer(OceanShapeRenderer.Shape.RING, obj.scale, (int)oa0, (int)oa1);
+        if (objName.startsWith("oceanring_")) {
+            OceanShapeRenderer ring = new OceanShapeRenderer(OceanShapeRenderer.Shape.RING, obj.scale, (int)oa0, (int)oa1);
+            var y = AbstractObj.getObjectPathData(obj);
+            ring.setPathData(y, obj);
+            return ring;
+        }
+            
         if (objName.startsWith("oceansphere_"))
             return new OceanShapeRenderer(OceanShapeRenderer.Shape.SPHERE, obj.scale, (int)oa0, (int)oa1);
         
