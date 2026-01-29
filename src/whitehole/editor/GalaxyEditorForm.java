@@ -1399,39 +1399,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     /**
     * Attempt to apply rotation/translation of the current zone to {@code delta}.
     * @param delta the position to change
-    * @return subzone rotation
+    * @param doTranslation if true, the zone's translation is applied
+    * @param doRotation if true, the zone's rotation is applied
     */
-    public Vec3f applySubzoneRotation(Vec3f delta) {
+    public void tryApplyCurrentZoneTR(Vec3f delta, boolean doTranslation, boolean doRotation) {
         if(!isGalaxyMode)
-            return new Vec3f();
+            return;
 
         String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-        if(zonePlacements.containsKey(stageKey)) {
-            StageObj szdata = zonePlacements.get(stageKey);
-
-            float xcos = (float)Math.cos(-(szdata.rotation.x * Math.PI) / 180f);
-            float xsin = (float)Math.sin(-(szdata.rotation.x * Math.PI) / 180f);
-            float ycos = (float)Math.cos(-(szdata.rotation.y * Math.PI) / 180f);
-            float ysin = (float)Math.sin(-(szdata.rotation.y * Math.PI) / 180f);
-            float zcos = (float)Math.cos(-(szdata.rotation.z * Math.PI) / 180f);
-            float zsin = (float)Math.sin(-(szdata.rotation.z * Math.PI) / 180f);
-
-            float x1 = (delta.x * zcos) - (delta.y * zsin);
-            float y1 = (delta.x * zsin) + (delta.y * zcos);
-            float x2 = (x1 * ycos) + (delta.z * ysin);
-            float z2 = -(x1 * ysin) + (delta.z * ycos);
-            float y3 = (y1 * xcos) - (z2 * xsin);
-            float z3 = (y1 * xsin) + (z2 * xcos);
-
-            delta.x = x2;
-            delta.y = y3;
-            delta.z = z3;
-            
-        } else {
-            // zone not found??;
-        }
+        if(!zonePlacements.containsKey(stageKey))
+            return;
+        StageObj szdata = zonePlacements.get(stageKey);
         
-        return delta;
+        if (doTranslation)
+            delta.set(StageUtil.applyZoneT(delta, szdata));
+        
+        if (doRotation)
+            delta.set(StageUtil.applyZoneR(delta, szdata));
     }
     
     /**
@@ -4216,7 +4200,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                            (xdelta * CamRotXSin) -(ydelta * CamRotYSin * CamRotXCos),
                             ydelta * ComRotYCos,
                             -(xdelta * CamRotXCos) -(ydelta * CamRotYSin * CamRotXSin));
-                    applySubzoneRotation(delta);
+                    tryApplyCurrentZoneTR(delta, false, true);
                     offsetSelectionBy(delta, e.isShiftDown());
                     
                     unsavedChanges = true;
@@ -4387,16 +4371,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     {
                         // Apply zone placement
                         Vec3f position = get3DCoords(mousePos, Math.min(pickingDepth, 1f));
-                        if(isGalaxyMode)
-                        {
-                            String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-                            if (zonePlacements.containsKey(stageKey))
-                            {
-                                StageObj zonePlacement = zonePlacements.get(stageKey);
-                                position.subtract(zonePlacement.position);
-                                applySubzoneRotation(position);
-                            }
-                        }
+                        tryApplyCurrentZoneTR(position, true, true);
                         addObject(position, addingObject, addingObjectOnLayer, curZone, true);
 
                         addUndoEntry(IUndo.Action.ADD, newobj); //This is the only one that happens after the event occurs?
@@ -4424,16 +4399,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     {
                         // Apply zone placement
                         Vec3f position = get3DCoords(mousePos, Math.min(pickingDepth, 1f));
-                        if(isGalaxyMode)
-                        {
-                            String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-                            if (zonePlacements.containsKey(stageKey))
-                            {
-                                StageObj zonePlacement = zonePlacements.get(stageKey);
-                                position.subtract(zonePlacement.position);
-                                applySubzoneRotation(position);
-                            }
-                        }
+                        tryApplyCurrentZoneTR(position, true, true);
                         performObjectPaste(position);
                         
                         if (!shiftpressed)
@@ -4557,7 +4523,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 vdelta.y += ydist *(float)Math.cos(camRotation.y);
                 vdelta.z +=(xdist *(float)Math.cos(camRotation.x)) -(ydist *(float)Math.sin(camRotation.y) *(float)Math.sin(camRotation.x));
                 
-                applySubzoneRotation(vdelta);
+                tryApplyCurrentZoneTR(vdelta, false, true);
                 // We do not need an Undo entry for this because you need to already be moving the object (which creates an undo step already)
                 offsetSelectionBy(vdelta, e.isShiftDown());
                 
@@ -5185,6 +5151,37 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         listZones.setSelectedIndex(0);
+    }
+    
+    
+    
+    private ArrayList<AbstractObj> getAllAbstractObjFromActiveLayers(String type) {
+       ArrayList<AbstractObj> results = new ArrayList();
+        
+        for (String zone : galaxyArchive.zoneList) {
+            int layerMask = curScenario.getInt(zone);
+            for (AbstractObj obj : globalObjList.values()) {
+                if (!obj.getFileType().equals(type)) {
+                    continue;
+                }
+                
+                if (!obj.stage.stageName.equals(zone)) {
+                    continue;
+                }
+                
+                if (!obj.layerKey.equals("common")) {
+                    int layerID = obj.layerKey.charAt(5) - (char)'a';
+
+                    if ((layerMask & (1 << layerID)) == 0) {
+                        continue;
+                    }
+                }
+
+                results.add(obj);
+            }
+        }
+
+        return results;
     }
     
     // -------------------------------------------------------------------------------------------------------------------------

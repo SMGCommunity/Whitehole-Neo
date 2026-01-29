@@ -147,4 +147,19 @@ public class GravityObj extends AbstractObj {
         addField(panel, "ClippingGroupId");
         addField(panel, "DemoGroupId");
     }
+
+    
+    
+    public float getRange() {
+        return data.getFloat("Range", 0.0f);
+    }
+    public float getDistant() {
+        return data.getFloat("Distant", 0.0f);
+    }
+    public boolean isInverse() {
+        return data.getInt("Inverse", -1) > 0;
+    }
+    public int getPriority() {
+        return data.getInt("Priority", 0);
+    }
 }

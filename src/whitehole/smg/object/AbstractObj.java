@@ -65,17 +65,22 @@ public abstract class AbstractObj {
         }
     }
     
-    public String toClipboard()
-    {
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Helper functions
+    
+    private static final List<String> CHOICES_GRAVITY_POWERS =  new ArrayList() {{ add("Normal"); add("Light"); add("Heavy"); }};
+    private static final List<String> CHOICES_GRAVITY_TYPES = new ArrayList() {{ add("Normal"); add("Shadow"); add("Magnet"); }};
+    private static final String UNUSED_FIELD_START = "<html><em>";
+    private static final String UNUSED_FIELD_END = "</em></html>";    
+    
+    
+    public String toClipboard() {
         data.put("name", name);
         putVector("pos", position);
         putVector("dir", rotation);
         putVector("scale", scale);
         return getFileType() + "|" + data.toClipboard("WHNO");
     }
-    
-    // -------------------------------------------------------------------------------------------------------------------------
-    // Helper functions
     
     protected final Vec3f getVector(String prefix) {
         float x = (float)data.getOrDefault(prefix + "_x", 0.0f);
@@ -98,14 +103,7 @@ public abstract class AbstractObj {
         objdbInfo = ObjectDB.getObjectInfo(name);
     }
     
-    private static final List<String> CHOICES_GRAVITY_POWERS =  new ArrayList() {{ add("Normal"); add("Light"); add("Heavy"); }};
-    private static final List<String> CHOICES_GRAVITY_TYPES = new ArrayList() {{ add("Normal"); add("Shadow"); add("Magnet"); }};
-    
-    private static final String UNUSED_FIELD_START = "<html><em>";
-    private static final String UNUSED_FIELD_END = "</em></html>";    
-    
-    protected final String getFieldNameForObjectDB(String field)
-    {
+    protected final String getFieldNameForObjectDB(String field) {
         switch (field)
         {
             case "GroupId":
@@ -324,6 +322,71 @@ public abstract class AbstractObj {
         }
     }
     
+    /**
+    * Gets the Path ID for a given object.
+    * @param obj The object to get the path ID for.
+    * @return the Path ID that is assigned to this object (or -1 if no path is assigned)
+    */
+    public static int getObjectPathId(AbstractObj obj) {
+        int pathid = -1;
+            
+        if(obj instanceof PathPointObj)
+            pathid = ((PathPointObj) obj).path.pathID;
+        else if(obj != null && obj.data.containsKey("CommonPath_ID"))
+            pathid = (short) obj.data.get("CommonPath_ID");
+
+        return pathid;
+    }
+    
+    /**
+    * Gets the Path Data for a given object.
+    * @param obj The object to get the path data for.
+    * @return the PathObj that is assigned to this object (or NULL if no path is assigned)
+    */
+    public static PathObj getObjectPathData(AbstractObj obj) {
+        int pathid = getObjectPathId(obj);
+
+        if(pathid == -1)
+            return null;
+        
+        for(var p : obj.stage.paths)
+        {
+            if (p.pathID == pathid && obj.stage == p.stage)
+                return p;
+        }
+        return null; //Path not found!
+    }
+    
+    /**
+     * Gets the Path Data for a given object.
+     * @param obj The object to check
+     * @param path The path to check for
+     * @return true if the provided object is using the provided path
+     */
+    public static boolean isUsingPath(AbstractObj obj, PathObj path) {
+        if (obj == null || path == null)
+            return false;
+        if (obj instanceof PathPointObj)
+            return ((PathPointObj)obj).path == path; //We want a reference comparison
+        if(!obj.data.containsKey("CommonPath_ID"))
+            return false;
+        int pathid = (short)obj.data.get("CommonPath_ID");
+        return obj.stage == path.stage && pathid == path.pathID;
+    }
+    
+    /**
+     * Gets the value tied to a given Object Argument
+     * @param obj
+     * @param argno
+     * @param def the Default value to return if the arg is set to -1. null will return the default default of -1
+     * @return 
+     */
+    public static int getObjectArgument(AbstractObj obj, int argno, Integer def) {
+        int d = def != null ? def : -1;
+        String argname = "Obj_arg"+argno;
+        return obj.data.getInt(argname, d);
+    }
+    
     // -------------------------------------------------------------------------------------------------------------------------
     // Rendering
     
@@ -336,7 +399,6 @@ public abstract class AbstractObj {
         renderer = result.getKey();
         renderer.compileDisplayLists(info);
         renderer.releaseStorage();
-        //PreviousRenderKey = RendererFactory.getSubstitutedModelName(name, this, false);
         PreviousRenderKey = result.getValue();
     }
     
@@ -374,48 +436,5 @@ public abstract class AbstractObj {
         }
         
         gl.glPopMatrix();
-    }
-    
-    public static int getObjectPathId(AbstractObj obj)
-    {
-        int pathid = -1;
-            
-        if(obj instanceof PathPointObj)
-            pathid = ((PathPointObj) obj).path.pathID;
-        else if(obj.data.containsKey("CommonPath_ID"))
-            pathid = (short) obj.data.get("CommonPath_ID");
-
-        return pathid;
-    }
-    
-     /**
-     * Gets the Path Data for a given object.
-     * @param obj The object to get the path data for.
-     */
-    public static PathObj getObjectPathData(AbstractObj obj)
-    {
-        int pathid = getObjectPathId(obj);
-
-        if(pathid == -1)
-            return null;
-        
-        for(var p : obj.stage.paths)
-        {
-            if (p.pathID == pathid && obj.stage == p.stage)
-                return p;
-        }
-        return null; //Path not found!
-    }
-    
-    public static boolean isUsingPath(AbstractObj obj, PathObj path)
-    {
-        if (obj == null || path == null)
-            return false;
-        if (obj instanceof PathPointObj)
-            return ((PathPointObj)obj).path == path; //We want a reference comparison
-        if(!obj.data.containsKey("CommonPath_ID"))
-            return false;
-        int pathid = (short)obj.data.get("CommonPath_ID");
-        return obj.stage == path.stage && pathid == path.pathID;
     }
 }
