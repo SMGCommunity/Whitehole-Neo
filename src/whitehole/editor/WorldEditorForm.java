@@ -3186,8 +3186,10 @@ public class WorldEditorForm extends javax.swing.JFrame {
             String stageKey = "";
             if (selectedObjs.size() == 1) {
                 AbstractObj obj = selectedObjs.values().iterator().next();
-
-                TargetPos.set(obj.position);
+                if (obj instanceof WorldPointLinkObj)
+                    TargetPos.set(getLinkPosition((WorldPointLinkObj)obj));
+                else
+                    TargetPos.set(obj.position);
                 stageKey = String.format("%d/%s", 1, curZone);
             }
             else {
@@ -3198,7 +3200,10 @@ public class WorldEditorForm extends javax.swing.JFrame {
                     if (idx == 0) // Yoink
                         stageKey = String.format("%d/%s", 1, curZone);
                     
-                    selectionPositions[idx] = obj.position;
+                    if (obj instanceof WorldPointLinkObj)
+                        selectionPositions[idx] = getLinkPosition((WorldPointLinkObj)obj);
+                    else
+                        selectionPositions[idx] = obj.position;
                     idx++;
                 }
                 TargetPos.set(Vec3f.centroid(selectionPositions));
@@ -3234,6 +3239,24 @@ public class WorldEditorForm extends javax.swing.JFrame {
         String objType = objects.get(0).getFileType();
 
         return generateID(objType);
+    }
+    
+    public Vec3f getLinkPosition(WorldPointLinkObj obj)
+    {
+        Vec3f pos = new Vec3f();
+        int indexA = obj.data.getInt("PointIndexA");
+        int indexB = obj.data.getInt("PointIndexB");
+        if (!(worldArchive.points.containsKey(indexA)) || !(worldArchive.points.containsKey(indexA)))
+            return pos;
+        
+        Vec3f pointA = worldArchive.points.get(indexA).position;
+        Vec3f pointB = worldArchive.points.get(indexB).position;
+        
+        pos.x = (float)((pointA.x + pointB.x) * 0.5);
+        pos.y = (float)((pointA.y + pointB.y) * 0.5);
+        pos.z = (float)((pointA.z + pointB.z) * 0.5);
+        
+        return pos;
     }
     
     private void updateScenarioList() {
@@ -3677,7 +3700,10 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private void itmPositionCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmPositionCopyActionPerformed
         if (selectedObjs.size() == 1) {
             AbstractObj obj = selectedObjs.values().iterator().next();
-            COPY_POSITION.set(obj.position);
+            if (obj instanceof WorldPointLinkObj)
+                COPY_POSITION.set(getLinkPosition((WorldPointLinkObj)obj));
+            else
+                COPY_POSITION.set(obj.position);
 
             String posString = COPY_POSITION.toString();
             itmPositionPaste.setText(String.format("Position (%s)", posString));
