@@ -33,8 +33,8 @@ import whitehole.Settings;
  * @author Lord-Giganticus
  */
 public final class Discord {
-    private final IPCClient client;
-    private final Builder builder;
+    private IPCClient client = null;
+    private Builder builder = null;
     private final ArrayList<FrameRef> Frames = new ArrayList<>();
     private boolean enabled = true;
     private final class FrameRef {
@@ -68,19 +68,34 @@ public final class Discord {
         {
             enabled = false;
         }
-        // Currently uses Lord-G's Neo ID, please inform if any assets need change
-        client = new IPCClient(1418260169854423142L);
-        builder = new Builder();
-        builder.setLargeImage("icon");
-        builder.setStartTimestamp(OffsetDateTime.now());
+        try {
+            // Currently uses Lord-G's Neo ID, please inform if any assets need change
+            client = new IPCClient(1418260169854423142L);
+            builder = new Builder();
+            builder.setLargeImage("icon");
+            builder.setStartTimestamp(OffsetDateTime.now());
+        } catch (Exception ex) {
+            System.err.println("Unexpected error while constructing Discord RPC. Disabling.");
+            if (Settings.getDebugAdditionalLogs())
+                ex.printStackTrace();
+            enabled = false;
+            Settings.setDiscordRichPresenceEnabled(false);
+        }
+        
     }
     public void init() {
         if (!enabled) return;
         try {
             client.connect();
+            return;
         } catch (NoDiscordClientException ex) {
-            Logger.getLogger(Discord.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Discord not found. Disabling.");
+        } catch (Exception ex) {
+            System.err.println("Unexpected error while initializing Discord RPC. Disabling.");
+            ex.printStackTrace();
         }
+        enabled = false;
+        Settings.setDiscordRichPresenceEnabled(false);
     }
     public void setDesc(String desc) {
         if (!enabled) return;
@@ -100,7 +115,14 @@ public final class Discord {
     }
     public void close() {
         if (!enabled) return;
-        client.close();
+        try {
+            client.close();
+        } catch (Exception ex) {
+            System.err.println("Unexpected error while closing Discord RPC.");
+            ex.printStackTrace();
+            enabled = false;
+            Settings.setDiscordRichPresenceEnabled(false);
+        }
     }
     private FrameRef Last() {
         return Frames.get(Frames.size() - 1);

@@ -631,14 +631,22 @@ public class Bmd
 
                 file.position(sectionstart + mtxdataoffset + ((firstmtxindex + j) * 0x8));
 
-                file.skip(2);
-                short mtxtablesize = file.readShort();
-                int mtxtablefirstindex = file.readInt();
+                short SingleMtx_DRW1MatrixID = file.readShort();
+                short MultiMtx_MatrixIDCount = file.readShort();
+                int MultiMtx_StartingMatrixID = file.readInt();
 
-                packet.matrixTable = new short[mtxtablesize];
-                file.position(sectionstart + mtxtableoffset + (mtxtablefirstindex * 0x2));
-                for (int k = 0; k < mtxtablesize; k++)
-                    packet.matrixTable[k] = file.readShort();
+                if (batch.matrixType == 3)
+                {
+                    packet.matrixTable = new short[MultiMtx_MatrixIDCount];
+                    file.position(sectionstart + mtxtableoffset + (MultiMtx_StartingMatrixID * 0x2));
+                    for (int k = 0; k < MultiMtx_MatrixIDCount; k++)
+                        packet.matrixTable[k] = file.readShort();
+                }
+                else
+                {
+                    packet.matrixTable = new short[1];
+                    packet.matrixTable[0] = SingleMtx_DRW1MatrixID;
+                }
 
                 file.position(sectionstart + pktlocationsoffset + ((firstpktindex + j) * 0x8));
 
@@ -1213,12 +1221,7 @@ public class Bmd
         long sectionstart = file.position() - 4;
         int sectionsize = file.readInt();
 
-        // TODO: figure out what the peck this section is about
-        // bmdview2 has no code about it
-        // the section doesn't seem important for rendering the model, but it
-        // may have relations with animations or something else
-        // and more importantly, can we generate a .bdl file without that
-        // section and expect SMG to render it correctly?
+        // For Whitehole's purposes, this chunk can be completely ignored.
 
         file.position(sectionstart + sectionsize);
     }

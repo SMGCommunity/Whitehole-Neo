@@ -49,7 +49,7 @@ public class Vec3f implements Cloneable {
             return null;
         }
     }
-    
+        
     // -------------------------------------------------------------------------------------------------------------------------
     
     public void set(Vec3f that) {
@@ -103,6 +103,10 @@ public class Vec3f implements Cloneable {
         if (Math.abs(a.y - b.y) > epsilon)
             return false;
         return Math.abs(a.z - b.z) <= epsilon;
+    }
+    
+    public static boolean exactlyEqual(Vec3f a, Vec3f b) {
+        return a.x == b.x && a.y == b.y && a.z == b.z;
     }
     
     public static void transform(Vec3f v, Matrix4 m, Vec3f out) {

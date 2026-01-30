@@ -73,7 +73,6 @@ public class MathUtil {
         return Matrix4.SRTToMatrix(obj.scale, obj.rotation, obj.position);
     }
     
-    
     public static boolean isPowerOfTwo(int n) {
         return n > 0 && (n & (n - 1)) == 0;
     }

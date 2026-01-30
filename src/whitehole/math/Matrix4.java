@@ -394,8 +394,13 @@ public class Matrix4 {
         return inverse;
     }
     
+    public Vec3f getYDir() {
+        return new Vec3f(m[1], m[5], m[9]);
+    }
+    
     public float m[];
     
+    @Override
     public String toString() {
         return String.format("\n" +
             "%11.5f, %11.5f, %11.5f, %11.5f\n" +

@@ -39,6 +39,8 @@ public final class RendererFactory {
     
     private static final String[] AREA_SHAPE_NAMES = { "baseorigincube", "centerorigincube", "sphere", "cylinder", "bowl" };
     
+    private static final String[] AREA_SHAPE_NAMES_SUFFIXES = { "cube", "box", "sphere", "cylinder", "bowl" };
+    
     private static final String[] OCEAN_SHAPE_NAMES = { "oceanbowl", "oceanring", "oceansphere" };
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -91,7 +93,19 @@ public final class RendererFactory {
         if (obj.objdbInfo.areaShape().equalsIgnoreCase("Any"))
         {
             int areaShapeNo = (short)obj.data.getOrDefault("AreaShapeNo", (short)-1);
-
+            
+            if (areaShapeNo == -1) {
+                String lowerObjName = obj.name.toLowerCase();
+                
+                for (int i = 0; i < AREA_SHAPE_NAMES_SUFFIXES.length; i++)
+                {
+                    if (lowerObjName.endsWith(AREA_SHAPE_NAMES_SUFFIXES[i])) {
+                        areaShapeNo = i;
+                        break;
+                    }
+                }
+            }
+            
             if (areaShapeNo < 0 || areaShapeNo > 4)
                 return "dummy";
             
@@ -99,7 +113,7 @@ public final class RendererFactory {
         }
         else
             mdl = obj.objdbInfo.areaShape().toLowerCase();
-        
+                
         return mdl + String.format("_(%s,%s,%s)",
                 obj.scale.x, obj.scale.y, obj.scale.z);
     }
@@ -130,7 +144,7 @@ public final class RendererFactory {
         }
                 
         String lowerObjModelName = objModelName.toLowerCase();
-        
+
         // Areas and Cameras do not use models, but we can process their model keys already
         if (obj instanceof AreaObj)
             return String.format("areaobj_%s", getAreaShapeModelName(obj));
@@ -297,8 +311,13 @@ public final class RendererFactory {
         
         if (objName.startsWith("oceanbowl_"))
             return new OceanShapeRenderer(OceanShapeRenderer.Shape.BOWL, obj.scale, (int)oa0, (int)oa1);
-        if (objName.startsWith("oceanring_"))
-            return new OceanShapeRenderer(OceanShapeRenderer.Shape.RING, obj.scale, (int)oa0, (int)oa1);
+        if (objName.startsWith("oceanring_")) {
+            OceanShapeRenderer ring = new OceanShapeRenderer(OceanShapeRenderer.Shape.RING, obj.scale, (int)oa0, (int)oa1);
+            var y = AbstractObj.getObjectPathData(obj);
+            ring.setPathData(y, obj);
+            return ring;
+        }
+            
         if (objName.startsWith("oceansphere_"))
             return new OceanShapeRenderer(OceanShapeRenderer.Shape.SPHERE, obj.scale, (int)oa0, (int)oa1);
         

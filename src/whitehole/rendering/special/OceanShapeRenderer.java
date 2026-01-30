@@ -48,8 +48,7 @@ public class OceanShapeRenderer extends GLRenderer {
     private Vec3f WireRotation;
     private CubeRenderer PathBaseOriginCube;
     
-    public OceanShapeRenderer(Shape shp, Vec3f scl, float arg0, float arg1)
-    {
+    public OceanShapeRenderer(Shape shp, Vec3f scl, float arg0, float arg1) {
         color = new Color4(0.3f, 0.3f, 1f);
         shape = shp;
         Scale = scl;
@@ -72,12 +71,10 @@ public class OceanShapeRenderer extends GLRenderer {
     @Override
     public boolean boundToProperty() { return false; }
     
-    
     @Override
     public boolean gottaRender(GLRenderer.RenderInfo info) throws GLException {
         return info.renderMode != GLRenderer.RenderMode.TRANSLUCENT;
     }
-    
     @Override
     public void render(GLRenderer.RenderInfo info) throws GLException {
         if (info.renderMode == GLRenderer.RenderMode.TRANSLUCENT)
@@ -137,16 +134,14 @@ public class OceanShapeRenderer extends GLRenderer {
     
     
     
-    public void setPathData(PathObj path, AbstractObj OwnerObj)
-    {
+    public void setPathData(PathObj path, AbstractObj OwnerObj) {
         PathData = path;
         PathBaseOriginCube = new CubeRenderer(100f, new Color4(1f, 1f, 1f), color, true);
         WirePosition = OwnerObj.position;
         WireRotation = OwnerObj.rotation;
     }
     
-    public void makeBowl(GLRenderer.RenderInfo info)
-    {
+    public void makeBowl(GLRenderer.RenderInfo info) {
         GL2 gl = info.drawable.getGL().getGL2();
         
         double SCALE_SIZE = SIZE * Math.max(Math.max(Scale.x, Scale.y), Scale.z);
@@ -211,8 +206,7 @@ public class OceanShapeRenderer extends GLRenderer {
         gl.glTranslatef(0f, 0f, 0f);
     }
 
-    public void makeRing(GLRenderer.RenderInfo info)
-    {
+    public void makeRing(GLRenderer.RenderInfo info) {
         if (PathData == null || PathData.size() <= 1)
         {
             if (PathBaseOriginCube != null)
@@ -224,8 +218,7 @@ public class OceanShapeRenderer extends GLRenderer {
             PathBaseOriginCube.render(info);
     }
     
-    public void makeSphere(GLRenderer.RenderInfo info)
-    {
+    public void makeSphere(GLRenderer.RenderInfo info) {
         GL2 gl = info.drawable.getGL().getGL2();
                 
         gl.glTranslatef(0f, 0f, 0f);
