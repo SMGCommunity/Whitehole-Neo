@@ -43,6 +43,14 @@
         {
             "Hint": "Need to try curving your path again? Use Ctrl + Shift + Alt + C to reset Path control points!",
             "Game": 0
+        },
+        {
+            "Hint": "You can quickly link Worldmap points by selecting what you want to link and pressing L.",
+            "Game": 2
+        },
+        {
+            "Hint": "To switch between Yellow and Pink routes in a Worldmap, select a point or link and press P.",
+            "Game": 2
         }
     ]
 }
