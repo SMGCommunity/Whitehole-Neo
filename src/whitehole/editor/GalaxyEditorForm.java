@@ -2902,7 +2902,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             pnlObjectSettings.setFieldValue("scale_z", obj.scale.z);
             pnlObjectSettings.repaint();
             
-            addRerenderTask("allobjects");
+            if (obj.renderer != null && obj.renderer.hasSpecialScaling()) {
+                renderAllObjects();
+                addRerenderTask("object:"+Integer.toString(obj.uniqueID));
+            }
+            else
+                addRerenderTask("allobjects");
         }
     }
     
