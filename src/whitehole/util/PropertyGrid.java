@@ -195,6 +195,8 @@ public class PropertyGrid extends JTable {
         Field f = fields.get(field);
         if (f.value == null) return;
         f.value = value;
+        AbstractTableModel model = (AbstractTableModel) this.getModel();
+        model.fireTableCellUpdated(f.row, 1);
     }
     
     public void removeField(String field) {
@@ -638,7 +640,7 @@ public class PropertyGrid extends JTable {
                 public void actionPerformed(ActionEvent evt) {
                     Object val = combo.getSelectedItem();
                     
-                    if (!field.value.equals(val)) {
+                    if (field.value == null || !field.value.equals(val)) {
                         if (field.type.equals("intlist")) {
                             String strVal = UIUtil.HTMLToText(String.valueOf(val));
                             int commentIndex = strVal.indexOf(':');
@@ -660,10 +662,17 @@ public class PropertyGrid extends JTable {
                             }
                         }
                         else {
-                            field.value = val;
-                            eventListener.propertyChanged(field.name, val);
+                            String strVal = UIUtil.HTMLToText(String.valueOf(val));
+                            int commentIndex = strVal.indexOf(':');
+                            if (commentIndex > -1) {
+                                strVal = strVal.substring(0, commentIndex);
+                            }
+                            combo.setSelectedItem(strVal);
+                            field.value = strVal;
+                            eventListener.propertyChanged(field.name, strVal);
                         }
                     }
+                    fireEditingStopped();
                 }
             });
         }

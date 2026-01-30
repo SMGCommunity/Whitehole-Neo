@@ -30,6 +30,7 @@ import whitehole.editor.CreateGalaxyForm;
 import whitehole.editor.GalaxyEditorForm;
 import whitehole.editor.GalaxyPropertiesForm;
 import whitehole.editor.ObjectSelectForm;
+import whitehole.editor.WorldEditorForm;
 import whitehole.io.ExternalFilesystem;
 import whitehole.rendering.RendererCache;
 import whitehole.rendering.ShaderCache;
@@ -80,19 +81,25 @@ public final class MainFrame extends javax.swing.JFrame {
     
     private final DefaultListModel<GalaxyListItem> galaxyItems;
     private final DefaultListModel<ZoneListItem> zoneItems;
+    private final DefaultListModel<GalaxyListItem> worldItems;
     private String currentGalaxy = null;
     private String currentZone = null;
+    private String currentWorld = null;
     private GalaxyEditorForm galaxyEditor = null;
     private GalaxyEditorForm zoneEditor = null;
+    private WorldEditorForm worldEditor = null;
     private final BcsvEditorForm bcsvEditor;
     private final AboutForm aboutDialog;
     private final SettingsForm settingsDialog;
     private final String openWithDirectory;
+    private final HashMap<String, Component> hiddenTabs;
+    private final List<String> tabOrder;
     
     public MainFrame(String[] args) {
         initComponents();
         galaxyItems = (DefaultListModel)(listGalaxy.getModel());
         zoneItems = (DefaultListModel)(listZone.getModel());
+        worldItems = (DefaultListModel) (listWorlds.getModel());
         
         bcsvEditor = new BcsvEditorForm();
         aboutDialog = new AboutForm(this);
@@ -102,6 +109,13 @@ public final class MainFrame extends javax.swing.JFrame {
             openWithDirectory = args[0];
         else
             openWithDirectory = null;
+        
+        hiddenTabs = new HashMap<>();
+        tabOrder = new ArrayList<>();
+        for (int i = 0; i < tabLists.getTabCount(); i++)
+        {
+            tabOrder.add(tabLists.getTitleAt(i));
+        }
     }
     
     private void openGameDir(String gameDir) {
@@ -115,7 +129,7 @@ public final class MainFrame extends javax.swing.JFrame {
         if (!gamedirfile.exists()) {
             lbStatusBar.setText("The directory \""+gameDir+"\" could not be found.");
             setInfo("Missing Directory", "The directory below was unable to be found.", "\""+gameDir+"\"", true);
-            tabLists.setSelectedIndex(2);
+            setSelectedTab("Status");
             return;
         }
         
@@ -156,21 +170,24 @@ public final class MainFrame extends javax.swing.JFrame {
         // Construct list of galaxy items
         galaxyItems.removeAllElements();
         zoneItems.removeAllElements();
+        worldItems.removeAllElements();
         
         if (Whitehole.getCurrentGameType() == 0) {
             lbStatusBar.setText("Selected directory isn't an SMG1/2 workspace.");
             setInfo("Invalid Directory", 
                     "The current directory isn't an SMG1/2 workspace. Valid workspaces contain a ObjNameTable.arc in",
                     "\"StageData\" (SMG1) or \"SystemData\" (SMG2), typically located in the \"data/files\" folder of your extracted game files.", true);
-            tabLists.setSelectedIndex(2);
+            setSelectedTab("Status");
             return;
         }
         
         
         List<String> galaxies = Whitehole.GAME.getGalaxyList();
         List<String> zones = Whitehole.GAME.getZoneList();
+        List<String> worlds = Whitehole.GAME.getWorldList();
         List<GalaxyListItem> listGalaxyItems = new ArrayList(galaxies.size());
         List<ZoneListItem> listZoneItems = new ArrayList(zones.size());
+        List<GalaxyListItem> listWorldItems = new ArrayList(worlds.size());
         
         for (String galaxy : galaxies) {
             listGalaxyItems.add(new GalaxyListItem(galaxy));
@@ -180,45 +197,55 @@ public final class MainFrame extends javax.swing.JFrame {
             listZoneItems.add(new ZoneListItem(zone));
         }
         
+        for (String world : worlds) {
+            listWorldItems.add(new GalaxyListItem(world));
+        }
+        
         listGalaxyItems.sort(ITEM_COMPARATOR);
         listZoneItems.sort(ITEM_COMPARATOR);
+        listWorldItems.sort(ITEM_COMPARATOR);
         
         galaxyItems.addAll(listGalaxyItems);
         zoneItems.addAll(listZoneItems);
+        worldItems.addAll(listWorldItems);
         
+        boolean showWorldsTab = Whitehole.GAME.getGameType() == 2;
+        if (showWorldsTab)
+            showTab("Worlds");
+        else
+            hideTab("Worlds");
         btnBcsvEditor.setEnabled(true);
         lbStatusBar.setText(Whitehole.Hints.getRandomApplicableHint());
         setInfo("Game Directory Selected", "Open a galaxy/zone by going to its respective tab and, with it selected,", 
                 "double clicking on it, pressing enter, or clicking 'Open Galaxy'.", false);
-        if (tabLists.getSelectedIndex() == 2)
-            tabLists.setSelectedIndex(0);
+        if (isTabSelected("Status"))
+            setSelectedTab("Galaxies");
         btnCreateGalaxy.setEnabled(true);
     }
     
-    private void setForceIdentifierGalaxy(Boolean forceId) {
+    private void setForceIdentifier(Boolean forceId, DefaultListModel<? extends GalaxyListItem> items, JList list)
+    {
         SwingUtilities.invokeLater(() -> {
-            for (int i = 0; i < galaxyItems.getSize(); i++) 
+            for (int i = 0; i < items.getSize(); i++) 
             {
-                
-                if (!Objects.equals(galaxyItems.getElementAt(i).forceIdentifier, forceId)) {
-                    galaxyItems.getElementAt(i).forceIdentifier = forceId;
+                if (!Objects.equals(items.getElementAt(i).forceIdentifier, forceId)) {
+                    items.getElementAt(i).forceIdentifier = forceId;
                 }
             }
-            listGalaxy.updateUI();
+            list.updateUI();
         });
     }
     
+    private void setForceIdentifierGalaxy(Boolean forceId) {
+        setForceIdentifier(forceId, galaxyItems, listGalaxy);
+    }
+    
     private void setForceIdentifierZone(Boolean forceId) {
-        SwingUtilities.invokeLater(() -> {
-            for (int i = 0; i < zoneItems.getSize(); i++) 
-            {
-                
-                if (!Objects.equals(zoneItems.getElementAt(i).forceIdentifier, forceId)) {
-                    zoneItems.getElementAt(i).forceIdentifier = forceId;
-                }
-            }
-            listZone.updateUI();
-        });
+        setForceIdentifier(forceId, zoneItems, listZone);
+    }
+    
+    private void setForceIdentifierWorld(Boolean forceId) {
+        setForceIdentifier(forceId, worldItems, listWorlds);
     }
     
     private void setInfo(String mainTitle, String line1, String line2, boolean showButton) {
@@ -226,6 +253,63 @@ public final class MainFrame extends javax.swing.JFrame {
         lblDesc1.setText(line1);
         lblDesc2.setText(line2);
         btnBigSelectGameFolder.setVisible(showButton);
+    }
+    
+    private void setSelectedTab(String tabName)
+    {
+        int index = tabLists.indexOfTab(tabName);
+        if (index == -1)
+            return;
+        tabLists.setSelectedIndex(index);
+    }
+    
+    private boolean isTabSelected(String tabName)
+    {
+        int selectedIndex = tabLists.getSelectedIndex();
+        int tabIndex = tabLists.indexOfTab(tabName);
+        if (tabIndex == -1 || selectedIndex == -1)
+            return false;
+        return tabIndex == selectedIndex;
+    }
+    
+    private void hideTab(String tabName)
+    {
+        int tabIndex = tabLists.indexOfTab(tabName);
+        if (tabIndex == -1) // tab already hidden / doesn't exist
+            return;
+        Component tab = tabLists.getComponentAt(tabIndex);
+        if (tab == null) // shouldn't happen, but just in case
+            return;
+        hiddenTabs.put(tabName, tab);
+        tabLists.removeTabAt(tabIndex);
+    }
+    
+    private void showTab(String tabName)
+    {
+        if (tabLists.indexOfTab(tabName) != -1) // tab already shown
+            return;
+        
+        // figure out the index. base the order on the tabOrder array
+        int orderIndex = tabOrder.indexOf(tabName);
+        int tabIndex = 0;
+        if (orderIndex == -1)
+        {
+            System.err.println("Could not show tab " + tabName + " (tab not in tabOrder)");
+            return;
+        }
+        for (int i = orderIndex; i > 0; i--)
+        {
+            int index = tabLists.indexOfTab(tabOrder.get(i));
+            if (index != -1)
+            {
+                tabIndex = index + 1;
+                break;
+            }
+        }
+        
+        // re-add tab
+        tabLists.add(hiddenTabs.get(tabName), tabIndex);
+        tabLists.setTitleAt(tabIndex, tabName);
     }
     
     private void openGame() {
@@ -288,6 +372,27 @@ public final class MainFrame extends javax.swing.JFrame {
         StageArchive arc = new StageArchive(null, currentZone);
         zoneEditor = new GalaxyEditorForm(null, arc);
         zoneEditor.setVisible(true);
+    }
+    
+    public void openWorld() {
+        GalaxyListItem galaxy = (GalaxyListItem)listWorlds.getSelectedValue();
+        
+        if (checkZoneEditorOpen()) {
+            zoneEditor.toFront();
+            return;
+        } else if (checkGalaxyEditorOpen()) {
+            galaxyEditor.toFront();
+            return;
+        }
+        
+        // Prepare caches
+        TextureCache.init();
+        ShaderCache.init();
+        RendererCache.init();
+        
+        currentWorld = galaxy.identifier;
+        worldEditor = new WorldEditorForm(currentWorld);
+        worldEditor.setVisible(true);
     }
     
     public boolean checkZoneEditorOpen() {
@@ -369,6 +474,8 @@ public final class MainFrame extends javax.swing.JFrame {
         listGalaxy = new javax.swing.JList();
         scrZone = new javax.swing.JScrollPane();
         listZone = new javax.swing.JList();
+        scrWorlds = new javax.swing.JScrollPane();
+        listWorlds = new javax.swing.JList();
         pnlInfo = new javax.swing.JPanel();
         lblMainTitle = new javax.swing.JLabel();
         lblDesc1 = new javax.swing.JLabel();
@@ -542,6 +649,34 @@ public final class MainFrame extends javax.swing.JFrame {
 
         tabLists.addTab("Zones", scrZone);
 
+        listWorlds.setModel(new DefaultListModel());
+        listWorlds.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                listWorldsFocusLost(evt);
+            }
+        });
+        listWorlds.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                listWorldsMouseClicked(evt);
+            }
+        });
+        listWorlds.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                listWorldsKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                listWorldsKeyReleased(evt);
+            }
+        });
+        listWorlds.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                listWorldsValueChanged(evt);
+            }
+        });
+        scrWorlds.setViewportView(listWorlds);
+
+        tabLists.addTab("Worlds", scrWorlds);
+
         pnlInfo.setMinimumSize(new java.awt.Dimension(258, 130));
         pnlInfo.setPreferredSize(new java.awt.Dimension(258, 130));
         pnlInfo.setLayout(new java.awt.GridBagLayout());
@@ -622,7 +757,7 @@ public final class MainFrame extends javax.swing.JFrame {
         else if (lastGameDir != null)
             openGameDir(lastGameDir);
         else
-            tabLists.setSelectedIndex(2);
+            setSelectedTab("Status");
     }//GEN-LAST:event_formWindowOpened
 	
     private void btnOpenGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenGameActionPerformed
@@ -630,11 +765,22 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnOpenGameActionPerformed
 
     private void btnOpenGalaxyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenGalaxyActionPerformed
-        int tab = tabLists.getSelectedIndex();
-        if (tab == 0)
-            openGalaxy();
-        else if (tab == 1)
-            openZone();
+        int selectedIndex = tabLists.getSelectedIndex();
+        if (selectedIndex == -1)
+            return;
+        switch (tabLists.getTitleAt(selectedIndex)) {
+            case "Galaxies":
+                openGalaxy();
+                break;
+            case "Zones":
+                openZone();
+                break;
+            case "Worlds":
+                openWorld();
+                break;
+            default:
+                break;
+        }
     }//GEN-LAST:event_btnOpenGalaxyActionPerformed
 
     private void btnBcsvEditorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBcsvEditorActionPerformed
@@ -738,45 +884,70 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_listZoneValueChanged
 
     private void tabListsStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_tabListsStateChanged
-        int tab = tabLists.getSelectedIndex();
-        switch (tab) {
-            case 0:
+        int selectedIndex = tabLists.getSelectedIndex();
+        if (selectedIndex == -1)
+            return;
+        String resourceName = null;
+        String tabName = tabLists.getTitleAt(selectedIndex);
+        
+        // enable/disable certain buttons based on current status
+        switch (tabName) {
+            case "Galaxies":
                 {
                     boolean isEnabled = listGalaxy.getSelectedIndex() >= 0;
                     btnOpenGalaxy.setEnabled(isEnabled);
-                    btnOpenGalaxy.setText("Open Galaxy");
-                    btnCreateGalaxy.setText("Create Galaxy");
                     btnGalaxyProperties.setEnabled(isEnabled);
-                    btnGalaxyProperties.setText("Galaxy Properties");
                     btnCreateGalaxy.setEnabled(Whitehole.getCurrentGameType() != 0);
+                    resourceName = "Galaxy";
                     break;
                 }
-            case 1:
+            case "Zones":
                 {
                     boolean isEnabled = listZone.getSelectedIndex() >= 0;
                     btnOpenGalaxy.setEnabled(isEnabled);
-                    btnOpenGalaxy.setText("Open Zone");
-                    btnCreateGalaxy.setText("Create Zone");
                     btnGalaxyProperties.setEnabled(isEnabled);
-                    btnGalaxyProperties.setText("Zone Properties");
                     btnCreateGalaxy.setEnabled(Whitehole.getCurrentGameType() != 0);
+                    resourceName = "Zone";
                     break;
                 }
-            default:
-                btnOpenGalaxy.setEnabled(false);
-                btnGalaxyProperties.setEnabled(false);
-                btnCreateGalaxy.setEnabled(false);
-                break;
+            case "Worlds":
+                {
+                    boolean isEnabled = listWorlds.getSelectedIndex() >= 0;
+                    btnOpenGalaxy.setEnabled(isEnabled);
+                    resourceName = "World";
+                    break;
+                }
+        }
+        
+        // show/hide open button
+        boolean showOpen = !tabName.equals("Status");
+        btnOpenGalaxy.setVisible(showOpen);
+        jSeparator2.setVisible(showOpen);
+        
+        // show/hide properties and create buttons
+        boolean showProperties = tabName.equals("Galaxies") || tabName.equals("Zones");
+        btnGalaxyProperties.setVisible(showProperties);
+        jSeparator3.setVisible(showProperties);
+        btnCreateGalaxy.setVisible(showProperties);
+        jSeparator7.setVisible(showProperties);
+        
+        // set text according to resourcename
+        if (resourceName != null)
+        {
+            btnOpenGalaxy.setText("Open " + resourceName);
+            btnCreateGalaxy.setText("Create " + resourceName);
+            btnGalaxyProperties.setText(resourceName + " Properties");
         }
     }//GEN-LAST:event_tabListsStateChanged
 
     private void btnCreateGalaxyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateGalaxyActionPerformed
-        CreateGalaxyForm createForm = new CreateGalaxyForm(tabLists.getSelectedIndex() == 0);
+        boolean isGalaxy = isTabSelected("Galaxies");
+        CreateGalaxyForm createForm = new CreateGalaxyForm(isGalaxy);
         createForm.setVisible(true);
     }//GEN-LAST:event_btnCreateGalaxyActionPerformed
 
     private void btnGalaxyPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGalaxyPropertiesActionPerformed
-        boolean isGalaxyMode = tabLists.getSelectedIndex() == 0;
+        boolean isGalaxyMode = isTabSelected("Galaxies");
         String idName;
         if (isGalaxyMode) {
             GalaxyListItem galaxy = (GalaxyListItem)listGalaxy.getSelectedValue();
@@ -792,6 +963,42 @@ public final class MainFrame extends javax.swing.JFrame {
     private void btnBigSelectGameFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBigSelectGameFolderActionPerformed
         openGame();
     }//GEN-LAST:event_btnBigSelectGameFolderActionPerformed
+
+    private void listWorldsFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_listWorldsFocusLost
+        setForceIdentifierWorld(false);
+    }//GEN-LAST:event_listWorldsFocusLost
+
+    private void listWorldsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listWorldsMouseClicked
+        if (evt.getClickCount() > 1) {
+            openWorld();
+        }
+    }//GEN-LAST:event_listWorldsMouseClicked
+
+    private void listWorldsKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listWorldsKeyPressed
+        if (evt.isShiftDown()) {
+            setForceIdentifierWorld(true);
+        }
+    }//GEN-LAST:event_listWorldsKeyPressed
+
+    private void listWorldsKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listWorldsKeyReleased
+        
+        if (!evt.isShiftDown()) {
+            setForceIdentifierWorld(false);
+        }
+                
+        if (listWorlds.getSelectedIndex() == -1) {
+            return;
+        }
+        
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            openGalaxy();
+        }
+    }//GEN-LAST:event_listWorldsKeyReleased
+
+    private void listWorldsValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listWorldsValueChanged
+        boolean isEnabled = listWorlds.getSelectedIndex() >= 0;
+        btnOpenGalaxy.setEnabled(isEnabled);
+    }//GEN-LAST:event_listWorldsValueChanged
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAbout;
@@ -813,9 +1020,11 @@ public final class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel lblDesc2;
     private javax.swing.JLabel lblMainTitle;
     private javax.swing.JList listGalaxy;
+    private javax.swing.JList listWorlds;
     private javax.swing.JList listZone;
     private javax.swing.JPanel pnlInfo;
     private javax.swing.JScrollPane scrGalaxy;
+    private javax.swing.JScrollPane scrWorlds;
     private javax.swing.JScrollPane scrZone;
     private javax.swing.JTabbedPane tabLists;
     private javax.swing.JToolBar toolbar;
