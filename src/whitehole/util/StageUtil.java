@@ -430,6 +430,20 @@ public class StageUtil {
         return result;
     }
     /**
+     * Unapplies a StageObj's translation to a given Vec3f. Does not modify the input vector
+     * @param original The read-only input vector
+     * @param zone The zone to apply the translation of
+     * @return a new vector with the unapplied translation
+     */
+    public static Vec3f unapplyZoneT(Vec3f original, StageObj zone) {
+        if (original == null || zone == null)
+            return original;
+        
+        Vec3f result = new Vec3f(original);
+        result.add(zone.position);
+        return result;
+    }
+    /**
      * Applies a StageObj's rotation to a given Vec3f. Does not modify the input vector
      * @param original The read-only input vector
      * @param zone The zone to apply the rotation of
@@ -462,6 +476,38 @@ public class StageUtil {
         return result;
     }
     /**
+     * Unapplies a StageObj's rotation to a given Vec3f. Does not modify the input vector
+     * @param original The read-only input vector
+     * @param zone The zone to apply the rotation of
+     * @return a new vector with the unapplied rotation
+    */
+    public static Vec3f unapplyZoneR(Vec3f original, StageObj zone) {
+       if (original == null || zone == null)
+            return original;
+
+        Vec3f result = new Vec3f(original);
+
+        float xcos = (float)Math.cos(-(zone.rotation.x * Math.PI) / 180f);
+        float xsin = (float)Math.sin(-(zone.rotation.x * Math.PI) / 180f);
+        float ycos = (float)Math.cos(-(zone.rotation.y * Math.PI) / 180f);
+        float ysin = (float)Math.sin(-(zone.rotation.y * Math.PI) / 180f);
+        float zcos = (float)Math.cos(-(zone.rotation.z * Math.PI) / 180f);
+        float zsin = (float)Math.sin(-(zone.rotation.z * Math.PI) / 180f);
+
+        float y1 = (result.y * xcos) + (result.z * xsin);
+        float z1 = -(result.y * xsin) + (result.z * xcos);
+        float x2 = (result.x * ycos) - (z1 * ysin);
+        float z2 = (result.x * ysin) + (z1 * ycos);
+        float x3 = (x2 * zcos) + (y1 * zsin);
+        float y3 = -(x2 * zsin) + (y1 * zcos);
+
+        result.x = x3;
+        result.y = y3;
+        result.z = z2;
+
+        return result;
+    }
+    /**
      * Applies a StageObj's translation and rotation to a given Vec3f. Does not modify the input vector
      * @param original The read-only input vector
      * @param zone The zone to apply the translation and rotation of
@@ -474,6 +520,21 @@ public class StageUtil {
         Vec3f result = new Vec3f(original);
         result.set(applyZoneT(result, zone));
         result.set(applyZoneR(result, zone));
+        return result;
+    }
+    /**
+     * Unapplies a StageObj's translation and rotation to a given Vec3f. Does not modify the input vector
+     * @param original The read-only input vector
+     * @param zone The zone to unapply the translation and rotation of
+     * @return a new vector with the unapplied translation and rotation
+     */
+    public static Vec3f unapplyZoneTR(Vec3f original, StageObj zone) {
+        if (original == null || zone == null)
+            return original;
+        
+        Vec3f result = new Vec3f(original);
+        result.set(unapplyZoneR(result, zone));
+        result.set(unapplyZoneT(result, zone));
         return result;
     }
 }

@@ -4984,39 +4984,54 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 TargetPos.set(Vec3f.centroid(selectionPositions));
             }
             
-            camTarget.set(TargetPos);
-            camTarget.scale(1.0f / SCALE_DOWN);
-            camDistance = 0.25f;
-
-            if (isGalaxyMode) {
-                if (zonePlacements.containsKey(stageKey)) {
-                    Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
-                    scratch.scale(1.0f / SCALE_DOWN);
-                    camTarget.add(scratch);
+            if (!curZone.equals(galaxyName)) {
+                if (!zonePlacements.containsKey(stageKey)) {
+                    setStatusToWarning(selectedObjs.size() == 1 ? "Cannot jump to an object in an unplaced zone!" : "Cannot jump to objects in an unplaced zone!");
+                    return;
+                }
+                
+                if (isGalaxyMode) { // is this even needed?
+                    setStatusToInfo("Jumped to selection ("+TargetPos.toString()+")");
+                    TargetPos.set(StageUtil.unapplyZoneTR(TargetPos, zonePlacements.get(stageKey)));
                 }
             }
             
-            setStatusToInfo("Jumped to selection ("+TargetPos.toString()+")");
-            
+            camTarget.set(TargetPos);
+            camTarget.scale(1.0f / SCALE_DOWN);
+            camDistance = 0.25f;
             updateCamera();
             glCanvas.repaint();
         }
         private void shortcutJumpToZone() {
-            camTarget.set(new Vec3f());
-            camDistance = 0.35f;
-            if (isGalaxyMode) {
-                String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
-
-                if (zonePlacements.containsKey(stageKey)) {
-                    Vec3f scratch = new Vec3f(zonePlacements.get(stageKey).position);
-                    scratch.scale(1.0f / SCALE_DOWN);
-                    camTarget.set(scratch);
-                }
-                setStatusToInfo("Jumped to Zone ("+curZone+")");
-            }
-            else
-                setStatusToWarning("Cannot Jump To Zone while editing individually!");
+            Vec3f newCamTarget = null;
             
+            if (curZone.equals(galaxyName)) {
+                newCamTarget = new Vec3f(); // Galaxy is always available at 0,0,0
+                if (isGalaxyMode)
+                    setStatusToInfo("Jumped to Zone ("+curZone+")");
+                else
+                    setStatusToInfo("Jumped to the zone origin");
+            }
+            else {
+                if (isGalaxyMode) { // is this condition even needed?
+                    String stageKey = String.format("%d/%s", curScenarioIndex, curZone);
+                    if (!zonePlacements.containsKey(stageKey)) {
+                        setStatusToWarning("Cannot jump to an unplaced zone!");
+                        return;
+                    }
+                    
+                    newCamTarget = new Vec3f(zonePlacements.get(stageKey).position);
+                    newCamTarget.scale(1.0f / SCALE_DOWN);
+                    setStatusToInfo("Jumped to Zone ("+curZone+")");
+                }
+            }
+            
+            if (newCamTarget == null) {
+                setStatusToInfo("Failed to jump to zone \""+curZone+"\"");
+                return;
+            }
+            camTarget.set(newCamTarget);
+            camDistance = 0.35f;
             updateCamera();
             glCanvas.repaint();
         }
