@@ -1196,10 +1196,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             {
                 uniqueID++;
             }
-            
-            if(uniqueID > maxUniqueID) {
-                maxUniqueID = uniqueID;
-            }
+                        
+            if(uniqueID >= maxUniqueID)
+                maxUniqueID = uniqueID +1; // Catch the max unique ID up to where it should be (highest ID +1)
 
             // Set object ID automatically
             if (objtype.equals("startinfo")) {
@@ -3474,8 +3473,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
      * @param e
      * @return 
      */
-    public Point getDPIPoint(MouseEvent e)
-    {
+    public Point getDPIPoint(MouseEvent e) {
         Point newpos = e.getPoint();
         return new Point((int)(newpos.x * DPIScaleX), (int)(newpos.y * DPIScaleY));
     }
@@ -4148,8 +4146,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
          * Clears the state of the mouse in the renderer
          * Use this to force unclick the user's mouse
          */
-        public void clearMouse()
-        {
+        public void clearMouse() {
             mouseButton = MouseEvent.NOBUTTON;
             isDragging = false;
             addingObject = "";
