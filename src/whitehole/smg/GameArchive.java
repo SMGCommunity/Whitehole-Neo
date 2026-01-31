@@ -48,6 +48,7 @@ public class GameArchive {
     private boolean hasOverwriteZoneNames;
     private boolean hasOverwriteHints;
     private boolean hasOverwriteAreaManagerLimits;
+    private boolean hasOverwriteModelSubstitutions;
     private boolean hasOverwriteSpecialRenderer;
     
     public GameArchive(FilesystemBase fs) {
@@ -131,6 +132,7 @@ public class GameArchive {
             hasOverwriteZoneNames = Whitehole.ZoneNames.initProject(efs);
             hasOverwriteHints = Whitehole.Hints.initProject(efs);
             hasOverwriteAreaManagerLimits = Whitehole.AreaManagerLimits.initProject(efs);
+            hasOverwriteModelSubstitutions = Whitehole.ModelSubstitutions.initProject(efs);
             hasOverwriteSpecialRenderer = Whitehole.SpecialRenderers.initProject(efs);
             FieldHashes.initProjectHashTable(efs);
         }
@@ -219,6 +221,10 @@ public class GameArchive {
     
     public boolean hasOverwriteAreaManagerLimits() {
         return hasOverwriteAreaManagerLimits;
+    }
+
+    public boolean hasOverwriteModelSubstitutions() {
+        return hasOverwriteModelSubstitutions;
     }
     
     public boolean hasOverwriteSpecialRenderer() {

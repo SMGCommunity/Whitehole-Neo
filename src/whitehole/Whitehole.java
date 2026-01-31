@@ -47,6 +47,7 @@ public class Whitehole {
     public static final ZoneNames ZoneNames = new ZoneNames();
     public static final SpecialRenderers SpecialRenderers = new SpecialRenderers();
     public static final Hints Hints = new Hints();
+    public static final ModelSubstitutions ModelSubstitutions = new ModelSubstitutions();
     public static final AreaManagerLimits AreaManagerLimits = new AreaManagerLimits();
     
     public static void main(String[] args) throws IOException {
@@ -85,7 +86,7 @@ public class Whitehole {
         Hints.initBaseGame();
         AreaManagerLimits.initBaseGame();
         ObjectDB.init(true);
-        ModelSubstitutions.init();
+        ModelSubstitutions.initBaseGame();
         SpecialRenderers.initBaseGame(); //Must come after the Object Database and ModelSubstitutions
         
         RPC = new Discord();
