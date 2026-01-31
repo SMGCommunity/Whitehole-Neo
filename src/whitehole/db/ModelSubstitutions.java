@@ -16,33 +16,17 @@
  */
 package whitehole.db;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import whitehole.Settings;
 import whitehole.Whitehole;
 
-public final class ModelSubstitutions {
-    private ModelSubstitutions() {}
-    
-    private static JSONObject MODEL_SUBSTITUTIONS;
-    
-    public static void init() {
-        try(FileReader reader = new FileReader("data/modelsubstitutions.json", StandardCharsets.UTF_8)) {
-            MODEL_SUBSTITUTIONS = new JSONObject(new JSONTokener(reader));
-        }
-        catch (IOException ex) {
-            System.out.println("Could not load modelsubstitutions.json");
-            System.out.println(ex);
-            System.exit(1);
-        }
+public final class ModelSubstitutions extends GameAndProjectDataHolder {
+    public ModelSubstitutions() {
+        super("data/modelsubstitutions.json", "/modelsubstitutions.json", true);
     }
-    
-    public static String getSubstitutedModelName(String model) {     
-        String key = model.toLowerCase();
-        String substitution = MODEL_SUBSTITUTIONS.optString(key, model);
+
+    public String getSubstitutedModelName(String model) {
+        String substitution = findModelName(model.toLowerCase(), model);
+
         if (Whitehole.isExistObjectDataArc(substitution + "Low") && Settings.getUseLowPolyModels()) {
             substitution += "Low";
             if (Settings.getDebugAdditionalLogs())
@@ -62,6 +46,18 @@ public final class ModelSubstitutions {
                 System.out.println("Failed to find model substitution \"" +substitution+ "\" for \"" + model + "\".");
             return model;
         }
+        return substitution;
+    }
+
+    private String findModelName(String key, String model) {
+        String substitution = null;
+
+        if (projectData != null)
+            substitution = projectData.optString(key, null);
+
+        if (substitution == null)
+            return baseGameData.optString(key, model);
+
         return substitution;
     }
 }

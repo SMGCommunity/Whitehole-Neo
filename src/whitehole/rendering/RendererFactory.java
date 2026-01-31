@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import whitehole.Settings;
 import whitehole.Whitehole;
-import whitehole.db.ModelSubstitutions;
 import whitehole.rendering.special.MultiRenderer.MultiRendererInfo;
 import whitehole.smg.object.*;
 import whitehole.util.Color4;
@@ -175,7 +174,7 @@ public final class RendererFactory {
                 return "ClipAreaBoxCenter";
         }
         
-        return ModelSubstitutions.getSubstitutedModelName(objModelName);
+        return Whitehole.ModelSubstitutions.getSubstitutedModelName(objModelName);
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
