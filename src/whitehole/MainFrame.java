@@ -830,7 +830,6 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_listGalaxyKeyReleased
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        Whitehole.RPC.close();
         for (Window w : Window.getWindows()) {
             w.dispose();
         }

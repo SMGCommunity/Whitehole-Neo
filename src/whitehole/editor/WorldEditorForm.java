@@ -194,7 +194,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
     private void initGUI() {
         var status = Whitehole.GalaxyNames.getSimplifiedStageName(galaxyName);
         setTitle(status + " -- " + Whitehole.NAME);
-        Whitehole.RPC.addFrame(this, "Editing a World", status);
+        Whitehole.RPC.updateStatus(this, "Editing a World", status);
         
         initAddObjectPopup();
         
@@ -403,7 +403,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
     }
     
     private void closeEditor() {
-        Whitehole.RPC.removeFrame(this);
+        Whitehole.RPC.removeStatus(this);
         
         if (levelLoader.CurrentThread != null && levelLoader.CurrentThread.isAlive())
         {

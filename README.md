@@ -53,5 +53,5 @@ This is intended for Java 11, though the program runs fine on newer Java version
 - **org.json**: https://github.com/stleary/JSON-java
 - **flatlaf**: https://github.com/JFormDesigner/FlatLaf
 - **JWindowsFileDialog**: https://github.com/JacksonBrienen/JWindowsFileDialog
-- **DiscordIPC**: https://github.com/jagrosh/DiscordIPC
+- **DiscordIPC**: https://github.com/LogicismDev/DiscordIPC
 

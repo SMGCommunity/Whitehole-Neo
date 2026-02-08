@@ -91,7 +91,7 @@ public class Whitehole {
         
         RPC = new Discord();
         RPC.init();
-        RPC.addFrame(null, "Doing nothing, yet.", null);
+        RPC.updateStatus(null, "Editing a mod", null);
         
         MAIN_FRAME = new MainFrame(args);
         MAIN_FRAME.setVisible(true);

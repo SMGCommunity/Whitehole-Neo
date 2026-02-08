@@ -60,7 +60,6 @@ public class SettingsForm extends javax.swing.JDialog {
         chkUseBetterQuality = new javax.swing.JCheckBox();
         chkDebugFakeColor = new javax.swing.JCheckBox();
         chkDebugFastDrag = new javax.swing.JCheckBox();
-        chkDiscordRichPresenceEnabled = new javax.swing.JCheckBox();
         pnlAreaColors = new javax.swing.JPanel();
         lblAreaColors = new javax.swing.JLabel();
         lblNormalAreaColor = new javax.swing.JLabel();
@@ -78,6 +77,8 @@ public class SettingsForm extends javax.swing.JDialog {
         chkOpenGalaxyEditorMaximized = new javax.swing.JCheckBox();
         chkShowCollisionModels = new javax.swing.JCheckBox();
         chkShowLowPolyModels = new javax.swing.JCheckBox();
+        cbxDiscordRichPresenceState = new javax.swing.JComboBox<>();
+        lblDiscordRichPresenceState = new javax.swing.JLabel();
         pnlControls = new javax.swing.JPanel();
         lblControls = new javax.swing.JLabel();
         chkUseReverseRot = new javax.swing.JCheckBox();
@@ -127,7 +128,7 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
@@ -138,7 +139,7 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(lblAppearance, gridBagConstraints);
@@ -153,6 +154,7 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkUseDarkMode, gridBagConstraints);
@@ -167,6 +169,7 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkUseBetterQuality, gridBagConstraints);
@@ -179,7 +182,7 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
@@ -193,26 +196,11 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkDebugFastDrag, gridBagConstraints);
-
-        chkDiscordRichPresenceEnabled.setSelected(Settings.getDiscordRichPresenceEnabled());
-        chkDiscordRichPresenceEnabled.setText("<html>Discord Rich Presence<br>(Requires closing whitehole)</html>");
-        chkDiscordRichPresenceEnabled.setToolTipText("");
-        chkDiscordRichPresenceEnabled.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                chkDiscordRichPresenceEnabledItemStateChanged(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-        pnlAppearance.add(chkDiscordRichPresenceEnabled, gridBagConstraints);
 
         pnlAreaColors.setMaximumSize(new java.awt.Dimension(525, 2147483647));
         pnlAreaColors.setPreferredSize(new java.awt.Dimension(525, 80));
@@ -401,7 +389,7 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 1.0;
@@ -417,6 +405,7 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkOpenGalaxyEditorMaximized, gridBagConstraints);
@@ -430,7 +419,7 @@ public class SettingsForm extends javax.swing.JDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
@@ -447,9 +436,29 @@ public class SettingsForm extends javax.swing.JDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         pnlAppearance.add(chkShowLowPolyModels, gridBagConstraints);
+
+        cbxDiscordRichPresenceState.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Off", "Standard", "Detailed" }));
+        cbxDiscordRichPresenceState.setSelectedIndex(Settings.getDiscordRichPresenceState()
+        );
+        cbxDiscordRichPresenceState.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cbxDiscordRichPresenceStateItemStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        pnlAppearance.add(cbxDiscordRichPresenceState, gridBagConstraints);
+
+        lblDiscordRichPresenceState.setText("<html>Discord Rich Presence<br>(Requires restarting whitehole)</html>");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        pnlAppearance.add(lblDiscordRichPresenceState, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -798,9 +807,9 @@ public class SettingsForm extends javax.swing.JDialog {
         Settings.setUseCollisionModels(evt.getStateChange() == ItemEvent.SELECTED);
     }//GEN-LAST:event_chkShowCollisionModelsItemStateChanged
 
-    private void chkDiscordRichPresenceEnabledItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkDiscordRichPresenceEnabledItemStateChanged
-        Settings.setDiscordRichPresenceEnabled(evt.getStateChange() == ItemEvent.SELECTED);
-    }//GEN-LAST:event_chkDiscordRichPresenceEnabledItemStateChanged
+    private void cbxDiscordRichPresenceStateItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbxDiscordRichPresenceStateItemStateChanged
+        Settings.setDiscordRichPresenceState(cbxDiscordRichPresenceState.getSelectedIndex());
+    }//GEN-LAST:event_cbxDiscordRichPresenceStateItemStateChanged
     
     private void setBaseGamePath(String pth)
     {     
@@ -937,10 +946,10 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JButton btnPosition;
     private javax.swing.JButton btnRotation;
     private javax.swing.JButton btnScale;
+    private javax.swing.JComboBox<String> cbxDiscordRichPresenceState;
     private javax.swing.JCheckBox chkDebugAdditionalLogs;
     private javax.swing.JCheckBox chkDebugFakeColor;
     private javax.swing.JCheckBox chkDebugFastDrag;
-    private javax.swing.JCheckBox chkDiscordRichPresenceEnabled;
     private javax.swing.JCheckBox chkOpenGalaxyEditorMaximized;
     private javax.swing.JCheckBox chkShowCollisionModels;
     private javax.swing.JCheckBox chkShowLowPolyModels;
@@ -953,6 +962,7 @@ public class SettingsForm extends javax.swing.JDialog {
     private javax.swing.JLabel lblBaseGame;
     private javax.swing.JLabel lblCameraAreaColor;
     private javax.swing.JLabel lblControls;
+    private javax.swing.JLabel lblDiscordRichPresenceState;
     private javax.swing.JLabel lblGravityAreaColor;
     private javax.swing.JLabel lblGravityAreaZeroColor;
     private javax.swing.JLabel lblMisc;

@@ -230,12 +230,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         if (isGalaxyMode) {
             var status = Whitehole.GalaxyNames.getSimplifiedStageName(galaxyName);
             setTitle(status + " -- " + Whitehole.NAME);
-            Whitehole.RPC.addFrame(this, "Editing a Galaxy", status);
+            Whitehole.RPC.updateStatus(this, "Editing a Galaxy", status);
         }
         else {
             var status = Whitehole.ZoneNames.getSimplifiedZoneName(galaxyName);
             setTitle(status + " -- " + Whitehole.NAME);
-            Whitehole.RPC.addFrame(this, "Editing a Zone", status);
+            Whitehole.RPC.updateStatus(this, "Editing a Zone", status);
         }
         
         initAddObjectPopup();
@@ -636,7 +636,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     }
     
     private void closeEditor() {
-        Whitehole.RPC.removeFrame(this);
+        Whitehole.RPC.removeStatus(this);
         
         if (levelLoader.CurrentThread != null && levelLoader.CurrentThread.isAlive())
         {
