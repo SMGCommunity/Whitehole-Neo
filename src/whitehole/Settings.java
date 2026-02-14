@@ -21,6 +21,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 public final class Settings {
@@ -28,6 +29,18 @@ public final class Settings {
     
     private static final Preferences PREFERENCES = Preferences.userRoot();
     
+    /**
+     * Resets all settings to their default values
+     */
+    public static void resetAll() {
+        try {
+            PREFERENCES.clear();
+        }
+        catch (BackingStoreException ex) {
+            // What to do when this occurs?
+        }
+        
+    }
     
     // ==== GENERAL ====
     public static String getLastGameDir() { return PREFERENCES.get("whitehole_lastGameDir", null); }
