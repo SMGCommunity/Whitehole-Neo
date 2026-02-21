@@ -48,15 +48,27 @@ public final class ObjectDB {
     private static final HashMap<String, ClassInfo> CLASS_INFOS = new HashMap();
     private static final List<CategoryInfo> CATEGORY_INFOS = new LinkedList();
     
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Database I/O
+    
+    /**
+     * Initializes and/or downloads the official Object Database
+     * @param checkUpdate If true, the database will attempt to update.
+     */
     public static void init(boolean checkUpdate) {
         JSONObject database = null;
         
-        // Database exists? Try looking for an updated one.
+        // Database exists? -> Try looking for an updated one.
         if (FILE.exists()) {
             try (FileReader reader = new FileReader(FILE)) {
                 database = new JSONObject(new JSONTokener(reader));
             }
             catch(IOException ex) {
+                System.err.println(ex);
+                return;
+            }
+            catch(org.json.JSONException ex) {
+                System.err.println("Failed to parse the Object Database located at \""+FILE.getAbsolutePath()+"\"");
                 System.err.println(ex);
                 return;
             }
@@ -77,7 +89,7 @@ public final class ObjectDB {
             }
         }
         
-        // No database exists? -> Download one
+        // No database? -> Try downloading one
         if (database == null) {
             database = download();
             
@@ -86,20 +98,25 @@ public final class ObjectDB {
                 loadDatabase(database);
             }
         }
-        
-        // Otherwise, parse its contents
         else {
+            // Otherwise, load its contents
             loadDatabase(database);
         }
     }
     
+    /**
+     * Attempts to download the Object Database
+     * @return null on failure, the Database JSON if successful
+     */
     private static JSONObject download() {
         JSONObject newDb = null;
         final long time = System.currentTimeMillis();
         try {
             HttpURLConnection connection = (HttpURLConnection)new URL(SOURCE_URL).openConnection();
             
-            if (connection.getResponseCode() != 200) {
+            int response = connection.getResponseCode();
+            if (response != 200) {
+                System.err.println("\"" + SOURCE_URL + "\" returned " + response);
                 return newDb;
             }
             
@@ -118,23 +135,36 @@ public final class ObjectDB {
             newDb = new JSONObject(new JSONTokener(new InputStreamReader(new ByteArrayInputStream(buf))));
         }
         catch(IOException ex) {
+            System.err.println("Failed to download the Object Database from \"" + SOURCE_URL + "\"");
             System.err.println(ex);
+        }
+        catch(org.json.JSONException ex) {
+            System.err.println("Failed to parse the downloaded Object Database located at \"" + SOURCE_URL + "\"");
+            System.err.println(ex);
+            return null; // This catch isn't tested but should work... hopefully...
         }
         
         return newDb;
     }
     
+    /**
+     * Saves the provided JSON Object as the Object Database
+     * @param database The JSON Object to save
+     */
     private static void write(JSONObject database) {
         try (FileWriter writer = new FileWriter(FILE)) {
             database.write(writer);
         }
         catch(IOException ex) {
-            System.err.println("Could not write");
+            System.err.println("Could not write the database to \""+FILE.getAbsolutePath()+"\"");
+            System.err.println(ex);
         }
     }
     
-    // -------------------------------------------------------------------------------------------------------------------------
-    
+    /**
+     * Composes Java class structures from a JSON Object
+     * @param database The JSON Object to process
+     */
     private static void loadDatabase(JSONObject database) {
         OBJECT_INFOS.clear();
         CLASS_INFOS.clear();
@@ -165,6 +195,11 @@ public final class ObjectDB {
         }
     }
     
+    /**
+     * Attempts to update existing entries in the official Object Database with Project Specific edits.
+     * This means if your project has a database with a new entry for Coin, Whitehole will use that new entry instead of the official one.
+     * @param overwrite The JSON Object containing overwrite information
+     */
     private static void overwriteDatabase(JSONObject overwrite) {
         // Parse class information
         JSONArray classesRoot = overwrite.getJSONArray("Classes");
@@ -201,51 +236,69 @@ public final class ObjectDB {
         }
     }
     
+    /**
+     * Attempts to update existing entries in the official Object Database with Project Specific edits.
+     * @param filesystem The Filesystem to check for a Project Database in
+     * @return true if a project database exists and is parsed successfully, false otherwise. Note that the provided project database does not actually have to make any changes for "true" to be the result of this function.
+     */
     public static boolean tryOverwriteWithProjectDatabase(ExternalFilesystem filesystem) {
-        if (filesystem.fileExists("/objectdb.json")) {
-            JSONObject overwrite;
-            
-            try (FileReader reader = new FileReader(filesystem.getFileName("/objectdb.json"))) {
-                overwrite = new JSONObject(new JSONTokener(reader));
-            }
-            catch(IOException ex) {
-                System.err.println(ex);
-                return false;
-            }
-            
-            overwriteDatabase(overwrite);
-            return true;
-        }
+        if (!filesystem.fileExists("/objectdb.json"))
+            return false;
         
-        return false;
+        JSONObject overwrite;
+            
+        try (FileReader reader = new FileReader(filesystem.getFileName("/objectdb.json"))) {
+            overwrite = new JSONObject(new JSONTokener(reader));
+        }
+        catch(IOException ex) {
+            System.err.println(ex);
+            return false;
+        }
+        catch(org.json.JSONException ex) {
+            System.err.println("Failed to parse the Project Object Database located at \""+filesystem.getFileName("/objectdb.json")+"\"");
+            System.err.println(ex);
+            return false;
+        }
+
+        overwriteDatabase(overwrite);
+        return true;
     }
     
+    // -------------------------------------------------------------------------------------------------------------------------
+    // Database access
+    
+    /**
+     * Gets all of the currently loaded ObjectInfo instances
+     * @return Map of the currently loaded ObjectInfo instances
+     */
     public static Map<String, ObjectInfo> getObjectInfos() {
         return OBJECT_INFOS;
     }
     
+    /**
+     * Gets the currently loaded ClassInfo for the provided class
+     * @param classname The name of the class to get the ClassInfo of
+     * @return The ClassInfo of the class, or a default entry if the class is found to not have info.
+     */
     public static ClassInfo getClassInfo(String classname) {
         String key = classname.toLowerCase();
-        
-        if (CLASS_INFOS.containsKey(key)) {
-            return CLASS_INFOS.get(key);
-        }
-        else {
-            return NULL_CLASS_INFO;
-        }
+        return CLASS_INFOS.getOrDefault(key, NULL_CLASS_INFO);
     }
     
+    /**
+     * Gets the currently loaded ObjectInfo for the provided object
+     * @param objname The name of the object to get the ObjectInfo of
+     * @return The ObjectInfo of the object, or a default entry if the object is found to not have info.
+     */
     public static ObjectInfo getObjectInfo(String objname) {
         String key = objname.toLowerCase();
-        
-        if (OBJECT_INFOS.containsKey(key)) {
-            return OBJECT_INFOS.get(key);
-        }
-        else {
-            return NULL_OBJECT_INFO;
-        }
+        return OBJECT_INFOS.getOrDefault(key, NULL_OBJECT_INFO);
     }
     
+    /**
+     * Gets a list of the currently loaded object categories
+     * @return A List of the loaded object categories
+     */
     public static List<CategoryInfo> getCategories() {
         return CATEGORY_INFOS;
     }
@@ -459,6 +512,7 @@ public final class ObjectDB {
         }
     }
     
+    // This MUST be placed here due to Java weirdness
     private static final ClassInfo NULL_CLASS_INFO = new ClassInfo();
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -633,13 +687,13 @@ public final class ObjectDB {
         }
     }
     
+    // This MUST be placed here due to Java weirdness
     private static final ObjectInfo NULL_OBJECT_INFO = new NullInfo();
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Utility
     
-    public static PropertyInfo getPropertyInfoForObject(String objectName, String propName)
-    {
+    public static PropertyInfo getPropertyInfoForObject(String objectName, String propName) {
         switch (propName) {
             case "CommonPath_ID":
                 propName = "Rail";
