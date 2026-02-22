@@ -202,36 +202,61 @@ public final class ObjectDB {
      */
     private static void overwriteDatabase(JSONObject overwrite) {
         // Parse class information
-        JSONArray classesRoot = overwrite.getJSONArray("Classes");
+        JSONArray classesRoot = overwrite.optJSONArray("Classes");
         
-        for (int i = 0 ; i < classesRoot.length() ; i++) {
-            JSONObject rawInfo = classesRoot.getJSONObject(i);
-            String key = rawInfo.getString("InternalName").toLowerCase();
-            
-            if (CLASS_INFOS.containsKey(key)) {
-                ClassInfo info = CLASS_INFOS.get(key);
-                info.parse(rawInfo);
-            }
-            else {
-                ClassInfo info = new ClassInfo(rawInfo);
-                CLASS_INFOS.put(key, info);
+        if (classesRoot != null) {
+            for (int i = 0 ; i < classesRoot.length() ; i++) {
+                JSONObject rawInfo = classesRoot.getJSONObject(i);
+                String key = rawInfo.getString("InternalName").toLowerCase();
+
+                if (CLASS_INFOS.containsKey(key)) {
+                    ClassInfo info = CLASS_INFOS.get(key);
+                    info.parse(rawInfo);
+                }
+                else {
+                    ClassInfo info = new ClassInfo(rawInfo);
+                    CLASS_INFOS.put(key, info);
+                }
             }
         }
         
         // Parse object information
-        JSONArray objectsRoot = overwrite.getJSONArray("Objects");
+        JSONArray objectsRoot = overwrite.optJSONArray("Objects");
         
-        for (int i = 0 ; i < objectsRoot.length() ; i++) {
-            JSONObject rawInfo = objectsRoot.getJSONObject(i);
-            String key = rawInfo.getString("InternalName").toLowerCase();
-            
-            if (OBJECT_INFOS.containsKey(key)) {
-                ObjectInfo info = OBJECT_INFOS.get(key);
-                info.parse(rawInfo);
+        if (objectsRoot != null) {
+            for (int i = 0 ; i < objectsRoot.length() ; i++) {
+                JSONObject rawInfo = objectsRoot.getJSONObject(i);
+                String key = rawInfo.getString("InternalName").toLowerCase();
+
+                if (OBJECT_INFOS.containsKey(key)) {
+                    ObjectInfo info = OBJECT_INFOS.get(key);
+                    info.parse(rawInfo);
+                }
+                else {
+                    ObjectInfo info = new ObjectInfo(rawInfo);
+                    OBJECT_INFOS.put(key, info);
+                }
             }
-            else {
-                ObjectInfo info = new ObjectInfo(rawInfo);
-                OBJECT_INFOS.put(key, info);
+        }
+        
+        // Parse category information
+        JSONArray categoriesRoot = overwrite.optJSONArray("Categories");
+        if (categoriesRoot != null) {
+            for (int i = 0 ; i < categoriesRoot.length() ; i++) {
+                JSONObject rawInfo = categoriesRoot.getJSONObject(i);
+                String key = rawInfo.getString("Key").toLowerCase();
+
+                CategoryInfo curinfo = null;
+                for (CategoryInfo info : CATEGORY_INFOS) {
+                    if (info.identifier.equals(key)) {
+                        curinfo = info;
+                        break; // Renaming the official database categories is not allowed.
+                    }
+                }
+                if (curinfo == null) {
+                    CategoryInfo ci = new CategoryInfo(rawInfo);
+                    CATEGORY_INFOS.add(ci);
+                }
             }
         }
     }
