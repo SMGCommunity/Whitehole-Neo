@@ -243,6 +243,18 @@
       ]
     },
     {
+      "ClassName": "IceMeteor",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BCK": {
+            "Filename": "Wait",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
       "ClassName": "EarthenPipe",
       "RendererType": "TwoJointScale",
       "RendererParams": [
