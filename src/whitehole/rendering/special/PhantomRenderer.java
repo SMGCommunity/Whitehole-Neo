@@ -22,32 +22,30 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.json.*;
 import whitehole.math.Vec3f;
+import whitehole.rendering.BmdRenderer;
 import whitehole.rendering.GLRenderer;
 import whitehole.smg.object.AbstractObj;
 
 /**
- *
+ * Renders a phantom object based on a given parameter. Used for things like determining Thwomp Height
  * @author Hackio
  */
 public class PhantomRenderer extends ShapeModelRenderer {
-    
     protected HashMap<String, Object> rendererParams;
     protected ArrayList<PhantomParam> phantomList;
     
     protected PhantomRenderer() { super(); }
     
-    public PhantomRenderer(RenderInfo info, String modelName, AbstractObj obj, HashMap<String, Object> params)
-    {
+    public PhantomRenderer(RenderInfo info, String modelName, AbstractObj obj, HashMap<String, Object> params) {
         super(info, modelName, obj, params, obj.data.getShort("ShapeModelNo", (short)-1));
         
         rendererParams = params;
         scale = obj.scale;
-        phantomList = createPhantoms(obj);
+        phantomList = createPhantoms(info, obj);
     }
     
     
-    protected ArrayList<PhantomParam> createPhantoms(AbstractObj obj)
-    {
+    protected ArrayList<PhantomParam> createPhantoms(RenderInfo info, AbstractObj obj) {
         ArrayList<PhantomParam> params = new ArrayList();
         if (rendererParams != null && !rendererParams.isEmpty())
         {
@@ -80,6 +78,7 @@ public class PhantomRenderer extends ShapeModelRenderer {
                 Integer DefaultRotX = o.optInt("DefaultRotX", 0);
                 Integer DefaultRotY = o.optInt("DefaultRotY", 0);
                 Integer DefaultRotZ = o.optInt("DefaultRotZ", 0);
+                String ModelName = o.optString("Model", null);
                 
                 p.offsetTranslation.x = FixedPosX;
                 p.offsetTranslation.y = FixedPosY;
@@ -138,30 +137,32 @@ public class PhantomRenderer extends ShapeModelRenderer {
                     p.offsetRotation.z += v;
                 }
                 
+                if (ModelName != null) // This phantom has a specific model. Implemented for use with IceMeteor specifically
+                {
+                    p.model = new BmdRenderer(info, ModelName);
+                }
+                
                 params.add(p);
             }
         }
         return params;
     }
 
+    
     @Override
     public boolean isScaled() { return false; }
     @Override
     public boolean hasSpecialScaling() { return true; }
-    
     @Override
-    public boolean boundToObjArg(int arg)
-    {
+    public boolean boundToObjArg(int arg) {
         String args = "Obj_arg"+arg;
         for (var p : phantomList)
             if (p.offsetSources.contains(args))
                 return true;
         return false;
     }
-        
     @Override
-    public void render(GLRenderer.RenderInfo info) throws GLException
-    {
+    public void render(GLRenderer.RenderInfo info) throws GLException {
         GL2 gl = info.drawable.getGL().getGL2();
         
         GLRenderer.RenderMode targetMode = GLRenderer.RenderMode.HIGHLIGHT; //Hardcoded for now...
@@ -187,12 +188,38 @@ public class PhantomRenderer extends ShapeModelRenderer {
                 gl.glRotatef(p.offsetRotation.z, 0f, 0f, 1f);
                 gl.glRotatef(p.offsetRotation.y, 0f, 1f, 0f);
                 gl.glRotatef(p.offsetRotation.x, 1f, 0f, 0f);
-                super.render(info);
+                if (p.model != null && p.model.isValidBmdModel())
+                    p.model.render(info);
+                else
+                    super.render(info); // Render the normal model as a phantom of no override model is specified
                 gl.glPopMatrix();
             }
         }
         super.render(info);
     }
+    @Override
+    public void close(RenderInfo info) throws GLException {
+        super.close(info);
+        
+        if (rendererParams == null || rendererParams.isEmpty() || phantomList == null)
+            return;
+        
+        for (var p : phantomList)
+            if (p.model != null && p.model.isValidBmdModel())
+                p.model.close(info);
+    }
+    @Override
+    public void releaseStorage() {
+        super.releaseStorage();
+        
+        if (rendererParams == null || rendererParams.isEmpty() || phantomList == null)
+            return;
+        
+        for (var p : phantomList)
+            if (p.model != null && p.model.isValidBmdModel())
+                p.model.releaseStorage();
+    }
+    
     
     public static String getAdditiveCacheKey(AbstractObj obj, HashMap<String, Object> params) {        
         return "_" + ShapeModelRenderer.getAdditiveCacheKey(obj, params) +
@@ -209,8 +236,10 @@ public class PhantomRenderer extends ShapeModelRenderer {
     }
 
     
-    public class PhantomParam
-    {
+    
+    public class PhantomParam {
+        public BmdRenderer model = null;
+        
         public Vec3f offsetTranslation = new Vec3f();
         public Vec3f offsetRotation = new Vec3f();
         public ArrayList<String> offsetSources = new ArrayList();

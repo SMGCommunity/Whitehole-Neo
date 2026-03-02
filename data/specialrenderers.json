@@ -244,9 +244,16 @@
     },
     {
       "ClassName": "IceMeteor",
-      "RendererType": "BasicAnim",
+      "RendererType": "Phantom",
       "RendererParams": [
         {
+          "PhantomEntries": [
+            {
+              "Model": "IceMeteorBall",
+              "SourcePosY": "Obj_arg2",
+              "DefaultPosY": 2000
+            }
+          ],
           "BCK": {
             "Filename": "Wait",
             "Frame": 0
