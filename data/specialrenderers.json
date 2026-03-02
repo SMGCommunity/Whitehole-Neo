@@ -262,6 +262,25 @@
       ]
     },
     {
+      "ClassName": "MagmaMeteor",
+      "RendererType": "Phantom",
+      "RendererParams": [
+        {
+          "PhantomEntries": [
+            {
+              "Model": "MagmaMeteorBall",
+              "SourcePosY": "Obj_arg2",
+              "DefaultPosY": 2000
+            }
+          ],
+          "BCK": {
+            "Filename": "Wait",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
       "ClassName": "EarthenPipe",
       "RendererType": "TwoJointScale",
       "RendererParams": [
