@@ -473,6 +473,30 @@
       ]
     },
     {
+      "ObjectName": "TicoShop",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BVA": {
+            "Filename": "Small0",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
+      "ObjectName": "TicoShopDice",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BVA": {
+            "Filename": "Small0",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+    {
       "ObjectName": "TicoFatCoin",
       "RendererType": "BasicAnim",
       "RendererParams": [
