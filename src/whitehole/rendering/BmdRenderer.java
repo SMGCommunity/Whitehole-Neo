@@ -57,6 +57,8 @@ public class BmdRenderer extends GLRenderer {
     protected int texPatternAnimIndex = 0;
     protected Bva shapeVisibleAnim = null;
     protected int shapeVisibleAnimIndex = 0;
+    protected Bpk matRegisterAnim = null;
+    protected int matRegisterAnimIndex = 0;
     
     /**
      * Set this flag to force a blue cube to be created
@@ -301,6 +303,26 @@ public class BmdRenderer extends GLRenderer {
     }
     
     /**
+     * Attempts to load a Material Color Animation from the archive
+     * @param modelName 
+     * @param animName Name of the BPK file
+     * @param archive Archive that contains the BPK file
+     * @return null on failure
+     */
+    protected final Bpk ctor_tryLoadBPK(String modelName, String animName, RarcFile archive) {
+        // Load a BPK file
+        try
+        {
+            String path = "/" + modelName + "/" + animName + ".bpk";
+            FileBase fi = ctor_tryLoadFile(path, archive);
+            if(fi != null)
+                return new Bpk(fi);
+        }
+        catch(IOException ex) {}
+        return null;
+    }
+    
+    /**
      * Attempts to load a file from the archive by it's full path
      * @param arcPath Archive path to find the file at
      * @param archive Archive to find the file in
@@ -469,6 +491,27 @@ public class BmdRenderer extends GLRenderer {
                         mat.constColors[x.TargetValueID].a = (int)x.Alpha.getValueAtFrame((short)Frame);
                         break;
                 }
+            }
+        }
+        
+        if (matRegisterAnim != null)
+        {
+            int Frame = matRegisterAnimIndex;
+            if (Frame < 0)
+                Frame = 0;
+            if (Frame > matRegisterAnim.Duration)
+                Frame = matRegisterAnim.Duration;
+            
+            for(var x : matRegisterAnim.animData)
+            {
+                if (!x.MaterialName.equals(mat.name))
+                    continue;
+                
+                // I do not know if you can change the 0 or if it's hardcoded...
+                mat.matColors[0].r = (int)x.Red.getValueAtFrame((short)Frame);
+                mat.matColors[0].g = (int)x.Green.getValueAtFrame((short)Frame);
+                mat.matColors[0].b = (int)x.Blue.getValueAtFrame((short)Frame);
+                mat.matColors[0].a = (int)x.Alpha.getValueAtFrame((short)Frame);
             }
         }
         

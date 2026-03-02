@@ -33,6 +33,7 @@ public class BasicAnimationRenderer extends BmdRenderer {
     protected AnimationParam btkData;
     protected AnimationParam btpData;
     protected AnimationParam bvaData;
+    protected AnimationParam bpkData;
     
     protected BasicAnimationRenderer() { super(); }
     
@@ -52,6 +53,7 @@ public class BasicAnimationRenderer extends BmdRenderer {
         ctor_initBTK(modelName, obj, params);
         ctor_initBTP(modelName, obj, params);
         ctor_initBVA(modelName, obj, params);
+        ctor_initBPK(modelName, obj, params);
     }
     
     // ==============================================
@@ -108,6 +110,17 @@ public class BasicAnimationRenderer extends BmdRenderer {
             if (shapeVisibleAnim == null)
                 shapeVisibleAnim = ctor_tryLoadBVA(modelName, bvaData.filename, archive);
             shapeVisibleAnimIndex = getAnimationFrameOrSource(obj, bvaData);
+        }
+    }
+    
+    protected final void ctor_initBPK(String modelName, AbstractObj obj, HashMap<String, Object> params)
+    {
+        bpkData = (AnimationParam)params.get("BPK");
+        if (bpkData != null)
+        {
+            if (matRegisterAnim == null)
+                matRegisterAnim = ctor_tryLoadBPK(modelName, bpkData.filename, archive);
+            matRegisterAnimIndex = getAnimationFrameOrSource(obj, bpkData);
         }
     }
     
@@ -175,6 +188,11 @@ public class BasicAnimationRenderer extends BmdRenderer {
             if (bvaData.isSourceObjArg(arg))
                 return true;
         }
+        if (bpkData != null && bpkData.hasSource())
+        {
+            if (bpkData.isSourceObjArg(arg))
+                return true;
+        }
         return false;
     }
     
@@ -184,12 +202,14 @@ public class BasicAnimationRenderer extends BmdRenderer {
         AnimationParam btkData = (AnimationParam)params.get("BTK");
         AnimationParam btpData = (AnimationParam)params.get("BTP");
         AnimationParam bvaData = (AnimationParam)params.get("BVA");
+        AnimationParam bpkData = (AnimationParam)params.get("BPK");
         
         return "_"+
                 getAnimationFrameOrSource(obj, bckData)+
                 getAnimationFrameOrSource(obj, brkData)+
                 getAnimationFrameOrSource(obj, btkData)+
                 getAnimationFrameOrSource(obj, btpData)+
-                getAnimationFrameOrSource(obj, bvaData);
+                getAnimationFrameOrSource(obj, bvaData)+
+                getAnimationFrameOrSource(obj, bpkData);
     }
 }

@@ -275,6 +275,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
             case "BTK":
             case "BTP":
             case "BVA":
+            case "BPK":
                 return true;
             default:
                 return false;
