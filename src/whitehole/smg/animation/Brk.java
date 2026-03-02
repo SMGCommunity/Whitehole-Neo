@@ -28,10 +28,17 @@ import whitehole.smg.animation.J3DAnim.J3DAnimationTrack;
  */
 public class Brk {
     private final FileBase file;
+    /**
+     * The animation data.
+     */
     public List<Animation> animData;
+    /**
+    * The length of the animation
+    */
+    public final int duration;
     
-    public Brk(FileBase file) throws IOException
-    {
+    
+    public Brk(FileBase file) throws IOException {
         this.file = file;
         this.file.setBigEndian(true);
         file.position(0);
@@ -40,7 +47,7 @@ public class Brk {
             this.file.setBigEndian(false);
         
         file.position(0x2A);
-        Duration = file.readShort();
+        duration = file.readShort();
         
         short RegisterCount = file.readShort(),
             ConstantCount = file.readShort();
@@ -150,13 +157,8 @@ public class Brk {
         file.close();
     }
     
-    /**
-    * The length of the animation
-    */
-    public final int Duration;
     
-    public class Animation
-    {
+    public class Animation {
         public String MaterialName = "";
         public Target Type;
         public byte TargetValueID;
@@ -167,8 +169,7 @@ public class Brk {
         public J3DAnimationTrack Alpha = new J3DAnimationTrack();
     }
     
-    public enum Target
-    {
+    public enum Target {
         REGISTER,
         CONSTANT
     }

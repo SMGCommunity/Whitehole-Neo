@@ -27,10 +27,20 @@ import whitehole.smg.animation.J3DAnim.*;
  */
 public class Btk {
     private final FileBase file;
+    /**
+     * The animation data.
+     */
     public List<Animation> animData;
+    /**
+     * The length of the animation
+     */
+    public final int duration;
+    //Loop mode would go here
+    private final boolean useMaya;
+    private final byte rotationMultiplier;
     
-    public Btk(FileBase file) throws IOException
-    {
+    
+    public Btk(FileBase file) throws IOException {
         this.file = file;
         this.file.setBigEndian(true);
         file.position(0);
@@ -39,9 +49,9 @@ public class Btk {
             this.file.setBigEndian(false);
         
         file.position(0x29);
-        RotationMultiplier = file.readByte();
-        float rotationScale = (float)(Math.pow(2, RotationMultiplier) / 0x7FFF);
-        Duration = file.readShort();
+        rotationMultiplier = file.readByte();
+        float rotationScale = (float)(Math.pow(2, rotationMultiplier) / 0x7FFF);
+        duration = file.readShort();
         
         short AnimationCount = (short)(file.readShort() / 3),
                ScaleCount = file.readShort(),
@@ -61,7 +71,7 @@ public class Btk {
         animData = new ArrayList(AnimationCount);
         
         file.position(ChunkStart + 0x5C);
-        UseMaya = file.readInt() == 1;
+        useMaya = file.readInt() == 1;
         
         // Oh boy...
         file.position(ScaleTableOffset);
@@ -108,8 +118,7 @@ public class Btk {
         file.close();
     }
     
-    public Animation getAnimByName(String name)
-    {
+    public Animation getAnimByName(String name) {
         for (int i = 0; i < animData.size(); i++) {
             var x = animData.get(i);
             if (x.MaterialName.equals(name))
@@ -118,16 +127,8 @@ public class Btk {
         return null;
     }
     
-    /**
-     * The length of the animation
-     */
-    public final int Duration;
-    //Loop mode would go here
-    private final boolean UseMaya;
-    private final byte RotationMultiplier;
     
-    public class Animation
-    {
+    public class Animation {
         public String MaterialName = "";
         /**
          * index to the Texture Generator inside the model to target

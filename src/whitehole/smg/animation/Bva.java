@@ -21,6 +21,13 @@ import java.util.List;
 import whitehole.io.FileBase;
 
 public class Bva {
+    private final FileBase file;
+    /**
+     * The animation data.
+     */
+    public List<List<Boolean>> animData;
+    
+    
     public Bva(FileBase file) throws IOException {
         this.file = file;
         this.file.setBigEndian(true);
@@ -52,15 +59,8 @@ public class Bva {
             }
         }
     }
-    
-    public void save() throws IOException {
-        file.save();
-    }
 
     public void close() throws IOException {
         file.close();
     }
-    
-    private final FileBase file;
-    public List<List<Boolean>> animData;
 }

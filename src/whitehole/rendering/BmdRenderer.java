@@ -442,8 +442,8 @@ public class BmdRenderer extends GLRenderer {
             int Frame = texMatrixAnimIndex;
             if (Frame < 0)
                 Frame = 0;
-            if (Frame > texMatrixAnim.Duration)
-                Frame = texMatrixAnim.Duration;
+            if (Frame > texMatrixAnim.duration)
+                Frame = texMatrixAnim.duration;
             
             var anim = texMatrixAnim.getAnimByName(mat.name);
             if (anim != null)
@@ -465,8 +465,8 @@ public class BmdRenderer extends GLRenderer {
             int Frame = colRegisterAnimIndex;
             if (Frame < 0)
                 Frame = 0;
-            if (Frame > colRegisterAnim.Duration)
-                Frame = colRegisterAnim.Duration;
+            if (Frame > colRegisterAnim.duration)
+                Frame = colRegisterAnim.duration;
             
             for(var x : colRegisterAnim.animData)
             {
@@ -499,8 +499,8 @@ public class BmdRenderer extends GLRenderer {
             int Frame = matRegisterAnimIndex;
             if (Frame < 0)
                 Frame = 0;
-            if (Frame > matRegisterAnim.Duration)
-                Frame = matRegisterAnim.Duration;
+            if (Frame > matRegisterAnim.duration)
+                Frame = matRegisterAnim.duration;
             
             for(var x : matRegisterAnim.animData)
             {
@@ -1191,13 +1191,13 @@ public class BmdRenderer extends GLRenderer {
         if(!isValidBmdModel())
             return;
         
-        if (jointAnim != null && jointAnim.BoneCount == model.joints.length)
+        if (jointAnim != null && jointAnim.jointCount == model.joints.length)
         {
             int Frame = jointAnimIndex;
             if (Frame < 0)
                 Frame = 0;
-            if (Frame > jointAnim.Duration)
-                Frame = jointAnim.Duration-1;
+            if (Frame > jointAnim.duration)
+                Frame = jointAnim.duration-1;
             
             //init BCK data
             for (int i = 0; i < model.joints.length; i++) {
@@ -1538,6 +1538,9 @@ public class BmdRenderer extends GLRenderer {
     public void releaseStorage() {
         try
         {
+            if(jointAnim != null)
+                jointAnim.close();
+            
             if(shapeVisibleAnim != null)
                 shapeVisibleAnim.close();
             
@@ -1550,6 +1553,9 @@ public class BmdRenderer extends GLRenderer {
             if (colRegisterAnim != null)
                 colRegisterAnim.close();
             
+            if (matRegisterAnim != null)
+                matRegisterAnim.close();
+            
             if (model != null)
                 model.close();
             
@@ -1557,13 +1563,15 @@ public class BmdRenderer extends GLRenderer {
                 archive.close();
             
             model = null;
+            jointAnim = null;
             shapeVisibleAnim = null;
             texPatternAnim = null;
             texMatrixAnim = null;
             colRegisterAnim = null;
+            matRegisterAnim = null;
             archive = null;
         }
-        catch(Exception ex)
+        catch(IOException ex)
         {
             
         }

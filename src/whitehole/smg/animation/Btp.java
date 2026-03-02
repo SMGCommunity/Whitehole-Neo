@@ -26,8 +26,14 @@ import whitehole.io.FileBase;
  * @author Hackio
  */
 public class Btp {
-    public Btp(FileBase file) throws IOException
-    {
+    private final FileBase file;
+    /**
+     * The animation data.
+     */
+    public List<Animation> animData;
+    
+    
+    public Btp(FileBase file) throws IOException {
         this.file = file;
         this.file.setBigEndian(true);
         file.position(0);
@@ -57,7 +63,7 @@ public class Btp {
             
             //short target = file.readShort();
             
-            AnimationEntry entry = new AnimationEntry(n);
+            Animation entry = new Animation(n);
             
             file.position(offset1 + (b * 8));
             short Count = file.readShort();
@@ -73,17 +79,11 @@ public class Btp {
         }
     }
     
-    // We need not add these
-    public void save() throws IOException {
-        file.save();
-    }
-
     public void close() throws IOException {
         file.close();
     }
     
-    public Short get(String materialName, int textureIndex, int frameIndex)
-    {
+    public Short get(String materialName, int textureIndex, int frameIndex) {
         if (frameIndex < 0)
             frameIndex = 0;
         
@@ -96,18 +96,13 @@ public class Btp {
         return null;
     }
     
-    private final FileBase file;
-    public List<AnimationEntry> animData;
     
-    
-    public class AnimationEntry
-    {
+    public class Animation {
         public final String name;
         public int texID;
         public final List<Short> frameData;
         
-        public AnimationEntry(String n)
-        {
+        public Animation(String n) {
             name = n;
             frameData = new ArrayList();
         }

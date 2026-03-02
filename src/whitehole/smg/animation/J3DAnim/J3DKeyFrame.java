@@ -16,8 +16,6 @@
  */
 package whitehole.smg.animation.J3DAnim;
 
-import java.util.List;
-
 /**
  *
  * @author Hackio
@@ -28,8 +26,8 @@ public class J3DKeyFrame {
     public float IngoingTangent;
     public float OutgoingTangent;
     
-    public J3DKeyFrame(short time, float value, Float ingoing, Float outgoing)
-    {
+    
+    public J3DKeyFrame(short time, float value, Float ingoing, Float outgoing) {
         if (ingoing == null)
             ingoing = 0f;
         
@@ -43,22 +41,19 @@ public class J3DKeyFrame {
     }
     
     @Override
-    public String toString()
-    {
+    public String toString() {
         return String.format("Time: %d, Value: %f, Ingoing: %f, Outgoing: %f", Time, Value, IngoingTangent, OutgoingTangent);
     }
     
     
-    
-    public static float GetHermiteInterpolation(J3DKeyFrame FirstKey, J3DKeyFrame SecondKey, short Frame)
-    {
+    public static float GetHermiteInterpolation(J3DKeyFrame FirstKey, J3DKeyFrame SecondKey, short Frame) {
         float length = FirstKey.Time - SecondKey.Time;
         float t = (Frame - FirstKey.Time) / length;
         return GetPointHermite(FirstKey.Value, SecondKey.Value, FirstKey.OutgoingTangent * length, SecondKey.IngoingTangent * length, t);
     }
 
-    private static float GetPointHermite(float p0, float p1, float s0, float s1, float Time)
-    {
+    
+    private static float GetPointHermite(float p0, float p1, float s0, float s1, float Time) {
         float[] Vector = new float[]
         {
             (p0 *  2) + (p1 * -2) + (s0 *  1) +  (s1 *  1),
@@ -68,9 +63,7 @@ public class J3DKeyFrame {
         };
         return GetPointCubic(Vector, Time);
     }
-
-    private static float GetPointCubic(float[] cf, float t)
-    {
+    private static float GetPointCubic(float[] cf, float t) {
         return (((cf[0] * t + cf[1]) * t + cf[2]) * t + cf[3]);
     } 
 }

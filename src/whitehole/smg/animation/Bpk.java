@@ -28,7 +28,15 @@ import whitehole.smg.animation.J3DAnim.J3DAnimationTrack;
  */
 public class Bpk {
     private final FileBase file;
-    public List<Bpk.Animation> animData;
+    /**
+     * The animation data.
+     */
+    public List<Animation> animData;
+    /**
+    * The length of the animation
+    */
+    public final int duration;
+    
     
     public Bpk(FileBase file) throws IOException {
         this.file = file;
@@ -39,7 +47,7 @@ public class Bpk {
             this.file.setBigEndian(false);
         
         file.position(0x2C);
-        Duration = file.readShort();
+        duration = file.readShort();
         
         short AnimationCount = file.readShort();
         short RedCount = file.readShort(),
@@ -90,13 +98,12 @@ public class Bpk {
         }
     }
     
-    /**
-    * The length of the animation
-    */
-    public final int Duration;
+    public void close() throws IOException {
+        file.close();
+    }
     
-    public class Animation
-    {
+    
+    public class Animation {
         public String MaterialName = "";
 
         public J3DAnimationTrack Red = new J3DAnimationTrack();

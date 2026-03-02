@@ -28,16 +28,21 @@ import whitehole.smg.animation.J3DAnim.J3DAnimationTrack;
  */
 public class Bck {
     private final FileBase file;
+    /**
+     * The animation data.
+     */
     public List<Animation> animData;
     /**
     * The length of the animation
     */
-    public final int Duration;
+    public final int duration;
+    /**
+     * The number of bones this bones expects there to be
+     */
+    public final int jointCount;
     
-    public final int BoneCount;
     
-    public Bck(FileBase file) throws IOException
-    {
+    public Bck(FileBase file) throws IOException {
         this.file = file;
         this.file.setBigEndian(true);
         file.position(0);
@@ -49,8 +54,8 @@ public class Bck {
         byte rotFrac = file.readByte();
         double POW = Math.pow(2, rotFrac);
         float rotationScale = (float)(POW) * (180.0f / 32767.0f);
-        Duration = file.readShort();
-        BoneCount = file.readShort();
+        duration = file.readShort();
+        jointCount = file.readShort();
         
         short ScaleCount = file.readShort(),
             RotationCount = file.readShort(),
@@ -69,8 +74,8 @@ public class Bck {
         file.position(TranslationTableOffset);
         float[] TranslationTable = file.readFloats(TranslationCount);
         
-        animData = new ArrayList(BoneCount);
-        for (int i = 0; i < BoneCount; i++)
+        animData = new ArrayList(jointCount);
+        for (int i = 0; i < jointCount; i++)
         {
             file.position(AnimationTableOffset + (i * 0x36));
             
@@ -93,8 +98,8 @@ public class Bck {
         file.close();
     }
     
-    public class Animation
-    {
+    
+    public class Animation {
         public J3DAnimationTrack ScaleX = new J3DAnimationTrack();
         public J3DAnimationTrack ScaleY = new J3DAnimationTrack();
         public J3DAnimationTrack ScaleZ = new J3DAnimationTrack();
