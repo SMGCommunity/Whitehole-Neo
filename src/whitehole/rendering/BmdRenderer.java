@@ -592,6 +592,12 @@ public class BmdRenderer extends GLRenderer {
         StringBuilder vert = new StringBuilder();
         vert.append("#version 120\n");
         vert.append("\n");
+        vert.append("// ").append(mat.name).append("\n");
+        vert.append("\n");
+        vert.append("attribute float secondaryAlpha;");
+        vert.append("\n");
+        vert.append("varying float vSecondaryAlpha;");
+        vert.append("\n");
         vert.append("void main()\n");
         vert.append("{\n");
         vert.append("    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n");
@@ -600,6 +606,7 @@ public class BmdRenderer extends GLRenderer {
         vert.append("    vec4 normal = vec4(((TMP2)*0.0001).xyz, 1);\n");
         vert.append("    gl_FrontColor = gl_Color;\n");
         vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
+        vert.append("    vSecondaryAlpha = secondaryAlpha;\n");
         vert.append("    vec4 texcoord;\n");
         for (int i = 0; i < mat.texGen.length; i++)
         {            
@@ -664,8 +671,9 @@ public class BmdRenderer extends GLRenderer {
             }
             
             vert.append(String.format("    gl_TexCoord[%1$d] = texcoord;\n", i));
-        } 
-        vert.append("}\n");
+        }
+        
+        vert.append('}').append('\n');
         int vertid = gl.glCreateShader(35633);
         (this.shaders[matid]).vertexShader = vertid;
         gl.glShaderSource(vertid, 1, new String[] { vert.toString() }, new int[] { vert.length() }, 0);
@@ -692,10 +700,13 @@ public class BmdRenderer extends GLRenderer {
         StringBuilder frag = new StringBuilder();
         frag.append("#version 120\n");
         frag.append("\n");
+        frag.append("// ").append(mat.name).append("\n");
+        frag.append("\n");
 
+        frag.append("varying float vSecondaryAlpha;\n");
         for(int i = 0; i < 8; i++)
         {
-            if(mat.textureIndicies[i] ==(short)0xFFFF) continue;
+            if(mat.textureIndicies[i] == (short)0xFFFF) continue;
             frag.append(String.format("uniform sampler2D texture%1$d;\n", i));
         }
 
@@ -730,17 +741,27 @@ public class BmdRenderer extends GLRenderer {
                (float)mat.constColors[i].b / 255f,(float)mat.constColors[i].a / 255f));
         }
 
-        frag.append("    vec4 texcolor, rascolor, konst, lightmatsrc;\n");
+        frag.append("    vec4 texcolor, rascolor, konst, lightchannel0, lightchannel1;\n");
 
-        if (mat.lightChannels[0] != null && mat.lightChannels[0].color.materialColorSource == 0) {// Defaulting to color channel 0...
-            frag.append("    lightmatsrc.rgb = vec3(").append(String.format(usa, "%1$f, %2$f, %3$f", mat.matColors[0].r/255f, mat.matColors[0].g/255f, mat.matColors[0].b/255f)).append(");\n");
+        if (mat.lightChannels[0] != null && mat.lightChannels[0].color.materialColorSource == 0) {
+            frag.append("    lightchannel0.rgb = vec3(").append(String.format(usa, "%1$f, %2$f, %3$f", mat.matColors[0].r/255f, mat.matColors[0].g/255f, mat.matColors[0].b/255f)).append(");\n");
         } else
-            frag.append("    lightmatsrc.rgb = gl_Color.rgb;\n");
+            frag.append("    lightchannel0.rgb = gl_Color.rgb;\n");
         
-        if (mat.lightChannels[0] != null && mat.lightChannels[0].alpha.materialColorSource == 0) {// Defaulting to color channel 0...
-            frag.append("    lightmatsrc.a = ").append(String.format(usa, "%1$f", mat.matColors[0].a/255f)).append(";\n");
+        if (mat.lightChannels[0] != null && mat.lightChannels[0].alpha.materialColorSource == 0) {
+            frag.append("    lightchannel0.a = ").append(String.format(usa, "%1$f", mat.matColors[0].a/255f)).append(";\n");
         } else
-            frag.append("    lightmatsrc.a = gl_Color.a;\n");
+            frag.append("    lightchannel0.a = gl_Color.a;\n");
+        
+        if (mat.lightChannels[1] != null && mat.lightChannels[1].color.materialColorSource == 0) {
+            frag.append("    lightchannel1.rgb = vec3(").append(String.format(usa, "%1$f, %2$f, %3$f", mat.matColors[1].r/255f, mat.matColors[1].g/255f, mat.matColors[1].b/255f)).append(");\n");
+        } else
+            frag.append("    lightchannel1.rgb = gl_SecondaryColor.rgb;\n");
+        
+        if (mat.lightChannels[1] != null && mat.lightChannels[1].alpha.materialColorSource == 0) {
+            frag.append("    lightchannel1.a = ").append(String.format(usa, "%1$f", mat.matColors[1].a/255f)).append(";\n");
+        } else
+            frag.append("    lightchannel1.a = vSecondaryAlpha;\n");
         
         
         
@@ -765,10 +786,35 @@ public class BmdRenderer extends GLRenderer {
             if(tv.textureMapID != (byte)0xFF && tv.textureGeneratorID != (byte)0xFF)
                 frag.append(String.format("    texcolor = texture2D(texture%1$d, gl_TexCoord[%2$d].xy);\n", tv.textureMapID, tv.textureGeneratorID));
             
-            frag.append("    rascolor = lightmatsrc;\n");
-            
-            // TODO: take mat.TevOrder[i].ChanId into account
-            
+            switch(tv.colorChannelID) {
+                case 0: // Color0
+                    frag.append("    rascolor.rgb = lightchannel0.rgb;\n");
+                    frag.append("    rascolor.a = 0;\n");
+                    break;
+                case 1: // Color1
+                    frag.append("    rascolor.rgb = lightchannel1.rgb;\n");
+                    frag.append("    rascolor.a = 0;\n");
+                    break;
+                case 2: // Alpha0
+                    frag.append("    rascolor.r = 0;\n");
+                    frag.append("    rascolor.g = 0;\n");
+                    frag.append("    rascolor.b = 0;\n");
+                    frag.append("    rascolor.a = lightchannel0.a;\n");
+                    break;
+                case 3: // Alpha1
+                    frag.append("    rascolor.r = 0;\n");
+                    frag.append("    rascolor.g = 0;\n");
+                    frag.append("    rascolor.b = 0;\n");
+                    frag.append("    rascolor.a = lightchannel1.a;\n");
+                    break;
+                case 4: // Color0Alpha0
+                default:
+                    frag.append("    rascolor = lightchannel0;\n");
+                    break;
+                case 5: // Color1Alpha1
+                    frag.append("    rascolor = lightchannel1;\n");
+                    break;
+            }        
             
             Bmd.Material.TevSwapModeTable swapRasTable = mat.tevSwapTable[tv.swapColorId];
             Bmd.Material.TevSwapModeTable swapTexTable = mat.tevSwapTable[tv.swapTextureId];
@@ -799,13 +845,14 @@ public class BmdRenderer extends GLRenderer {
             switch(tv.operationColor)
             {
                 case 0:
-                    operation = "    %1$s =(%5$s + mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
+                    //operation = "    %1$s = (%5$s + mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
+                    operation = "    %1$s = ((%5$s + (((1 - %4$s) * %2$s) + (%4$s * %3$s))) + %6$s) * %7$s;\n";
                     if(tv.clampColor)
                         operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
                     break;
 
                 case 1:
-                    operation = "    %1$s =(%5$s - mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
+                    operation = "    %1$s = (%5$s - mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
                     if(tv.clampColor)
                         operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
                     break;
@@ -926,19 +973,27 @@ public class BmdRenderer extends GLRenderer {
             // TODO: better error reporting/logging?
         }
 
+        {
+            // Shader Debug Output code goes here
+            // Do not remove this
+        }
+        
+        
         int sid = gl.glCreateProgram();
         shaders[matid].program = sid;
 
         gl.glAttachShader(sid, vertid);
         gl.glAttachShader(sid, fragid);
 
+        gl.glBindAttribLocation(sid, 1, "secondaryAlpha");
+        
         gl.glLinkProgram(sid);
         gl.glGetProgramiv(sid, GL2.GL_LINK_STATUS, sillyarray, 0);
         success = sillyarray[0];
         if(success == 0)
         {
             //String log = gl.glGetProgramInfoLog(sid);
-            String log = "TODO: port this excrement from C#";
+            String log = "MaterialName("+mat.name+")";
             throw new GLException("!Failed to link shader program: " + log);
             // TODO: better error reporting/logging?
         }
@@ -1456,7 +1511,12 @@ public class BmdRenderer extends GLRenderer {
                             gl.glColor4f(c.r, c.g, c.b, c.a); }
 
                             if(hasShaders) {
-                                if((prim.arrayMask &(1 << 12)) != 0) { Color4 c = model.colorArray[1][prim.colorIndices[1][i]]; gl.glSecondaryColor3f(c.r, c.g, c.b); }
+                                if((prim.arrayMask &(1 << 12)) != 0) {
+                                    Color4 c = model.colorArray[1][prim.colorIndices[1][i]];
+                                    gl.glSecondaryColor3f(c.r, c.g, c.b);
+                                    
+                                    gl.glVertexAttrib1f(1, c.a);
+                                }
                                 if((prim.arrayMask &(1 << 13)) != 0) { Vec2f t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE0, t.x, t.y); }
                                 if((prim.arrayMask &(1 << 14)) != 0) { Vec2f t = model.texcoordArray[1][prim.texcoordIndices[1][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE1, t.x, t.y); }
                                 if((prim.arrayMask &(1 << 15)) != 0) { Vec2f t = model.texcoordArray[2][prim.texcoordIndices[2][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE2, t.x, t.y); }
