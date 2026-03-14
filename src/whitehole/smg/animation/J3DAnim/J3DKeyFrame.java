@@ -46,24 +46,24 @@ public class J3DKeyFrame {
     }
     
     
-    public static float GetHermiteInterpolation(J3DKeyFrame FirstKey, J3DKeyFrame SecondKey, short Frame) {
-        float length = FirstKey.Time - SecondKey.Time;
-        float t = (Frame - FirstKey.Time) / length;
-        return GetPointHermite(FirstKey.Value, SecondKey.Value, FirstKey.OutgoingTangent * length, SecondKey.IngoingTangent * length, t);
-    }
+    public static float GetHermiteInterpolation(J3DKeyFrame first, J3DKeyFrame second, short frame) {
+        float length = second.Time - first.Time;
+        float t = (frame - first.Time) / length;
 
-    
-    private static float GetPointHermite(float p0, float p1, float s0, float s1, float Time) {
-        float[] Vector = new float[]
-        {
-            (p0 *  2) + (p1 * -2) + (s0 *  1) +  (s1 *  1),
-            (p0 * -3) + (p1 *  3) + (s0 * -2) +  (s1 * -1),
-            (p0 *  0) + (p1 *  0) + (s0 *  1) +  (s1 *  0),
-            (p0 *  1) + (p1 *  0) + (s0 *  0) +  (s1 *  0)
-        };
-        return GetPointCubic(Vector, Time);
+        return GetPointHermite(
+            first.Value,
+            second.Value,
+            first.OutgoingTangent * length,
+            second.IngoingTangent * length,
+            t
+        );
     }
-    private static float GetPointCubic(float[] cf, float t) {
-        return (((cf[0] * t + cf[1]) * t + cf[2]) * t + cf[3]);
-    } 
+    private static float GetPointHermite(float p0, float p1, float s0, float s1, float t) {
+        float a =  2*p0 - 2*p1 + s0 + s1;
+        float b = -3*p0 + 3*p1 - 2*s0 - s1;
+        float c = s0;
+        float d = p0;
+
+        return ((a * t + b) * t + c) * t + d;
+    }
 }
