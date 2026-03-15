@@ -1207,7 +1207,7 @@ public class BmdRenderer extends GLRenderer {
     }
     
     @Override
-    public boolean gottaRender(RenderInfo info) throws GLException {
+    public boolean gottaRender(RenderInfo info) {
         if(info.renderMode == RenderMode.PICKING || info.renderMode == RenderMode.HIGHLIGHT)
             return true;
         
