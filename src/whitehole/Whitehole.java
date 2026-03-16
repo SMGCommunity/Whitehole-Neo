@@ -49,6 +49,8 @@ public class Whitehole {
     public static final Hints Hints = new Hints();
     public static final ModelSubstitutions ModelSubstitutions = new ModelSubstitutions();
     public static final AreaManagerLimits AreaManagerLimits = new AreaManagerLimits();
+    // Hey... so this is very just... poor. For now it'll work, but ideally there's a system for allowing projects to only store new shortcuts in the future.
+    public static final GameAndProjectDataHolder Shortcuts = new GameAndProjectDataHolder("data/shortcuts.json", "/shortcuts.json", true);
     
     public static void main(String[] args) throws IOException {
         decideIconSize();
@@ -84,6 +86,7 @@ public class Whitehole {
         GalaxyNames.initBaseGame();
         ZoneNames.initBaseGame();
         Hints.initBaseGame();
+        Shortcuts.initBaseGame();
         AreaManagerLimits.initBaseGame();
         ObjectDB.init(true);
         ModelSubstitutions.initBaseGame();

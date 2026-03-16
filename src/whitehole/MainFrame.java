@@ -151,6 +151,7 @@ public final class MainFrame extends javax.swing.JFrame {
                 Whitehole.SpecialRenderers.clearProject();
             }
             FieldHashes.clearProjectHashTable();
+            Whitehole.Shortcuts.clearProject();
         }
         
         // Load game system and store last selected game directory
@@ -162,8 +163,10 @@ public final class MainFrame extends javax.swing.JFrame {
             System.err.println(ex);
             setInfo("Failed to Open Directory", "Failed to open saved game directory.", "See console output for details.", true);
             lbStatusBar.setText("Failed to open saved game directory. See console output for details.");
+            bcsvEditor.reloadShortcuts();
             return;
         }
+        bcsvEditor.reloadShortcuts();
         
         Settings.setLastGameDir(gameDir);
         

@@ -68,12 +68,17 @@ public class GameAndProjectDataHolder {
             System.out.println(ex);
             if (isNeedForceQuit)
                 System.exit(1);
-            return null;
         }
         return result;
     }
     
     public void clearProject() {
         projectData = null;
+    }
+
+    public JSONObject getProjectOrBaseJSON() {
+        if (projectData != null)
+            return projectData;
+        return baseGameData;
     }
 }

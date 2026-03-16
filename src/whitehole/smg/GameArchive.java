@@ -135,6 +135,7 @@ public class GameArchive {
             hasOverwriteModelSubstitutions = Whitehole.ModelSubstitutions.initProject(efs);
             hasOverwriteSpecialRenderer = Whitehole.SpecialRenderers.initProject(efs);
             FieldHashes.initProjectHashTable(efs);
+            Whitehole.Shortcuts.initProject(efs);
         }
     }
     
