@@ -658,10 +658,12 @@ public class Bmd
 
                 for (; ; )
                 {
-                    if (file.position() >= packetend) break;
+                    if (file.position() >= packetend)
+                        break;
 
                     int primtype = file.readByte() & 0xFF;
-                    if (primtype == 0) break;
+                    if (primtype == 0)
+                        break;
                     char numvertices;
                     if (isBigEndian) 
                         numvertices = (char) file.readShort();
@@ -719,7 +721,8 @@ public class Bmd
                                     }
                                     break;
 
-                                default: throw new IOException(String.format("Bmd: unsupported index attrib %1$04X", attrib));
+                                default:
+                                    throw new IOException(String.format("Bmd: unsupported index attrib %1$04X", attrib));
                             }
 
                             switch (attrib & 0xFF)
@@ -738,7 +741,8 @@ public class Bmd
                                 case 19:
                                 case 20: prim.texcoordIndices[(attrib & 0xFF) - 13][k] = val; break;
 
-                                default: throw new IOException(String.format("Bmd: unsupported index attrib %1$04X", attrib));
+                                default:
+                                    throw new IOException(String.format("Bmd: unsupported vertex attrib %1$04X", attrib));
                             }
                         }
                     }
