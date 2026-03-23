@@ -707,10 +707,10 @@ public class Bmd
                             {
                                 case 0x0000:
                                 case 0x0100:
+                                case 0x0200:
                                     val = file.readByte() & 0xFF;
                                     break;
 
-                                case 0x0200:
                                 case 0x0300:
                                     if (isBigEndian) 
                                         val = file.readShort() & 0xFFFF;
