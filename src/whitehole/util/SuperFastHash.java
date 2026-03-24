@@ -21,53 +21,54 @@ import whitehole.smg.Bcsv;
 
 public class SuperFastHash {
     public static long calculate(byte[] data, long start, int offset, int len) {
-        long hash = start & 0xFFFFFFFFL;
-        long tmp;
-        int rem;
-        
-        if (len < 1) {
-            return hash;
-        }
-        
-        rem = len & 3;
-        len >>>= 2;
-        
+        int hash = (int) start;
         int pos = offset;
-        
-        for (; len > 0; len--) {
-            hash += (data[pos++] | (data[pos++] << 8));
-            tmp = ((data[pos++] | (data[pos++] << 8)) << 11) ^ hash;
-            hash = ((hash << 16) ^ tmp);
+
+        if (len <= 0)
+            return hash & 0xFFFFFFFFL;
+
+        int rem = len & 3;
+        int count = len >>> 2;
+
+        for (; count > 0; count--) {
+            int low = (data[pos++] & 0xFF) | ((data[pos++] & 0xFF) << 8);
+            int high = (data[pos++] & 0xFF) | ((data[pos++] & 0xFF) << 8);
+
+            hash += low;
+            int tmp = (high << 11) ^ hash;
+            hash = (hash << 16) ^ tmp;
             hash += (hash >>> 11);
         }
-        
+
         switch (rem) {
             case 3:
-                hash += (data[pos++] | (data[pos++] << 8));
+                hash += (data[pos++] & 0xFF) | ((data[pos++] & 0xFF) << 8);
                 hash ^= (hash << 16);
-                hash ^= (data[pos++] << 18);
+                hash ^= (data[pos++] & 0xFF) << 18;
                 hash += (hash >>> 11);
                 break;
+
             case 2:
-                hash += (data[pos++] | (data[pos++] << 8));
+                hash += (data[pos++] & 0xFF) | ((data[pos++] & 0xFF) << 8);
                 hash ^= (hash << 11);
                 hash += (hash >>> 17);
                 break;
+
             case 1:
-                hash += data[pos++];
+                hash += (data[pos++] & 0xFF);
                 hash ^= (hash << 10);
                 hash += (hash >>> 1);
                 break;
         }
-        
+
         hash ^= (hash << 3);
         hash += (hash >>> 5);
         hash ^= (hash << 4);
         hash += (hash >>> 17);
         hash ^= (hash << 25);
         hash += (hash >>> 6);
-        
-        return hash & 0xFFFFFFFF;
+
+        return hash & 0xFFFFFFFFL;
     }
     
     public static void addToLookup(String fieldName)
