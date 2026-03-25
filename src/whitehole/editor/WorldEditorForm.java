@@ -2952,8 +2952,8 @@ public class WorldEditorForm extends javax.swing.JFrame {
             
             int keyCode = e.getKeyCode();
             
-            // Arrow keys move between items in the tree. Everything else will just trigger a shortcut on the 3d view
-            if (focusedTree && UIUtil.IsArrowKeys(keyCode))
+            // Arrow keys + NOTHING ELSE will move between items in the tree. Everything else will just trigger a shortcut on the 3d view
+            if (focusedTree && UIUtil.IsOnlyArrowKeys(keyMask, keyCode))
                 return;
             
             //Init the Keymask
@@ -3314,11 +3314,11 @@ public class WorldEditorForm extends javax.swing.JFrame {
             protected void processKeyEvent(java.awt.event.KeyEvent e) {
                 int code = e.getKeyCode();
 
-                // Allow only arrow keys, nothing else
-                if (UIUtil.IsArrowKeys(code)) {
+                // Only process it if it's arrow keys + nothing else
+                if (UIUtil.IsOnlyArrowKeys(keyMask, code)) {
                     super.processKeyEvent(e);
                 } else {
-                    // Reroute all other keys to the renderer
+                    // Otherwise reroute all other keys to the renderer
                     e.consume();
                     switch (e.getID()) {
                         case java.awt.event.KeyEvent.KEY_PRESSED:
