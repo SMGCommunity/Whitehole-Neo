@@ -55,6 +55,7 @@ import whitehole.util.MathUtil;
 import whitehole.util.StageUtil;
 import whitehole.util.ObjIdUtil;
 import whitehole.util.RailUtil;
+import whitehole.util.UIUtil;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     private static final float SCALE_DOWN = 10000f;
@@ -281,6 +282,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         glCanvas.addMouseMotionListener(renderer);
         glCanvas.addMouseWheelListener(renderer);
         glCanvas.addKeyListener(renderer);
+        treeObjects.addKeyListener(renderer);
         
         pnlGLPanel.add(glCanvas, BorderLayout.CENTER);
         pnlGLPanel.validate();
@@ -4589,11 +4591,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            if (!glCanvas.isFocusOwner()) //Handy!
+            boolean focusedTree = treeObjects.isFocusOwner();
+            boolean focusedCanvas = glCanvas.isFocusOwner();
+            if (!focusedTree && !focusedCanvas) //Handy!
                 return;
             
-            //int oldmask = keyMask;
             int keyCode = e.getKeyCode();
+            
+            // Arrow keys move between items in the tree. Everything else will just trigger a shortcut on the 3d view
+            if (focusedTree && UIUtil.IsArrowKeys(keyCode))
+                return;
             
             //Init the Keymask
             if (keyCode == (Settings.getUseWASD() ? KeyEvent.VK_A : KeyEvent.VK_LEFT))
@@ -5260,7 +5267,31 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         jSeparator10 = new javax.swing.JToolBar.Separator();
         tgbPasteObj = new javax.swing.JToggleButton();
         scrObjectTree = new javax.swing.JScrollPane();
-        treeObjects = new javax.swing.JTree();
+        treeObjects = new javax.swing.JTree() {
+            @Override
+            protected void processKeyEvent(java.awt.event.KeyEvent e) {
+                int code = e.getKeyCode();
+
+                // Allow only arrow keys, nothing else
+                if (UIUtil.IsArrowKeys(code)) {
+                    super.processKeyEvent(e);
+                } else {
+                    // Reroute all other keys to the renderer
+                    e.consume();
+                    switch (e.getID()) {
+                        case java.awt.event.KeyEvent.KEY_PRESSED:
+                        renderer.keyPressed(e);
+                        break;
+                        case java.awt.event.KeyEvent.KEY_RELEASED:
+                        renderer.keyReleased(e);
+                        break;
+                        case java.awt.event.KeyEvent.KEY_TYPED:
+                        renderer.keyTyped(e); 
+                        break;
+                    }
+                }
+            }
+        };
         scrObjSettings = new javax.swing.JScrollPane();
         menu = new javax.swing.JMenuBar();
         mnuFile = new javax.swing.JMenu();
