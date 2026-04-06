@@ -35,6 +35,7 @@ import whitehole.util.SuperFastHash;
 import whitehole.math.Vec2f;
 import whitehole.math.Vec3f;
 import whitehole.math.Matrix4;
+import whitehole.smg.Bti;
 
 public class BmdRenderer extends GLRenderer {
     protected RarcFile archive = null;
@@ -389,7 +390,7 @@ public class BmdRenderer extends GLRenderer {
     
     
     private void ctor_uploadTexture(GL2 gl, int id) {
-        Bmd.Texture tex = model.textures[id];
+        Bti tex = model.textures[id];
         int hash = textureHash(id);
         textures[id] = hash;
         
@@ -409,8 +410,8 @@ public class BmdRenderer extends GLRenderer {
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, ImageUtils.getWrapMode(tex.wrapT));
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, ImageUtils.getFilterMode(tex.minFilter));
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, ImageUtils.getFilterMode(tex.magFilter));
-        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_LOD, tex.lodMin);
-        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_LOD, tex.lodMax);
+        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_LOD, tex.minLod);
+        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_LOD, tex.maxLod);
         gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_LOD_BIAS, tex.lodBias);
         gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_ANISOTROPY_EXT, ImageUtils.getAnisotropy(tex.maxAnisotropy));
         
@@ -1172,7 +1173,7 @@ public class BmdRenderer extends GLRenderer {
     }
 
     private int textureHash(int texid) {
-        Bmd.Texture tex = model.textures[texid];
+        Bti tex = model.textures[texid];
         
         int size = 0;
         for(int i = 0; i < tex.mipmapCount; i++)
@@ -1192,8 +1193,8 @@ public class BmdRenderer extends GLRenderer {
         sig.put(tex.maxAnisotropy);
         sig.put(tex.minFilter);
         sig.put(tex.magFilter);
-        sig.putFloat(tex.lodMin);
-        sig.putFloat(tex.lodMax);
+        sig.putFloat(tex.minLod);
+        sig.putFloat(tex.maxLod);
         sig.putFloat(tex.lodBias);
         sig.put(tex.mipmapCount);
         

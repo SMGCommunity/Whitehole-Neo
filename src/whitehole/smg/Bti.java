@@ -23,18 +23,21 @@ public class Bti {
         file = f;
         file.setBigEndian(isBigEndian); 
         
+        long filestart = file.position();
         format = file.readByte();
-        file.skip(0x1);
+        alphaMode = file.readByte();
         width = file.readShort();
         height = file.readShort();
         wrapS = file.readByte();
         wrapT = file.readByte();
-        file.skip(0x1);
+        boolean usePalette = file.readByte() != 0;
         paletteFormat = file.readByte();
         paletteCount = file.readShort();
-        paletteOffset = file.readInt();
+        int paletteOffset = (int)filestart + file.readInt();
         useMipmap = file.readByte() != 0x0;
-        file.skip(0x3);
+        enableEdgeLod = file.readByte() != 0x0;
+        clampLodBias = file.readByte() != 0x0;
+        maxAnisotropy = file.readByte();
         minFilter = file.readByte();
         magFilter = file.readByte();
         minLod = file.readByte() * 0.125F;
@@ -42,7 +45,7 @@ public class Bti {
         mipmapCount = file.readByte();
         file.skip(0x1);
         lodBias = file.readShort() * 0.01F;
-        imageOffset = file.readInt();
+        int imageOffset = (int)filestart + file.readInt();
         
         image = ImageUtils.decodeTextureData(file, imageOffset, mipmapCount, format, width, height, isBigEndian);
     }
@@ -57,11 +60,26 @@ public class Bti {
     
     private final FileBase file;
     
-    public int paletteOffset, imageOffset;
-    public float minLod, maxLod, lodBias;
+    public byte format;
+    public byte paletteFormat;
+    public byte wrapS;
+    public byte wrapT;
+    public byte minFilter;
+    public byte magFilter;
+    public float minLod;
+    public float maxLod;
+    public float lodBias;
+    public boolean enableEdgeLod;
+    public short width;
+    public short height;
+    public byte mipmapCount;
+    public short paletteCount;
+    public byte alphaMode;
+    public boolean clampLodBias;
+    public byte maxAnisotropy;
     public boolean useMipmap;
-    public short width, height, paletteCount;
-    public byte format, paletteFormat, mipmapCount;
-    public byte wrapS, wrapT, minFilter, magFilter;
-    public byte[][] image;
+    
+    public byte[][] image; // ARGB texture pixel Data
+    public byte[] palette; // ARGB palette for palettized textures, null otherwise
+    
 }

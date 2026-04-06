@@ -1245,73 +1245,15 @@ public class Bmd
         }
         file.skip(2);
 
-        textures = new Texture[numtextures];
+        textures = new Bti[numtextures];
 
         int entriesoffset = file.readInt();
 
         for (int i = 0; i < numtextures; i++)
         {
-            Texture tex = new Texture();
-            textures[i] = tex;
-
             file.position(sectionstart + entriesoffset + (i * 32));
-
-            tex.format = file.readByte();
-            file.skip(1);
-            tex.width = file.readShort();
-            tex.height = file.readShort();
-
-            tex.wrapS = file.readByte();
-            tex.wrapT = file.readByte();
-
-            file.skip(1);
-
-            tex.paletteFormat = file.readByte();
-            short palnumentries = file.readShort();
-            int paloffset = file.readInt();
-
-            file.skip(3);
-            tex.maxAnisotropy = file.readByte();
-            
-            tex.minFilter = file.readByte();
-            tex.magFilter = file.readByte();
-
-            tex.lodMin = file.readByte() / 8.0f;
-            tex.lodMax = file.readByte() / 8.0f;
-
-            tex.mipmapCount = file.readByte();
-
-            file.skip(1);
-
-            short fileBias = file.readShort();
-            tex.lodBias = ((float)fileBias) / 100.0f;
-            
-            int dataoffset = file.readInt();
-            
-            if (!MathUtil.isPowerOfTwo(tex.width) || !MathUtil.isPowerOfTwo(tex.height))
-                System.out.println("WARNING: Bad texture size: "+tex.width+"x"+tex.height);
-            tex.image = ImageUtils.decodeTextureData(file, sectionstart + dataoffset + 0x20 + (0x20 * i), tex.mipmapCount, tex.format, tex.width, tex.height, isBigEndian);
-            
-            /*try 
-            {
-                BufferedImage bi = new BufferedImage(tex.width, tex.height, BufferedImage.TYPE_INT_ARGB);
-                
-                for (int y = 0; y < tex.height; y++)
-                {
-                    for (int x = 0; x < tex.width; x++)
-                    {
-                        int argb = ((int)tex.image[0][(y*tex.width+x)*4+0]) & 0xFF;
-                        argb |= (((int)tex.image[0][(y*tex.width+x)*4+1]) & 0xFF) << 8;
-                        argb |= (((int)tex.image[0][(y*tex.width+x)*4+2]) & 0xFF) << 16;
-                        argb |= (((int)tex.image[0][(y*tex.width+x)*4+3]) & 0xFF) << 24;
-                        bi.setRGB(x, y, argb);
-                    }
-                }
-                
-                File outputfile = new File(String.format("tex%1$d.png", i));
-                ImageIO.write(bi, "png", outputfile);
-            } 
-            catch (IOException ex) {}*/
+            Bti tex = new Bti(file, isBigEndian);
+            textures[i] = tex;
         }
 
         file.position(sectionstart + sectionsize);
@@ -1724,27 +1666,6 @@ public class Bmd
 
     }
 
-    public class Texture
-    {
-        public byte format;
-        public short width, height;
-
-        public byte wrapS, wrapT;
-
-        public byte paletteFormat;
-        public byte[] palette; // ARGB palette for palettized textures, null otherwise
-
-        public byte maxAnisotropy;
-        public byte minFilter;
-        public byte magFilter;
-        public float lodMin, lodMax;
-
-        public byte mipmapCount;
-        public float lodBias;
-
-        public byte[][] image; // texture data converted to ARGB
-    }
-
     // ======================================
 
     private FileBase file;
@@ -1779,5 +1700,5 @@ public class Bmd
     public Material[] materials;
 
     // TEX1
-    public Texture[] textures;
+    public Bti[] textures;
 }
