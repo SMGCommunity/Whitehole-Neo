@@ -204,25 +204,36 @@ public class ImageUtils {
                                     for (int x = 0; x < 4; x++) {
                                         int col;
                                         if (isBigEndian) {
-                                            col = file.readShort();
+                                            col = file.readShort() & 0xFFFF;
                                         } else {
                                             byte lower = file.readByte();
                                             byte higher = file.readByte();
-                                            col = ((higher & 0xFF) << 8 | (lower & 0xFF));
+                                            col = ((higher & 0xFF) << 8) | (lower & 0xFF);
                                         }
 
                                         int outp = (((by + y) * width) + (bx + x)) * 4;
+
                                         if ((col & 0x8000) != 0) {
-                                            image[outp++] = (byte)(((col & 0x001F) << 3) | ((col & 0x001F) >>> 2));
-                                            image[outp++] = (byte)(((col & 0x03E0) >>> 3) | ((col & 0x03E0) >>> 8));
-                                            image[outp++] = (byte)(((col & 0x7C00) >>> 7) | ((col & 0x7C00) >>> 12));
-                                            image[outp  ] = (byte)255;
-                                        }
-                                        else {
-                                            image[outp++] = (byte)(((col & 0x000F) << 4) | (col & 0x000F));
-                                            image[outp++] = (byte)((col & 0x00F0) | ((col & 0x00F0) >>> 4));
-                                            image[outp++] = (byte)(((col & 0x0F00) >>> 4) | ((col & 0x0F00) >>> 8));
-                                            image[outp  ] = (byte)(((col & 0x7000) >>> 7) | ((col & 0x7000) >>> 10) | ((col & 0x7000) >>> 13));
+                                            // RGB555 (opaque)
+                                            int r = (col >> 10) & 0x1F;
+                                            int g = (col >> 5)  & 0x1F;
+                                            int b =  col        & 0x1F;
+
+                                            image[outp++] = (byte)((b << 3) | (b >> 2));
+                                            image[outp++] = (byte)((g << 3) | (g >> 2));
+                                            image[outp++] = (byte)((r << 3) | (r >> 2));
+                                            image[outp] = (byte)255;
+                                        } else {
+                                            // ARGB3444
+                                            int a = (col >> 12) & 0x7;
+                                            int r = (col >> 8)  & 0xF;
+                                            int g = (col >> 4)  & 0xF;
+                                            int b =  col        & 0xF;
+
+                                            image[outp++] = (byte)((b << 4) | b);
+                                            image[outp++] = (byte)((g << 4) | g);
+                                            image[outp++] = (byte)((r << 4) | r);
+                                            image[outp] = (byte)((a << 5) | (a << 2) | (a >> 1));
                                         }
                                     }
                                 }
