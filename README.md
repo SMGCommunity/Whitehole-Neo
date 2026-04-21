@@ -21,31 +21,31 @@ This is intended for Java 11, though the program runs fine on newer Java version
 `-Dsun.java2d.uiScale=1.0` can be modified to scale the UI if it is too small (ex. `-Dsun.java2d.uiScale=1.5` will scale it 1.5x).
 
 ## Controls
-- Left Click: Select/Deselect object (hold Shift/Ctrl to select multiple)
+- Left Click: Select/Deselect object (hold <kbd>Shift</kbd> or <kbd>Ctrl</kbd> to select multiple)
 - Left Click Drag: Pan camera, Move object
 - Right Click Drag: Rotate camera
 - Scroll Wheel: Move camera forward/backward, Move object forward/backward
-- Arrow Keys + PageUp/PageDown: (Can switch to WASD + EQ in the settings)
-  - Hold G to move selected objects (Letter can be changed in the settings)
-  - Hold R to rotate selected objects (Letter can be changed in the settings)
-  - Hold S to scale selected objects (Letter can be changed in the settings)
+- Arrow Keys + <kbd>PageUp</kbd>/<kbd>PageDown</kbd>: (Can switch to <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + <kbd>E</kbd>/<kbd>Q</kbd> in the settings)
+  - Hold <kbd>G</kbd> to move selected objects (Letter can be changed in the settings)
+  - Hold <kbd>R</kbd> to rotate selected objects (Letter can be changed in the settings)
+  - Hold <kbd>S</kbd> to scale selected objects (Letter can be changed in the settings)
 
 ## Useful Keyboard Shortcuts
-- `Ctrl+C`: Copy selected objects
-- `Ctrl+V`: Paste copied objects (positioned at the mouse)
-- `Ctrl+Shift+V`: Paste copied objects (positioned at the position in the copy data)
-- `Ctrl+Z`: Undo previous action
-- `Shift+A`: Add object quick access menu
-- `Spacebar`: Jump camera to selected object(s)
-- `Shift+Spacebar`: Jump camera to selected zone
-- `H`: Hide/Unhide selected objects
-- `Alt+H`: Unhide All hidden objects
-- `Delete`: Delete selected objects
-- `Ctrl+N`: Truncate an object's positional values to remove the decimal parts
-- `Ctrl+Shift+Alt+C`: Reset the selected path point control handles
-- `Ctrl+Shift+R`: Reverse the selected path points
-- `L`: Link the selected worldmap points together
-- `P`: Switch worldmap points and links between their Yellow and Pink variants
+- <kbd>Ctrl</kbd>+<kbd>C</kbd>: Copy selected objects
+- <kbd>Ctrl</kbd>+<kbd>V</kbd>: Paste copied objects (positioned at the mouse)
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>: Paste copied objects (positioned at the position in the copy data)
+- <kbd>Ctrl</kbd>+<kbd>Z</kbd>: Undo previous action
+- <kbd>Shift</kbd>+<kbd>A</kbd>: Add object quick access menu
+- <kbd>Space</kbd>: Jump camera to selected object(s)
+- <kbd>Shift</kbd>+<kbd>Space</kbd>: Jump camera to selected zone
+- <kbd>H</kbd>: Hide/Unhide selected objects
+- <kbd>Alt</kbd>+<kbd>H</kbd>: Unhide All hidden objects
+- <kbd>Delete</kbd>: Delete selected objects
+- <kbd>Ctrl</kbd>+<kbd>N</kbd>: Truncate an object's positional values to remove the decimal parts
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd>: Reset the selected path point control handles
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>: Reverse the selected path points
+- <kbd>L</kbd>: Link the selected worldmap points together
+- <kbd>P</kbd>: Switch worldmap points and links between their Yellow and Pink variants
 
 ## Libraries
 - **jogamp**: https://jogamp.org/
