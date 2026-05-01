@@ -585,7 +585,7 @@ public class BmdRenderer extends GLRenderer {
             "", "", "", "", "", "", "k0.r", "k1.r", "k2.r", "k3.r", 
             "k0.g", "k1.g", "k2.g", "k3.g", "k0.b", "k1.b", "k2.b", "k3.b", "k0.a", "k1.a", 
             "k2.a", "k3.a" };
-        String[] tevbias = { "0.0", "0.5", "-0.5", "## ILLEGAL TEV BIAS ##" };
+        String[] tevbias = { "0.0", "0.5", "-0.5", "0.0" }; // the last one seems to just be 0.0 again?
         String[] tevSwapColor = { "r", "g", "b", "a" };
         String[] tevscale = { "1.0", "2.0", "4.0", "0.5" };
         String[] alphacompare = { "0 == 1", "%1$s < %2$f", "%1$s == %2$f", "%1$s <= %2$f", "%1$s > %2$f", "%1$s != %2$f", "%1$s >= %2$f", "1 == 1" };
@@ -724,6 +724,8 @@ public class BmdRenderer extends GLRenderer {
         frag.append("\n");
         frag.append("void main()\n");
         frag.append("{\n");
+        frag.append("    vec3 comp16 = vec3(1/256, 256/256, 0);\n");
+        frag.append("    vec3 comp24 = vec3(1/256, 256/256, (256*256)/256);\n");
 
         for(int i = 0; i < 4; i++)
         {
@@ -845,30 +847,55 @@ public class BmdRenderer extends GLRenderer {
 
             switch(tv.operationColor)
             {
-                case 0:
-                    //operation = "    %1$s = (%5$s + mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
-                    operation = "    %1$s = ((%5$s + (((1 - %4$s) * %2$s) + (%4$s * %3$s))) + %6$s) * %7$s;\n";
-                    if(tv.clampColor)
-                        operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
+                case 0: // ADD
+                    operation = "    %1$s = (%5$s + mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
+                    //operation = "    %1$s = ((%5$s + (((1 - %4$s) * %2$s) + (%4$s * %3$s))) + %6$s) * %7$s;\n"; // is this better?
                     break;
-
-                case 1:
+                case 1: // SUB
                     operation = "    %1$s = (%5$s - mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
-                    if(tv.clampColor)
-                        operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
                     break;
 
-                case 8:
-                    operation = "    %1$s = %5$s +(((%2$s).r >(%3$s).r) ? %4$s : vec3(0.0,0.0,0.0));\n";
+                    
+                case 8: // Comp_R8_GT
+                    operation = "    %1$s = %5$s + (((%2$s).r > (%3$s).r) ? (%4$s) : vec3(0.0,0.0,0.0));\n";
+                    break;
+                case 9: // Comp_R8_EQ
+                    operation = "    %1$s = %5$s + (((%2$s).r == (%3$s).r) ? (%4$s) : vec3(0.0,0.0,0.0));\n";
+                    break;
+                case 10: // Comp_GR16_GT
+                    operation = "    %1$s = %5$s + ((dot((%2$s).rgb, comp16) >  dot((%3$s).rgb, comp16)) ? (%4$s).rgb : vec3(0,0,0));\n";
+                    break;
+                case 11: // Comp_GR16_EQ
+                    operation = "    %1$s = %5$s + ((dot((%2$s).rgb, comp16) == dot((%3$s).rgb, comp16)) ? (%4$s).rgb : vec3(0,0,0));\n";
+                    break;
+                case 12: // Comp_GR24_GT
+                    operation = "    %1$s = %5$s + ((dot((%2$s).rgb, comp24) >  dot((%3$s).rgb, comp24)) ? (%4$s).rgb : vec3(0,0,0));\n";
+                    break;
+                case 13: // Comp_GR24_EQ
+                    operation = "    %1$s = %5$s + ((dot((%2$s).rgb, comp24) == dot((%3$s).rgb, comp24)) ? (%4$s).rgb : vec3(0,0,0));\n";
+                    break;
+                case 14: // Comp_GR24_EQ
+                    operation = "    %1$s = %5$s + (max(sign((%2$s).rgb - (%3$s).rgb), vec3(0,0,0)) * (%4$s).rgb);\n";
+                    break;
+                case 15: // Comp_RGB8_GT
+                    operation = "    %1$s = %5$s + (max(sign((%2$s).rgb - (%3$s).rgb), vec3(0,0,0)) * (%4$s).rgb);\n";
+                    break;
+                case 16: // Comp_RGB8_EQ
+                    operation = "    %1$s = %5$s + ((vec3(1,1,1) - sign(abs((%2$s).rgb - (%3$s).rgb))) * (%4$s).rgb);\n";
                     break;
 
+                    
                 default:
                     operation = "    %1$s = vec3(1.0,0.0,1.0);\n";
-                    System.out.println("COLOROP ARGH");
+                    System.out.println("==== " + mat.name + " : Tev Stage "+i+" ====");
+                    System.out.println("Unsupported TEV Color Combiner Operation:");
                     System.out.println(tv.operationColor);
-                    throw new GLException(String.format("!colorop %1$d", tv.operationColor));
+                    //throw new GLException(String.format("!colorop %1$d", tv.operationColor));
             }
 
+            if(tv.clampColor)
+                operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
+            
             operation = String.format(operation, rout, a, b, c, d, tevbias[tv.biasColor], tevscale[tv.scaleColor]);
             frag.append(operation);
 
@@ -880,24 +907,24 @@ public class BmdRenderer extends GLRenderer {
 
             switch(tv.operationAlpha)
             {
-                case 0:
-                    operation = "    %1$s =(%5$s + mix(%2$s,%3$s,%4$s) + %6$s) * %7$s;\n";
-                    if(tv.clampAlpha)
-                        operation += "   %1$s = clamp(%1$s, 0.0, 1.0);\n";
+                case 0: // ADD
+                    operation = "    %1$s = (%5$s + mix(%2$s,%3$s,%4$s) + %6$s) * %7$s;\n";
+                    break;
+                case 1: // SUB
+                    operation = "    %1$s = (%5$s - mix(%2$s,%3$s,%4$s) + %6$s) * %7$s;\n";
                     break;
 
-                case 1:
-                    operation = "    %1$s =(%5$s - mix(%2$s,%3$s,%4$s) + %6$s) * %7$s;\n";
-                    if(tv.clampAlpha)
-                        operation += "   %1$s = clamp(%1$s, 0.0, 1.0);\n";
-                    break;
-
+                    // TODO: Find a model that uses the comparison operators in the Alpha stages for testing
+                    
                 default:
                     operation = "    %1$s = 1.0;";
-                    System.out.println("ALPHAOP ARGH");
+                    System.out.println("==== " + mat.name + " : Tev Stage "+i+" ====");
+                    System.out.println("Unsupported TEV Alpha Combiner Operation:");
                     System.out.println(tv.operationAlpha);
                     throw new GLException(String.format("!alphaop %1$d", tv.operationAlpha));
             }
+            if(tv.clampAlpha)
+                operation += "   %1$s = clamp(%1$s, 0.0, 1.0);\n";
 
             operation = String.format(operation, rout, a, b, c, d, tevbias[tv.biasAlpha], tevscale[tv.scaleAlpha]);
             frag.append(operation);
