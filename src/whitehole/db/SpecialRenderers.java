@@ -177,10 +177,16 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
             JSONObject Current = root.getJSONObject(i);
             String ObjectName = Current.optString("ObjectName", null);
             
-            if (ObjectName == null)
-            {
+            if (ObjectName == null) {
+                // Check for matching classes
                 ObjectDB.ClassInfo CI = ObjectDB.getObjectInfo(objName).classInfo(Whitehole.getCurrentGameType());
-                if (CI == null)
+                if (!CI.isValid()) {
+                    // Try again, but using the product map table class
+                    String classname = Whitehole.tryGetProductClass(objName);
+                    if (classname != null)
+                        CI = ObjectDB.getClassInfo(classname);
+                }
+                if (!CI.isValid())
                     continue;
                 
                 String className = CI.toString();

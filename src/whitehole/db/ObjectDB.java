@@ -427,6 +427,7 @@ public final class ObjectDB {
     }
     
     public static final class ClassInfo {
+        private static final String NAME_INVALID = "<INVALID>";
         private String internalName;
         private String description = "";
         private int games, progress;
@@ -437,7 +438,7 @@ public final class ObjectDB {
         }
         
         ClassInfo() {
-            internalName = "<Unknown>";
+            internalName = NAME_INVALID;
         }
         
         void parse(JSONObject info) {
@@ -481,6 +482,10 @@ public final class ObjectDB {
         
         public int progress() {
             return progress;
+        }
+        
+        public boolean isValid() {
+            return !internalName.equals(NAME_INVALID);
         }
         
         public HashMap<String, PropertyInfo> properties() {
@@ -546,8 +551,8 @@ public final class ObjectDB {
     public static class ObjectInfo extends DefaultMutableTreeNode {
         private String internalName;
         private String simpleName;
-        private String classNameSMG1 = "<Unknown>";
-        private String classNameSMG2 = "<Unknown>";
+        private String classNameSMG1 = ClassInfo.NAME_INVALID;
+        private String classNameSMG2 = ClassInfo.NAME_INVALID;
         private String description = "";
         private String category = "unknown";
         private String areaShape = "Any";
@@ -607,7 +612,7 @@ public final class ObjectDB {
             switch(game & 3) {
                 case 1: return classNameSMG1;
                 case 2: return classNameSMG2;
-                default: return "<Unknown>";
+                default: return ClassInfo.NAME_INVALID;
             }
         }
         

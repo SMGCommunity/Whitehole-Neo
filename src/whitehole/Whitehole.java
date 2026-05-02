@@ -190,6 +190,19 @@ public class Whitehole {
         return GAME != null ? GAME.getWaterPlanetList() : null;
     }
     
+    public static String tryGetProductClass(String modelname) {
+        if (GAME == null)
+            return null;
+        
+        for(String model : GAME.getProductMapObjList())
+        {
+            String[] split = model.split("\r");
+            if (split[0].equals(modelname))
+                return split[1];
+        }
+        return null;
+    }
+    
     public static boolean isExistObjectDataArc(String file) {
         if (GAME == null)
             return false;

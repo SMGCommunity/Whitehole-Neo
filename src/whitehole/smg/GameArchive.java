@@ -42,6 +42,7 @@ public class GameArchive {
     private List<String> zones = new ArrayList(128);
     private List<String> worlds = new ArrayList(32);
     private List<String> planets = new ArrayList(256);
+    private List<String> classes = new ArrayList(256);
     private int gameType = 0;
     private boolean hasOverwriteObjectDatabase;
     private boolean hasOverwriteGalaxyNames;
@@ -124,6 +125,28 @@ public class GameArchive {
             }
         }
         
+        // Initialize Product Table for Galaxy 2
+        if (filesystem.fileExists(PATH_PRODUCT_MAP_OBJ_DATA_TABLE_ARCHIVE))
+        {
+            try {
+                RarcFile arc = new RarcFile(filesystem.openFile(PATH_PRODUCT_MAP_OBJ_DATA_TABLE_ARCHIVE));
+                Bcsv bcsv = new Bcsv(arc.openFile(PATH_PRODUCT_MAP_OBJ_DATA_TABLE_BCSV), arc.isBigEndian());
+
+                for (Bcsv.Entry entry : bcsv.entries) {
+                    String modelname = (String)entry.get("ModelName");
+                    String classname = (String)entry.get("ClassName");
+                    String key = modelname + '\r' + classname;
+                    classes.add(key);
+                }
+
+                bcsv.close();
+                arc.close();
+            }
+            catch(IOException ex) {
+                System.err.println(ex);
+            }
+        }
+        
         // Try to load project's overwrite databases
         if (filesystem instanceof ExternalFilesystem) {
             ExternalFilesystem efs = (ExternalFilesystem)filesystem;
@@ -176,6 +199,10 @@ public class GameArchive {
     
     public List<String> getWaterPlanetList() {
         return planets;
+    }
+    
+    public List<String> getProductMapObjList() {
+        return classes;
     }
     
     public GalaxyArchive openGalaxy(String name) throws IOException {
