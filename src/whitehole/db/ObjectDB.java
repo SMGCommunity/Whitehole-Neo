@@ -492,8 +492,7 @@ public final class ObjectDB {
             return properties;
         }
         
-        private PropertyInfo getPropertyInfo(int game, String parameter, String objectName)
-        {
+        private PropertyInfo getPropertyInfo(int game, String parameter, String objectName) {
             if (properties == null || !properties.containsKey(parameter)) {
                 return null;
             }
@@ -518,8 +517,7 @@ public final class ObjectDB {
                 return prop.simpleName;
         }
         
-        public List<String> parameterValues(int game, String parameter, String objectName)
-        {
+        public List<String> parameterValues(int game, String parameter, String objectName) {
             PropertyInfo prop = getPropertyInfo(game, parameter, objectName);
             if (prop == null)
                 return null;
@@ -527,13 +525,11 @@ public final class ObjectDB {
                 return prop.values;
         }
         
-        public boolean isParameterUsed(int game, String parameter, String objectName)
-        {
+        public boolean isParameterUsed(int game, String parameter, String objectName) {
             return getPropertyInfo(game, parameter, objectName) != null;
         }
         
-        public String parameterDescription(int game, String parameter, String objectName)
-        {
+        public String parameterDescription(int game, String parameter, String objectName) {
             PropertyInfo prop = getPropertyInfo(game, parameter, objectName);
             if (prop == null)
                 return null;

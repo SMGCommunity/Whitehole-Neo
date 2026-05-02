@@ -33,13 +33,11 @@ import whitehole.smg.object.AbstractObj;
  * @author Hackio
  */
 public final class SpecialRenderers extends GameAndProjectDataHolder {
-    public SpecialRenderers()
-    {
+    public SpecialRenderers() {
         super("data/specialrenderers.json", "/specialrenderers.json", true);
     }
     
-    public String tryGetAdditiveCacheKey(String objModelName, AbstractObj obj)
-    {
+    public String tryGetAdditiveCacheKey(String objModelName, AbstractObj obj) {
         SpecialRenderInfo renderinfo = getSpecialRenderInfo(obj.name);
         if (renderinfo != null)
             switch(renderinfo.rendererType)
@@ -74,10 +72,8 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
         return "";
     }
     
-    public GLRenderer tryGetSpecialRenderer(GLRenderer.RenderInfo info, String objModelName, AbstractObj obj)
-    {
-        if (Settings.getUseCollisionModels())
-        {
+    public GLRenderer tryGetSpecialRenderer(GLRenderer.RenderInfo info, String objModelName, AbstractObj obj) {
+        if (Settings.getUseCollisionModels()) {
             KclRenderer bmdRenderer = new KclRenderer(info, objModelName);
 
             if (bmdRenderer.isValidModel())
@@ -160,15 +156,13 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
         return result;
     }
     
-    private SpecialRenderInfo getSpecialRenderInfo(String objName)
-    {
+    private SpecialRenderInfo getSpecialRenderInfo(String objName) {
         SpecialRenderInfo x = getSpecialRenderInfo(objName, projectData);
         if (x == null)
             x = getSpecialRenderInfo(objName, baseGameData);
         return x;
     }
-    private SpecialRenderInfo getSpecialRenderInfo(String objName, JSONObject src)
-    {
+    private SpecialRenderInfo getSpecialRenderInfo(String objName, JSONObject src) {
         if (src == null || objName == null)
             return null;
         
@@ -196,7 +190,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
             }
             else
                 if (!objName.equals(ObjectName))
-                continue;
+                    continue;
             
             SpecialRenderInfo info = new SpecialRenderInfo();
             info.objectName = ObjectName;
@@ -209,14 +203,10 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                 for (int j = 0 ; j < rawParameters.length(); j++)
                 {
                     JSONObject CurrentParam = rawParameters.getJSONObject(j);
-                    for(String paramName : CurrentParam.keySet())
-                    {
-                        if (!info.rendererParams.containsKey(paramName))
-                        {
+                    for(String paramName : CurrentParam.keySet()) {
+                        if (!info.rendererParams.containsKey(paramName)) {
                             if (isSupportedAnimationParam(paramName))
-                            {
                                 info.rendererParams.put(paramName, new AnimationParam(CurrentParam.getJSONObject(paramName)));
-                            }
                             else
                                 info.rendererParams.put(paramName, CurrentParam.get(paramName));
                         }
@@ -231,38 +221,32 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
     
     
     
-    private class SpecialRenderInfo
-    {
+    private class SpecialRenderInfo {
         public String objectName;
         public String rendererType;
         public HashMap<String, Object> rendererParams;
         
-        public Object getRenderParamByName(String name)
-        {
+        public Object getRenderParamByName(String name) {
             return rendererParams.get(name);
         }
     }
     
-    public class AnimationParam
-    {        
+    public class AnimationParam {        
         public final String filename;
         public final Integer frame;
         public final String frameSource;
         
-        public AnimationParam(JSONObject obj)
-        {
+        public AnimationParam(JSONObject obj) {
             filename = obj.getString("Filename");
             frame = obj.optInt("Frame", 0);
             frameSource = obj.optString("FrameSource", null);
         }
         
-        public boolean hasSource()
-        {
+        public boolean hasSource() {
             return frameSource != null;
         }
         
-        public boolean isSourceObjArg(int Arg)
-        {
+        public boolean isSourceObjArg(int Arg) {
             if (!hasSource())
                 return false;
             if (!frameSource.startsWith("Obj_arg"))
@@ -272,10 +256,8 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
         }
     }
         
-    public static boolean isSupportedAnimationParam(String n)
-    {
-        switch(n)
-        {
+    public static boolean isSupportedAnimationParam(String n) {
+        switch(n) {
             case "BCK":
             case "BRK":
             case "BTK":

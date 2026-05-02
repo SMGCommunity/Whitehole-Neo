@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.*;
 import java.nio.charset.Charset;
 import java.util.Locale;
+import java.util.Random;
 import whitehole.Settings;
 import whitehole.Whitehole;
 import whitehole.io.ExternalFile;
@@ -403,7 +404,7 @@ public class BmdRenderer extends GLRenderer {
         gl.glGenTextures(1, texids, 0);
         int texid = texids[0];
         TextureCache.addEntry(hash, texid);
-        
+                
         gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_LEVEL, tex.mipmapCount - 1);
         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, ImageUtils.getWrapMode(tex.wrapS));
@@ -418,10 +419,18 @@ public class BmdRenderer extends GLRenderer {
         int ifmt, fmt;
         switch(tex.format) {
             case 0:
-            case 1: ifmt = GL2.GL_INTENSITY; fmt = GL2.GL_LUMINANCE; break;
+            case 1:
+                ifmt = GL2.GL_INTENSITY;
+                fmt = GL2.GL_LUMINANCE;
+                break;
             case 2:
-            case 3: ifmt = GL2.GL_LUMINANCE8_ALPHA8; fmt = GL2.GL_LUMINANCE_ALPHA; break;
-            default: ifmt = 4; fmt = GL2.GL_BGRA; break;
+            case 3:
+                ifmt = GL2.GL_LUMINANCE8_ALPHA8;
+                fmt = GL2.GL_LUMINANCE_ALPHA;
+                break;
+            default:
+                ifmt = 4;
+                fmt = GL2.GL_BGRA; break;
         }
         
         int width = tex.width, height = tex.height;
@@ -429,6 +438,8 @@ public class BmdRenderer extends GLRenderer {
             gl.glTexImage2D(GL2.GL_TEXTURE_2D, mip, ifmt, width, height, 0, fmt, GL2.GL_UNSIGNED_BYTE, ByteBuffer.wrap(tex.image[mip]));
             width /= 2; height /= 2;
         }
+        
+        gl.glBindTexture(GL2.GL_TEXTURE_2D, 0); // Unbind
     }
     
     // Huge performance eater. rewrite will never happen :c

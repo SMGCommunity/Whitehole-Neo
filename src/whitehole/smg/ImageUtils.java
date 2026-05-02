@@ -15,15 +15,7 @@
 
 package whitehole.smg;
 
-import static com.jogamp.opengl.GL.GL_CLAMP_TO_EDGE;
-import static com.jogamp.opengl.GL.GL_LINEAR;
-import static com.jogamp.opengl.GL.GL_LINEAR_MIPMAP_LINEAR;
-import static com.jogamp.opengl.GL.GL_LINEAR_MIPMAP_NEAREST;
-import static com.jogamp.opengl.GL.GL_MIRRORED_REPEAT;
-import static com.jogamp.opengl.GL.GL_NEAREST;
-import static com.jogamp.opengl.GL.GL_NEAREST_MIPMAP_LINEAR;
-import static com.jogamp.opengl.GL.GL_NEAREST_MIPMAP_NEAREST;
-import static com.jogamp.opengl.GL.GL_REPEAT;
+import com.jogamp.opengl.GL2;
 import java.io.IOException;
 import whitehole.io.FileBase;
 
@@ -33,11 +25,11 @@ public class ImageUtils {
         switch(mode)
         {
             case 0x00:
-                return GL_CLAMP_TO_EDGE;
+                return GL2.GL_CLAMP_TO_EDGE;
             case 0x02:
-                return GL_MIRRORED_REPEAT;
+                return GL2.GL_MIRRORED_REPEAT;
             default:
-                return GL_REPEAT;
+                return GL2.GL_REPEAT;
         }
     }
     
@@ -46,17 +38,17 @@ public class ImageUtils {
         switch(mode)
         {
             case 0x00:
-                return GL_NEAREST;
+                return GL2.GL_NEAREST;
             default:
-                return GL_LINEAR;
+                return GL2.GL_LINEAR;
             case 0x02:
-                return GL_NEAREST_MIPMAP_NEAREST;
+                return GL2.GL_NEAREST_MIPMAP_NEAREST;
             case 0x03:
-                return GL_LINEAR_MIPMAP_NEAREST;
+                return GL2.GL_LINEAR_MIPMAP_NEAREST;
             case 0x04:
-                return GL_NEAREST_MIPMAP_LINEAR;
+                return GL2.GL_NEAREST_MIPMAP_LINEAR;
             case 0x05:
-                return GL_LINEAR_MIPMAP_LINEAR;
+                return GL2.GL_LINEAR_MIPMAP_LINEAR;
         }
     }
     

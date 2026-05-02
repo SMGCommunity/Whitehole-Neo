@@ -40,7 +40,7 @@ public class GameArchive {
     private final FilesystemBase filesystem;
     private List<String> galaxies = new ArrayList(64);
     private List<String> zones = new ArrayList(128);
-    private List<String> worlds = new ArrayList(32);
+    private List<String> worlds = new ArrayList(16);
     private List<String> planets = new ArrayList(256);
     private List<String> classes = new ArrayList(256);
     private int gameType = 0;
