@@ -45,8 +45,7 @@ import whitehole.util.SuperFastHash;
  */
 public class KclRenderer extends GLRenderer {
     
-    private int shaderHash(int groupId)
-    {
+    private int shaderHash(int groupId) {
         byte[] sigarray = new byte[0x10];
         ByteBuffer sig = ByteBuffer.wrap(sigarray);
         
@@ -87,19 +86,17 @@ public class KclRenderer extends GLRenderer {
         StringBuilder vert = new StringBuilder();
         vert.append("#version 120\n");
         vert.append("\n");
-        vert.append("varying vec3 vertNormal;\n");
-        vert.append("varying vec3 lightVector;\n");
+        vert.append("varying vec3 vNormal;\n");
+        vert.append("varying vec3 vPosition;\n");
         vert.append("\n");
         vert.append("void main()\n");
         vert.append("{\n");
         vert.append("    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n");
-        vert.append("    mat3 TEMP = gl_NormalMatrix;\n");
-        vert.append("    vec4 TMP2 = vec4(TEMP * gl_Normal, 0.0);\n");
-        vert.append("    vec4 normal = vec4(((TMP2)*0.0001).xyz, 1);\n");
+        vert.append("    vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;\n");
+        vert.append("    vPosition = viewPos.xyz;\n");
+        vert.append("    vNormal = normalize(gl_NormalMatrix * gl_Normal);\n");
         vert.append("    gl_FrontColor = gl_Color;\n");
         vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
-        vert.append("    vertNormal = (gl_ModelViewMatrix * vec4(gl_Normal.xyz, 0)).xyz;\n");
-        vert.append("    lightVector = -(gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz + vec3(0,500,0), 1.0)).xyz;\n");
         vert.append("}\n");
         
         int vertid = gl.glCreateShader(gl.GL_VERTEX_SHADER);
@@ -132,17 +129,23 @@ public class KclRenderer extends GLRenderer {
         StringBuilder frag = new StringBuilder();
         frag.append("#version 120\n");
         frag.append("\n");
-        frag.append("varying vec3 vertNormal;\n");
-        frag.append("varying vec3 lightVector;\n");
+        frag.append("varying vec3 vNormal;\n");
+        frag.append("varying vec3 vPosition;\n");
         frag.append("\n");
         
         frag.append("void main()\n");
         frag.append("{\n");
         frag.append("\n");
-        frag.append("   float dot_product = max(dot(normalize(lightVector), normalize(vertNormal)), 0.6);\n");
-        frag.append("   dot_product = dot_product - 0.1;\n");
-        frag.append("   gl_FragColor.rgb = dot_product * gl_Color.rgb;\n");
-        frag.append("   gl_FragColor.a = 1.0;\n");
+        frag.append("   vec3 N = normalize(vNormal);\n");
+        frag.append("   vec3 L = normalize(vPosition);\n");
+        frag.append("   float diffuse = max(dot(N, L), 0.0);\n");
+        frag.append("   diffuse = diffuse * 0.75;\n");
+        frag.append("   diffuse = clamp(diffuse, 0.20, 0.75);\n");
+        frag.append("   float ambient = 0.15;\n");
+        frag.append("   vec3 baseColor = gl_Color.rgb;\n");
+        frag.append("   vec3 finalColor = baseColor * (ambient + diffuse);\n");
+        frag.append("\n");
+        frag.append("   gl_FragColor = vec4(finalColor, 1.0);\n");
         frag.append("\n");
         frag.append("}\n");
         
@@ -188,6 +191,9 @@ public class KclRenderer extends GLRenderer {
         }
         
         ShaderCache.addEntry(hash, vertid, fragid, sid);
+        
+        //System.out.println(vert.toString());
+        //System.out.println(frag.toString());
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -212,8 +218,7 @@ public class KclRenderer extends GLRenderer {
         //=====================================================================
     // These functions are to be called in the Ctor for custom renderers
     
-    protected void initModel(RenderInfo info, String modelName) throws GLException
-    {
+    protected void initModel(RenderInfo info, String modelName) throws GLException {
         ctor_doNonSpecialModelLoad(info, modelName);
     }
     
@@ -349,10 +354,8 @@ public class KclRenderer extends GLRenderer {
         }
     }
     
-    protected Bcsv.Entry getDataFromGroupIdx(int idx)
-    {
-        if (idx >= data.entries.size() || idx < 0)
-        {
+    protected Bcsv.Entry getDataFromGroupIdx(int idx) {
+        if (idx >= data.entries.size() || idx < 0) {
             idx = 0; //Failsafe
         }
         
