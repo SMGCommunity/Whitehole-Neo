@@ -1535,33 +1535,67 @@ public class BmdRenderer extends GLRenderer {
 
                     if(info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT) {
                         for(int i = 0; i < prim.numIndices; i++) {
-                            if((prim.arrayMask &(1 << 11)) != 0) { Color4 c = model.colorArray[0][prim.colorIndices[0][i]];
-                            gl.glColor4f(c.r, c.g, c.b, c.a); }
+                            if((prim.arrayMask &(1 << 11)) != 0)
+                            {
+                                Color4 c = model.colorArray[0][prim.colorIndices[0][i]];
+                                gl.glColor4f(c.r, c.g, c.b, c.a);
+                            }
 
                             if(hasShaders) {
                                 if((prim.arrayMask &(1 << 12)) != 0) {
                                     Color4 c = model.colorArray[1][prim.colorIndices[1][i]];
                                     gl.glSecondaryColor3f(c.r, c.g, c.b);
-                                    
                                     gl.glVertexAttrib1f(1, c.a);
                                 }
-                                if((prim.arrayMask &(1 << 13)) != 0) { Vec2f t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE0, t.x, t.y); }
-                                if((prim.arrayMask &(1 << 14)) != 0) { Vec2f t = model.texcoordArray[1][prim.texcoordIndices[1][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE1, t.x, t.y); }
-                                if((prim.arrayMask &(1 << 15)) != 0) { Vec2f t = model.texcoordArray[2][prim.texcoordIndices[2][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE2, t.x, t.y); }
-                                if((prim.arrayMask &(1 << 16)) != 0) { Vec2f t = model.texcoordArray[3][prim.texcoordIndices[3][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE3, t.x, t.y); }
-                                if((prim.arrayMask &(1 << 17)) != 0) { Vec2f t = model.texcoordArray[4][prim.texcoordIndices[4][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE4, t.x, t.y); }
-                                if((prim.arrayMask &(1 << 18)) != 0) { Vec2f t = model.texcoordArray[5][prim.texcoordIndices[5][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE5, t.x, t.y); }
-                                if((prim.arrayMask &(1 << 19)) != 0) { Vec2f t = model.texcoordArray[6][prim.texcoordIndices[6][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE6, t.x, t.y); }
-                                if((prim.arrayMask &(1 << 20)) != 0) { Vec2f t = model.texcoordArray[7][prim.texcoordIndices[7][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE7, t.x, t.y); }
+                                if((prim.arrayMask &(1 << 13)) != 0) {
+                                    Vec2f t = model.texcoordArray[0][prim.texcoordIndices[0][i]];
+                                    gl.glMultiTexCoord2f(GL2.GL_TEXTURE0, t.x, t.y);
+                                }
+                                if((prim.arrayMask &(1 << 14)) != 0) {
+                                    Vec2f t = model.texcoordArray[1][prim.texcoordIndices[1][i]];
+                                    gl.glMultiTexCoord2f(GL2.GL_TEXTURE1, t.x, t.y);
+                                }
+                                if((prim.arrayMask &(1 << 15)) != 0) {
+                                    Vec2f t = model.texcoordArray[2][prim.texcoordIndices[2][i]];
+                                    gl.glMultiTexCoord2f(GL2.GL_TEXTURE2, t.x, t.y);
+                                }
+                                if((prim.arrayMask &(1 << 16)) != 0) {
+                                    Vec2f t = model.texcoordArray[3][prim.texcoordIndices[3][i]];
+                                    gl.glMultiTexCoord2f(GL2.GL_TEXTURE3, t.x, t.y);
+                                }
+                                if((prim.arrayMask &(1 << 17)) != 0) {
+                                    Vec2f t = model.texcoordArray[4][prim.texcoordIndices[4][i]];
+                                    gl.glMultiTexCoord2f(GL2.GL_TEXTURE4, t.x, t.y);
+                                }
+                                if((prim.arrayMask &(1 << 18)) != 0) {
+                                    Vec2f t = model.texcoordArray[5][prim.texcoordIndices[5][i]];
+                                    gl.glMultiTexCoord2f(GL2.GL_TEXTURE5, t.x, t.y);
+                                }
+                                if((prim.arrayMask &(1 << 19)) != 0) { 
+                                   Vec2f t = model.texcoordArray[6][prim.texcoordIndices[6][i]];
+                                   gl.glMultiTexCoord2f(GL2.GL_TEXTURE6, t.x, t.y);
+                                }
+                                if((prim.arrayMask &(1 << 20)) != 0) {
+                                    Vec2f t = model.texcoordArray[7][prim.texcoordIndices[7][i]];
+                                    gl.glMultiTexCoord2f(GL2.GL_TEXTURE7, t.x, t.y);
+                                }
                             } else {
-                                if((prim.arrayMask &(1 << 13)) != 0) { Vec2f t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glTexCoord2f(t.x, t.y); }
+                                if((prim.arrayMask &(1 << 13)) != 0) {
+                                    Vec2f t = model.texcoordArray[0][prim.texcoordIndices[0][i]];
+                                    gl.glTexCoord2f(t.x, t.y);
+                                }
                             }
 
-                            if((prim.arrayMask &(1 << 10)) != 0) { Vec3f n = model.normalArray[prim.normalIndices[i]]; gl.glNormal3f(n.x, n.y, n.z); }
+                            if((prim.arrayMask &(1 << 10)) != 0) {
+                                Vec3f n = model.normalArray[prim.normalIndices[i]];
+                                gl.glNormal3f(n.x, n.y, n.z);
+                            }
 
                             Vec3f pos = new Vec3f(model.positionArray[prim.positionIndices[i]]);
-                            if((prim.arrayMask & 1) != 0) Vec3f.transform(pos, mtxtable[prim.posMatrixIndices[i]], pos);
-                            else Vec3f.transform(pos, mtxtable[0], pos);
+                            if((prim.arrayMask & 1) != 0)
+                                Vec3f.transform(pos, mtxtable[prim.posMatrixIndices[i]], pos);
+                            else
+                                Vec3f.transform(pos, mtxtable[0], pos);
                             gl.glVertex3f(pos.x, pos.y, pos.z);
                         }
                     }
