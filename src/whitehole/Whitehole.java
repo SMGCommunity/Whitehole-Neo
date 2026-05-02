@@ -186,6 +186,10 @@ public class Whitehole {
         return GAME != null ? GAME.getGalaxyList() : null;
     }
     
+    public static List<String> getPlanetList() {
+        return GAME != null ? GAME.getPlanetList() : null;
+    }
+    
     public static List<String> getWaterPlanetList() {
         return GAME != null ? GAME.getWaterPlanetList() : null;
     }

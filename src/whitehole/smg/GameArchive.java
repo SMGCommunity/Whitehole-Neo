@@ -42,6 +42,7 @@ public class GameArchive {
     private List<String> zones = new ArrayList(128);
     private List<String> worlds = new ArrayList(16);
     private List<String> planets = new ArrayList(256);
+    private List<String> planetswater = new ArrayList(256);
     private List<String> classes = new ArrayList(256);
     private int gameType = 0;
     private boolean hasOverwriteObjectDatabase;
@@ -112,8 +113,9 @@ public class GameArchive {
                 Bcsv bcsv = new Bcsv(arc.openFile(PATH_PLANET_MAP_DATA_TABLE_BCSV), arc.isBigEndian());
 
                 for (Bcsv.Entry entry : bcsv.entries) {
-                    if ((int)entry.get("WaterFlag") > 0) {
                         planets.add((String)entry.get("PlanetName"));
+                    if ((int)entry.get("WaterFlag") > 0) {
+                        planetswater.add((String)entry.get("PlanetName"));
                     }
                 }
 
@@ -197,8 +199,12 @@ public class GameArchive {
         return worlds;
     }
     
-    public List<String> getWaterPlanetList() {
+    public List<String> getPlanetList() {
         return planets;
+    }
+    
+    public List<String> getWaterPlanetList() {
+        return planetswater;
     }
     
     public List<String> getProductMapObjList() {
