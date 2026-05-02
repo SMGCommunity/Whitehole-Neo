@@ -110,6 +110,24 @@ public abstract class AbstractObj {
     
     public final void loadDBInfo() {
         objdbInfo = ObjectDB.getObjectInfo(name);
+        
+        ObjectDB.ClassInfo CI = objdbInfo.classInfo(Whitehole.getCurrentGameType());
+        if (CI.isValid())
+            return; // Already valid, no need to fall onto bakcups
+        
+        String classname = Whitehole.tryGetProductClass(name);
+        if (classname != null)
+            CI = ObjectDB.getClassInfo(classname);
+        if (!CI.isValid()) {
+            // Not a product object?
+            // Lets try the planet table
+            if (Whitehole.getPlanetList().contains(name))
+                CI = ObjectDB.getClassInfo("PlanetMap");
+        }
+        if (!CI.isValid())
+            return; // Still not valid? Definitely doesn't exist then.
+        
+        objdbInfo = ObjectDB.makeTemporaryObjectInfo(name, CI);
     }
     
     protected final String getFieldNameForObjectDB(String field) {

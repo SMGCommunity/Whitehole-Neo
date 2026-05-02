@@ -545,20 +545,20 @@ public final class ObjectDB {
     // Object information
     
     public static class ObjectInfo extends DefaultMutableTreeNode {
-        private String internalName;
-        private String simpleName;
-        private String classNameSMG1 = ClassInfo.NAME_INVALID;
-        private String classNameSMG2 = ClassInfo.NAME_INVALID;
-        private String description = "";
-        private String category = "unknown";
-        private String areaShape = "Any";
-        private String destFileSMG1 = "ObjInfo";
-        private String destFileSMG2 = "ObjInfo";
-        private String destArchive = "Map";
-        private int games, progress;
-        private boolean isUnused, isLeftover;
-        private ClassInfo classInfoSMG1 = NULL_CLASS_INFO;
-        private ClassInfo classInfoSMG2 = NULL_CLASS_INFO;
+        protected String internalName;
+        protected String simpleName;
+        protected String classNameSMG1 = ClassInfo.NAME_INVALID;
+        protected String classNameSMG2 = ClassInfo.NAME_INVALID;
+        protected String description = "";
+        protected String category = "unknown";
+        protected String areaShape = "Any";
+        protected String destFileSMG1 = "ObjInfo";
+        protected String destFileSMG2 = "ObjInfo";
+        protected String destArchive = "Map";
+        protected int games, progress;
+        protected boolean isUnused, isLeftover;
+        protected ClassInfo classInfoSMG1 = NULL_CLASS_INFO;
+        protected ClassInfo classInfoSMG2 = NULL_CLASS_INFO;
         
         ObjectInfo(JSONObject info) {
             super(null, false);
@@ -568,7 +568,7 @@ public final class ObjectDB {
         ObjectInfo() {
             super(null, false);
             internalName = "<Unknown>";
-            simpleName = "<Unknown";
+            simpleName = "<Unknown>";
         }
         
         public boolean isValid() {
@@ -701,6 +701,22 @@ public final class ObjectDB {
         }
     }
     
+    public static class TempObjectInfo extends ObjectInfo {
+        TempObjectInfo(String name, ClassInfo classInfo) {
+            super();
+            
+            internalName = name;
+            simpleName = "\"" + name + "\"";
+            classInfoSMG1 = classInfo;
+            classInfoSMG2 = classInfo;
+        }
+        
+        @Override
+        public void parse(JSONObject info) {
+            
+        }
+    }
+    
     public static final class NullInfo extends ObjectInfo {
         @Override
         public boolean isValid() {
@@ -718,6 +734,11 @@ public final class ObjectDB {
     
     // -------------------------------------------------------------------------------------------------------------------------
     // Utility
+    
+    public static TempObjectInfo makeTemporaryObjectInfo(String internalname, ClassInfo CI)
+    {
+        return new TempObjectInfo(internalname, CI);
+    }
     
     public static PropertyInfo getPropertyInfoForObject(String objectName, String propName) {
         switch (propName) {
