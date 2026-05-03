@@ -1441,8 +1441,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         ret.y -=(depth * CamRotSinY);
         ret.z -=(depth * CamRotSinX * CamRotCosY);
 
-        int GLWidth = (int)(glCanvas.getWidth() * DPIScaleX);
-        int GLHeight = (int)(glCanvas.getHeight() * DPIScaleY);
+        int GLWidth = glCanvas.getSurfaceWidth();
+        int GLHeight = glCanvas.getSurfaceHeight();
         float x =(pt.x -(GLWidth *0.5f)) * pixelFactorX * depth;
         float y = -(pt.y -(GLHeight *0.5f)) * pixelFactorY * depth;
 
@@ -3999,8 +3999,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             
             gl.glFlush();
             
-            gl.glReadPixels(mousePos.x - 1, (int)(glad.getSurfaceHeight() * DPIScaleX) - mousePos.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV, pickingFrameBuffer);
-            gl.glReadPixels(mousePos.x, (int)(glad.getSurfaceHeight() * DPIScaleY)- mousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
+            gl.glReadPixels(mousePos.x - 1, glad.getSurfaceHeight() - mousePos.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV, pickingFrameBuffer);
+            gl.glReadPixels(mousePos.x, glad.getSurfaceHeight() - mousePos.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
             pickingDepth = -(Z_FAR * Z_NEAR /(pickingDepthBuffer.get(0) *(Z_FAR - Z_NEAR) - Z_FAR));
             
             if (Settings.getDebugFakeColor()) {
@@ -4101,13 +4101,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
             if(!initializedRenderer) return;
             
+            // the passed width does not work well with hidpi screens. we use this instead
+            width = glad.getSurfaceWidth();
+            height = glad.getSurfaceHeight();
+            
             GL2 gl = glad.getGL().getGL2();
             GraphicsConfiguration cur = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
             AffineTransform tx = cur.getDefaultTransform();
             DPIScaleX = tx.getScaleX();
             DPIScaleY = tx.getScaleY();
-            width = (int)(width*DPIScaleX);
-            height = (int)(height*DPIScaleY);
             gl.glViewport(x, y, width, height);
             
             float aspectRatio =(float)width /(float)height;
@@ -4509,8 +4511,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
             if(!initializedRenderer) return;
-            int GLWidth = (int)(glCanvas.getWidth() * DPIScaleX);
-            int GLHeight = (int)(glCanvas.getHeight() * DPIScaleY);
+            int GLWidth = glCanvas.getSurfaceHeight();
+            int GLHeight = glCanvas.getSurfaceWidth();
 
             if(mouseButton == MouseEvent.BUTTON1 && !selectedObjs.isEmpty() && selectedObjs.containsKey(underCursor >>> 3)) {
                 float delta =(float)e.getPreciseWheelRotation();

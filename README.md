@@ -16,9 +16,7 @@ Major new additions include:
 - Full compatability with all of SMG1's stages
 - Tons of bugs introduced in older versions of Whitehole have been fixed
 
-This is intended for Java 11, though the program runs fine on newer Java versions as well, but requires the tool to be started using this command: ```java --add-exports=java.desktop/sun.awt=ALL-UNNAMED -Dsun.java2d.uiScale=1.0 -Dsun.awt.noerasebackground=true -jar Whitehole.jar```.<br/>Alternatively, run the included `.bat` file.
-
-`-Dsun.java2d.uiScale=1.0` can be modified to scale the UI if it is too small (ex. `-Dsun.java2d.uiScale=1.5` will scale it 1.5x).
+This is intended for Java 11, though the program runs fine on newer Java versions as well, but requires the tool to be started using this command: ```java --add-exports=java.desktop/sun.awt=ALL-UNNAMED --add-opens=java.desktop/sun.awt.windows=ALL-UNNAMED -jar Whitehole.jar```.<br/>Alternatively, run the included `.bat` file.
 
 ## Controls
 - Left Click: Select/Deselect object (hold <kbd>Shift</kbd> or <kbd>Ctrl</kbd> to select multiple)
