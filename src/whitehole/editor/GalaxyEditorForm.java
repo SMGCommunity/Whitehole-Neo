@@ -4511,8 +4511,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
             if(!initializedRenderer) return;
-            int GLWidth = glCanvas.getSurfaceHeight();
-            int GLHeight = glCanvas.getSurfaceWidth();
+            int GLWidth = glCanvas.getSurfaceWidth();
+            int GLHeight = glCanvas.getSurfaceHeight();
 
             if(mouseButton == MouseEvent.BUTTON1 && !selectedObjs.isEmpty() && selectedObjs.containsKey(underCursor >>> 3)) {
                 float delta =(float)e.getPreciseWheelRotation();
