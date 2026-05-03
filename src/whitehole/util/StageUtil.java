@@ -208,10 +208,11 @@ public class StageUtil {
         ArrayList<String> zoneNames = new ArrayList<>();
         for (String activeLayer : galArc.getActiveLayerNames(galArc.galaxyName, scenarioIndex))
         {
-            for (StageObj obj : stgArc.zones.get(activeLayer.toLowerCase()))
-            {
-                zoneNames.add(obj.oldName);
-            }
+            if (!stgArc.zones.isEmpty()) // This will bypass a forced exception, allowing the real error to be output to the console later.
+                for (StageObj obj : stgArc.zones.get(activeLayer.toLowerCase()))
+                {
+                    zoneNames.add(obj.oldName);
+                }
         }
         if (!zoneNames.contains(stgArc.stageName))
             zoneNames.add(stgArc.stageName);
