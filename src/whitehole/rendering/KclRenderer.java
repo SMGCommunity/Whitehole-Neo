@@ -539,12 +539,34 @@ public class KclRenderer extends GLRenderer {
         colorTable.put(12, 0xFF004EFF);
         colorTable.put(13, 0xFFC032FF);
         colorTable.put(14, 0xD6FCFFFF);
-        colorTable.put(15, 0xAC9D0EFF);
-        
+        colorTable.put(15, 0xC3DC2CFF);
+        colorTable.put(16, 0x00E2FFFF);
+        colorTable.put(17, 0xFFA532FF);
+        colorTable.put(18, 0x402F2DFF);
+        colorTable.put(19, 0xFF85A7FF);
+        colorTable.put(20, 0x094DB5FF);
+        colorTable.put(21, 0x1E6DBDFF);
+        colorTable.put(22, 0x3B99CFFF);
+        colorTable.put(23, 0x66BDF6FF);
+        colorTable.put(24, 0xAB0000FF);
+        colorTable.put(25, 0xBA6F1DFF);
+        colorTable.put(26, 0xEEEEFFFF);
+        colorTable.put(27, 0x00D945FF);
+        colorTable.put(28, 0xC8C857FF);
         colorTable.put(29, 0xFFBE70FF); // Player crushing collision
-        
+        colorTable.put(30, 0xD19D29FF);
+        colorTable.put(31, 0x1D2B29FF);
         colorTable.put(32, 0x7E5600FF);
-        
+        colorTable.put(33, 0xB1FFFCFF);
+        colorTable.put(34, 0xD481FFFF);
+        colorTable.put(35, 0x8ECCD6FF);
+        colorTable.put(36, 0x9C004BFF);
+        colorTable.put(37, 0x3D9D29FF);
+        colorTable.put(38, 0xEEEEDDFF);        
         colorTable.put(39, 0xEFBE70FF); // Player crushing collision (No slipping)
+        colorTable.put(40, 0xFFD300FF);
+        colorTable.put(41, 0x3E2144FF);
+        colorTable.put(42, 0x958170FF);
+        colorTable.put(43, 0xDDDDEEFF);
     }
 }
