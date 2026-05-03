@@ -108,7 +108,8 @@ public class ImageUtils {
                                         byte b = file.readByte();
 
                                         int outp = (((by + y) * width) + (bx + x));
-                                        image[outp] = b;
+                                        if (outp < image.length)
+                                            image[outp] = b;
                                     }
                                 }
                             }
