@@ -543,7 +543,7 @@ public class BmdRenderer extends GLRenderer {
         
         Locale usa = new Locale("en-US");
         String[] texgensrc = { 
-            "(gl_Vertex / 100000.0)", // TEXGENSRC_POSITION
+            "position",              // TEXGENSRC_POSITION
             "normal",                 // TEXGENSRC_NORMAL
             "argh",                   // TEXGENSRC_BINORMAL
             "argh",                   // TEXGENSRC_TANGENT
@@ -613,13 +613,16 @@ public class BmdRenderer extends GLRenderer {
         vert.append("void main()\n");
         vert.append("{\n");
         vert.append("    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n");
-        vert.append("    mat3 TEMP = gl_NormalMatrix;\n");
-        vert.append("    vec4 TMP2 = vec4(TEMP * gl_Normal, 0.0);\n");
-        vert.append("    vec4 normal = vec4(((TMP2)*0.0001).xyz, 1);\n");
         vert.append("    gl_FrontColor = gl_Color;\n");
         vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
         vert.append("    vSecondaryAlpha = secondaryAlpha;\n");
+        vert.append("\n");
+        vert.append("    vec4 position = gl_Vertex;\n");
+        vert.append("    vec4 normal = vec4(normalize(gl_NormalMatrix * gl_Normal), 1.0);\n");
         vert.append("    vec4 texcoord;\n");
+        vert.append("    mat4 texmatrix, texprojectionmatrix;\n");
+        
+        
         for (int i = 0; i < mat.texGen.length; i++)
         {            
             if (mat.texGen[i] == null)
@@ -635,40 +638,53 @@ public class BmdRenderer extends GLRenderer {
             {
                 Bmd.Material.TextureMatrix texmtx = mat.texMtx[(mtxid - 30) / 3];
                 
-
+                vert.append("    texmatrix = mat4(");
+                for (int j = 0; j < 16; j++)
+                {
+                    float mtxTMP = texmtx.basicMatrix.m[j];
+                    vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j > 0) ? "," : ""));
+                }
+                vert.append(");\n");
+                vert.append("    texprojectionmatrix = mat4(");
+                for (int j = 0; j < 16; j++)
+                {
+                    float mtxTMP = texmtx.projectionMatrix.m[j];
+                    vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j > 0) ? "," : ""));
+                }
+                vert.append(");\n");
                 
                 switch (texmtx.mappingMode) {
-                //Screen projection?
-                    case 9:
-                        vert.append("   texcoord = (vec4((gl_ModelViewProjectionMatrix * texcoord).xyz, 1.0));\n");
+                    default: // Just in case, we'll set the Default to mapping mode 0 too
+                    case 0: // NONE
+                        vert.append("    texcoord *= transpose(texmatrix);\n");
                         break;
-                    case 6:
-                    case 7:
-                        vert.append("    texcoord *= (mat4(");
-                        for (int j = 0; j < 16; j++)
-                        {
-                            var mtxTMP = texmtx.basicMatrix.m[j];
-                            vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
-                        }
-                        vert.append("));\n");
+                    
+                    case 0x06: // OLD_ENVIRONMENT_MAP
+                        vert.append("    texcoord *= (texmatrix);\n");
+                        // is there any projection here?
                         break;
-                    case 8:
-                        vert.append("    texcoord *= (mat4(");
-                        for (int j = 0; j < 16; j++)
-                        {
-                            var mtxTMP = texmtx.basicMatrix.m[j];
-                            vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
-                        }
-                        vert.append("));\n");
+                    case 0x07: // TEXMTXMAP_ENVIRONMENT_MAP
+                        vert.append("    texcoord *= (texmatrix);\n");
+                        vert.append("    texcoord = texprojectionmatrix * texcoord;\n");
+                        vert.append("    texcoord.xy /= texcoord.z;\n");
+                        vert.append("    texcoord.z = 0.0;\n");
+                        vert.append("    texcoord.w = 1.0;\n");
                         break;
-                    default:
-                        vert.append("    texcoord *= transpose(mat4(");
-                        for (int j = 0; j < 16; j++)
-                        {
-                            var mtxTMP = texmtx.basicMatrix.m[j];
-                            vert.append(String.format(usa, "%2$s%1$f", mtxTMP, (j>0)?",":""));
-                        }
-                        vert.append("));\n");
+                    case 0x08: // TEXMTXMAP_PROJECTION_MAP
+                        vert.append("    texcoord = transpose(texprojectionmatrix) * texcoord;\n");
+                        vert.append("    texcoord.xy /= texcoord.z;\n");
+                        vert.append("    texcoord.z = 0.0;\n");
+                        vert.append("    texcoord.w = 1.0;\n");
+                        vert.append("    texcoord *= (texmatrix);\n");
+                        break;
+                    case 0x09: // VIEW_PROJECTION_MAP
+                        // This doesn't quite work properly. it seems fine most of the time though
+                        vert.append("    texcoord = gl_ModelViewMatrix * texcoord;\n");
+                        vert.append("    texcoord = texprojectionmatrix * texcoord;\n");
+                        vert.append("    texcoord.xy /= texcoord.z;\n");
+                        vert.append("    texcoord.z = 0.0;\n");
+                        vert.append("    texcoord.w = 1.0;\n");
+                        vert.append("    texcoord *= (texmatrix);\n");
                         break;
                 }
             }

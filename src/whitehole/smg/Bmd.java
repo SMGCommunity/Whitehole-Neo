@@ -1497,49 +1497,38 @@ public class Bmd
                     
                     // create_matrix
                     // I'm going to assume the rotation is in radians for now...
-                    Matrix4 R = Matrix4.createRotationZ(rotate);
+                    Matrix4 R = Matrix4.createRotationZ((float)Math.toRadians(rotate));
                     Matrix4 S = Matrix4.scale(new Vec3f(scale.x, scale.y, 1f));
                     Matrix4 C = Matrix4.createTranslation(new Vec3f(center.x, center.y, center.z));
                     Matrix4 CI = Matrix4.invert(C);
                     Matrix4 T = Matrix4.createTranslation(new Vec3f(translation.x, translation.y, 0f));
                     Matrix4 P;
-//                    S = new Matrix4(scaleS, 0,      0, 0,
-//                                    0,      1, 0, 0,
-//                                    0,      0,      1, 0,
-//                                    0,      0,      0, 1);
-//                    T = new Matrix4(1, 0, 0, 0,
-//                                    0, 1, 0, 0,
-//                                    0, 0, 1, 0,
-//                                    transS, transT, 0, 1);
-//                    C = new Matrix4(1, 0, 0, 0,
-//                                    0, 1, 0, 0,
-//                                    0, 0, 1, 0,
-//                                    0, 0, 0, 1);
-//                    CI = Matrix4.negate(C);
                     
                     switch ((int)mappingMode)
                     {
-                        case 0x06: //Env Map projection
+                        case 0x06: //Env Map projection [Old]
                             P = new Matrix4(0.5f, 0.0f, 0.0f, 0.5f,
                                             0.0f,-0.5f, 0.0f, 0.5f,
                                             0.0f, 0.0f, 0.0f, 1.0f,
                                             0.0f, 0.0f, 1.0f, 0.0f);
-                            //Matrix4.mult(P, projectionMatrix, P);
                             break;
-                        case 0x07: //Env Map projection 2 electric bugaloo
+                        case 0x07: //Env Map projection [New] 2 electric bugaloo
                             P = new Matrix4(0.5f, 0.0f, 0.5f, 0.0f,
                                             0.0f,-0.5f, 0.5f, 0.0f,
                                             0.0f, 0.0f, 1.0f, 0.0f,
                                             0.0f, 0.0f, 0.0f, 1.0f);
-                            //Matrix4.mult(P, projectionMatrix, P);
                             break;
                         case 0x08:
+                            P = new Matrix4(0.5f, 0.0f, 0.5f, 0.0f,
+                                            0.0f,-0.5f, 0.5f, 0.0f,
+                                            0.0f, 0.0f, 1.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 1.0f);
+                            break;
                         case 0x09:
                             P = new Matrix4(0.5f, 0.0f, 0.5f, 0.0f,
                                             0.0f,-0.5f, 0.5f, 0.0f,
                                             0.0f, 0.0f, 1.0f, 0.0f,
                                             0.0f, 0.0f, 0.0f, 1.0f);
-                            Matrix4.mult(P, projectionMatrix, P);
                             break;
                             
                         default:
