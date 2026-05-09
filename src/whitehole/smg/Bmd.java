@@ -608,18 +608,24 @@ public class Bmd
             List<Integer> attribs = new ArrayList<>();
             file.position(sectionstart + batchattribsoffset + attribsoffset);
 
+            int backupcounter = 0x20;
             int arraymask = 0;
             for (; ; )
-            {
+            {                
                 int arraytype = file.readInt();
                 int datatype = file.readInt();
 
-                if (arraytype == 0xFF) break;
+                if (arraytype == 0xFF)
+                    break;
 
                 int attrib = ((arraytype & 0xFF) | ((datatype & 0xFF) << 8));
                 attribs.add(attrib);
 
                 arraymask |= (int)(1 << (int)arraytype);
+                
+                
+                if (backupcounter-- <= 0)
+                    throw new OutOfMemoryError("Tried to read too many Shape Attributes (on Shape "+i+" of"+numbatches+")");
             }
 
             batch.packets = new Batch.Packet[numpackets];
@@ -681,19 +687,32 @@ public class Bmd
                     prim.arrayMask = arraymask;
 
                     prim.numIndices = numvertices;
-                    if ((arraymask & 1) != 0) prim.posMatrixIndices = new int[numvertices];
-                    if ((arraymask & (1 << 9)) != 0) prim.positionIndices = new int[numvertices];
-                    if ((arraymask & (1 << 10)) != 0) prim.normalIndices = new int[numvertices];
-                    if ((arraymask & (1 << 11)) != 0) prim.colorIndices[0] = new int[numvertices];
-                    if ((arraymask & (1 << 12)) != 0) prim.colorIndices[1] = new int[numvertices];
-                    if ((arraymask & (1 << 13)) != 0) prim.texcoordIndices[0] = new int[numvertices];
-                    if ((arraymask & (1 << 14)) != 0) prim.texcoordIndices[1] = new int[numvertices];
-                    if ((arraymask & (1 << 15)) != 0) prim.texcoordIndices[2] = new int[numvertices];
-                    if ((arraymask & (1 << 16)) != 0) prim.texcoordIndices[3] = new int[numvertices];
-                    if ((arraymask & (1 << 17)) != 0) prim.texcoordIndices[4] = new int[numvertices];
-                    if ((arraymask & (1 << 18)) != 0) prim.texcoordIndices[5] = new int[numvertices];
-                    if ((arraymask & (1 << 19)) != 0) prim.texcoordIndices[6] = new int[numvertices];
-                    if ((arraymask & (1 << 20)) != 0) prim.texcoordIndices[7] = new int[numvertices];
+                    if ((arraymask & 1) != 0)
+                        prim.posMatrixIndices = new int[numvertices];
+                    if ((arraymask & (1 << 9)) != 0)
+                        prim.positionIndices = new int[numvertices];
+                    if ((arraymask & (1 << 10)) != 0)
+                        prim.normalIndices = new int[numvertices];
+                    if ((arraymask & (1 << 11)) != 0)
+                        prim.colorIndices[0] = new int[numvertices];
+                    if ((arraymask & (1 << 12)) != 0)
+                        prim.colorIndices[1] = new int[numvertices];
+                    if ((arraymask & (1 << 13)) != 0)
+                        prim.texcoordIndices[0] = new int[numvertices];
+                    if ((arraymask & (1 << 14)) != 0)
+                        prim.texcoordIndices[1] = new int[numvertices];
+                    if ((arraymask & (1 << 15)) != 0)
+                        prim.texcoordIndices[2] = new int[numvertices];
+                    if ((arraymask & (1 << 16)) != 0)
+                        prim.texcoordIndices[3] = new int[numvertices];
+                    if ((arraymask & (1 << 17)) != 0)
+                        prim.texcoordIndices[4] = new int[numvertices];
+                    if ((arraymask & (1 << 18)) != 0)
+                        prim.texcoordIndices[5] = new int[numvertices];
+                    if ((arraymask & (1 << 19)) != 0)
+                        prim.texcoordIndices[6] = new int[numvertices];
+                    if ((arraymask & (1 << 20)) != 0)
+                        prim.texcoordIndices[7] = new int[numvertices];
 
                     prim.primitiveType = primtype;
 
@@ -727,11 +746,19 @@ public class Bmd
 
                             switch (attrib & 0xFF)
                             {
-                                case 0: prim.posMatrixIndices[k] = val / 3; break;
-                                case 9: prim.positionIndices[k] = val; break;
-                                case 10: prim.normalIndices[k] = val; break;
+                                case 0:
+                                    prim.posMatrixIndices[k] = val / 3;
+                                    break;
+                                case 9:
+                                    prim.positionIndices[k] = val;
+                                    break;
+                                case 10:
+                                    prim.normalIndices[k] = val;
+                                    break;
                                 case 11:
-                                case 12: prim.colorIndices[(attrib & 0xFF) - 11][k] = val; break;
+                                case 12:
+                                    prim.colorIndices[(attrib & 0xFF) - 11][k] = val;
+                                    break;
                                 case 13:
                                 case 14:
                                 case 15:
@@ -739,7 +766,9 @@ public class Bmd
                                 case 17:
                                 case 18:
                                 case 19:
-                                case 20: prim.texcoordIndices[(attrib & 0xFF) - 13][k] = val; break;
+                                case 20:
+                                    prim.texcoordIndices[(attrib & 0xFF) - 13][k] = val;
+                                    break;
 
                                 default:
                                     throw new IOException(String.format("Bmd: unsupported vertex attrib %1$04X", attrib));
