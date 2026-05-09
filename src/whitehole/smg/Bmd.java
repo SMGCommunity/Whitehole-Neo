@@ -535,12 +535,16 @@ public class Bmd
         joints = new Joint[numjoints];
 
         int jointsoffset = file.readInt();
-        int unkoffset = file.readInt();
+        int remapoffset = file.readInt();
         int stringsoffset = file.readInt();
 
         for (int i = 0; i < numjoints; i++)
         {
-            file.position(sectionstart + jointsoffset + (i * 0x40));
+            file.position(sectionstart + remapoffset + (i * 2));
+            int remapidx = file.readShort() & 0xFFFF;
+            
+            
+            file.position(sectionstart + jointsoffset + (remapidx * 0x40));
 
             Joint jnt = new Joint();
             joints[i] = jnt;
@@ -557,6 +561,8 @@ public class Bmd
             file.skip(2);
             jnt.translation = new Vec3f(file.readFloat(), file.readFloat(), file.readFloat());
 
+            
+            
             file.position(sectionstart + stringsoffset + 4 + (i*4));
             file.skip(2); // Skip the hash
             short off = file.readShort();
@@ -579,7 +585,8 @@ public class Bmd
         short numbatches = file.readShort();
         file.skip(2);
         int batchesoffset = file.readInt();
-        file.skip(8);
+        int remapoffset = file.readInt();
+        file.skip(4);
         int batchattribsoffset = file.readInt();
         int mtxtableoffset = file.readInt();
         int dataoffset = file.readInt();
@@ -590,10 +597,13 @@ public class Bmd
 
         for (int i = 0; i < numbatches; i++)
         {
+            file.position(sectionstart + remapoffset + (i * 2));
+            int remapidx = file.readShort() & 0xFFFF;
+            
             Batch batch = new Batch();
             batches[i] = batch;
 
-            file.position(sectionstart + batchesoffset + (i * 0x28));
+            file.position(sectionstart + batchesoffset + (remapidx * 0x28));
 
             batch.matrixType = file.readByte();
             file.skip(1);
