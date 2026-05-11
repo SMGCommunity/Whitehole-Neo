@@ -151,7 +151,7 @@ public class SettingsForm extends javax.swing.JDialog {
                     setText("[not set]");
                 }
 
-                if(binding = true) {
+                if(binding) {
                     setText(getText() + "...");
                 }
             });
