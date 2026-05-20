@@ -50,7 +50,7 @@ public class StageArchive {
     public HashMap<String, List<StageObj>> zones;
     public List<PathObj> paths;
     
-    public StageArchive(GalaxyArchive arc, String name) {
+    public StageArchive(GalaxyArchive arc, String name) throws IOException {
         galaxy = arc;
         filesystem = Whitehole.getCurrentGameFileSystem();
         stageName = name;
@@ -110,70 +110,65 @@ public class StageArchive {
     // -------------------------------------------------------------------------------------------------------------------------
     // Loading
     
-    private void loadZone() {
-        try {
-            mapArc = new RarcFile(filesystem.openFile(mapPath));
-            if (assistPath != null) 
-                assistArc = new RarcFile(filesystem.openFile(assistPath));
-            
-            /*if (Whitehole.getCurrentGameType() == 2) {
-                if (filesystem.fileExists(soundPath)) {
-                    soundArc = new RarcFile(filesystem.openFile(soundPath));
-                }
-                if (filesystem.fileExists(designPath)) {
-                    designArc = new RarcFile(filesystem.openFile(designPath));
-                }
-            }*/
-            
-            loadLayeredZones();
-            loadPaths();
-            
-            loadLayeredObjects(mapArc, "Placement", "ObjInfo");
-            loadLayeredObjects(mapArc, "MapParts", "MapPartsInfo");
-            loadLayeredObjects(mapArc, "Placement", "AreaObjInfo");
-            loadLayeredObjects(mapArc, "Placement", "CameraCubeInfo");
-            loadLayeredObjects(mapArc, "Placement", "PlanetObjInfo");
-            loadLayeredObjects(mapArc, "Placement", "DemoObjInfo");
-            loadLayeredObjects(mapArc, "Start", "StartInfo");
-            loadLayeredObjects(mapArc, "GeneralPos", "GeneralPosInfo");
-            loadLayeredObjects(mapArc, "Debug", "DebugMoveInfo");
+    private void loadZone() throws IOException {
+        mapArc = new RarcFile(filesystem.openFile(mapPath));
+        if (assistPath != null) 
+            assistArc = new RarcFile(filesystem.openFile(assistPath));
 
+        /*if (Whitehole.getCurrentGameType() == 2) {
+            if (filesystem.fileExists(soundPath)) {
+                soundArc = new RarcFile(filesystem.openFile(soundPath));
+            }
+            if (filesystem.fileExists(designPath)) {
+                designArc = new RarcFile(filesystem.openFile(designPath));
+            }
+        }*/
+
+        loadLayeredZones();
+        loadPaths();
+
+        loadLayeredObjects(mapArc, "Placement", "ObjInfo");
+        loadLayeredObjects(mapArc, "MapParts", "MapPartsInfo");
+        loadLayeredObjects(mapArc, "Placement", "AreaObjInfo");
+        loadLayeredObjects(mapArc, "Placement", "CameraCubeInfo");
+        loadLayeredObjects(mapArc, "Placement", "PlanetObjInfo");
+        loadLayeredObjects(mapArc, "Placement", "DemoObjInfo");
+        loadLayeredObjects(mapArc, "Start", "StartInfo");
+        loadLayeredObjects(mapArc, "GeneralPos", "GeneralPosInfo");
+        loadLayeredObjects(mapArc, "Debug", "DebugMoveInfo");
+
+        if (assistPath != null) {
+            loadLayeredObjects(assistArc, "Placement", "ObjInfo");
+            loadLayeredObjects(assistArc, "MapParts", "MapPartsInfo");
+            loadLayeredObjects(assistArc, "Placement", "AreaObjInfo");
+            loadLayeredObjects(assistArc, "Placement", "CameraCubeInfo");
+            loadLayeredObjects(assistArc, "Placement", "PlanetObjInfo");
+            loadLayeredObjects(assistArc, "Placement", "DemoObjInfo");
+            loadLayeredObjects(assistArc, "Start", "StartInfo");
+            loadLayeredObjects(assistArc, "GeneralPos", "GeneralPosInfo");
+            loadLayeredObjects(assistArc, "Debug", "DebugMoveInfo");
+        }
+
+        if (Whitehole.getCurrentGameType() == 1) {
+            loadLayeredObjects(mapArc, "ChildObj", "ChildObjInfo");
+            loadLayeredObjects(mapArc, "Placement", "SoundInfo");
             if (assistPath != null) {
-                loadLayeredObjects(assistArc, "Placement", "ObjInfo");
-                loadLayeredObjects(assistArc, "MapParts", "MapPartsInfo");
-                loadLayeredObjects(assistArc, "Placement", "AreaObjInfo");
-                loadLayeredObjects(assistArc, "Placement", "CameraCubeInfo");
-                loadLayeredObjects(assistArc, "Placement", "PlanetObjInfo");
-                loadLayeredObjects(assistArc, "Placement", "DemoObjInfo");
-                loadLayeredObjects(assistArc, "Start", "StartInfo");
-                loadLayeredObjects(assistArc, "GeneralPos", "GeneralPosInfo");
-                loadLayeredObjects(assistArc, "Debug", "DebugMoveInfo");
+                loadLayeredObjects(assistArc, "ChildObj", "ChildObjInfo");
+                loadLayeredObjects(assistArc, "Placement", "SoundInfo");
             }
-            
-            if (Whitehole.getCurrentGameType() == 1) {
-                loadLayeredObjects(mapArc, "ChildObj", "ChildObjInfo");
-                loadLayeredObjects(mapArc, "Placement", "SoundInfo");
-                if (assistPath != null) {
-                    loadLayeredObjects(assistArc, "ChildObj", "ChildObjInfo");
-                    loadLayeredObjects(assistArc, "Placement", "SoundInfo");
-                }
-            }
-            else {
-                if (soundArc != null) {
-                    loadLayeredObjects(soundArc, "Placement", "ObjInfo");
-                    loadLayeredObjects(soundArc, "Placement", "AreaObjInfo");
-                }
-                if (designArc != null) {
-                    loadLayeredObjects(designArc, "Placement", "AreaObjInfo");
-                }
-            }
-            mapArc.close();
-            if (assistPath != null) 
-                assistArc.close();
         }
-        catch (IOException ex) {
-            System.out.println(ex);
+        else {
+            if (soundArc != null) {
+                loadLayeredObjects(soundArc, "Placement", "ObjInfo");
+                loadLayeredObjects(soundArc, "Placement", "AreaObjInfo");
+            }
+            if (designArc != null) {
+                loadLayeredObjects(designArc, "Placement", "AreaObjInfo");
+            }
         }
+        mapArc.close();
+        if (assistPath != null) 
+            assistArc.close();
     }
     
     private void loadLayeredObjects(RarcFile archive, String folder, String file) {

@@ -372,7 +372,15 @@ public final class MainFrame extends javax.swing.JFrame {
         
         // Load zone archive
         currentZone = zone.identifier;
-        StageArchive arc = new StageArchive(null, currentZone);
+        StageArchive arc;
+        try {
+            arc = new StageArchive(null, currentZone);
+        }
+        catch (IOException ioex) {
+            ioex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Failed to open the zone:\n" + ioex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         zoneEditor = new GalaxyEditorForm(null, arc);
         zoneEditor.setVisible(true);
     }

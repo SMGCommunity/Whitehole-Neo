@@ -367,7 +367,15 @@ public class WorldEditorForm extends javax.swing.JFrame {
         // Load zone archive
         StageArchive arc;
         
-        arc = galaxyArchive.openZone(zone);
+        try {
+            arc = galaxyArchive.openZone(zone);
+        }
+        catch(IOException ioex) {
+            ioex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Failed to open the world:\n" + ioex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
+            dispose();
+            return;
+        }
         zoneArchives.put(zone, arc);
         
         // Populate objects and assign their maxUniqueIDs

@@ -198,7 +198,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         zoneArchives = new HashMap(1);
         zoneArchives.put(galaxyName, zoneArc);
-        loadZone(galaxyName);
+        try {
+            loadZone(galaxyName);
+        }
+        catch (IOException ioex){
+            ioex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Failed to open the galaxy:\n" + ioex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
+            dispose();
+            return;
+        }
         
         curZone = galaxyName;
         curZoneArc = zoneArchives.get(curZone);
@@ -484,7 +492,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         zoneEditors.put(curZone, form);
     }
     
-    private void loadZone(String zone) {
+    private void loadZone(String zone) throws IOException {
         // Load zone archive
         StageArchive arc;
         
@@ -854,10 +862,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     } 
                 }
             }
-            catch(IOException ex) {
-                JOptionPane.showMessageDialog(null, "Failed to open the galaxy: " + ex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace();
+            catch(IOException ioex) {
+                ioex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Failed to open the galaxy:\n" + ioex.getMessage(), Whitehole.NAME, JOptionPane.ERROR_MESSAGE);
                 dispose();
+                return;
+            }
+            catch (Exception oex) {
+                setStatusToError("Failed to load:", oex);
                 return;
             }
             

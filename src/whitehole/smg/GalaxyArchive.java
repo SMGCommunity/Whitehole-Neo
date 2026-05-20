@@ -46,21 +46,18 @@ public class GalaxyArchive {
     
     public void close() {}
     
-    public StageArchive openZone(String name) {
+    public StageArchive openZone(String name) throws IOException {
         if (!zoneList.contains(name))
             return null;
         
         return new StageArchive(this, name);
     }
     
-    public int getLayerInt(String zoneName, int scenarioIndex)
-    {
+    public int getLayerInt(String zoneName, int scenarioIndex) {
         return scenarioData.get(scenarioIndex).getInt(zoneName, 0);
-        
     }
     
-    public ArrayList<String> getActiveLayerNames(String zoneName, int scenarioIndex)
-    {
+    public ArrayList<String> getActiveLayerNames(String zoneName, int scenarioIndex) {
         ArrayList<String> layerList = new ArrayList<>();
         layerList.add("Common");
         int layerMask = getLayerInt(zoneName, scenarioIndex);
