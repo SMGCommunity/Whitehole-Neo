@@ -1139,8 +1139,8 @@ public class Bmd
                 }
                 
                 {
-                    short id = file.readShort();
-                    if (id == (short)0xFFFF)
+                    int id = file.readShort() & 0xFFFF;
+                    if (id == (int)0xFFFF)
                     {
                         mat.tevSwapTable[x] = null;
                         continue;
@@ -1148,6 +1148,12 @@ public class Bmd
                     long p = file.position();
                     file.position(ChunkStart + TevSwapTableOffset + (4 * id));
 
+                    if (file.position() < 0)
+                    {
+                        mat.tevSwapTable[x] = null; // just in case...
+                        continue;
+                    }
+                    
                     mat.tevSwapTable[x] = mat.new TevSwapModeTable();
                     mat.tevSwapTable[x].r = file.readByte();
                     mat.tevSwapTable[x].g = file.readByte();
