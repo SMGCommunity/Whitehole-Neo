@@ -1126,7 +1126,7 @@ public class WorldEditorForm extends javax.swing.JFrame {
         
         if(selectedObjs.isEmpty()) {
             if (selectedObjsPrevCount != 0)
-                setStatusToInfo("Item deselected.");
+                setStatusToInfo("Item" + (selectedObjsPrevCount > 1 ? "s":"") + " deselected.");
             tgbDeselect.setEnabled(false);
             if (pnlObjectSettings != null) {
                 pnlObjectSettings.doLayout();
