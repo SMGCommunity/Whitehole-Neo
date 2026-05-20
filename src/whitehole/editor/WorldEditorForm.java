@@ -83,8 +83,9 @@ public class WorldEditorForm extends javax.swing.JFrame {
     
     // Object holders
     private int maxUniqueID = 0;
-    private HashMap<Integer, AbstractObj> globalObjList = new HashMap();
+    private final HashMap<Integer, AbstractObj> globalObjList = new HashMap();
     private final HashMap<Integer, AbstractObj> selectedObjs = new LinkedHashMap();
+    private int selectedObjsPrevCount = 0;
     private final HashMap<String, StageObj> zonePlacements = new HashMap();
     private final HashMap<Integer, TreeNode> treeNodeList = new HashMap();
     
@@ -1124,13 +1125,18 @@ public class WorldEditorForm extends javax.swing.JFrame {
         pnlObjectSettings.clear();
         
         if(selectedObjs.isEmpty()) {
-            setStatusToInfo("Object deselected.");
+            if (selectedObjsPrevCount != 0)
+                setStatusToInfo("Item deselected.");
             tgbDeselect.setEnabled(false);
-            pnlObjectSettings.doLayout();
-            pnlObjectSettings.validate();
-            scrObjSettings.repaint();
+            if (pnlObjectSettings != null) {
+                pnlObjectSettings.doLayout();
+                pnlObjectSettings.validate();
+                scrObjSettings.repaint();
+            }
+            selectedObjsPrevCount = 0;
             return;
         }
+        selectedObjsPrevCount = selectedObjs.size();
         
         // Check if the selected objects' classes are the same
         Class cls = null;
