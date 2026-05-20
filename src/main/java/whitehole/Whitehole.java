@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
+import javafx.application.Application;
+import javafx.application.Platform;
 import javax.swing.*;
 import whitehole.db.*;
 import whitehole.io.FilesystemBase;
@@ -53,6 +55,10 @@ public class Whitehole {
     public static final GameAndProjectDataHolder Shortcuts = new GameAndProjectDataHolder("data/shortcuts.json", "/shortcuts.json", true);
     
     public static void main(String[] args) throws IOException {
+        Platform.startup(() -> {
+            // note: remove when this is fully jfx
+            Platform.setImplicitExit(false);
+        });
         decideIconSize();
         // Setup look and feel and set if applicable
         FlatDarkLaf.setup();

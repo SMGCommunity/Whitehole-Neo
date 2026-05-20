@@ -1,0 +1,18 @@
+.h2-style {
+    -fx-font-size: 1.5em; /* (18px) */
+    -fx-font-weight: bold;
+}
+
+.h4-style {
+    -fx-font-weight: bold;
+}
+
+.root {
+    -fx-base: #3c3f41;
+    -fx-background-color: #3c3f41;
+    -fx-control-inner-background: #3c3f41;
+}
+
+Text {
+    -fx-fill: #bababa;
+}

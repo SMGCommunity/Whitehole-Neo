@@ -16,49 +16,50 @@
  */
 package whitehole;
 
-import javax.swing.JFrame;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.scene.control.Label;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
-public class AboutForm extends javax.swing.JDialog {
-    public AboutForm(JFrame parent) {
-        super(parent, true);
+public class AboutForm extends WForm {
+    public AboutForm() {
+        super();
         initComponents();
     }
-    
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+
     private void initComponents() {
-
-        label = new javax.swing.JLabel();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle(Whitehole.NAME);
-        setIconImage(Whitehole.ICON);
+        initModality(Modality.APPLICATION_MODAL);
+        
         setResizable(false);
-
-        label.setText("<html>\n  <h2>Whitehole</h2> A level editor for Super Mario Galaxy and Super Mario Galaxy 2. <br> Whitehole is free software and shouldn't be provided as a part <br> of a paid software package. <h2>Credits</h2> Arisotura, Aurum, AwesomeTMC, Bussun, CMakes, Dirbaio, <br/>groepaz, IonicPixels, JuPaHe64, Lord-Giganticus, NWPlayer123, <br/>PhantomWings, Rob Camick, shibboleet, Super Hackio, thakis, <br/>TheSunCat, Treeki, and yaz0r. <h4>Current Version:<br/>Whitehole Neo (Beta 10)</h4></html>");
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(label)
-                .addContainerGap())
-        );
-
-        pack();
-        setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
-    
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel label;
-    // End of variables declaration//GEN-END:variables
+        Text whiteholeText = new Text("Whitehole\n");
+        whiteholeText.getStyleClass().add("h2-style");
+        Text description = new Text("""
+                                    A level editor for Super Mario Galaxy and Super Mario Galaxy 2.
+                                    Whitehole is free software and shouldn't be provided as a part
+                                    of a paid software package.
+                                    """);
+        Text creditsText = new Text("Credits\n");
+        creditsText.getStyleClass().add("h2-style");
+        Text authorsText = new Text("""
+                                    Arisotura, Aurum, AwesomeTMC, Bussun, CMakes, Dirbaio, 
+                                    groepaz, IonicPixels, JuPaHe64, Lord-Giganticus, NWPlayer123, 
+                                    PhantomWings, Rob Camick, shibboleet, Super Hackio, thakis, 
+                                    TheSunCat, Treeki, and yaz0r.
+                                    """);
+        Text versionText = new Text("Current Version:\nWhitehole Neo (Beta 10)");
+        versionText.getStyleClass().add("h4-style");
+        TextFlow aboutText = new TextFlow(whiteholeText, description, creditsText, authorsText, versionText);
+        VBox layout = new VBox();
+        layout.setPadding(new Insets(10));
+        layout.getChildren().add(aboutText);
+        Scene scene = new Scene(layout);
+        
+        this.initialize(scene, "About");
+    }
 }

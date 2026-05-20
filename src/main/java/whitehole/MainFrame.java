@@ -22,6 +22,7 @@ import java.awt.Window;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import javafx.application.Platform;
 import javax.swing.*;
 import whitehole.db.FieldHashes;
 import whitehole.db.ObjectDB;
@@ -89,7 +90,7 @@ public final class MainFrame extends javax.swing.JFrame {
     private GalaxyEditorForm zoneEditor = null;
     private WorldEditorForm worldEditor = null;
     private final BcsvEditorForm bcsvEditor;
-    private final AboutForm aboutDialog;
+    private AboutForm aboutDialog;
     private final SettingsForm settingsDialog;
     private final String openWithDirectory;
     private final HashMap<String, Component> hiddenTabs;
@@ -102,7 +103,9 @@ public final class MainFrame extends javax.swing.JFrame {
         worldItems = (DefaultListModel) (listWorlds.getModel());
         
         bcsvEditor = new BcsvEditorForm();
-        aboutDialog = new AboutForm(this);
+        Platform.runLater(() -> {
+            aboutDialog = new AboutForm();
+        });
         settingsDialog = new SettingsForm(this);
         
         if (args != null && args.length > 0)
@@ -430,7 +433,7 @@ public final class MainFrame extends javax.swing.JFrame {
         }
         
         SwingUtilities.updateComponentTreeUI(bcsvEditor);
-        SwingUtilities.updateComponentTreeUI(aboutDialog);
+//        SwingUtilities.updateComponentTreeUI(aboutDialog);
         SwingUtilities.updateComponentTreeUI(settingsDialog);
         
         ObjectSelectForm.requestUpdateLAF();
@@ -800,9 +803,12 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnSettingsActionPerformed
 
     private void btnAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAboutActionPerformed
-        if (!aboutDialog.isVisible()) {
-            aboutDialog.setVisible(true);
-        }
+        // Note: Remove runLater when this is transitioned to JFX
+        Platform.runLater(() -> {
+            if (!aboutDialog.isShowing()) {
+                aboutDialog.show();
+            }
+        });
     }//GEN-LAST:event_btnAboutActionPerformed
 
     private void listGalaxyMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listGalaxyMouseClicked

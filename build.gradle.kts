@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.0"
     application
     id("com.diffplug.spotless") version "8.5.1"
+    id("org.openjfx.javafxplugin") version "0.1.0"
 }
 
 group = "whitehole"
@@ -63,4 +64,9 @@ tasks.withType<JavaCompile> {
 }
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     dependsOn("spotlessApply")
+}
+
+javafx {
+    version = "11.0.2"
+    modules = listOf("javafx.controls")
 }
