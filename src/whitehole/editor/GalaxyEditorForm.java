@@ -91,6 +91,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
     private HashMap<Integer, PathObj> globalPathList = new HashMap();
     private HashMap<Integer, PathPointObj> globalPathPointList = new HashMap();
     private final HashMap<Integer, AbstractObj> selectedObjs = new LinkedHashMap();
+    private int selectedObjsPrevCount = 0;
     private final HashMap<Integer, PathPointObj> displayedPaths = new LinkedHashMap();
     private final HashMap<String, StageObj> zonePlacements = new HashMap();
     private final HashMap<Integer, TreeNode> treeNodeList = new HashMap();
@@ -1606,16 +1607,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
             pnlObjectSettings.clear();
         
         if(selectedObjs.isEmpty()) {
-            setStatusToInfo("Object deselected.");
+            if (selectedObjsPrevCount != 0)
+                setStatusToInfo("Object deselected.");
             tgbDeselect.setEnabled(false);
-            if (pnlObjectSettings != null){
+            if (pnlObjectSettings != null) {
                 pnlObjectSettings.doLayout();
                 pnlObjectSettings.validate();
                 pnlObjectSettings.repaint();
             }
+            selectedObjsPrevCount = 0;
             return;
         }
         
+        selectedObjsPrevCount = selectedObjs.size();
         // Check if any are paths/path points linked to selected objs
         for(AbstractObj obj : selectedObjs.values()) {
             PathObj pathobj = AbstractObj.getObjectPathData(obj);
