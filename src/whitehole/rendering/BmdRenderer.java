@@ -589,8 +589,7 @@ public class BmdRenderer extends GLRenderer {
             "", "", "k0.rgb", "k1.rgb", "k2.rgb", "k3.rgb", "k0.rrr", "k1.rrr", "k2.rrr", "k3.rrr", 
             "k0.ggg", "k1.ggg", "k2.ggg", "k3.ggg", "k0.bbb", "k1.bbb", "k2.bbb", "k3.bbb", "k0.aaa", "k1.aaa", 
             "k2.aaa", "k3.aaa" };
-        String[] a_inputregs = { "truncc1(rprev.a)", "truncc1(r0.a)", "truncc1(r1.a)", "truncc1(r2.a)", "texcolor.a", "rascolor.a", "konst.a", "0.0" };
-        String[] a_inputregsD = { "rprev.a", "r0.a", "r1.a", "r2.a", "texcolor.a", "rascolor.a", "konst.a", "0.0" };
+        String[] a_inputregs =  { "rprev", "r0", "r1", "r2", "texcolor", "rascolor", "konst", "vec4(0.0, 0.0, 0.0, 0.0)" };
         String[] a_konstsel = { 
             "1.0", "0.875", "0.75", "0.625", "0.5", "0.375", "0.25", "0.125", "", "", 
             "", "", "", "", "", "", "k0.r", "k1.r", "k2.r", "k3.r", 
@@ -889,25 +888,25 @@ public class BmdRenderer extends GLRenderer {
                 case 9: // Comp_R8_EQ
                     operation = "    %1$s = %5$s + (((%2$s).r == (%3$s).r) ? (%4$s) : vec3(0.0,0.0,0.0));\n";
                     break;
+                    
                 case 10: // Comp_GR16_GT
                     operation = "    %1$s = %5$s + ((dot((%2$s).rgb, comp16) >  dot((%3$s).rgb, comp16)) ? (%4$s).rgb : vec3(0,0,0));\n";
                     break;
                 case 11: // Comp_GR16_EQ
                     operation = "    %1$s = %5$s + ((dot((%2$s).rgb, comp16) == dot((%3$s).rgb, comp16)) ? (%4$s).rgb : vec3(0,0,0));\n";
                     break;
+                    
                 case 12: // Comp_GR24_GT
                     operation = "    %1$s = %5$s + ((dot((%2$s).rgb, comp24) >  dot((%3$s).rgb, comp24)) ? (%4$s).rgb : vec3(0,0,0));\n";
                     break;
                 case 13: // Comp_GR24_EQ
                     operation = "    %1$s = %5$s + ((dot((%2$s).rgb, comp24) == dot((%3$s).rgb, comp24)) ? (%4$s).rgb : vec3(0,0,0));\n";
                     break;
-                case 14: // Comp_GR24_EQ
+                    
+                case 14: // Comp_RGB8_GT
                     operation = "    %1$s = %5$s + (max(sign((%2$s).rgb - (%3$s).rgb), vec3(0,0,0)) * (%4$s).rgb);\n";
                     break;
-                case 15: // Comp_RGB8_GT
-                    operation = "    %1$s = %5$s + (max(sign((%2$s).rgb - (%3$s).rgb), vec3(0,0,0)) * (%4$s).rgb);\n";
-                    break;
-                case 16: // Comp_RGB8_EQ
+                case 15: // Comp_RGB8_EQ
                     operation = "    %1$s = %5$s + ((vec3(1,1,1) - sign(abs((%2$s).rgb - (%3$s).rgb))) * (%4$s).rgb);\n";
                     break;
 
@@ -930,25 +929,52 @@ public class BmdRenderer extends GLRenderer {
             a = a_inputregs[tv.combineAlphaA];
             b = a_inputregs[tv.combineAlphaB];
             c = a_inputregs[tv.combineAlphaC];
-            d = a_inputregsD[tv.combineAlphaD];
+            d = a_inputregs[tv.combineAlphaD];
 
             switch(tv.operationAlpha)
             {
                 case 0: // ADD
-                    operation = "    %1$s = (%5$s + mix(%2$s,%3$s,%4$s) + %6$s) * %7$s;\n";
+                    operation = "    %1$s = (%5$s.a + mix(%2$s.a,%3$s.a,%4$s.a) + %6$s) * %7$s;\n";
                     break;
                 case 1: // SUB
-                    operation = "    %1$s = (%5$s - mix(%2$s,%3$s,%4$s) + %6$s) * %7$s;\n";
+                    operation = "    %1$s = (%5$s.a - mix(%2$s.a,%3$s.a,%4$s.a) + %6$s) * %7$s;\n";
                     break;
 
-                    // TODO: Find a model that uses the comparison operators in the Alpha stages for testing
+                    
+                case 8: // Comp_R8_GT
+                    operation = "    %1$s = %5$s.a + (((%2$s).r > (%3$s).r) ? (%4$s.a) : 0.0);\n";
+                    break;
+                case 9: // Comp_R8_EQ
+                    operation = "    %1$s = %5$s.a + (((%2$s).r == (%3$s).r) ? (%4$s.a) : 0.0);\n";
+                    break;
+                    
+                case 10: // Comp_GR16_GT
+                    operation = "    %1$s = %5$s.a + ((dot((%2$s).rgb, comp16) >  dot((%3$s).rgb, comp16)) ? (%4$s).a : 0.0);\n";
+                    break;
+                case 11: // Comp_GR16_EQ
+                    operation = "    %1$s = %5$s.a + ((dot((%2$s).rgb, comp16) == dot((%3$s).rgb, comp16)) ? (%4$s).a : 0.0);\n";
+                    break;
+                    
+                case 12: // Comp_GR24_GT
+                    operation = "    %1$s = %5$s.a + ((dot((%2$s).rgb, comp24) >  dot((%3$s).rgb, comp24)) ? (%4$s).a : 0.0);\n";
+                    break;
+                case 13: // Comp_GR24_EQ
+                    operation = "    %1$s = %5$s.a + ((dot((%2$s).rgb, comp24) == dot((%3$s).rgb, comp24)) ? (%4$s).a : 0.0);\n";
+                    break;
+                    
+                case 14: // Comp_RGB8_GT
+                    operation = "    %1$s = %5$s.a + (((%2$s).a >  (%3$s).a) ? (%4$s).a : 0.0);\n";
+                    break;
+                case 15: // Comp_RGB8_EQ
+                    operation = "    %1$s = %5$s.a + (((%2$s).a == (%3$s).a) ? (%4$s).a : 0.0);\n";
+                    break;
                     
                 default:
                     operation = "    %1$s = 1.0;";
                     System.out.println("==== " + mat.name + " : Tev Stage "+i+" ====");
                     System.out.println("Unsupported TEV Alpha Combiner Operation:");
                     System.out.println(tv.operationAlpha);
-                    throw new GLException(String.format("!alphaop %1$d", tv.operationAlpha));
+                    //throw new GLException(String.format("!alphaop %1$d", tv.operationAlpha));
             }
             if(tv.clampAlpha)
                 operation += "   %1$s = clamp(%1$s, 0.0, 1.0);\n";
