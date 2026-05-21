@@ -17,6 +17,10 @@
 package whitehole.util;
 
 import java.awt.event.KeyEvent;
+import javafx.scene.control.Alert;
+import whitehole.MainFrame;
+import whitehole.Settings;
+import whitehole.Whitehole;
 
 /**
  *
@@ -132,5 +136,54 @@ public class UIUtil {
     public static boolean IsOnlyArrowKeys(int keyMask, int keyCode)
     {
         return (keyMask & 0x7) == keyMask && IsArrowKey(keyCode);
+    }
+    
+    /**
+     * Shows an error message via GUI.
+     */
+    public static void showError(String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(Whitehole.NAME);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        if (Settings.getUseDarkMode())
+        {
+            alert.getDialogPane().getStylesheets().add(MainFrame.class.getResource("/style-dark.css").toExternalForm());
+        }
+        else
+        {
+            alert.getDialogPane().getStylesheets().add(MainFrame.class.getResource("/style.css").toExternalForm());
+        }
+        System.err.println(header + "\n" + content);
+        alert.getDialogPane().setMinHeight(200);
+        alert.show();
+    }
+    /**
+     * Shows an info message via GUI.
+     */
+    public static void showInfo(String header) {
+        showInfo(header, "");
+    }
+    /**
+     * Shows an info message via GUI.
+     */
+    public static void showInfo(String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(Whitehole.NAME);
+        alert.setHeaderText(header);
+        if (!content.isEmpty())
+            alert.setContentText(content);
+        
+        if (Settings.getUseDarkMode())
+        {
+            alert.getDialogPane().getStylesheets().add(MainFrame.class.getResource("/style-dark.css").toExternalForm());
+           
+        }
+        else
+        {
+            alert.getDialogPane().getStylesheets().add(MainFrame.class.getResource("/style.css").toExternalForm());
+        }
+        alert.getDialogPane().setMinHeight(200);
+        alert.show();
     }
 }

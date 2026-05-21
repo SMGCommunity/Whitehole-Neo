@@ -950,8 +950,11 @@ public final class MainFrame extends javax.swing.JFrame {
 
     private void btnCreateGalaxyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateGalaxyActionPerformed
         boolean isGalaxy = isTabSelected("Galaxies");
-        CreateGalaxyForm createForm = new CreateGalaxyForm(isGalaxy);
-        createForm.setVisible(true);
+        
+        Platform.runLater(() -> {
+            CreateGalaxyForm createForm = new CreateGalaxyForm(isGalaxy);
+            createForm.show();
+        });
     }//GEN-LAST:event_btnCreateGalaxyActionPerformed
 
     private void btnGalaxyPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGalaxyPropertiesActionPerformed
