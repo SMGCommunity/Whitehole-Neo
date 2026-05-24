@@ -17,7 +17,10 @@
 package whitehole.util;
 
 import java.awt.event.KeyEvent;
+import java.io.File;
 import javafx.scene.control.Alert;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Window;
 import whitehole.MainFrame;
 import whitehole.Settings;
 import whitehole.Whitehole;
@@ -185,5 +188,21 @@ public class UIUtil {
         }
         alert.getDialogPane().setMinHeight(200);
         alert.show();
+    }
+    
+    public static String showDirectoryDialog(Window ownerWindow, String title, String initialDirectory)
+    {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle(title);
+        directoryChooser.setInitialDirectory(new File(initialDirectory));
+        File selectedPath = directoryChooser.showDialog(null);
+        if (selectedPath == null) {
+            return "";
+        }
+        String newPath = selectedPath.getAbsolutePath();
+        if (newPath == null) {
+            return "";
+        }
+        return newPath;
     }
 }

@@ -16,13 +16,13 @@
  */
 package whitehole;
 
-import com.github.jacksonbrienen.jwfd.JWindowsFileDialog;
 import java.awt.Component;
 import java.awt.Window;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import javafx.application.Platform;
+import javafx.stage.DirectoryChooser;
 import javax.swing.*;
 import whitehole.db.FieldHashes;
 import whitehole.db.ObjectDB;
@@ -38,6 +38,7 @@ import whitehole.rendering.ShaderCache;
 import whitehole.rendering.TextureCache;
 import whitehole.smg.GameArchive;
 import whitehole.smg.StageArchive;
+import whitehole.util.UIUtil;
 
 public final class MainFrame extends javax.swing.JFrame {
     private static class GalaxyListItem {
@@ -127,6 +128,7 @@ public final class MainFrame extends javax.swing.JFrame {
         btnCreateGalaxy.setEnabled(false);
         btnGalaxyProperties.setEnabled(false);
         lbStatusBar.setText("");
+        
         
         File gamedirfile = new File(gameDir);
         if (!gamedirfile.exists()) {
@@ -330,10 +332,14 @@ public final class MainFrame extends javax.swing.JFrame {
             System.out.println("[WARNING] Can't change Game Directory while the BCSV Editor is open!");
             return;
         }
-        String newPath = JWindowsFileDialog.showDirectoryDialog(this, "Open an SMG1/2 Directory", Settings.getLastGameDir());
-        if (newPath != null) {
-            openGameDir(newPath);
-        }
+        Platform.runLater(() -> {
+            String selectedPath = UIUtil.showDirectoryDialog(null, "Open an SMG1/2 Directory", Settings.getLastGameDir());
+            if (selectedPath.isEmpty())
+                return;
+            SwingUtilities.invokeLater(() -> {
+                openGameDir(selectedPath);
+            });
+        });
     }
     
     public void openGalaxy() {

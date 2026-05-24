@@ -16,7 +16,6 @@
  */
 package whitehole;
 
-import com.github.jacksonbrienen.jwfd.JWindowsFileDialog;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,13 +23,15 @@ import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import javafx.application.Platform;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
+import whitehole.util.UIUtil;
 
 public class SettingsForm extends javax.swing.JDialog {
     public SettingsForm(JFrame parent) {
@@ -763,11 +764,16 @@ public class SettingsForm extends javax.swing.JDialog {
     }//GEN-LAST:event_chkUseBetterQualityItemStateChanged
 
     private void btnBrowseBaseGamePathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseBaseGamePathActionPerformed
-        String pth = JWindowsFileDialog.showDirectoryDialog(null, "Open a base SMG1/2 Directory", Settings.getBaseGameDir());
-        if (pth != null && !pth.isBlank()) {
-            txtBaseGame.setText(pth);
-            setBaseGamePath(pth);
-        }
+        Platform.runLater(() -> {
+            String pth = UIUtil.showDirectoryDialog(null, "Open a base SMG1/2 Directory", Settings.getBaseGameDir());
+            if (pth == null || pth.isBlank()) {
+                return;
+            }
+            SwingUtilities.invokeLater(() -> {
+                txtBaseGame.setText(pth);
+                setBaseGamePath(pth);
+            });
+        });
     }//GEN-LAST:event_btnBrowseBaseGamePathActionPerformed
 
     private void txtBaseGameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBaseGameKeyReleased
