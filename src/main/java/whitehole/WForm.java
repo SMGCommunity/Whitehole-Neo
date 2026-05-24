@@ -22,19 +22,26 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class WForm extends Stage {
-    public WForm()
+    public WForm(String title)
     {
         super();
-    }
-    protected void initialize(Scene scene, String title)
-    {
-        scene.getRoot().getStyleClass().add("wform");
         String curTitle = Whitehole.NAME;
         if (!title.isEmpty())
             curTitle = curTitle + " -- " + title;
         setTitle(curTitle);
         Image icon = new Image(getClass().getResourceAsStream("/res/icon64.png"));
         getIcons().add(icon);
+        this.sceneProperty().addListener((observable, oldScene, newScene) -> {
+            if (newScene == null)
+                return;
+            setSceneStyle(newScene);
+        });
+    }
+    
+    public void setSceneStyle(Scene scene) {
+        if (scene == null)
+            return;
+        scene.getRoot().getStyleClass().add("wform");
         if (Settings.getUseDarkMode())
         {
             scene.getStylesheets().add(getClass().getResource("/style-dark.css").toExternalForm());
@@ -44,6 +51,5 @@ public class WForm extends Stage {
             scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         }
         centerOnScreen();
-        setScene(scene);
     }
 }

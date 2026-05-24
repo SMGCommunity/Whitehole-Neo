@@ -29,7 +29,7 @@ import javafx.scene.text.TextFlow;
 
 public class AboutForm extends WForm {
     public AboutForm() {
-        super();
+        super("About");
         initComponents();
     }
 
@@ -59,7 +59,6 @@ public class AboutForm extends WForm {
         layout.setPadding(new Insets(10));
         layout.getChildren().add(aboutText);
         Scene scene = new Scene(layout);
-        
-        this.initialize(scene, "About");
+        setScene(scene);
     }
 }

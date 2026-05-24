@@ -973,8 +973,10 @@ public final class MainFrame extends javax.swing.JFrame {
             ZoneListItem zone = (ZoneListItem)listZone.getSelectedValue();
             idName = zone.identifier;
         }
-        GalaxyPropertiesForm propertiesForm = new GalaxyPropertiesForm(isGalaxyMode, idName);
-        propertiesForm.setVisible(true);
+        Platform.runLater(() -> {
+            GalaxyPropertiesForm propertiesForm = new GalaxyPropertiesForm(isGalaxyMode, idName);
+            propertiesForm.show();
+        });
     }//GEN-LAST:event_btnGalaxyPropertiesActionPerformed
 
     private void btnBigSelectGameFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBigSelectGameFolderActionPerformed

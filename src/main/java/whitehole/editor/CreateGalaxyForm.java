@@ -50,7 +50,9 @@ public class CreateGalaxyForm extends WForm {
      * @param isGalaxy Whether it is creating a new galaxy or a new zone
      */
     public CreateGalaxyForm(boolean isGalaxy) {
+        super("Create a " + (isGalaxy ? "Galaxy" : "Zone"));
         String itemName = isGalaxy ? "Galaxy" : "Zone";
+        
         isGalaxyMode = isGalaxy;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("CreateGalaxyForm.fxml"));
@@ -58,11 +60,10 @@ public class CreateGalaxyForm extends WForm {
             controller = loader.getController();
             Scene scene = new Scene(root);
             this.setScene(scene);
-            this.initialize(scene, "Create a " + itemName);
-            
         }
         catch (IOException ex) {
-            System.err.println("Failed to load FXML");
+            System.err.println("Failed to load FXML for CreateGalaxyForm");
+            System.err.println(ex);
             return;
         }
         
