@@ -23,6 +23,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import javafx.application.Platform;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -1253,8 +1254,10 @@ public class BcsvEditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_tbFileNameKeyPressed
 
     private void subHashGeneratorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_subHashGeneratorActionPerformed
-        HashGeneratorForm hashForm = new HashGeneratorForm();
-        hashForm.setVisible(true);
+        Platform.runLater(() -> {
+            HashGeneratorForm hashForm = new HashGeneratorForm();
+            hashForm.show();
+        });
     }//GEN-LAST:event_subHashGeneratorActionPerformed
 
     private void btnAddColumnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddColumnActionPerformed
