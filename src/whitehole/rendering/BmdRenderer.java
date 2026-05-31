@@ -176,6 +176,10 @@ public class BmdRenderer extends GLRenderer {
         }
         catch(IOException up)
         {
+            System.out.println("Failed to load " + modelName);
+            System.out.println(up.getMessage());
+            if (Settings.getDebugAdditionalLogs())
+                up.printStackTrace();
         }
         return null;
     }
