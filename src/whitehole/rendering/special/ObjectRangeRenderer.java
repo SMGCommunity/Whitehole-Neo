@@ -47,8 +47,7 @@ public class ObjectRangeRenderer extends GLRenderer {
         owner = obj;
     }
     
-    public static ArrayList<RangeParam> CreateRangeParams(HashMap<String, Object> params)
-    {
+    public static ArrayList<RangeParam> CreateRangeParams(HashMap<String, Object> params) {
         ArrayList<RangeParam> listing = new ArrayList();
         
         JSONArray Entries = (JSONArray)params.get("RangeDefine");
@@ -77,6 +76,7 @@ public class ObjectRangeRenderer extends GLRenderer {
         boolean isRenderNormal = (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT);
         
         gl.glPushMatrix();
+        gl.glScalef(owner.scale.x, owner.scale.y, owner.scale.z);
         if (model.isValidBmdModel())
             model.render(info);
         else
@@ -166,14 +166,13 @@ public class ObjectRangeRenderer extends GLRenderer {
         {
             para += p.getAdditiveCacheKey(obj);
         }
-        return "_" + BasicAnimationRenderer.getAdditiveCacheKey(obj, params) +
+        return "_" + obj.scale.toString()+ "_" + BasicAnimationRenderer.getAdditiveCacheKey(obj, params) +
                 para;
     }
     
     
     
-    public static class RangeParam
-    {        
+    public static class RangeParam {        
         public final Color4 color;
         public final String source;
         public final Float defaul;
