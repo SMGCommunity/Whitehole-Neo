@@ -16,13 +16,14 @@
  */
 package whitehole;
 
-import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
 
 public final class Settings {
     private Settings() {}
@@ -140,49 +141,49 @@ public final class Settings {
         if (red == -1 || green == -1 || blue == -1 || alpha == -1) {
             return fallbackColor;
         }
-        return new Color(red, green, blue, alpha);
+        return Color.rgb(red, green, blue, alpha / 255.0);
     }
     public static void setColor(String preferencesString, Color newColor) {
-        PREFERENCES.putInt(preferencesString + "Red", newColor.getRed());
-        PREFERENCES.putInt(preferencesString + "Green", newColor.getGreen());
-        PREFERENCES.putInt(preferencesString + "Blue", newColor.getBlue());
-        PREFERENCES.putInt(preferencesString + "Alpha", newColor.getAlpha());
+        PREFERENCES.putInt(preferencesString + "Red", (int)Math.round(newColor.getRed() * 255.0));
+        PREFERENCES.putInt(preferencesString + "Green", (int)Math.round(newColor.getGreen() * 255.0));
+        PREFERENCES.putInt(preferencesString + "Blue", (int)Math.round(newColor.getBlue() * 255.0));
+        PREFERENCES.putInt(preferencesString + "Alpha", (int)Math.round(newColor.getOpacity() * 255.0));
     }
     
     
-    public static final Color DEFAULT_NORMAL_AREA_PRIMARY_COLOR = new Color(75, 255, 255);
+    public static final Color DEFAULT_NORMAL_AREA_PRIMARY_COLOR = Color.rgb(75, 255, 255);
     public static Color getNormalAreaPrimaryColor() { return getColor("whitehole_normalAreaPrimaryColor", DEFAULT_NORMAL_AREA_PRIMARY_COLOR); }
     public static void setNormalAreaPrimaryColor(Color val) { setColor("whitehole_normalAreaPrimaryColor", val); }
     
-    public static final Color DEFAULT_NORMAL_AREA_SECONDARY_COLOR = new Color(255, 75, 75);
+    public static final Color DEFAULT_NORMAL_AREA_SECONDARY_COLOR = Color.rgb(255, 75, 75);
     public static Color getNormalAreaSecondaryColor() { return getColor("whitehole_normalAreaSecondaryColor", DEFAULT_NORMAL_AREA_SECONDARY_COLOR); }
     public static void setNormalAreaSecondaryColor(Color val) { setColor("whitehole_normalAreaSecondaryColor", val); }
     
-    public static final Color DEFAULT_CAMERA_AREA_PRIMARY_COLOR = new Color(204, 0, 0);
+    public static final Color DEFAULT_CAMERA_AREA_PRIMARY_COLOR = Color.rgb(204, 0, 0);
     public static Color getCameraAreaPrimaryColor() { return getColor("whitehole_cameraAreaPrimaryColor", DEFAULT_CAMERA_AREA_PRIMARY_COLOR); }
     public static void setCameraAreaPrimaryColor(Color val) { setColor("whitehole_cameraAreaPrimaryColor", val); }
     
-    public static final Color DEFAULT_CAMERA_AREA_SECONDARY_COLOR = new Color(0, 204, 204);
+    public static final Color DEFAULT_CAMERA_AREA_SECONDARY_COLOR = Color.rgb(0, 204, 204);
     public static Color getCameraAreaSecondaryColor() { return getColor("whitehole_cameraAreaSecondaryColor", DEFAULT_CAMERA_AREA_SECONDARY_COLOR); }
     public static void setCameraAreaSecondaryColor(Color val) { setColor("whitehole_cameraAreaSecondaryColor", val); }
     
-    public static final Color DEFAULT_GRAVITY_AREA_PRIMARY_COLOR = new Color(0, 204, 0);
+    public static final Color DEFAULT_GRAVITY_AREA_PRIMARY_COLOR = Color.rgb(0, 204, 0);
     public static Color getGravityAreaPrimaryColor() { return getColor("whitehole_gravityAreaPrimaryColor", DEFAULT_GRAVITY_AREA_PRIMARY_COLOR); }
     public static void setGravityAreaPrimaryColor(Color val) { setColor("whitehole_gravityAreaPrimaryColor", val); }
     
-    public static final Color DEFAULT_GRAVITY_AREA_SECONDARY_COLOR = new Color(204, 0, 204);
+    public static final Color DEFAULT_GRAVITY_AREA_SECONDARY_COLOR = Color.rgb(204, 0, 204);
     public static Color getGravityAreaSecondaryColor() { return getColor("whitehole_gravityAreaSecondaryColor", DEFAULT_GRAVITY_AREA_SECONDARY_COLOR); }
     public static void setGravityAreaSecondaryColor(Color val) { setColor("whitehole_gravityAreaSecondaryColor", val); }
     
-    public static final Color DEFAULT_GRAVITY_AREA_ZERO_PRIMARY_COLOR = new Color(0, 204, 153);
-    public static Color getGravityAreaZeroPrimaryColor() { return getColor("whitehole_gravityAreaZeroPrimaryColor", DEFAULT_GRAVITY_AREA_ZERO_PRIMARY_COLOR); }
-    public static void setGravityAreaZeroPrimaryColor(Color val) { setColor("whitehole_gravityAreaZeroPrimaryColor", val); }
+    public static final Color DEFAULT_ZERO_GRAVITY_PRIMARY_COLOR = Color.rgb(0, 204, 153);
+    public static Color getZeroGravityPrimaryColor() { return getColor("whitehole_gravityAreaZeroPrimaryColor", DEFAULT_ZERO_GRAVITY_PRIMARY_COLOR); }
+    public static void setZeroGravityPrimaryColor(Color val) { setColor("whitehole_gravityAreaZeroPrimaryColor", val); }
     
-    public static final Color DEFAULT_GRAVITY_AREA_ZERO_SECONDARY_COLOR = new Color(204, 0, 51);
-    public static Color getGravityAreaZeroSecondaryColor() { return getColor("whitehole_gravityAreaZerpSecondaryColor", DEFAULT_GRAVITY_AREA_ZERO_SECONDARY_COLOR); }
-    public static void setGravityAreaZeroSecondaryColor(Color val) { setColor("whitehole_gravityAreaZerpSecondaryColor", val); }
+    public static final Color DEFAULT_ZERO_GRAVITY_SECONDARY_COLOR = Color.rgb(204, 0, 51);
+    public static Color getZeroGravitySecondaryColor() { return getColor("whitehole_gravityAreaZerpSecondaryColor", DEFAULT_ZERO_GRAVITY_SECONDARY_COLOR); }
+    public static void setZeroGravitySecondaryColor(Color val) { setColor("whitehole_gravityAreaZerpSecondaryColor", val); }
     
-    public static final Color DEFAULT_OBJECT_HIGHLIGHT_COLOR = new Color(255, 255, 191, 76);
+    public static final Color DEFAULT_OBJECT_HIGHLIGHT_COLOR = Color.rgb(255, 255, 191, (76.0/255.0));
     public static Color getObjectHighlightColor() { return getColor("whitehole_objectHighlightColor", DEFAULT_OBJECT_HIGHLIGHT_COLOR); }
     public static void setObjectHighlightColor(Color val) { setColor("whitehole_objectHighlightColor", val); }
     
@@ -202,4 +203,13 @@ public final class Settings {
     
     public static int getKeyScale() { return PREFERENCES.getInt("whitehole_keyScale", KeyEvent.VK_S); }
     public static void setKeyScale(int val) { PREFERENCES.putInt("whitehole_keyScale", val); }
+    
+    public static KeyCode getKeyPositionFX() { return KeyCode.getKeyCode(PREFERENCES.get("whitehole_keyPositionFX", "G")); }
+    public static void setKeyPositionFX(KeyCode val) { PREFERENCES.put("whitehole_keyPositionFX", val.getName()); }
+    
+    public static KeyCode getKeyRotationFX() { return KeyCode.getKeyCode(PREFERENCES.get("whitehole_keyRotationFX", "R")); }
+    public static void setKeyRotationFX(KeyCode val) { PREFERENCES.put("whitehole_keyRotationFX", val.getName()); }
+    
+    public static KeyCode getKeyScaleFX() { return KeyCode.getKeyCode(PREFERENCES.get("whitehole_keyScaleFX", "S")); }
+    public static void setKeyScaleFX(KeyCode val) { PREFERENCES.put("whitehole_keyScaleFX", val.getName()); }
 }

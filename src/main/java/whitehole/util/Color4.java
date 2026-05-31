@@ -32,6 +32,15 @@ public class Color4 implements Cloneable {
         this.a = (float) (clr.getAlpha() / 255.0);
     }
     
+    public Color4(javafx.scene.paint.Color clr)
+    {
+        System.out.println("" + clr.getRed() + "," + clr.getBlue() + "," + clr.getGreen() + "," + clr.getOpacity());
+        this.r = (float) clr.getRed();
+        this.g = (float) clr.getGreen();
+        this.b = (float) clr.getBlue();
+        this.a = (float) clr.getOpacity();
+    }
+    
     public Color4(float r, float g, float b) {
         this(r, g, b, 1.0f);
     }

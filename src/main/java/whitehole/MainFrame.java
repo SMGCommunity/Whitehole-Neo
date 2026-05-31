@@ -92,7 +92,7 @@ public final class MainFrame extends javax.swing.JFrame {
     private WorldEditorForm worldEditor = null;
     private final BcsvEditorForm bcsvEditor;
     private AboutForm aboutDialog;
-    private final SettingsForm settingsDialog;
+    private SettingsForm settingsDialog;
     private final String openWithDirectory;
     private final HashMap<String, Component> hiddenTabs;
     private final List<String> tabOrder;
@@ -106,8 +106,8 @@ public final class MainFrame extends javax.swing.JFrame {
         bcsvEditor = new BcsvEditorForm();
         Platform.runLater(() -> {
             aboutDialog = new AboutForm();
+            settingsDialog = new SettingsForm(this);
         });
-        settingsDialog = new SettingsForm(this);
         
         if (args != null && args.length > 0)
             openWithDirectory = args[0];
@@ -440,7 +440,7 @@ public final class MainFrame extends javax.swing.JFrame {
         
         SwingUtilities.updateComponentTreeUI(bcsvEditor);
 //        SwingUtilities.updateComponentTreeUI(aboutDialog);
-        SwingUtilities.updateComponentTreeUI(settingsDialog);
+//        SwingUtilities.updateComponentTreeUI(settingsDialog);
         
         ObjectSelectForm.requestUpdateLAF();
     }
@@ -803,9 +803,13 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnBcsvEditorActionPerformed
 
     private void btnSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSettingsActionPerformed
-        if (!settingsDialog.isVisible()) {
-            settingsDialog.setVisible(true);
-        }
+        // Note: Remove runLater when this is transitioned to JFX
+        Platform.runLater(() -> {
+            if (!settingsDialog.isShowing()) {
+                settingsDialog.show();
+            }
+        });
+        
     }//GEN-LAST:event_btnSettingsActionPerformed
 
     private void btnAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAboutActionPerformed

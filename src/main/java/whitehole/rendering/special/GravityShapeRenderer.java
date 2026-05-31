@@ -724,7 +724,7 @@ public class GravityShapeRenderer extends GLRenderer {
             
             
             // CUTOFF LINES
-            Color4 colorZero = new Color4(Settings.getGravityAreaZeroPrimaryColor());
+            Color4 colorZero = new Color4(Settings.getZeroGravityPrimaryColor());
             if (info.renderMode != RenderMode.PICKING && info.renderMode != RenderMode.HIGHLIGHT)
                 gl.glColor3f(colorZero.r, colorZero.g, colorZero.b);
             gl.glVertex3f(pointCurrentTop.x, pointCurrentTop.y, pointCurrentTop.z + ConeCutoffHeight - CUR_RANGE);
@@ -905,7 +905,7 @@ public class GravityShapeRenderer extends GLRenderer {
         float ScaleZSize = BOX_SIZE * Math.abs(Scale.z);
         float YOffset = BOX_SIZE * Scale.y; //The Y Offset doesn't care about the number being positive
         Color4 DownCol = new Color4(Col.r*0.5f, Col.g*0.5f, Col.b*0.5f);
-        Color4 colorZero = new Color4(Settings.getGravityAreaZeroPrimaryColor());
+        Color4 colorZero = new Color4(Settings.getZeroGravityPrimaryColor());
         Color4 DownZeroCol = new Color4(colorZero.r*0.5f, colorZero.g*0.5f, colorZero.b*0.5f);
         boolean pX = (((int)ObjArg0 & 1) != 0), // X+ Axis
                 nX = (((int)ObjArg0 & 2) != 0), // X- Axis

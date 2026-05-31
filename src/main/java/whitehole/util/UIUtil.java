@@ -19,6 +19,9 @@ package whitehole.util;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import javafx.scene.control.Alert;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
 import whitehole.MainFrame;
@@ -205,4 +208,17 @@ public class UIUtil {
         }
         return newPath;
     }
+    
+    public static Color getComplementColor(Color color)
+    {
+        double hue = color.getHue();
+        double saturation = color.getSaturation();
+        double brightness = color.getBrightness();
+        double opacity = color.getOpacity();
+
+        hue = (hue + 180.0) % 360.0;
+
+        return Color.hsb(hue, saturation, brightness, opacity);
+    }
+    
 }

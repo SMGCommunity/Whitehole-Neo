@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.text.Font?>
+
+<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="587.0" prefWidth="647.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1" fx:controller="whitehole.SettingsFormController">
+  <tabs>
+      <Tab text="General">
+        <content>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="240.0" prefWidth="417.0">
+               <children>
+                  <VBox spacing="4.0">
+                     <children>
+                        <CheckBox fx:id="chkUseDarkMode" mnemonicParsing="false" text="Use Dark Mode" />
+                        <CheckBox fx:id="chkDebugAdditionalLogs" mnemonicParsing="false" text="Print additional debug logs" />
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                           <children>
+                              <ComboBox fx:id="cbxDiscordRichPresenceState" prefWidth="150.0" />
+                              <Label text="Discord Rich Presence*" />
+                           </children>
+                        </HBox>
+                        <Label text="Settings marked with * require restarting whitehole to apply changes." wrapText="true" />
+                     </children>
+                     <padding>
+                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                     </padding>
+                  </VBox>
+               </children>
+            </AnchorPane>
+        </content>
+      </Tab>
+      <Tab text="Editor">
+        <content>
+          <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefHeight="463.0" prefWidth="555.0">
+               <children>
+                  <VBox layoutX="14.0" layoutY="14.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="502.0" prefWidth="531.0" spacing="4.0" AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="8.0" AnchorPane.rightAnchor="8.0" AnchorPane.topAnchor="8.0">
+                     <children>
+                        <Label text="General">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <CheckBox fx:id="chkShowLowPolyModels" mnemonicParsing="false" text="Show low or middle poly models (if possible)" />
+                        <CheckBox fx:id="chkShowCollisionModels" mnemonicParsing="false" text="Show collision models (if possible)" />
+                        <CheckBox fx:id="chkOpenGalaxyEditorMaximized" mnemonicParsing="false" text="Open galaxy editor maximized" />
+                        <CheckBox fx:id="chkUseBetterQuality" mnemonicParsing="false" text="Better Quality*" />
+                        <CheckBox fx:id="chkUseReverseRot" mnemonicParsing="false" text="Invert camera motion" />
+                        <CheckBox fx:id="chkUseWASD" mnemonicParsing="false" text="Use WASD over arrow keys" />
+                        <Label text="Settings marked with * require restarting whitehole to apply changes." wrapText="true" />
+                        <Label text="Colors">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <HBox spacing="8.0">
+                           <children>
+                              <VBox alignment="TOP_CENTER" spacing="4.0" HBox.hgrow="ALWAYS">
+                                 <children>
+                                    <Label text="Normal Area" />
+                                    <HBox alignment="CENTER" spacing="8.0">
+                                       <children>
+                                          <Label text="Primary" />
+                                          <ColorPicker fx:id="btnNormalAreaPrimaryColor">
+                                             <value>
+                                                <Color blue="1.0" />
+                                             </value>
+                                          </ColorPicker>
+                                          <Button fx:id="btnNormalAreaPrimaryColorReset" mnemonicParsing="false" text="Reset" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8.0">
+                                       <children>
+                                          <Label text="Secondary" />
+                                          <ColorPicker fx:id="btnNormalAreaSecondaryColor">
+                                             <value>
+                                                <Color blue="1.0" />
+                                             </value>
+                                          </ColorPicker>
+                                          <Button fx:id="btnNormalAreaSecondaryColorReset" mnemonicParsing="false" text="Reset" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox alignment="TOP_CENTER" spacing="4.0" HBox.hgrow="ALWAYS">
+                                 <children>
+                                    <Label text="Camera Area" />
+                                    <HBox alignment="CENTER" spacing="8.0">
+                                       <children>
+                                          <Label text="Primary" />
+                                          <ColorPicker fx:id="btnCameraAreaPrimaryColor">
+                                             <value>
+                                                <Color blue="1.0" />
+                                             </value>
+                                          </ColorPicker>
+                                          <Button fx:id="btnCameraAreaPrimaryColorReset" mnemonicParsing="false" text="Reset" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8.0">
+                                       <children>
+                                          <Label text="Secondary" />
+                                          <ColorPicker fx:id="btnCameraAreaSecondaryColor">
+                                             <value>
+                                                <Color blue="1.0" />
+                                             </value>
+                                          </ColorPicker>
+                                          <Button fx:id="btnCameraAreaSecondaryColorReset" mnemonicParsing="false" text="Reset" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                                 </padding>
+                              </VBox>
+                           </children>
+                        </HBox>
+                        <HBox spacing="8.0">
+                           <children>
+                              <VBox alignment="TOP_CENTER" spacing="4.0" HBox.hgrow="ALWAYS">
+                                 <children>
+                                    <Label text="Gravity Area" />
+                                    <HBox alignment="CENTER" spacing="8.0">
+                                       <children>
+                                          <Label text="Primary" />
+                                          <ColorPicker fx:id="btnGravityAreaPrimaryColor">
+                                             <value>
+                                                <Color blue="1.0" />
+                                             </value>
+                                          </ColorPicker>
+                                          <Button fx:id="btnGravityAreaPrimaryColorReset" mnemonicParsing="false" text="Reset" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8.0">
+                                       <children>
+                                          <Label text="Secondary" />
+                                          <ColorPicker fx:id="btnGravityAreaSecondaryColor">
+                                             <value>
+                                                <Color blue="1.0" />
+                                             </value>
+                                          </ColorPicker>
+                                          <Button fx:id="btnGravityAreaSecondaryColorReset" mnemonicParsing="false" text="Reset" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox alignment="TOP_CENTER" spacing="4.0" HBox.hgrow="ALWAYS">
+                                 <children>
+                                    <Label text="Zero Gravity" />
+                                    <HBox alignment="CENTER" spacing="8.0">
+                                       <children>
+                                          <Label text="Primary" />
+                                          <ColorPicker fx:id="btnZeroGravityPrimaryColor">
+                                             <value>
+                                                <Color blue="1.0" />
+                                             </value>
+                                          </ColorPicker>
+                                          <Button fx:id="btnZeroGravityPrimaryColorReset" mnemonicParsing="false" text="Reset" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8.0">
+                                       <children>
+                                          <Label text="Secondary" />
+                                          <ColorPicker fx:id="btnZeroGravitySecondaryColor">
+                                             <value>
+                                                <Color blue="1.0" />
+                                             </value>
+                                          </ColorPicker>
+                                          <Button fx:id="btnZeroGravitySecondaryColorReset" mnemonicParsing="false" text="Reset" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                                 </padding>
+                              </VBox>
+                           </children>
+                        </HBox>
+                        <Label text="Base Object Renderer Source Path" />
+                        <HBox prefWidth="200.0" spacing="8.0">
+                           <children>
+                              <TextField fx:id="txtBaseGame" maxWidth="1.7976931348623157E308" minWidth="-Infinity" promptText="C:\Vanilla Game\DATA\files" HBox.hgrow="ALWAYS" />
+                              <Button fx:id="btnBrowseBaseGamePath" mnemonicParsing="false" text="Browse..." />
+                           </children>
+                        </HBox>
+                        <Label text="Debug">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <CheckBox fx:id="chkDebugFakeColor" mnemonicParsing="false" text="Render picking colors" />
+                        <CheckBox fx:id="chkDebugFastDrag" mnemonicParsing="false" text="Render wireframes when dragging" />
+                     </children>
+                  </VBox>
+               </children>
+            </AnchorPane>
+        </content>
+      </Tab>
+      <Tab text="Keybinds">
+        <content>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+               <children>
+                  <VBox prefHeight="200.0" prefWidth="100.0" spacing="4.0" AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="8.0" AnchorPane.rightAnchor="8.0" AnchorPane.topAnchor="8.0">
+                     <children>
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                           <children>
+                              <Label text="Position" />
+                              <ToggleButton fx:id="btnPosition" mnemonicParsing="false" text="[not set]" />
+                           </children>
+                           <VBox.margin>
+                              <Insets />
+                           </VBox.margin>
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                           <children>
+                              <Label text="Rotation" />
+                              <ToggleButton fx:id="btnRotation" mnemonicParsing="false" text="[not set]" />
+                           </children>
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                           <children>
+                              <Label text="Scale" />
+                              <ToggleButton fx:id="btnScale" mnemonicParsing="false" text="[not set]" />
+                           </children>
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding>
+                        </HBox>
+                        <TableView fx:id="tblKeybinds" prefHeight="200.0" prefWidth="200.0" visible="false">
+                          <columns>
+                            <TableColumn editable="false" prefWidth="159.3333387374878" text="Name" />
+                            <TableColumn prefWidth="469.3333282470703" text="Keybind" />
+                          </columns>
+                        </TableView>
+                     </children>
+                  </VBox>
+               </children>
+            </AnchorPane>
+        </content>
+      </Tab>
+  </tabs>
+</TabPane>
