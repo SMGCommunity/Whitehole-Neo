@@ -751,7 +751,7 @@ public class Bmd
                                     break;
 
                                 default:
-                                    throw new IOException(String.format("Bmd: unsupported index attrib %1$04X", attrib));
+                                    throw new IOException(String.format("Bmd: unsupported index attrib %1$04X", attrib & 0xFF00));
                             }
 
                             switch (attrib & 0xFF)
@@ -779,9 +779,21 @@ public class Bmd
                                 case 20:
                                     prim.texcoordIndices[(attrib & 0xFF) - 13][k] = val;
                                     break;
+                                    
+                                case 1:
+                                case 2:
+                                case 3:
+                                case 4:
+                                case 5:
+                                case 6:
+                                case 7:
+                                case 8:
+                                    // These are for Texture Mapping to work properly on skinned models
+                                    // We can ignore these attributes, as Whitehole is a static renderer
+                                    break;
 
                                 default:
-                                    throw new IOException(String.format("Bmd: unsupported vertex attrib %1$04X", attrib));
+                                    throw new IOException(String.format("Bmd: unsupported vertex attrib %1$04X", attrib & 0xFF));
                             }
                         }
                     }
