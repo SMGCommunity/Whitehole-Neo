@@ -32,12 +32,12 @@ import javafx.scene.control.Tooltip;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import whitehole.WForm;
+import whitehole.ui.WForm;
 import whitehole.Whitehole;
 import whitehole.io.ExternalFilesystem;
 import whitehole.io.FileBase;
 import whitehole.smg.StageHelper;
-import whitehole.util.UIUtil;
+import whitehole.ui.UIUtil;
 
 public class CreateGalaxyForm extends WForm {
     private final boolean isGalaxyMode;

@@ -41,7 +41,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.paint.Color;
 import javax.swing.KeyStroke;
-import whitehole.util.UIUtil;
+import whitehole.ui.UIUtil;
 
 /**
  * FXML Controller class

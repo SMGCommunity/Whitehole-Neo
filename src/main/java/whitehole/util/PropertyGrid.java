@@ -16,6 +16,7 @@
  */
 package whitehole.util;
 
+import whitehole.ui.UIUtil;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

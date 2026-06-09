@@ -14,12 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package whitehole;
+package whitehole.ui;
 
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import whitehole.Settings;
+import whitehole.Whitehole;
 
 public class WForm extends Stage {
     public WForm(String title)

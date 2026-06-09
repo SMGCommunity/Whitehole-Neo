@@ -23,11 +23,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
-import whitehole.WForm;
+import whitehole.ui.WForm;
 import whitehole.Whitehole;
 import whitehole.io.RarcFile;
 import whitehole.smg.StageHelper;
-import whitehole.util.UIUtil;
+import whitehole.ui.UIUtil;
 
 public class GalaxyPropertiesForm extends WForm {
     private final boolean isGalaxyMode;

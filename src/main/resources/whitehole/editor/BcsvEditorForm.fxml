@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="567.0" prefWidth="837.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1" fx:controller="whitehole.editor.BcsvEditorFormController">
+   <children>
+      <VBox layoutY="1.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <MenuBar>
+               <menus>
+                  <Menu mnemonicParsing="false" text="File">
+                     <items>
+                        <MenuItem fx:id="subOpen" mnemonicParsing="false" text="Open">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="O" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
+                           </accelerator></MenuItem>
+                        <Menu fx:id="subOpenRecent" mnemonicParsing="false" text="Open Recent" />
+                        <MenuItem fx:id="subSave" mnemonicParsing="false" text="Save">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
+                           </accelerator></MenuItem>
+                        <MenuItem fx:id="subClose" mnemonicParsing="false" text="Close" />
+                     </items>
+                  </Menu>
+                  <Menu fx:id="mnuShortcuts" mnemonicParsing="false" text="Shortcuts" />
+                  <Menu mnemonicParsing="false" text="Tools">
+                     <items>
+                        <MenuItem fx:id="subHashGenerator" mnemonicParsing="false" text="Hash Generator" />
+                     </items>
+                  </Menu>
+               </menus>
+            </MenuBar>
+            <HBox alignment="CENTER_LEFT" prefWidth="600.0" spacing="8.0">
+               <padding>
+                  <Insets bottom="4.0" left="8.0" right="8.0" top="4.0" />
+               </padding>
+               <children>
+                  <Label text="Archive:" />
+                  <TextField fx:id="tbArchiveName" HBox.hgrow="ALWAYS" />
+                  <Label text="File:" />
+                  <TextField fx:id="tbFileName" HBox.hgrow="ALWAYS" />
+               </children>
+            </HBox>
+            <ToolBar prefHeight="40.0" prefWidth="200.0">
+               <items>
+                  <Button fx:id="btnOpen" mnemonicParsing="false" text="Open" />
+                  <Button fx:id="btnSave" mnemonicParsing="false" text="Save" />
+                  <Button fx:id="btnAddRow" mnemonicParsing="false" text="Add Row" />
+                  <Button fx:id="btnDuplicateRow" mnemonicParsing="false" text="Duplicate Row(s)" />
+                  <Button fx:id="btnDeleteRow" mnemonicParsing="false" text="Delete Row(s)" />
+                  <Button fx:id="btnClear" mnemonicParsing="false" text="Clear all" />
+                  <Button fx:id="btnAddColumn" mnemonicParsing="false" text="Add Column" />
+                  <Button fx:id="btnDeleteColumn" mnemonicParsing="false" text="Delete Column(s)" />
+                  <Button fx:id="btnEditColumn" mnemonicParsing="false" text="Edit Column" />
+                  <Label fx:id="lblColAndRow" text="None Selected" />
+               </items>
+            </ToolBar>
+            <TableView fx:id="tblBcsv" editable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

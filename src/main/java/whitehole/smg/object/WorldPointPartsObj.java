@@ -20,7 +20,7 @@ import whitehole.smg.Bcsv;
 import whitehole.smg.StageArchive;
 import whitehole.util.PropertyGrid;
 import whitehole.math.Vec3f;
-import whitehole.util.UIUtil;
+import whitehole.ui.UIUtil;
 
 public class WorldPointPartsObj extends AbstractObj {
     @Override

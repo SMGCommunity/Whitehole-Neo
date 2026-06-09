@@ -16,6 +16,7 @@
  */
 package whitehole;
 
+import whitehole.ui.WForm;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -24,7 +25,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javax.swing.JFrame;
-import whitehole.util.UIUtil;
+import whitehole.ui.UIUtil;
 
 public class SettingsForm extends WForm {
 

@@ -24,7 +24,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import javax.swing.JFrame;
 import whitehole.Settings;
 import whitehole.Settings.RPC_STATE;
 
@@ -35,14 +34,14 @@ import whitehole.Settings.RPC_STATE;
 public final class Discord {
     private IPCClient client = null;
     private Builder builder = null;
-    private final LinkedHashMap<JFrame, FrameRef> Frames = new LinkedHashMap<>();
+    private final LinkedHashMap<Object, FrameRef> Frames = new LinkedHashMap<>();
     private boolean enabled = true;
     private boolean detailed = false;
     private final class FrameRef {
-        private final JFrame frame;
+        private final Object frame;
         private String firstRow;
         private String secondRow;
-        public FrameRef(JFrame f, String d, String s) {
+        public FrameRef(Object f, String d, String s) {
             frame = f;
             firstRow = d;
             secondRow = s;
@@ -53,7 +52,7 @@ public final class Discord {
         public String getSecondRow() {
             return secondRow;
         }
-        public JFrame getFrame() {
+        public Object getFrame() {
             return frame;
         }
         public void setFirstRow(String val) {
@@ -107,7 +106,7 @@ public final class Discord {
      * @param firstRow The first row in the status. It should be generic (ex. "Editing a Galaxy").
      * @param secondRow The second row in the status. It should give details (ex. "Flip Swap Galaxy"). Only appears if the user sets the RPC state to "Detailed".
      */
-    public void updateStatus(JFrame frame, String firstRow, String secondRow) {
+    public void updateStatus(Object frame, String firstRow, String secondRow) {
         if (!enabled) return;
         var frameRef = new FrameRef(frame, firstRow, secondRow);
         
@@ -123,7 +122,7 @@ public final class Discord {
      * Removes a frame from the frame list. Meant to be used when the associated frame is closing.
      * @param frame The frame associated with the status to remove.
      */
-    public void removeStatus(JFrame frame) {
+    public void removeStatus(Object frame) {
         if (!enabled || !Frames.containsKey(frame)) return;
         // Check if it is at the top before we remove it.
         if (topFrameRef().frame == frame) {
@@ -143,7 +142,7 @@ public final class Discord {
      * @param frame
      * @return 
      */
-    public Boolean frameExists(JFrame frame) {
+    public Boolean frameExists(Object frame) {
         return Frames.containsKey(frame);
     }
     

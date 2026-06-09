@@ -24,7 +24,7 @@ import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import whitehole.WForm;
+import whitehole.ui.WForm;
 import whitehole.Whitehole;
 import whitehole.smg.Bcsv;
 import whitehole.util.SuperFastHash;

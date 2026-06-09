@@ -55,7 +55,7 @@ import whitehole.util.MathUtil;
 import whitehole.util.StageUtil;
 import whitehole.util.ObjIdUtil;
 import whitehole.util.RailUtil;
-import whitehole.util.UIUtil;
+import whitehole.ui.UIUtil;
 
 public class GalaxyEditorForm extends javax.swing.JFrame {
     private static final float SCALE_DOWN = 10000f;

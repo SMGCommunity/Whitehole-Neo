@@ -38,7 +38,7 @@ import whitehole.rendering.ShaderCache;
 import whitehole.rendering.TextureCache;
 import whitehole.smg.GameArchive;
 import whitehole.smg.StageArchive;
-import whitehole.util.UIUtil;
+import whitehole.ui.UIUtil;
 
 public final class MainFrame extends javax.swing.JFrame {
     private static class GalaxyListItem {
@@ -90,7 +90,7 @@ public final class MainFrame extends javax.swing.JFrame {
     private GalaxyEditorForm galaxyEditor = null;
     private GalaxyEditorForm zoneEditor = null;
     private WorldEditorForm worldEditor = null;
-    private final BcsvEditorForm bcsvEditor;
+    private BcsvEditorForm bcsvEditor;
     private AboutForm aboutDialog;
     private SettingsForm settingsDialog;
     private final String openWithDirectory;
@@ -103,8 +103,8 @@ public final class MainFrame extends javax.swing.JFrame {
         zoneItems = (DefaultListModel)(listZone.getModel());
         worldItems = (DefaultListModel) (listWorlds.getModel());
         
-        bcsvEditor = new BcsvEditorForm();
         Platform.runLater(() -> {
+            bcsvEditor = new BcsvEditorForm();
             aboutDialog = new AboutForm();
             settingsDialog = new SettingsForm(this);
         });
@@ -168,10 +168,8 @@ public final class MainFrame extends javax.swing.JFrame {
             System.err.println(ex);
             setInfo("Failed to Open Directory", "Failed to open saved game directory.", "See console output for details.", true);
             lbStatusBar.setText("Failed to open saved game directory. See console output for details.");
-            bcsvEditor.reloadShortcuts();
             return;
         }
-        bcsvEditor.reloadShortcuts();
         
         Settings.setLastGameDir(gameDir);
         
@@ -422,7 +420,7 @@ public final class MainFrame extends javax.swing.JFrame {
     }
     
     public boolean checkBcsvEditorOpen() {
-        if (bcsvEditor != null && bcsvEditor.isVisible()) { //Pretty sure it can't be null but whatever
+        if (bcsvEditor != null && bcsvEditor.isShowing()) { //Pretty sure it can't be null but whatever
             return true;
         }
         return false;
@@ -438,7 +436,7 @@ public final class MainFrame extends javax.swing.JFrame {
             zoneEditor.requestUpdateLAF();
         }
         
-        SwingUtilities.updateComponentTreeUI(bcsvEditor);
+//        SwingUtilities.updateComponentTreeUI(bcsvEditor);
 //        SwingUtilities.updateComponentTreeUI(aboutDialog);
 //        SwingUtilities.updateComponentTreeUI(settingsDialog);
         
@@ -796,10 +794,12 @@ public final class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnOpenGalaxyActionPerformed
 
     private void btnBcsvEditorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBcsvEditorActionPerformed
-        if (!checkBcsvEditorOpen())
-            bcsvEditor.setVisible(true);
-        else
-            bcsvEditor.toFront();
+        Platform.runLater(() -> {
+            if (!checkBcsvEditorOpen())
+                bcsvEditor.show();
+            else
+                bcsvEditor.toFront();
+        });
     }//GEN-LAST:event_btnBcsvEditorActionPerformed
 
     private void btnSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSettingsActionPerformed

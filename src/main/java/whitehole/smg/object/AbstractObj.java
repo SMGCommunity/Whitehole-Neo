@@ -29,7 +29,7 @@ import whitehole.smg.StageArchive;
 import whitehole.smg.StageHelper;
 import whitehole.util.PropertyGrid;
 import whitehole.math.Vec3f;
-import whitehole.util.UIUtil;
+import whitehole.ui.UIUtil;
 
 public abstract class AbstractObj {
     public String name, layerKey, oldName;
