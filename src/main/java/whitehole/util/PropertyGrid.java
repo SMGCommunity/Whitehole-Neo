@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.LinkedHashMap;
 import java.util.Locale;
+import javafx.application.Platform;
 import javax.swing.*;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
@@ -759,13 +760,16 @@ public class PropertyGrid extends JTable {
             button.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent evt) {
-                    if (ObjectSelectForm.openChangeObjectDialog(textfield.getText())) {
-                        String val = ObjectSelectForm.getResultName();
-                        
-                        textfield.setText(val);
-                        field.value = val;
-                        eventListener.propertyChanged(field.name, val);
-                    }
+                    Platform.runLater(() -> {
+                        if (ObjectSelectForm.openChangeObjectDialog(textfield.getText())) {
+                            String val = ObjectSelectForm.getResultName();
+
+                            textfield.setText(val);
+                            field.value = val;
+                            eventListener.propertyChanged(field.name, val);
+                        }
+                    });
+                    
                 }
             });
             

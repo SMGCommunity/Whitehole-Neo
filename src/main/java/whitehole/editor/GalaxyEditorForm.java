@@ -32,6 +32,7 @@ import java.awt.geom.AffineTransform;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import javafx.application.Platform;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
@@ -1064,13 +1065,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     break;
                 }
             default:
-                if (ObjectSelectForm.openNewObjectDialog(key, curZoneArc.getLayerNames())) {
-                    addingObject = key + "|" + ObjectSelectForm.getResultName();
-                    addingObjectOnLayer = ObjectSelectForm.getResultLayer();
-                }
-                else {
-                    tgbAddObject.setSelected(false);
-                }
+                Platform.runLater(() -> {
+                    if (ObjectSelectForm.openNewObjectDialog(key, curZoneArc.getLayerNames())) {
+                        addingObject = key + "|" + ObjectSelectForm.getResultName();
+                        addingObjectOnLayer = ObjectSelectForm.getResultLayer();
+                    }
+                    else {
+                        tgbAddObject.setSelected(false);
+                    }
+                });
                 break;
         }
         

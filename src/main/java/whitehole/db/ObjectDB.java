@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import javafx.scene.control.TreeItem;
 import javax.swing.tree.DefaultMutableTreeNode;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -544,7 +545,7 @@ public final class ObjectDB {
     // -------------------------------------------------------------------------------------------------------------------------
     // Object information
     
-    public static class ObjectInfo extends DefaultMutableTreeNode {
+    public static class ObjectInfo extends TreeItem<String> {
         protected String internalName;
         protected String simpleName;
         protected String classNameSMG1 = ClassInfo.NAME_INVALID;
@@ -561,12 +562,12 @@ public final class ObjectDB {
         protected ClassInfo classInfoSMG2 = NULL_CLASS_INFO;
         
         ObjectInfo(JSONObject info) {
-            super(null, false);
+            super(info.optString("Name", "<Unknown>"));
             parse(info);
         }
         
         ObjectInfo() {
-            super(null, false);
+            super("<Unknown>");
             internalName = "<Unknown>";
             simpleName = "<Unknown>";
         }

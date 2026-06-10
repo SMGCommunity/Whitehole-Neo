@@ -108,6 +108,7 @@ public final class MainFrame extends javax.swing.JFrame {
             aboutDialog = new AboutForm();
             settingsDialog = new SettingsForm(this);
         });
+        ObjectSelectForm.initializeSingleton();
         
         if (args != null && args.length > 0)
             openWithDirectory = args[0];
