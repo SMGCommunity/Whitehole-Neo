@@ -30,6 +30,90 @@
         }
       ]
     },
+	{
+      "ClassName": "Air",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "Appear",
+            "Frame": 60
+          }
+        }
+      ]
+    },
+	{
+      "ClassName": "ArrowSwitch",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BTK": {
+            "Filename": "On",
+            "Frame": 0
+          }
+        }
+      ]
+    },
+	{
+      "ObjectName": "Butterfly",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "Butterfly",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
+	{
+      "ObjectName": "GliderBalloon",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "Color",
+            "FrameSource": "Obj_arg1"
+          }
+        }
+      ]
+    },
+	{
+      "ObjectName": "JetTurtle",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "Color",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
+	{
+      "ObjectName": "NokonokoLand",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "NokonokoLand",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
+	{
+      "ObjectName": "NokonokoLandBig",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "NokonokoLandBig",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
     {
       "ObjectName": "SuperSpinDriver",
       "RendererType": "BasicAnim",
@@ -90,6 +174,66 @@
         }
       ]
     },
+	{
+      "ObjectName": "TicoAstro",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
+	{
+      "ObjectName": "TicoDomeLecture",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "Frame": 1
+          }
+        }
+      ]
+    },
+	{
+      "ObjectName": "TicoRail",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
+	{
+      "ObjectName": "TicoReading",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg0"
+          }
+        }
+      ]
+    },
+	{
+      "ObjectName": "TicoStarRing",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "Frame": 2
+          }
+        }
+      ]
+    },
     {
       "ObjectName": "Kinopio",
       "RendererType": "BasicAnim",
@@ -144,7 +288,7 @@
       "RendererParams": [
         {
           "BTK": {
-            "Filename": "MoonRabbit",
+            "Filename": "MoonRabbit",	
             "FrameSource": "Obj_arg0"
           }
         }
@@ -640,6 +784,26 @@
     },
     {
       "ClassName": "SimpleMapObj",
+      "RendererType": "BasicAnim",
+      "RendererParams": [
+        {
+          "BRK": {
+            "Filename": "ColorChange",
+            "FrameSource": "Obj_arg0"
+          },
+          "BTK": {
+            "Filename": "TexChange",
+            "FrameSource": "Obj_arg1"
+          },
+          "BTP": {
+            "Filename": "TexChange",
+            "FrameSource": "Obj_arg1"
+          }
+        }
+      ]
+    },
+	{
+      "ClassName": "SimpleTextureSwitchChangeObj",
       "RendererType": "BasicAnim",
       "RendererParams": [
         {
