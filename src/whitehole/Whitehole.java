@@ -53,6 +53,7 @@ public class Whitehole {
     public static final GameAndProjectDataHolder Shortcuts = new GameAndProjectDataHolder("data/shortcuts.json", "/shortcuts.json", true);
     
     public static void main(String[] args) throws IOException {
+        configureJoglNativeLoading();
         decideIconSize();
         // Setup look and feel and set if applicable
         FlatDarkLaf.setup();
@@ -100,6 +101,44 @@ public class Whitehole {
         MAIN_FRAME.setVisible(true);
     }
     
+    /**
+     * On Linux, tell JOGL to load its native libraries from the {@code natives/<arch>}
+     * directory shipped next to the jar instead of unpacking them to a temporary
+     * directory. Before loading from a temp directory GlueGen fork+execs a small shell
+     * script to verify the directory is executable, and on Linux that subprocess launch
+     * races with JOGL's own dlopen inside glibc's dynamic linker, crashing the JVM
+     * (SIGSEGV in ld-linux) the first time a galaxy is opened. Loading from a fixed
+     * directory with the temp-jar cache disabled avoids the self-test entirely.
+     *
+     * Only applied when the natives directory is present (i.e. a built distribution), so
+     * running from an IDE or on other platforms keeps JOGL's default behaviour.
+     */
+    private static void configureJoglNativeLoading() {
+        if (!System.getProperty("os.name", "").toLowerCase().contains("linux"))
+            return;
+
+        String nativeDir;
+        switch (System.getProperty("os.arch", "")) {
+            case "amd64": case "x86_64": nativeDir = "linux-amd64"; break;
+            case "aarch64": case "arm64": nativeDir = "linux-aarch64"; break;
+            case "arm": case "armv6l": case "armv7l": nativeDir = "linux-armv6hf"; break;
+            default: return;
+        }
+
+        try {
+            File jar = new File(Whitehole.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            File natives = new File(jar.getParentFile(), "natives/" + nativeDir);
+
+            if (natives.isDirectory() && System.getProperty("jogamp.primary.library.path") == null) {
+                System.setProperty("jogamp.gluegen.UseTempJarCache", "false");
+                System.setProperty("jogamp.primary.library.path", natives.getAbsolutePath());
+            }
+        }
+        catch (Exception ex) {
+            System.err.println("Could not configure JOGL native loading: " + ex);
+        }
+    }
+
     public static void requestUpdateLAF() {
         LookAndFeel next = null;
         
