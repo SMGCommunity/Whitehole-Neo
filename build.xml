@@ -4,11 +4,6 @@
     <import file="nbproject/build-impl.xml"/>
     <target name="-post-jar">
         <copy file="Whitehole.bat" todir="${dist.dir}"/>
-        <!-- Unpack the Linux JOGL natives next to the jar. On Linux, Whitehole points
-             jogamp.primary.library.path here and disables GlueGen's temp-jar cache so the
-             natives are loaded from this fixed directory. That avoids GlueGen's temp-dir
-             executability self-test (a fork+exec) racing with JOGL's own dlopen and
-             crashing in glibc's dynamic linker when a galaxy is opened. -->
         <unzip src="lib/jogamp-fat.jar" dest="${dist.dir}">
             <patternset>
                 <include name="natives/linux-*/**"/>
