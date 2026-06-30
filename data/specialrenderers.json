@@ -1136,6 +1136,10 @@
           "Shape": 1
         }
       ]
+    },
+    {
+      "ObjectName": "TubeSlider",
+      "RendererType": "TubeSlider"
     }
   ]
 }

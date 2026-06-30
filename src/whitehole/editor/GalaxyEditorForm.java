@@ -2130,6 +2130,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                         case "closed": {
                             selectedPathPoint.path.data.put(property,(boolean) value ? "CLOSE" : "OPEN");
                             addRerenderTask("path:" + selectedPathPoint.path.uniqueID);
+                            
+                            addRerenderTask("zone:"+selectedObj.stage.stageName);
+                            rerenderPathOwners(selectedPathPoint.path);
                             glCanvas.repaint();
                             break;
                         }
@@ -2145,14 +2148,24 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                             objlist.nodeChanged(treeNodeList.get(selectedPathPoint.path.uniqueID));
                         }
                         default:
+                            // Path Arguments
                             propertyChanged(property, value, selectedPathPoint.path.data);
+                            
+                            addRerenderTask("zone:"+selectedObj.stage.stageName);
+                            rerenderPathOwners(selectedPathPoint.path);
+                            glCanvas.repaint();
                             break;
                     }
                 }
                 
                 else {
+                    // Point Arguments
                     addUndoEntry(IUndo.Action.PARAMETER, selectedPathPoint);
                     propertyChanged(propname, value, selectedPathPoint.data);
+                    
+                    addRerenderTask("zone:"+selectedObj.stage.stageName);
+                    rerenderPathOwners(selectedPathPoint.path);
+                    glCanvas.repaint();
                 }
             }
             

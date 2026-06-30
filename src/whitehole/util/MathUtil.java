@@ -39,6 +39,16 @@ public class MathUtil {
         dst.z = a.z + b.z * scale;
     }
     
+    public static boolean isNearZero(float x) {
+        return isNearZero(x, 0.001f);
+    }
+    public static boolean isNearZero(float x, float tolerance) {
+        if (x < 0.0f) {
+            x = -x;
+        }
+        return x < tolerance;
+    }
+        
     public static boolean isNearZero(Vec3f v, float min)
     {
         boolean r =
@@ -75,5 +85,30 @@ public class MathUtil {
     
     public static boolean isPowerOfTwo(int n) {
         return n > 0 && (n & (n - 1)) == 0;
+    }
+    
+    public static float repeatDegree(float degree)
+    {
+        degree %= 360.0;
+        if (degree < 0.0)
+            degree += 360.0;
+        return degree;
+    }
+    
+    public static double lerp(double current, double next, double t)
+    {
+        return current + (next - current) * t;
+    }
+    
+    public static double smoothStep(double t)
+    {
+        double s = Math.max(0.0, Math.min(1.0, t));
+        return s * s * (3.0 - 2.0 * s);
+    }
+    
+    public static double smoothLerp(double current, double next, double t)
+    {
+        double s = smoothStep(t);
+        return current + (next - current) * s;
     }
 }

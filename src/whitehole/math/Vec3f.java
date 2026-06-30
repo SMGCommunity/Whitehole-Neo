@@ -161,6 +161,14 @@ public class Vec3f implements Cloneable {
         return centroid;
     }
     
+    public static Vec3f lerp(Vec3f a, Vec3f b, float t) {
+        return new Vec3f(
+            a.x + (b.x - a.x) * t,
+            a.y + (b.y - a.y) * t,
+            a.z + (b.z - a.z) * t
+        );
+    }
+    
     public static Vec3f zero() { return new Vec3f(); }
     public static Vec3f unitX() { return new Vec3f(1,0,0); }
     public static Vec3f unitY() { return new Vec3f(0,1,0); }

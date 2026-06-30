@@ -56,6 +56,8 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     return PatternRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
                 case "Range":
                     return ObjectRangeRenderer.getAdditiveCacheKey(obj, objModelName, renderinfo.rendererParams);
+                case "TubeSlider":
+                    return TubeSliderRenderer.getAdditiveCacheKey(obj);
                     
                 case "CollisionOnly":
                     return KclRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);
@@ -63,6 +65,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                 case "PowerStar":
                     return PowerStarRenderer.getAdditiveCacheKey(obj, (Integer)renderinfo.getRenderParamByName("DefaultFrame"));
                 case "BlackHole":
+                    
                     return BlackHoleRenderer.getAdditiveCacheKey(obj);
                 case "PlantGroup":
                     return PlantGroupRenderer.getAdditiveCacheKey(objModelName, obj, renderinfo.rendererParams);
@@ -81,7 +84,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
         }
         SpecialRenderInfo specialInfo = getSpecialRenderInfo(obj.name);
         GLRenderer result = null;
-        if (specialInfo != null)
+        if (specialInfo != null) {
             switch(specialInfo.rendererType)
             {
                 case "BasicAnim":
@@ -104,6 +107,9 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     break;
                 case "Range":
                     result = new ObjectRangeRenderer(info, objModelName, obj, specialInfo.rendererParams);
+                    break;
+                case "TubeSlider":
+                    result = new TubeSliderRenderer(obj);
                     break;
                     
                     
@@ -143,6 +149,8 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                     result = new AssistAreaShapeRenderer(info, obj, shp);
                     break;
             }
+        }
+
         
         if (result instanceof BmdRenderer)
         {

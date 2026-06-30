@@ -151,13 +151,12 @@ public final class RailUtil
         
         int end = points.size();
 
-        if (Path.isClosed()) {
+        if (Path.isClosed())
             end++;
-        }
         
-        double CurLength = 0;
-        double PrevLength = 0;
-        for (int i = 0; i < end-1; i++)
+        double curLength = 0;
+        double prevLength = 0;
+        for (int i = 0; i < end - 1; i++)
         {
             Vec3f A, B, C, D;
             PathPointObj Current, Next;
@@ -172,10 +171,10 @@ public final class RailUtil
                 Next = points.get(i+1);
             }
             
-            double partlength = getPathSectionLength(Current, Next);
-            PrevLength = CurLength;
-            CurLength += partlength;
-            if (Coord > CurLength)
+            double partLength = getPathSectionLength(Current, Next);
+            prevLength = curLength;
+            curLength += partLength;
+            if (Coord > curLength)
             {
                 continue;
             }
@@ -184,33 +183,58 @@ public final class RailUtil
             B = Current.point2;
             C = Next.point1;
             D = Next.position;
-            double t = (Coord - PrevLength) / (partlength);
-            double t2;
-            if (t >= 0.5) {
-                
-                t2 = t;
-                t = ((Coord-1) - PrevLength) / (partlength);
-            }
-            else {
-                t2 = ((Coord+1) - PrevLength) / (partlength);
-            }
-            Vec3f PointA, PointB;
+            double t = (Coord - prevLength) / (partLength);
+            t = Math.max(0.0, Math.min(t, 1.0));
+            double t_inv = 1.0 - t;
+            
+            double x =
+                3.0 * t_inv * t_inv * (B.x - A.x) +
+                6.0 * t_inv * t * (C.x - B.x) +
+                3.0 * t * t * (D.x - C.x);
+
+            double y =
+                3.0 * t_inv * t_inv * (B.y - A.y) +
+                6.0 * t_inv * t * (C.y - B.y) +
+                3.0 * t * t * (D.y - C.y);
+
+            double z =
+                3.0 * t_inv * t_inv * (B.z - A.z) +
+                6.0 * t_inv * t * (C.z - B.z) +
+                3.0 * t * t * (D.z - C.z);
+            
+            // calc and return derivative if valid
+            Vec3f derivative = new Vec3f((float)x, (float)y, (float)z);
+            if (Vec3f.dot(derivative, derivative) > 0.0001f)
             {
-                double x = (1-t)*(1-t)*(1-t)*A.x + 3*(1-t)*(1-t)*t*B.x + 3*(1-t)*t*t*C.x + t*t*t*D.x;
-                double y = (1-t)*(1-t)*(1-t)*A.y + 3*(1-t)*(1-t)*t*B.y + 3*(1-t)*t*t*C.y + t*t*t*D.y;
-                double z = (1-t)*(1-t)*(1-t)*A.z + 3*(1-t)*(1-t)*t*B.z + 3*(1-t)*t*t*C.z + t*t*t*D.z;
-                PointA = new Vec3f((float)x, (float)y, (float)z);
+                Vec3f.normalize(derivative, derivative);
+                return derivative;
             }
-            {
-                double x = (1-t2)*(1-t2)*(1-t2)*A.x + 3*(1-t2)*(1-t2)*t2*B.x + 3*(1-t2)*t2*t2*C.x + t2*t2*t2*D.x;
-                double y = (1-t2)*(1-t2)*(1-t2)*A.y + 3*(1-t2)*(1-t2)*t2*B.y + 3*(1-t2)*t2*t2*C.y + t2*t2*t2*D.y;
-                double z = (1-t2)*(1-t2)*(1-t2)*A.z + 3*(1-t2)*(1-t2)*t2*B.z + 3*(1-t2)*t2*t2*C.z + t2*t2*t2*D.z;
-                PointB = new Vec3f((float)x, (float)y, (float)z);
-            }
-            Vec3f DistanceBetween = new Vec3f(PointB);
-            DistanceBetween.subtract(PointA);
-            Vec3f.normalize(DistanceBetween, DistanceBetween);
-            return DistanceBetween;
+            
+            // if invalid, such as when control points close to main resulting in d' ~ 0, estimate using surrounding points
+            double pathLength = getPathLength(Path);
+            double delta = Math.max(10.0, partLength * 0.02);
+            delta = Math.min(delta, pathLength * 0.1);
+            
+            double coordA = Coord - delta;
+            double coordB = Coord + delta;
+            
+            Vec3f posA = calcPosAtCoord(coordA, Path);
+            Vec3f posB = calcPosAtCoord(coordB, Path);
+            
+            if (posA == null || posB == null)
+                return new Vec3f();
+            
+            Vec3f dir = new Vec3f(
+                    posB.x - posA.x,
+                    posB.y - posA.y,
+                    posB.z - posA.z
+            );
+            
+            if (Vec3f.dot(dir, dir) <= 0.0001f)
+                return new Vec3f();
+            
+            Vec3f.normalize(dir, dir);
+            return dir;
         }
         
         return null; //TEMPORARY
