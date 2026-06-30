@@ -3553,9 +3553,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                     
                     ArrayList<String> ActiveLayers = new ArrayList();
                     if (isGalaxyMode) {
-                        DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
-                        zonelist.removeAllElements();
-
                         for(String zone : galaxyArchive.zoneList) {
                             if (!StageUtil.getActiveZoneNames(curScenarioIndex, galaxyArchive, zoneArchives.get(galaxyArchive.galaxyName)).contains(zone))
                                 continue; // Zone not loaded
@@ -3942,9 +3939,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 
                 ArrayList<String> ActiveLayers = new ArrayList();
                 if (isGalaxyMode) {
-                    DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
-                    zonelist.removeAllElements();
-
                     for(String zone : galaxyArchive.zoneList) {
                         if (!StageUtil.getActiveZoneNames(curScenarioIndex, galaxyArchive, zoneArchives.get(galaxyArchive.galaxyName)).contains(zone))
                             continue; // Zone not loaded
