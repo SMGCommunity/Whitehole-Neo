@@ -17,6 +17,7 @@
 package whitehole.rendering;
 
 import com.jogamp.opengl.*;
+import java.util.ArrayList;
 import whitehole.math.Vec3f;
 
 public abstract class GLRenderer {
@@ -38,6 +39,7 @@ public abstract class GLRenderer {
     public static class RenderInfo {
         public GLAutoDrawable drawable;
         public RenderMode renderMode;
+        public ArrayList<String> activeLayers;
     }
     
     // -------------------------------------------------------------------------------------------------------------------------
@@ -78,6 +80,7 @@ public abstract class GLRenderer {
     public boolean boundToPathId() { return false; }
     public boolean boundToObjArg(int arg) { return false; }
     public boolean boundToProperty() { return false; }
+    public boolean boundToActiveLayers() { return false; }
     
     public void compileDisplayLists(RenderInfo info) throws GLException {
         if (displayLists != null) {

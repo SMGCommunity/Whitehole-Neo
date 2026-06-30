@@ -17,6 +17,7 @@
 package whitehole.rendering.special;
 
 import com.jogamp.opengl.*;
+import java.util.ArrayList;
 import whitehole.math.Vec3f;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.RendererFactory;
@@ -24,6 +25,7 @@ import whitehole.smg.object.AbstractObj;
 import whitehole.smg.object.PathObj;
 import whitehole.smg.object.PathPointObj;
 import whitehole.util.MathUtil;
+import whitehole.util.ObjIdUtil;
 import whitehole.util.RailUtil;
 
 /**
@@ -67,6 +69,8 @@ public final class TubeSliderRenderer extends GLRenderer {
     public boolean boundToObjArg(int arg) { return true; }
     @Override
     public boolean boundToProperty() { return true; }
+    @Override
+    public boolean boundToActiveLayers() { return true; }
     @Override
     public boolean gottaRender(GLRenderer.RenderInfo info) throws GLException {
         return info.renderMode != GLRenderer.RenderMode.TRANSLUCENT;
@@ -127,7 +131,6 @@ public final class TubeSliderRenderer extends GLRenderer {
             PathBaseOriginCube.render(info);
         if (PathData == null || PathData.size() <= 1)
             return;
-        
         
         GL2 gl = info.drawable.getGL().getGL2();
         gl.glPushMatrix();
@@ -746,7 +749,7 @@ public final class TubeSliderRenderer extends GLRenderer {
     }
     
     
-    public static String getAdditiveCacheKey(AbstractObj obj)
+    public static String getAdditiveCacheKey(AbstractObj obj, GLRenderer.RenderInfo info)
     {
         return obj.name.toLowerCase() + String.format("_%s_(%s|%s)",
             obj.stage.stageName,

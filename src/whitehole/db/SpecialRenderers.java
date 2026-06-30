@@ -37,7 +37,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
         super("data/specialrenderers.json", "/specialrenderers.json", true);
     }
     
-    public String tryGetAdditiveCacheKey(String objModelName, AbstractObj obj) {
+    public String tryGetAdditiveCacheKey(String objModelName, AbstractObj obj, GLRenderer.RenderInfo info) {
         SpecialRenderInfo renderinfo = getSpecialRenderInfo(obj.name);
         if (renderinfo != null)
             switch(renderinfo.rendererType)
@@ -57,7 +57,7 @@ public final class SpecialRenderers extends GameAndProjectDataHolder {
                 case "Range":
                     return ObjectRangeRenderer.getAdditiveCacheKey(obj, objModelName, renderinfo.rendererParams);
                 case "TubeSlider":
-                    return TubeSliderRenderer.getAdditiveCacheKey(obj);
+                    return TubeSliderRenderer.getAdditiveCacheKey(obj, info);
                     
                 case "CollisionOnly":
                     return KclRenderer.getAdditiveCacheKey(obj, renderinfo.rendererParams);

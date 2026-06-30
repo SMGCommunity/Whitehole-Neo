@@ -152,4 +152,47 @@ public class ObjIdUtil {
         
         return switchID;
     }
+
+
+    // =========================================================================================================
+    
+    public static AbstractObj tryFindGeneratorParent(AbstractObj child, ArrayList<String> activeLayers) {
+        int generatorID = child.data.getInt("GeneratorID");
+        String zoneName = child.stage.stageName;
+        
+        for (String cur : activeLayers) {
+            if (!cur.startsWith(zoneName+"/"))
+                continue;
+            
+            String key = cur.substring(zoneName.length()+1).toLowerCase();
+            for (AbstractObj obj : child.stage.objects.get(key)) {
+                int linkID = obj.data.getInt("l_id", -1);
+                if (generatorID == linkID)
+                    return obj;
+            }
+        }
+        return null;
+    }
+    
+    public static ArrayList<AbstractObj> tryFindGeneratorChild(AbstractObj parent, ArrayList<String> activeLayers) {
+        ArrayList<AbstractObj> foundObjs = new ArrayList();
+        int linkID = parent.data.getInt("l_id");
+        String zoneName = parent.stage.stageName;
+        
+        for (String cur : activeLayers) {
+            if (!cur.startsWith(zoneName+"/"))
+                continue;
+            
+            String key = cur.substring(zoneName.length()+1).toLowerCase();
+            for (AbstractObj obj : parent.stage.objects.get(key)) {
+                int generatorID = obj.data.getInt("GeneratorID", -1);
+                if (generatorID == -1)
+                    continue;
+                if (generatorID == linkID)
+                    foundObjs.add(obj);
+            }
+        }
+        
+        return foundObjs;
+    }
 }

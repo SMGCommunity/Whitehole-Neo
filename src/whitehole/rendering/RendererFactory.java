@@ -233,14 +233,11 @@ public final class RendererFactory {
         return cacheKey;
     }
     
-    public static String getAdditiveCacheKey(String objModelName, AbstractObj obj)
-    {
-        if (Whitehole.SpecialRenderers != null)
-        {
-            return Whitehole.SpecialRenderers.tryGetAdditiveCacheKey(objModelName, obj);
-        }
+    public static String getAdditiveCacheKey(String objModelName, AbstractObj obj, GLRenderer.RenderInfo info) {
+        if (Whitehole.SpecialRenderers == null)
+            return "";
         
-        return "";
+        return Whitehole.SpecialRenderers.tryGetAdditiveCacheKey(objModelName, obj, info);
     }
     
     // -------------------------------------------------------------------------------------------------------------------------

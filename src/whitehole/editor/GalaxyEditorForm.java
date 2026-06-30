@@ -3551,6 +3551,40 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
                 try {
                     gl.getContext().makeCurrent();
                     
+                    ArrayList<String> ActiveLayers = new ArrayList();
+                    if (isGalaxyMode) {
+                        DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
+                        zonelist.removeAllElements();
+
+                        for(String zone : galaxyArchive.zoneList) {
+                            if (!StageUtil.getActiveZoneNames(curScenarioIndex, galaxyArchive, zoneArchives.get(galaxyArchive.galaxyName)).contains(zone))
+                                continue; // Zone not loaded
+
+                            int layermask = curScenario.getInt(zone);
+                            ActiveLayers.add(zone+'/'+"Common");
+                            for (int i = 0 ; i < 16 ; i++) {
+                                if ((layermask & (1 << i)) != 0) {
+                                    char l = (char)('A' + i);
+                                    ActiveLayers.add(zone+'/'+"Layer"+l);
+                                    //System.out.println(zone+'/'+"Layer"+l);
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        int layers = zoneModeLayerBitmask;
+                        String zonename = curZone;
+                        ActiveLayers.add(zonename+'/'+"Common");
+                        for (int i = 0 ; i < 16 ; i++) {
+                            if ((layers & (1 << i)) != 0) {
+                                char l = (char)('A' + i);
+                                ActiveLayers.add(zonename+'/'+"Layer"+l);
+                                //System.out.println(zonename+'/'+"Layer"+l);
+                            }
+                        }
+                    }
+                    renderInfo.activeLayers = ActiveLayers;
+                    
                     if (isGalaxyMode || isSeparateZoneMode) {
                         for (AbstractObj obj : globalObjList.values()) {
                             obj.initRenderer(renderInfo);
@@ -3902,7 +3936,43 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         
         private void doRerenderTasks() {
             try {
+                if (rerenderTasks.isEmpty())
+                    return;
                 GL2 gl = renderInfo.drawable.getGL().getGL2();
+                
+                ArrayList<String> ActiveLayers = new ArrayList();
+                if (isGalaxyMode) {
+                    DefaultListModel zonelist = (DefaultListModel)listZones.getModel();
+                    zonelist.removeAllElements();
+
+                    for(String zone : galaxyArchive.zoneList) {
+                        if (!StageUtil.getActiveZoneNames(curScenarioIndex, galaxyArchive, zoneArchives.get(galaxyArchive.galaxyName)).contains(zone))
+                            continue; // Zone not loaded
+                        
+                        int layermask = curScenario.getInt(zone);
+                        ActiveLayers.add(zone+'/'+"Common");
+                        for (int i = 0 ; i < 16 ; i++) {
+                            if ((layermask & (1 << i)) != 0) {
+                                char l = (char)('A' + i);
+                                ActiveLayers.add(zone+'/'+"Layer"+l);
+                                //System.out.println(zone+'/'+"Layer"+l);
+                            }
+                        }
+                    }
+                }
+                else {
+                    int layers = zoneModeLayerBitmask;
+                    String zonename = curZone;
+                    ActiveLayers.add(zonename+'/'+"Common");
+                    for (int i = 0 ; i < 16 ; i++) {
+                        if ((layers & (1 << i)) != 0) {
+                            char l = (char)('A' + i);
+                            ActiveLayers.add(zonename+'/'+"Layer"+l);
+                            //System.out.println(zonename+'/'+"Layer"+l);
+                        }
+                    }
+                }
+                renderInfo.activeLayers = ActiveLayers;
 
                 while(!rerenderTasks.isEmpty()) {
                     String[] task = rerenderTasks.poll().split(":");
@@ -5174,6 +5244,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
     }
     
+    public void rerenderLayerAffected() {
+        for (AbstractObj obj : globalObjList.values())
+        {
+            if (obj.renderer == null)
+                continue;
+            
+            if (!obj.renderer.boundToActiveLayers())
+                continue;
+            
+            addRerenderTask("object:"+Integer.toString(obj.uniqueID));
+        }
+    }
+    
     private void updateScenarioList() {
         if (listScenarios.getSelectedValue() == null) {
             curScenarioIndex = 0;
@@ -5206,6 +5289,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame {
         }
         
         listZones.setSelectedIndex(0);
+        
+        rerenderLayerAffected();
     }
     
     

@@ -58,7 +58,7 @@ public class RendererCache {
     
     public static SimpleEntry<GLRenderer, String> getObjectRenderer(GLRenderer.RenderInfo info, AbstractObj obj) {
         String model = RendererFactory.getSubstitutedModelName(obj.name, obj, false);
-        String key = RendererFactory.getSubstitutedCacheKey(model, obj) + RendererFactory.getAdditiveCacheKey(model, obj);
+        String key = RendererFactory.getSubstitutedCacheKey(model, obj) + RendererFactory.getAdditiveCacheKey(model, obj, info);
         
         if (CACHE.containsKey(key))
         {
