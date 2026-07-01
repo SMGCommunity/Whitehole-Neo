@@ -4,6 +4,11 @@
     <import file="nbproject/build-impl.xml"/>
     <target name="-post-jar">
         <copy file="Whitehole.bat" todir="${dist.dir}"/>
+        <unzip src="lib/jogamp-fat.jar" dest="${dist.dir}">
+            <patternset>
+                <include name="natives/linux-*/**"/>
+            </patternset>
+        </unzip>
         <copy file="data/hashlookup.txt" todir="${dist.dir}/data"/>
         <copy file="data/galaxies.json" todir="${dist.dir}/data"/>
         <copy file="data/zones.json" todir="${dist.dir}/data"/>
